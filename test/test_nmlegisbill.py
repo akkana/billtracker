@@ -24,6 +24,9 @@ class TestNMlegisbill(unittest.TestCase):
 
     def test(self):
 
+        # To see large diffs, set this:
+        self.maxDiff = None
+
         bill = nmlegisbill.parse_bill_page('SB83', year=2018)
         self.assertEqual(bill,
                          { 'billno': 'SB83',
@@ -37,6 +40,11 @@ class TestNMlegisbill(unittest.TestCase):
                            'sponsorlink': 'http://www.nmlegis.gov/Members/Legislator?SponCode=SSRUE',
                            'curloc': 'Senate Finance Committee',
                            'curloclink': 'https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=SFC',
+                           'status': '\n'
+                           '<span class="list-group-item" '
+                           'id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_3">Legislative '
+                           'Day: 9<br/>Calendar Day: 01/31/2018<br><strong>SPAC: Reported by '
+                           'committee with Do Pass recommendation</strong></span>\n',
                            'contents_url': 'https://www.nmlegis.gov/Sessions/18%20Regular/bills/senate/SB0083.html'
                          })
 
@@ -53,6 +61,12 @@ class TestNMlegisbill(unittest.TestCase):
                            'sponsorlink': 'http://www.nmlegis.gov/Members/Legislator?SponCode=HMAES',
                            'curloc': 'House Calendar',
                            'curloclink': 'https://www.nmlegis.gov/Entity/House/Floor_Calendar',
+                           'status': '\n'
+                           '<span class="list-group-item" '
+                           'id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_3">Legislative '
+                           'Day: 3<br/>Calendar Day: 01/30/2018<br><strong>HJC: Reported by '
+                           'committee with Do Pass recommendation</strong></span>\n',
+
                            'contents_url': 'https://www.nmlegis.gov/Sessions/18%20Regular/resolutions/house/HJR01.html'
                          })
 

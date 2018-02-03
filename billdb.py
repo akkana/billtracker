@@ -10,6 +10,14 @@ dbconn = None
 cursor = None
 dbname = "./bills.sqlite"
 
+# Use a dictionary row factory so the data we retrieve from the db
+# has columns labeled and we don't need to worry about order.
+def dict_factory(cursor, row):
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
+
 def init(alternate_db=None):
     global dbname, dbconn, cursor
 
@@ -19,6 +27,8 @@ def init(alternate_db=None):
     # Connect to the db. This will create the file if it isn't already there.
     try:
         dbconn = sqlite3.connect(dbname)
+        dbconn.row_factory = dict_factory
+
     except sqlite3.OperationalError:
         print("Can't create database file %s" % dbname)
         sys.exit(1)
@@ -34,6 +44,7 @@ def init(alternate_db=None):
         print("Added user table")
         cursor.execute('''CREATE TABLE bills (billno, mod_date)''')
         print("Added bills table")
+
     except sqlite3.OperationalError:
         pass
 
@@ -59,6 +70,12 @@ def update_and_quit():
 #
 # Functions relating to bills:
 #
+
+def all_bills():
+    '''Return a list of all the bills in the database.'''
+
+    cursor.execute("SELECT * from bills")
+    return cursor.fetchall()
 
 def update_bill(billno, date):
     if exists_in_db(billno, "bills"):
@@ -90,7 +107,8 @@ def update_user(user, email=None, bills=None, last_check=None):
                                                                  last_check))
         return
 
-    # The user already exists. data = (user, email, bills, last_check).
+    # The user already exists.
+    # data = {'username': user, 'email': email, 'bills': list, 'last_check': d }
     # Update what we can. Don't change last_check unless it was specified.
     setters = []
     vals = []
@@ -112,15 +130,16 @@ def update_user(user, email=None, bills=None, last_check=None):
 def get_user_bills(user):
     cursor.execute("SELECT bills FROM users WHERE username = ?", (user,))
 
-    # fetchone() returns a tuple even though it's explicitly asking
-    # for only one. Go figure.
-    bills = cursor.fetchone()[0]
+    # fetchone() returns a tuple even though it's explicitly
+    # asking for only one. Go figure.
+    bills = cursor.fetchone()
     if bills:
-        return bills.split(',')
+        return bills['bills'].split(',')
     return None
-
 
 if __name__ == '__main__':
     init()
+
+    print(all_bills())
 
     update_and_quit()

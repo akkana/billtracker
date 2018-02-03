@@ -60,16 +60,42 @@ class URLmapper:
 
 # Use localhost:// with cached files, for testing CGI:
 class LocalhostURLmapper(URLmapper):
-    def __init__(self, localurl, realurl):
-        self.localurl = localurl
-        self.baseurl = realurl
+    def __init__(self, localurl, realurl, realbillurlpat):
+        self.baseurl = localurl
+        self.remoteurl = realurl
+        self.realbillurlpat = realbillurlpat
+
+    def to_abs_link(self, url, cururl):
+        '''Try to map relative, / and localhost URLs to absolute ones
+           based on the realurl.
+           cururl is the page on which the link was found,
+           for relative links like ../
+        '''
+        mapped_url = URLmapper.to_abs_link(self, url, cururl)
+
+        # Now we should have an absolute link in terms of localhost.
+        # But if it's a bill URL like http://localhost/foo/test/2018-HB98.html,
+        # remap it to the real url of
+        # http://www.nmlegis.gov/lcs/legislation.aspx?chamber=H&legtype=B&legno=98&year=18
+        if not mapped_url.startswith(self.baseurl):
+            return mapped_url
+
+        mapped_url = mapped_url.replace(self.baseurl, '')
+
+        # Now it's just /test/2018-HB98.html
+        if not mapped_url.startswith('/test/20'):
+            return mapped_url
+        year = mapped_url[8:10]
+        match = re.match('([HS])([A-Z]+)([0-9]+)', mapped_url[11:-5])
+        if not match:
+            return mapped_url
+        chamber, billtype, number = match.groups()
+        return self.realbillurlpat % (self.remoteurl, chamber,
+                                      billtype, number,
+                                      (year_to_2digit(year)))
 
     def bill_url(self, chamber, billtype, number, year):
-        # print('Local url is %s/test/20%s-%s%s%s.html' % (self.localurl,
-        #                                                  year_to_2digit(year),
-        #                                                  chamber, billtype,
-        #                                                  number))
-        return '%s/test/20%s-%s%s%s.html' % (self.localurl,
+        return '%s/test/20%s-%s%s%s.html' % (self.baseurl,
                                              year_to_2digit(year),
                                              chamber, billtype, number)
 
@@ -87,6 +113,60 @@ class LocalURLmapper(URLmapper):
 
 url_mapper = URLmapper('https://www.nmlegis.gov',
     '%s/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s')
+
+committees = {
+    "HAFC": "House Appropriations & Finance",
+    "HAWC": "House Agriculture, Water & Wildlife",
+    "HAWR": "Agriculture, Water Resources",
+    "HBEC": "House Business & Employment",
+    "HBIC": "House Business &amp; Industry",
+    "HCAL": "House Calendar (for a vote)",
+    "HCPAC": "Consumer &amp; Public Affairs",
+    "HEC": "House Education Committee",
+    "HEENC": "House Energy, Environment & Natural Resources",
+    "HGEIC": "House Gov't, Elections & Indian Affairs",
+    "HHC": "House Health",
+    "HHHC": "House Health and Human Services",
+    "HJC": "House Judiciary",
+    "HLEDC": "House Labor &amp; Economic Development",
+    "HLELC": " House Local Government, Elections, Land Grants &amp; Cultural Affairs",
+    "HR": "House Rules",
+    "HXRC": "House Rules & Order of Business Committee",
+    "HRPA": "House Regulatory & Public Affairs",
+    "HSCA": "House Safety & Civil Affairs",
+    "HSIVC": "House  State Gov't, Indian &amp; Veteran Affairs",
+    "HTPWC": "House Transportation, Public Works &amp; Capital Improvements",
+    "HTPW": "House Transportation & Public Works",
+    "HTRC": "House Tax &amp; Revenue",
+    "HWMC": "House Ways & Means",
+    "SAIC": "Senate Indian and Cultural Affairs",
+    "SCAL": "Senate Calendar (for vote)",
+    "SXCC": "Senate Committee on Committees",
+    "SCON": "Senate Conservation",
+    "SCORC": "Senate Corporations & Transportation",
+    "SEC": "Senate Education Committee",
+    "SFC": "Senate Finance Committee",
+    "SJC": "Senate Judiciary Committee",
+    "SPAC": "Senate Public Affairs",
+    "SRC": "Senate Rules Committee",
+}
+
+# User-friendly strings for the various bill keys:
+# (Not actually used yet)
+# keytitles = {
+#     'billno'       : 'Bill #',
+#     'chamber'      : 'Chamber',
+#     'billtype'     : 'Type',
+#     'number'       : 'Number',
+#     'year'         : 'Year',
+#     'bill_url    ' : 'Bill Link',
+#     'title'        : 'Title',
+#     'sponsor'      : 'Sponsor',
+#     'sponsorlink'  : 'Sponsor link',
+#     'curloc'       : 'Current Location',
+#     'curloclink'   : 'Current Location Link',
+#     'contents_url' : 'Bill Contents Link',
+# }
 
 def year_to_2digit(year):
     '''Translate a year in various formats to a 2-digit string.
@@ -131,7 +211,7 @@ def parse_bill_page(billno, year=None):
                                   billdic['number'],
                                   billdic['year'])
     if ':' in baseurl:
-        billdic['bill_url'] = baseurl
+        billdic['bill_url'] = url_mapper.to_abs_link(baseurl, baseurl)
         r = requests.get(baseurl)
         soup = BeautifulSoup(r.text, 'lxml')
     else:
@@ -164,11 +244,49 @@ def parse_bill_page(billno, year=None):
                                           id="MainContent_formViewLegislationTextIntroduced_linkLegislationTextIntroducedHTML")['href'],
                                            baseurl)
 
+    # The all-important part: what was the most recent action?
+    actiontable = soup.find("table",
+      id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions")
+    if actiontable:
+        actions = actiontable.findAll("tr")
+        status = None
+        # Now we want the last nonempty action.
+        # Unfortunately the page tends to have several empty <tr>s.
+        for tr in reversed(actions):
+            # span = tr.find("span")
+            # if span:
+            #     billdic["status"] = span
+            if tr.text.strip():
+                # It is surprisingly hard to say "just give me
+                # what's inside this td."
+                billdic["status"] = ''.join(map(str, tr.find("td").contents))
+                # nmlegis erroneously uses <br>blah</br><strong> and
+                # apparently assumes browsers will put a break at the </br>.
+                # Since that's illegal HTML, BS doesn't parse it that way.
+                # But if we don't compensate, the status looks awful.
+                # So try to mitigate that by inserting a <br> before <strong>.
+                billdic["status"] = re.sub('<strong>', '<br><strong>',
+                                           billdic["status"])
+                break
+
     # The bill's page has other useful info, like votes, analysis etc.
-    # but unfortunately that's all filled in with JS and Ajax so
+    # but unfortunately that's all filled in later with JS and Ajax so
     # it's invisible to us.
 
     return billdic
+
+# There doesn't seem to be a way, without javascript,
+# to get a list of all current legislation. Sigh.
+# Here's a failed attempt.
+# def get_all_legislation(year):
+#     payload = {'ctl00$MainContent$ddlSessionStart': '56',
+#                'ctl00$MainContent$ddlSessionEnd': '56',
+#                'ctl00$MainContent$chkSearchBills': 'on',
+#                'ctl00$MainContent$chkSearchMemorials': 'on',
+#                'MainContent_chkSearchResolutions': 'on',
+#               }
+#     r = requests.post('https://nmlegis.gov/Legislation/Legislation_List',
+#                       data=payload)
 
 if __name__ == '__main__':
     def print_bill_dic(bd):
