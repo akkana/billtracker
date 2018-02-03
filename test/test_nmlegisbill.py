@@ -18,19 +18,20 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import nmlegisbill
 
+nmlegisbill.url_mapper = nmlegisbill.DebugURLmapper('https://www.nmlegis.gov')
+
 class TestNMlegisbill(unittest.TestCase):
 
     def test(self):
 
-        bill = nmlegisbill.parse_bill_page('SB83', year=2018,
-                                           localfile='test/2018-SB83.html')
+        bill = nmlegisbill.parse_bill_page('SB83', year=2018)
         self.assertEqual(bill,
                          { 'billno': 'SB83',
                            'chamber': 'S',
                            'billtype': 'B',
                            'number': '83',
                            'year': '18',
-                           'bill_url': 'test/2018-SB83.html',
+                           'bill_url': './test/2018-SB83.html',
                            'title': 'SUNSHINE PORTAL AUDIT & COMPLIANCE',
                            'sponsor': 'Sander Rue',
                            'sponsorlink': 'http://www.nmlegis.gov/Members/Legislator?SponCode=SSRUE',
@@ -39,15 +40,14 @@ class TestNMlegisbill(unittest.TestCase):
                            'contents_url': 'https://www.nmlegis.gov/Sessions/18%20Regular/bills/senate/SB0083.html'
                          })
 
-        bill = nmlegisbill.parse_bill_page('HJR1', year=2018,
-                                           localfile='test/2018-HJR1.html')
+        bill = nmlegisbill.parse_bill_page('HJR1', year=2018)
         self.assertEqual(bill,
                          { 'billno': 'HJR1',
                            'chamber': 'H',
                            'billtype': 'JR',
                            'number': '1',
                            'year': '18',
-                           'bill_url': 'test/2018-HJR1.html',
+                           'bill_url': './test/2018-HJR1.html',
                            'title': 'LAND GRANT FUND DISTRIBUTIONS, CA',
                            'sponsor': 'Antonio "Moe" Maestas',
                            'sponsorlink': 'http://www.nmlegis.gov/Members/Legislator?SponCode=HMAES',

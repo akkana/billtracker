@@ -21,16 +21,22 @@ print('''Content-type: text/html
 
 form = cgi.FieldStorage()
 if "user" in form:
-    print("<p>User: %s is tracking bills:" % form['user'].value)
+    print("<p>\nBills %s is tracking:" % form['user'].value)
 
     billdb.init()
 
     bills = billdb.get_user_bills("testuser")
+    print("<dl>")
     for bill in bills:
-        print("<p>", bill)
+        print("<dt>", bill)
         billdic = nmlegisbill.parse_bill_page(bill)
         for key in billdic:
-            print("<br>\n &nbsp; &nbsp; %s: %s" % (key, billdic[key]))
+            val = billdic[key]
+            if key.endswith("url") or key.endswith("link"):
+                print("<dd>%s: <a href='%s'>%s</a>" % (key, val, val))
+            else:
+                print("<dd>%s: %s" % (key, val))
+    print("</dl>")
 else:
     print("Username?")
 
