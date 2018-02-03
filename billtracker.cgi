@@ -24,13 +24,7 @@ print('''Content-type: text/html
 <h1>New Mexico Bill Tracker</h1>
 ''')
 
-form = cgi.FieldStorage()
-if "user" in form:
-    print("<p>\nBills <b>%s</b> is tracking:" % form['user'].value)
-
-    billdb.init()
-
-    bills = billdb.get_user_bills("testuser")
+def show_bill_list(bills):
     print("<dl>")
     for bill in bills:
         print("<dt>", bill)
@@ -45,7 +39,23 @@ if "user" in form:
             else:
                 print("<dd>%s: %s" % (key, val))
     print("</dl>")
-else:
+
+form = cgi.FieldStorage()
+
+if "bills" in form:
+    bills = form["bills"].value.split(',')
+    print("<p>\nBills:", form["bills"].value)
+    show_bill_list(bills)
+
+if "user" in form:
+    print("<p>\nBills <b>%s</b> is tracking:" % form["user"].value)
+
+    billdb.init()
+
+    bills = billdb.get_user_bills(form["user"].value)
+    show_bill_list(bills)
+
+if not form.keys():
     print("Username?")
 
 print("</body></html>")
