@@ -50,40 +50,61 @@ def nmlegis_link(url, cururl):
         url += '?' + purl.query
     return url
 
-def parse_bill_page(billno, year=None):
-    chamber, billtype, number, year = billno_to_parts(billno, year)
+def parse_bill_page(billno, year=None, localfile=None):
+    '''Download and parse a bill's page on nmlegis.org.
+       Optional localfile argument is only for unit tests.
+       Return a dictionary containing:
+       chamber, billtype, number, year,
+       title, sponsor, sponsorlink,
+       curloc, curloclink, and contents_url.
+    '''
 
-    bill_url = 'https://www.nmlegis.gov/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s' % (chamber, billtype, number, year)
-    print("bill page:", bill_url)
+    billdic = { 'billno': billno }
+    (billdic['chamber'], billdic['billtype'],
+     billdic['number'], billdic['year']) = billno_to_parts(billno, year)
 
-    r = requests.get(bill_url)
-    soup = BeautifulSoup(r.text, 'lxml')
+    baseurl = 'https://www.nmlegis.gov/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s' % \
+              (billdic['chamber'],
+               billdic['billtype'],
+               billdic['number'],
+               billdic['year'])
+    if localfile:
+        with open(localfile) as fp:
+            billdic['bill_url'] = localfile
+            soup = BeautifulSoup(fp, 'lxml')
+        baseurl = "http://www.nmlegis.gov/Legislation/Legislation"
+    else:
+        billdic['bill_url'] = baseurl
+        r = requests.get(baseurl)
+        soup = BeautifulSoup(r.text, 'lxml')
 
-    title = soup.find("span",
-                      id="MainContent_formViewLegislation_lblTitle").text
+    billdic['title'] = soup.find("span",
+                           id="MainContent_formViewLegislation_lblTitle").text
     sponsor_a = soup.find("a",
                           id="MainContent_formViewLegislation_linkSponsor")
-    sponsor = sponsor_a.text.strip()
-    sponsorlink = nmlegis_link(sponsor_a['href'], bill_url)
+    billdic['sponsor'] = sponsor_a.text.strip()
+    billdic['sponsorlink'] = nmlegis_link(sponsor_a['href'], baseurl)
 
     curloc_a  = soup.find("a",
                           id="MainContent_formViewLegislation_linkLocation")
-    curloc = curloc_a.text.strip()
-    curloclink = nmlegis_link(curloc_a['href'], bill_url)
+    billdic['curloc'] = curloc_a.text.strip()
+    billdic['curloclink'] = nmlegis_link(curloc_a['href'], baseurl)
 
-    contents_url = nmlegis_link(soup.find("a",
+    billdic['contents_url'] = nmlegis_link(soup.find("a",
                                           id="MainContent_formViewLegislationTextIntroduced_linkLegislationTextIntroducedHTML")['href'],
-                                bill_url)
+                                           baseurl)
 
     # The bill's page has other useful info, like votes, analysis etc.
     # but unfortunately that's all filled in with JS and Ajax so
     # it's invisible to us.
 
-    print("%s: %s" % (billno, title))
-    print("Current location: %s --> %s" % (curloc, curloclink))
-    print("Sponsor: %s --> %s" % (sponsor, sponsorlink))
-    print("Contents at: %s" % (contents_url))
+    return billdic
 
 if __name__ == '__main__':
-    parse_bill_page('SJM6')
+    billdic = parse_bill_page('HJR1', localfile="test/2018-HJR1.html")
 
+    print("%s: %s" % (billdic['billno'], billdic['title']))
+    print("Current location: %s --> %s" % (billdic['curloc'],
+                                           billdic['curloclink']))
+    print("Sponsor: %s --> %s" % (billdic['sponsor'], billdic['sponsorlink']))
+    print("Contents at: %s" % (billdic['contents_url']))

@@ -10,8 +10,12 @@ dbconn = None
 cursor = None
 dbname = "./bills.sqlite"
 
-def init():
-    global dbconn, cursor
+def init(alternate_db=None):
+    global dbname, dbconn, cursor
+
+    if alternate_db:
+        dbname = alternate_db
+
     # Connect to the db. This will create the file if it isn't already there.
     try:
         dbconn = sqlite3.connect(dbname)
@@ -115,27 +119,8 @@ def get_user_bills(user):
         return bills.split(',')
     return None
 
-#
-# Functions just for testing:
-#
-
-def populate():
-    update_bill('SB83', '2018-01-01')
-    update_bill('SJM6', '2018-01-10')
-    update_bill('SB83', '2018-01-18')
-    update_user("testuser", email="user@example.com")
-    update_user("someoneelse", email="someone@example.com")
-    update_user("testuser", email="testuser@example.com")
-    update_user("testuser", bills="SB83,SJM6")
 
 if __name__ == '__main__':
     init()
-
-    # populate()
-
-    bills = get_user_bills("testuser")
-    print("testuser's bills:", bills)
-    bills = get_user_bills("someoneelse")
-    print("someone else's bills:", bills)
 
     update_and_quit()
