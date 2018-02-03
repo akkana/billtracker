@@ -8,6 +8,11 @@ cgitb.enable()
 import billdb
 import nmlegisbill
 
+# While testing, use local files:
+nmlegisbill.url_mapper = \
+    nmlegisbill.LocalhostURLmapper('http://localhost/billtracker',
+                                   'https://www.nmlegis.gov')
+
 print('''Content-type: text/html
 
 <html>
@@ -21,7 +26,7 @@ print('''Content-type: text/html
 
 form = cgi.FieldStorage()
 if "user" in form:
-    print("<p>\nBills %s is tracking:" % form['user'].value)
+    print("<p>\nBills <b>%s</b> is tracking:" % form['user'].value)
 
     billdb.init()
 
@@ -29,7 +34,10 @@ if "user" in form:
     print("<dl>")
     for bill in bills:
         print("<dt>", bill)
-        billdic = nmlegisbill.parse_bill_page(bill)
+        billdic = nmlegisbill.parse_bill_page(bill, 2018)
+        if not billdic:
+            print("<dt>Error: couldn't find bill", bill)
+            continue
         for key in billdic:
             val = billdic[key]
             if key.endswith("url") or key.endswith("link"):

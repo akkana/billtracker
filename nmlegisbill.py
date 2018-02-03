@@ -12,7 +12,10 @@ from bs4 import BeautifulSoup
 # For offline debugging without hitting the real nmlegis site too often,
 # URL handling goes through this class, which can be set to debug mode.
 # For debugging, set:
-# nmlegisbill.url_mapper = nmlegisbill.DebugURLmapper('https://www.nmlegis.gov')
+# nmlegisbill.url_mapper = nmlegisbill.LocalURLmapper('https://www.nmlegis.gov')
+# nmlegisbill.url_mapper = \
+#     nmlegisbill.LocalhostURLmapper('http://localhost/billtracker',
+#                                    'https://www.nmlegis.gov')
 # or define your own URL mapper class: see DebugURLMapper below.
 
 class URLmapper:
@@ -48,9 +51,30 @@ class URLmapper:
         return url
 
     def bill_url(self, chamber, billtype, number, year):
-        return self.billurlpat % (self.baseurl, chamber, billtype, number, year)
+        return self.billurlpat % (self.baseurl, chamber, billtype, number,
+                                  (year_to_2digit(year)))
 
-class DebugURLmapper(URLmapper):
+#
+# Two derived classes that are useful for debugging:
+#
+
+# Use localhost:// with cached files, for testing CGI:
+class LocalhostURLmapper(URLmapper):
+    def __init__(self, localurl, realurl):
+        self.localurl = localurl
+        self.baseurl = realurl
+
+    def bill_url(self, chamber, billtype, number, year):
+        # print('Local url is %s/test/20%s-%s%s%s.html' % (self.localurl,
+        #                                                  year_to_2digit(year),
+        #                                                  chamber, billtype,
+        #                                                  number))
+        return '%s/test/20%s-%s%s%s.html' % (self.localurl,
+                                             year_to_2digit(year),
+                                             chamber, billtype, number)
+
+# Use cached local files: good for unit tests.
+class LocalURLmapper(URLmapper):
     '''For debugging, look for files like ./test/2018-HJR1.html
        but still use the real links for other links.
     '''
@@ -58,8 +82,6 @@ class DebugURLmapper(URLmapper):
         self.baseurl = baseurl
 
     def bill_url(self, chamber, billtype, number, year):
-        print('Returning: ./test/20%s-%s%s%s.html' % (year_to_2digit(year),
-                                            chamber, billtype, number))
         return './test/20%s-%s%s%s.html' % (year_to_2digit(year),
                                             chamber, billtype, number)
 
@@ -120,8 +142,14 @@ def parse_bill_page(billno, year=None):
         # This probably ought to be folded into the url mapper somehow.
         baseurl = "http://www.nmlegis.gov/Legislation/Legislation"
 
-    billdic['title'] = soup.find("span",
-                           id="MainContent_formViewLegislation_lblTitle").text
+    # If something failed -- for instance, if we got an empty file
+    # or an error page -- then the title span won't be there.
+    # Detect that:
+    try:
+        billdic['title'] = soup.find("span",
+                                     id="MainContent_formViewLegislation_lblTitle").text
+    except AttributeError:
+        return None
     sponsor_a = soup.find("a",
                           id="MainContent_formViewLegislation_linkSponsor")
     billdic['sponsor'] = sponsor_a.text.strip()

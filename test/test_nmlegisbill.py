@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import nmlegisbill
 
-nmlegisbill.url_mapper = nmlegisbill.DebugURLmapper('https://www.nmlegis.gov')
+nmlegisbill.url_mapper = nmlegisbill.LocalURLmapper('https://www.nmlegis.gov')
 
 class TestNMlegisbill(unittest.TestCase):
 
