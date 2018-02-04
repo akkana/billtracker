@@ -9,22 +9,27 @@ import billdb
 
 class TestBillDB(unittest.TestCase):
 
-    def populate():
+    def populate(self):
         billdb.update_bill('SB83', '2018-01-01')
         billdb.update_bill('SJM6', '2018-01-10')
         billdb.update_bill('SB83', '2018-01-18')
-        billdb.update_user("testuser", email="user@example.com")
-        billdb.update_user("someoneelse", email="someone@example.com")
-        billdb.update_user("testuser", email="testuser@example.com")
-        billdb.update_user("testuser", bills="SB83,SJM6")
+
+        billdb.update_user(email="user@example.com")
+        billdb.update_user(email="someone@example.com")
+        billdb.update_user("user@example.com", bills="SB83,SJM6")
 
     def test(self):
-        billdb.init(alternate_db="testdb.sqlite")
-        TestBillDB.populate()
+        try:
+            os.unlink('testdb.sqlite')
+        except:
+            pass
 
-        bills = billdb.get_user_bills("testuser")
+        billdb.init(alternate_db="testdb.sqlite")
+        self.populate()
+
+        bills = billdb.get_user_bills("user@example.com")
         self.assertEqual(bills, ['SB83', 'SJM6'])
-        bills = billdb.get_user_bills("someoneelse")
+        bills = billdb.get_user_bills("someone@example.com")
         self.assertEqual(bills, None)
 
         # billdb.update_and_quit()

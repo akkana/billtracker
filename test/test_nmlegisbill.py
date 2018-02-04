@@ -12,6 +12,7 @@
 # in unit tests without hitting the warning.
 
 import unittest
+import datetime
 
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -28,6 +29,8 @@ class TestNMlegisbill(unittest.TestCase):
         self.maxDiff = None
 
         bill = nmlegisbill.parse_bill_page('SB83', year=2018)
+        # mod date keeps changing. Don't try to test it.
+        del bill['mod_date']
         self.assertEqual(bill,
                          { 'billno': 'SB83',
                            'chamber': 'S',
@@ -35,20 +38,17 @@ class TestNMlegisbill(unittest.TestCase):
                            'number': '83',
                            'year': '18',
                            'bill_url': './test/2018-SB83.html',
-                           'title': 'SUNSHINE PORTAL AUDIT & COMPLIANCE',
-                           'sponsor': 'Sander Rue',
+                           'title': u'SUNSHINE PORTAL AUDIT & COMPLIANCE',
+                           'sponsor': u'Sander Rue',
                            'sponsorlink': 'http://www.nmlegis.gov/Members/Legislator?SponCode=SSRUE',
-                           'curloc': 'Senate Finance Committee',
+                           'curloc': u'Senate Finance Committee',
                            'curloclink': 'https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=SFC',
-                           'status': '\n'
-                           '<span class="list-group-item" '
-                           'id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_3">Legislative '
-                           'Day: 9<br/>Calendar Day: 01/31/2018<br><strong>SPAC: Reported by '
-                           'committee with Do Pass recommendation</strong></span>\n',
+                           'status': '\n<span class="list-group-item" id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_3">Legislative Day: 9<br/>Calendar Day: 01/31/2018<br><strong>SPAC: Reported by committee with Do Pass recommendation</strong></span>\n',
                            'contents_url': 'https://www.nmlegis.gov/Sessions/18%20Regular/bills/senate/SB0083.html'
                          })
 
         bill = nmlegisbill.parse_bill_page('HJR1', year=2018)
+        del bill['mod_date']
         self.assertEqual(bill,
                          { 'billno': 'HJR1',
                            'chamber': 'H',
@@ -56,16 +56,12 @@ class TestNMlegisbill(unittest.TestCase):
                            'number': '1',
                            'year': '18',
                            'bill_url': './test/2018-HJR1.html',
-                           'title': 'LAND GRANT FUND DISTRIBUTIONS, CA',
-                           'sponsor': 'Antonio "Moe" Maestas',
+                           'title': u'LAND GRANT FUND DISTRIBUTIONS, CA',
+                           'sponsor': u'Antonio "Moe" Maestas',
                            'sponsorlink': 'http://www.nmlegis.gov/Members/Legislator?SponCode=HMAES',
-                           'curloc': 'House Calendar',
+                           'curloc': u'House Calendar',
                            'curloclink': 'https://www.nmlegis.gov/Entity/House/Floor_Calendar',
-                           'status': '\n'
-                           '<span class="list-group-item" '
-                           'id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_3">Legislative '
-                           'Day: 3<br/>Calendar Day: 01/30/2018<br><strong>HJC: Reported by '
-                           'committee with Do Pass recommendation</strong></span>\n',
+                           'status': '\n<span class="list-group-item" id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_3">Legislative Day: 3<br/>Calendar Day: 01/30/2018<br><strong>HJC: Reported by committee with Do Pass recommendation</strong></span>\n',
 
                            'contents_url': 'https://www.nmlegis.gov/Sessions/18%20Regular/resolutions/house/HJR01.html'
                          })

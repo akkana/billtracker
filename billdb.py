@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import sqlite3
 # https://docs.python.org/3/library/sqlite3.html
@@ -26,7 +26,7 @@ def init(alternate_db=None):
 
     # Connect to the db. This will create the file if it isn't already there.
     try:
-        dbconn = sqlite3.connect(dbname)
+        dbconn = sqlite3.connect(dbname, detect_types=sqlite3.PARSE_DECLTYPES)
         dbconn.row_factory = dict_factory
 
     except sqlite3.OperationalError:
@@ -40,7 +40,7 @@ def init(alternate_db=None):
     # This is the only part we keep in the fixed database;
     # everything else is updated from nmlegis.gov web pages.
     try:
-        cursor.execute('''CREATE TABLE users (username, email, bills, last_check)''')
+        cursor.execute('''CREATE TABLE users (email, password, auth_code, bills, last_check timestamp)''')
         print("Added user table")
         cursor.execute('''CREATE TABLE bills (billno, mod_date)''')
         print("Added bills table")
@@ -88,56 +88,72 @@ def update_bill(billno, date):
 
 #
 # Functions relating to users:
+# Users have: email, password, auth_code, bills, last_check
 #
 
-def update_user(user, email=None, bills=None, last_check=None):
+def update_user(email, bills=None, last_check=None):
     '''Add or update a user.
        last_check is a datetime; now if not specified.
        If email or bills is None, will leave that field unchanged.
+
     '''
 
+    if not email:
+        raise RuntimeError("update_user with no user")
+        return
+
     # Is it a new user?
-    cursor.execute("SELECT * from users WHERE username=?", (user,))
+    cursor.execute("SELECT * from users WHERE email=?", (email,))
     data  = cursor.fetchone()
     if data is None:
-        if not email:
-            raise RuntimeError("Can't add a new user without email address")
         if not last_check:
             last_check = datetime.datetime.now()
-        cursor.execute("INSERT INTO users VALUES (?, ?, ?, ?)", (user, email,
-                                                                 "",
-                                                                 last_check))
+        cursor.execute("INSERT INTO users VALUES (?, ?, ?, ?, ?)",
+                       (email, "", "", "", last_check))
         return
 
     # The user already exists.
-    # data = {'username': user, 'email': email, 'bills': list, 'last_check': d }
+    # Guard against empty updates, but check explicitly for None:
+    # allow changing bills to ''.
+    if bills == None and last_check == None:
+        print("update_user %s with nothing to update" % email)
+        return
+
     # Update what we can. Don't change last_check unless it was specified.
     setters = []
     vals = []
-    if email:
-        setters.append("email=?")
-        vals.append(email)
-    if bills:
+    if bills != None:
         setters.append("bills=?")
         vals.append(bills)
     if last_check:
         setters.append("last_check=?")
         vals.append(last_check)
-    vals.append(user)
 
-    cursor.execute("UPDATE users SET %s WHERE username=?" % ', '.join(setters),
+    vals.append(email)
+
+    cursor.execute('UPDATE users SET %s WHERE email=?' % ', '.join(setters),
                    vals)
-    print("Added setters", setters, "vals", vals)
+    dbconn.commit()
 
-def get_user_bills(user):
-    cursor.execute("SELECT bills FROM users WHERE username = ?", (user,))
+def all_users():
+    '''Return a list of all users in the database.'''
+
+    cursor.execute("SELECT * from users")
+    return cursor.fetchall()
+
+def get_user_bills(email):
+    cursor.execute("SELECT bills FROM users WHERE email = ?", (email,))
 
     # fetchone() returns a tuple even though it's explicitly
     # asking for only one. Go figure.
     bills = cursor.fetchone()
-    if bills:
+    if bills['bills']:
         return bills['bills'].split(',')
     return None
+
+def set_user_bills(email, bills):
+    cursor.execute("UPDATE users SET bills WHERE email = ?", (email, bills))
+    dbconn.commit()
 
 if __name__ == '__main__':
     init()

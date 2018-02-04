@@ -1,13 +1,18 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # Scrape bill data from bill pages from nmlegis.org.
 
 import datetime
 import re
 import requests
-import urllib.parse
 import posixpath
 from bs4 import BeautifulSoup
+import sys
+
+if sys.version[:1] == '2':
+    from urlparse import urlparse
+else:
+    from urllib.parse import urlparse
 
 # For offline debugging without hitting the real nmlegis site too often,
 # URL handling goes through this class, which can be set to debug mode.
@@ -34,7 +39,7 @@ class URLmapper:
            cururl is the page on which the link was found,
            for relative links like ../
         '''
-        purl = urllib.parse.urlparse(url)
+        purl = urlparse(url)
         if purl.scheme:
             return url
 
@@ -42,7 +47,7 @@ class URLmapper:
             return self.baseurl + url
 
         # Otherwise it's (we hope) a relative URL, relative to cururl.
-        curl = urllib.parse.urlparse(cururl)
+        curl = urlparse(cururl)
         path = posixpath.normpath(posixpath.join(posixpath.dirname(curl.path),
                                                  purl.path))
         url = curl.scheme  + '://' + curl.netloc + path
@@ -272,6 +277,8 @@ def parse_bill_page(billno, year=None):
     # The bill's page has other useful info, like votes, analysis etc.
     # but unfortunately that's all filled in later with JS and Ajax so
     # it's invisible to us.
+
+    billdic['mod_date'] = datetime.datetime.now()
 
     return billdic
 
