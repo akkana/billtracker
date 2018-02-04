@@ -45,6 +45,8 @@ def init(alternate_db=None):
         cursor.execute('''CREATE TABLE bills (billno, mod_date)''')
         print("Added bills table")
 
+        dbconn.commit()
+
     except sqlite3.OperationalError:
         pass
 
@@ -142,4 +144,9 @@ if __name__ == '__main__':
 
     print(all_bills())
 
-    update_and_quit()
+    cursor.execute("SELECT username,bills FROM users")
+    bills_users = cursor.fetchall()
+    for userdic in bills_users:
+        print("%s bills: %s" % (userdic["username"], userdic["bills"]))
+
+    # update_and_quit()
