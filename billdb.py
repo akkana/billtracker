@@ -5,6 +5,7 @@ import sqlite3
 
 import datetime
 import sys
+import re
 
 dbconn = None
 cursor = None
@@ -148,7 +149,9 @@ def get_user_bills(email):
     # asking for only one. Go figure.
     bills = cursor.fetchone()
     if bills['bills']:
-        return bills['bills'].split(',')
+        # Bills may be either comma or whitespace separated.
+        sep = re.compile('[,\s]+')
+        return sep.split(bills['bills'])
     return None
 
 def set_user_bills(email, bills):

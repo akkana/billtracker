@@ -272,6 +272,16 @@ def parse_bill_page(billno, year=None):
                 # So try to mitigate that by inserting a <br> before <strong>.
                 billdic["status"] = re.sub('<strong>', '<br><strong>',
                                            billdic["status"])
+
+                # Make a similar fix for the plaintext version:
+                t = tr.text
+                while t.startswith('\n'):
+                    t = t[1:]
+                t = '    ' + t
+                t = re.sub('(Legislative Day: [0-9]*)', '\\1\n    ', t)
+                t = re.sub('(Calendar Day: ../../....)', '\\1\n    ', t)
+                t = re.sub('\n\n*', '\n', t)
+                billdic["statustext"] = t
                 break
 
     # The bill's page has other useful info, like votes, analysis etc.
