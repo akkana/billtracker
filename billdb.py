@@ -3,13 +3,32 @@
 import sqlite3
 # https://docs.python.org/3/library/sqlite3.html
 
-import datetime
+import datetime, dateutil.parser
 import sys
 import re
 
 dbconn = None
 cursor = None
 dbname = "./bills.sqlite"
+
+billfields = [ 'billno', 'mod_date', 'bill_url',
+               'title', 'contents_url',
+               'sponsor', 'sponsorlink', 'curloc', 'curloclink'
+             ]
+# Most fields are strings, which is the default, so use None for that.
+billfield_types = [ None, 'timestamp', None, None, None,
+                    None, None, None, None ]
+
+userfields = [ 'email', 'password', 'auth_code',
+               'bills', 'last_check'
+             ]
+userfield_types = [ None, None, None, None, 'timestamp' ]
+
+primary_keys = { 'bills': 'billno', 'users': 'email' }
+
+#
+# Utilities to translate between Python dictionaries and sqlite3.
+#
 
 # Use a dictionary row factory so the data we retrieve from the db
 # has columns labeled and we don't need to worry about order.
@@ -18,6 +37,48 @@ def dict_factory(cursor, row):
     for idx, col in enumerate(cursor.description):
         d[col[0]] = row[idx]
     return d
+
+def create_dict_table(tablename, fields, fieldtypes):
+    # Run something like this:
+    # cursor.execute('CREATE TABLE users (field1, field2 type, field3)'
+    fieldstrings = []
+    for i, field in enumerate(fields):
+        if fieldtypes[i]:
+            fieldstrings.append('%s %s' % (field, fieldtypes[i]))
+        else:
+            fieldstrings.append(field)
+
+    cursor.execute('CREATE TABLE %s (%s)' % (tablename,
+                                             ', '.join(fieldstrings)))
+
+# Alas, factories don't help in inserting or changing items in the database.
+# Have to write that manually.
+def dict_into_db(obj, tablename):
+
+    # Is it aready in the database?
+    if exists_in_db(obj[primary_keys[tablename]], tablename):
+        # When updating an existing row, sqlite wants
+        # col1 = ?, col2 = ? syntax.
+        setcolumns = ', '.join([ "%s = ?" % v for v in obj.keys()])
+        sql = "UPDATE %s SET %s WHERE %s = ?" % (tablename, setcolumns,
+                                                 primary_keys[tablename])
+        print("modify sql:", sql)
+        vals = obj.values() + [obj[primary_keys[tablename]]]
+        print("with", vals)
+        cursor.execute(sql, vals)
+
+    else:
+        # When adding a new row, sqlite3 wants col1, col2 = ?, ? syntax
+        columns = ', '.join(obj.keys())
+        placeholders = ', '.join('?' * len(obj))
+        sql = 'INSERT INTO %s (%s) VALUES (%s)' % (tablename,
+                                                   columns, placeholders)
+        print("insert sql:", sql)
+        cursor.execute(sql, obj.values())
+
+#
+# End dictionary utilities
+#
 
 def init(alternate_db=None):
     global dbname, dbconn, cursor
@@ -41,9 +102,9 @@ def init(alternate_db=None):
     # This is the only part we keep in the fixed database;
     # everything else is updated from nmlegis.gov web pages.
     try:
-        cursor.execute('''CREATE TABLE users (email, password, auth_code, bills, last_check timestamp)''')
+        create_dict_table("users", userfields, userfield_types)
         print("Added user table")
-        cursor.execute('''CREATE TABLE bills (billno, mod_date)''')
+        create_dict_table("bills", billfields, billfield_types)
         print("Added bills table")
 
         dbconn.commit()
@@ -74,18 +135,32 @@ def update_and_quit():
 # Functions relating to bills:
 #
 
+def fetch_bill(billno):
+    cursor.execute("SELECT * from bills WHERE billno=?", (billno,))
+    return cursor.fetchone()
+
 def all_bills():
     '''Return a list of all the bills in the database.'''
 
     cursor.execute("SELECT * from bills")
     return cursor.fetchall()
 
-def update_bill(billno, date):
-    if exists_in_db(billno, "bills"):
+def update_bill(bill, date=None):
+    '''Update a bill, which is either a billno as a string, like "SB1",
+       or a dictionary containing all bill values.
+    '''
+    if isinstance(bill, dict):
+        if date:
+            bill["mod_date"] = date
+        insert_dict_into_db(values, tablename)
+        return
+
+    if exists_in_db(bill, "bills"):
         cursor.execute("UPDATE bills SET mod_date = ? WHERE billno = ?",
-                       (date, billno))
+                       (date, bill))
     else:
-        cursor.execute("INSERT INTO bills VALUES (?, ?)", (billno, date))
+        cursor.execute("INSERT INTO bills VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                       (bill, date, None, None, None, None, None, None, None))
 
 #
 # Functions relating to users:
@@ -160,6 +235,11 @@ def set_user_bills(email, bills):
 
 if __name__ == '__main__':
     init()
+
+    bill = { 'billno': 'HJR22',
+             'mod_date': dateutil.parser.parse("01/09/2018 10:32")
+    }
+    dict_into_db(bill, "bills")
 
     print(all_bills())
 
