@@ -163,9 +163,9 @@ if __name__ == '__main__':
 
     print(all_bills())
 
-    cursor.execute("SELECT username,bills FROM users")
+    cursor.execute("SELECT email,bills FROM users")
     bills_users = cursor.fetchall()
     for userdic in bills_users:
-        print("%s bills: %s" % (userdic["username"], userdic["bills"]))
+        print("%s bills: %s" % (userdic["email"], userdic["bills"]))
 
     # update_and_quit()
