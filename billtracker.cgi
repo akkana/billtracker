@@ -82,12 +82,13 @@ def bills_page():
         show_bill_list(bills)
 
     if not form.keys():
-        print("Username?")
+        print("User email?")
 
     footer()
 
 def user_page():
     billdb.init()
+
 
     form = cgi.FieldStorage()
 
@@ -101,12 +102,12 @@ def user_page():
         billstring = ''
 
     # Are we specifying a user?
-    if "user" in form:
-        username = form["user"].value
+    if "email" in form:
+        email = form["email"].value
 
         # Have we just confirmed the form, so we should save changes?
         if "Confirm" in form:
-            header("Changes confirmed for user %s" % username)
+            header("Changes confirmed for user %s" % email)
             # print("confirm CGI:", form)
 
             # XXX Make database changes here
@@ -114,15 +115,15 @@ def user_page():
             footer()
             return
 
-        header("New Mexico Bill Tracker: Edit User %s" % username)
+        header("New Mexico Bill Tracker: Edit User %s" % email)
         # print("user CGI:", form)
 
-        if billdb.exists_in_db(username, "users"):
+        bills = billdb.get_user_bills(email)
+        if bills:
             print('''<h2>%s's bills:</h2>
 <form method="post" action="user.cgi">
 <input type="hidden" name="user" value="%s">
-''' % (username, username))
-            bills = billdb.get_user_bills(username)
+''' % (email, email))
             print('<table>')
             for bill in bills:
                 print('<tr><td><input name=%s type="checkbox" checked>' % bill)
@@ -137,10 +138,10 @@ Additional bills to track (comma or space separated):
 <input type="text" name="bills" size=45 value="%s">
 <p>
 <input type="submit" name="Confirm"
-       value="Confirm changes for %s">''' % (billstring, username))
+       value="Confirm changes for %s">''' % (billstring, email))
 
         else:
-            # username is a new user, not yet in the database
+            # a new user, not yet in the database
             print('''<p>%s is a new user!
 <p>
 <form method="post" action="user.cgi">
@@ -149,17 +150,17 @@ Initialize %s watching these bills:
 <input type="text" name="bills" size=45 value="%s">
 <p>
 <input type="submit" name="Confirm"
-       value="Confirm new user %s">''' % (username, username, username,
-                                          billstring, username))
+       value="Confirm new user %s">''' % (email, email, email,
+                                          billstring, email))
 
     else:
-        # No username specified. Let the user tell us who to use.
+        # No email specified. Let the user tell us who to use.
         header("New Mexico Bill Tracker: Add or Edit User")
         # print("no user CGI:", form)
 
         print('''<h2>Add a new user, or edit a current one</h2>
 <form method="post" action="user.cgi">
-Username:
+Email:
 <input type="text" name="user" size=20>
 <p>
 New bills to track (comma or space separated):
