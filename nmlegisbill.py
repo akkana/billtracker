@@ -228,9 +228,9 @@ def parse_bill_page(billno, year=None, cache_locally=False):
 
         # While in a debugging cycle, used cached pages
         # so as not to hit the server so often.
-        # if os.path.exists(filename):
-        #     print("Temporarily using cache for", billno)
-        #     baseurl = filename
+        if os.path.exists(filename):
+            print("Temporarily using cache for", billno)
+            baseurl = filename
 
     if ':' in baseurl:
         billdic['bill_url'] = url_mapper.to_abs_link(baseurl, baseurl)
@@ -257,6 +257,10 @@ def parse_bill_page(billno, year=None, cache_locally=False):
         billdic['title'] = soup.find("span",
                                      id="MainContent_formViewLegislation_lblTitle").text
     except AttributeError:
+        # If we cached, remove the cache file.
+        if cache_locally and filename:
+            os.unlink(filename)
+        print("No such bill %s" % billno)
         return None
     sponsor_a = soup.find("a",
                           id="MainContent_formViewLegislation_linkSponsor")
