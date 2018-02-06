@@ -63,7 +63,7 @@ def dict_into_db(obj, tablename):
         setcolumns = ', '.join([ "%s = ?" % v for v in obj.keys()])
         sql = "UPDATE %s SET %s WHERE %s = ?" % (tablename, setcolumns,
                                                  primary_keys[tablename])
-        vals = obj.values() + [obj[primary_keys[tablename]]]
+        vals = list(obj.values()) + [obj[primary_keys[tablename]]]
         cursor.execute(sql, vals)
 
     else:
@@ -72,7 +72,7 @@ def dict_into_db(obj, tablename):
         placeholders = ', '.join('?' * len(obj))
         sql = 'INSERT INTO %s (%s) VALUES (%s)' % (tablename,
                                                    columns, placeholders)
-        cursor.execute(sql, obj.values())
+        cursor.execute(sql, list(obj.values()))
 
 #
 # End dictionary utilities
