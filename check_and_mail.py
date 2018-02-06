@@ -1,104 +1,161 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 # Check which bills have been updated since the last check.
 # Intended to be run daily.
 
 import billdb
 import nmlegisbill
 import datetime
+import re
 import sys
 
 import htmlmail
 
 # While testing, use local files:
-nmlegisbill.url_mapper = \
-    nmlegisbill.LocalhostURLmapper('http://localhost/billtracker',
-                                   'https://www.nmlegis.gov',
-        '%s/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s')
+# nmlegisbill.url_mapper = \
+#     nmlegisbill.LocalhostURLmapper('http://localhost/billtracker',
+#                                    'https://www.nmlegis.gov',
+#         '%s/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s')
 
-def compose_msg(all_bills):
-    userbills = billdb.get_user_bills(user['email'])
-    if not userbills:
-        print("%s isn't tracking any bills" % user['email'])
-        return
+def load_bills_from_users():
+    allusers = billdb.all_users()
+    allbills = set()
+    for user in allusers:
+        sep = re.compile('[,\s]+')
+        userbills = sep.split(user['bills'])
 
-    text_part = ''
-    html_part = ''
-    lastdate = user['last_check']
-    for bill in userbills:
-        print('Bill:', bill)
-        b = all_bills[bill]
+        for bill in userbills:
+            allbills.add(bill)
 
-        timestr = b['mod_date'].strftime('%m/%d/%Y %H:%M')
+    allbills = list(allbills)
+    allbills.sort()
 
-        text_part += '''%s: %s
-    <%s>
-Last updated %s
-Current location: %s
-   <%s>
-Text of bill: %s
-Status:
+    for bill in allbills:
+        billdic = nmlegisbill.parse_bill_page(bill)
+        billdb.update_bill(billdic)
+
+    billdb.commit()
+
+    return allusers
+
+def check_user_bills(user):
+    '''user is a dictionary. Check last modified date for each of
+       user's bills, see if it's more recent than the user's last check.
+       Return summary strings in html and plaintext formats
+       (in that order) which can be emailed to the user.
+    '''
+    # How recently has this user updated?
+    last_check = user['last_check']
+
+    # Set up the strings we'll return.
+    # Keep bills that have changed separate from bills that haven't.
+    newertext = '''Bills that have changed since %s's last check at %s:''' \
+               % (user['email'], str(last_check))
+    oldertext = '''Bills that haven't changed:'''
+    newerhtml = '''<html>
+<head>
+<style type="text/css">
+  div.odd { background: #eef; margin=5px; }
+  div.even { background: #efe; margin=5px; }
+</style>
+</head>
+<body>
+<h2>%s</h2>''' % newertext
+    olderhtml = '<h2>%s</h2>' % oldertext
+
+    # Get the user's list of bills:
+    sep = re.compile('[,\s]+')
+    userbills = sep.split(user['bills'])
+
+    # For each bill, get the mod_date and see if it's newer:
+    even = True
+    for billno in userbills:
+        even = not even
+        billdic = billdb.fetch_bill(billno)
+        if billdic['mod_date'] > last_check:
+            newertext += '''
+%s %s .. updated %s
+  Bill page: %s
+  Bill text: %s
+  History:
+%s''' % (billno, billdic['title'], billdic['mod_date'].strftime('%m/%d/%Y'),
+         billdic['bill_url'], billdic['contents_url'], billdic['statustext'])
+            newerhtml += '''<p>
+<div class="%s">
+<a href="%s">%s: %s</a> .. updated %s<br />
+  <a href="%s">Text of bill</a><br />
+  History:
 %s
-''' % \
-            (b['billno'], b['title'], b['bill_url'],
-             timestr, b['curloc'], b['curloclink'],
-             b['contents_url'], b['statustext'])
+</div>''' % ("even" if even else "odd",
+             billdic['bill_url'], billno, billdic['title'],
+             billdic['mod_date'].strftime('%m/%d/%Y'),
+             billdic['contents_url'], billdic['status'])
+        else:
+            oldertext += "\n%s %s .. %s" % (billno, billdic['title'],
+                                               billdic['mod_date'])
+            olderhtml += '<br /><a href="%s">%s %s</a> .. last updated %s' % \
+                        (billdic['bill_url'], billno, billdic['title'],
+                         billdic['mod_date'])
 
-        html_part += '''<p><a href="%s">%s: %s</a><br />
-Last updated %s<br />
-Current location: <a href="%s">%s</a><br />
-<a href="%s">Text of bill</a><br />
-Status:<br />
-%s''' % \
-            (b['bill_url'], b['billno'], b['title'],
-             timestr, b['curloclink'], b['curloc'],
-             b['contents_url'], b['status'])
-
-    print(text_part)
-
-    # Now we have plaintext and html parts.
-    return htmlmail.compose_email_msg("akkana@shallowsky.com",
-                                      "billtracker@shallowsky.com",
-                                      html=html_part, text=text_part,
-                                      subject="New Mexico Bill Tracker")
+    return (newerhtml + olderhtml + '</body></html>',
+            newertext + "\n===============\n" + oldertext)
 
 if __name__ == '__main__':
+
+    html_mode = False
+    smtp_server = None
+    smtp_user = None
+    smtp_passwd = None
+    smtp_port = 587
+    if len(sys.argv) == 2 and sys.argv[1].endswith('html'):
+        html_mode = True
+    elif len(sys.argv) > 1:
+        smtp_server = sys.argv[1]
+        if len(sys.argv) > 2:
+            smtp_user = sys.argv[2]
+            if len(sys.argv) > 3:
+                smtp_passwd = sys.argv[3]
+                if len(sys.argv) > 4:
+                    smtp_port = sys.argv[4]
+
+    if not smtp_server:
+        print("To send an email, pass server, user, passwd[, port]",
+              file=sys.stderr)
+
+    now = datetime.datetime.now()
+
     billdb.init()
-    bill_list = billdb.all_bills()
-    # A list of billdics, like:
-    # [{'billno': 'SB83', 'mod_date': '2018-01-18'},
-    #  {'billno': 'SJM6', 'mod_date': '2018-01-10'}]
-    # Fill them in from the website.
 
-    all_bills = {}
-    for i, bill in enumerate(bill_list):
-        all_bills[bill['billno']] = nmlegisbill.parse_bill_page(bill['billno'])
+    # Get the list of users and update all user bills from the
+    # nmlegis website pages.
+    allusers = load_bills_from_users()
 
-    print("all_bills:\n", all_bills)
-    print('')
+    sender = "billtracker@shallowsky.com"
 
-    if len(sys.argv) < 4:
-        print("To send an email, pass server, user, passwd[, port]")
-        sys.exit(0)
+    for user in allusers:
+        htmlpart, textpart = check_user_bills(user)
 
-    smtp_server = sys.argv[1]
-    smtp_user = sys.argv[2]
-    smtp_passwd = sys.argv[3]
-    if len(sys.argv) > 4:
-        smtp_port = sys.argv[4]
-    else:
-        smtp_port = 587
+        if smtp_server:
+            msg = htmlmail.compose_email_msg(user['email'], sender,
+                                             html=htmlpart, text=textpart,
+                                             subject="New Mexico Bill Tracker")
+            htmlmail.send_msg(user['email'], sender, msg,
+                              smtp_server, smtp_user, smtp_passwd, smtp_port)
+            print("Emailed %s" % user['email'], file=sys.stderr)
 
-    all_users = billdb.all_users()
-    for user in all_users:
-        msg = compose_msg(all_bills)
-        if not msg:
-            print("Eek, msg didn't get set")
-            print("exiting, not sending")
-            sys.exit(1)
+            # Now we've updated, so update the user's fetch date.
+            billdb.update_user(user['email'], last_check=now)
+            billdb.commit()
 
-        htmlmail.send_msg("akkana@shallowsky.com",
-                          "billtracker@shallowsky.com",
-                          msg,
-                          smtp_server, smtp_user, smtp_passwd, smtp_port)
-    print("Supposedly sent the mail")
+            continue
+
+        # Not actually sending mail for this user, so just print the parts.
+        if html_mode:
+            print(htmlpart)
+            print("<hr>")
+        else:
+            print(textpart)
+
+

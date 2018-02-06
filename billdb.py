@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import sqlite3
 # https://docs.python.org/3/library/sqlite3.html
 
@@ -125,7 +127,7 @@ def exists_in_db(key, table):
 
 def commit():
     dbconn.commit()
-    print("Updated database")
+    print("Updated database", file=sys.stderr)
 
 def commit_and_quit():
     dbconn.commit()

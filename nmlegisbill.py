@@ -4,13 +4,12 @@ from __future__ import print_function
 
 # Scrape bill data from bill pages from nmlegis.org.
 
-import os
+import sys, os
 import datetime, dateutil.parser
 import re
 import requests
 import posixpath
 from bs4 import BeautifulSoup
-import sys
 
 if sys.version[:1] == '2':
     from urlparse import urlparse
@@ -86,7 +85,7 @@ class LocalhostURLmapper(URLmapper):
         mapped_url = URLmapper.to_abs_link(self, url, cururl)
 
         # Now we should have an absolute link in terms of localhost.
-        # But if it's a bill URL like http://localhost/foo/test/2018-HB98.html,
+        # But if it's a bill URL like http://localhost/foo/cache/2018-HB98.html,
         # remap it to the real url of
         # http://www.nmlegis.gov/lcs/legislation.aspx?chamber=H&legtype=B&legno=98&year=18
         if not mapped_url.startswith(self.baseurl):
@@ -94,8 +93,8 @@ class LocalhostURLmapper(URLmapper):
 
         mapped_url = mapped_url.replace(self.baseurl, '')
 
-        # Now it's just /test/2018-HB98.html
-        if not mapped_url.startswith('/test/20'):
+        # Now it's just /cache/2018-HB98.html
+        if not mapped_url.startswith('/cache/20'):
             return mapped_url
         year = mapped_url[8:10]
         match = re.match('([HS])([A-Z]+)([0-9]+)', mapped_url[11:-5])
@@ -107,9 +106,9 @@ class LocalhostURLmapper(URLmapper):
                                       (year_to_2digit(year)))
 
     def bill_url(self, chamber, billtype, number, year):
-        return '%s/test/20%s-%s%s%s.html' % (self.baseurl,
-                                             year_to_2digit(year),
-                                             chamber, billtype, number)
+        return '%s/cache/20%s-%s%s%s.html' % (self.baseurl,
+                                              year_to_2digit(year),
+                                              chamber, billtype, number)
 
 # Use cached local files: good for unit tests.
 class LocalURLmapper(URLmapper):
@@ -214,7 +213,6 @@ def parse_bill_page(billno, year=None, cache_locally=False):
        curloc, curloclink, and contents_url.
     '''
 
-    print(billno)
     billdic = { 'billno': billno }
     (billdic['chamber'], billdic['billtype'],
      billdic['number'], billdic['year']) = billno_to_parts(billno, year)
@@ -229,19 +227,19 @@ def parse_bill_page(billno, year=None, cache_locally=False):
         # While in a debugging cycle, used cached pages
         # so as not to hit the server so often.
         if os.path.exists(filename):
-            print("Temporarily using cache for", billno)
+            print("Temporarily using cache for", billno, file=sys.stderr)
             baseurl = filename
 
     if ':' in baseurl:
         billdic['bill_url'] = url_mapper.to_abs_link(baseurl, baseurl)
-        print("Fetching %s info from %s" % (billno, baseurl))
+        print("Fetching %s info from %s" % (billno, baseurl), file=sys.stderr)
         r = requests.get(baseurl)
         soup = BeautifulSoup(r.text, 'lxml')
 
         if cache_locally:
             with open(filename, "w") as cachefp:
                 cachefp.write(r.text.encode('utf-8', "xmlcharrefreplace"))
-                print("Cached locally as %s" % filename)
+                print("Cached locally as %s" % filename, file=sys.stderr)
     else:
         with open(baseurl) as fp:
             billdic['bill_url'] = baseurl
