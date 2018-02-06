@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 # Scrape bill data from bill pages from nmlegis.org.
 
-import datetime
+import os
+import datetime, dateutil.parser
 import re
 import requests
 import posixpath
@@ -39,6 +42,8 @@ class URLmapper:
            cururl is the page on which the link was found,
            for relative links like ../
         '''
+        if not url:
+            return url
         purl = urlparse(url)
         if purl.scheme:
             return url
@@ -76,6 +81,8 @@ class LocalhostURLmapper(URLmapper):
            cururl is the page on which the link was found,
            for relative links like ../
         '''
+        if not url:
+            return url
         mapped_url = URLmapper.to_abs_link(self, url, cururl)
 
         # Now we should have an absolute link in terms of localhost.
@@ -199,7 +206,7 @@ def billno_to_parts(billno, year=None):
     chamber, billtype, number = match.groups()
     return chamber, billtype, number, year
 
-def parse_bill_page(billno, year=None):
+def parse_bill_page(billno, year=None, cache_locally=False):
     '''Download and parse a bill's page on nmlegis.org.
        Return a dictionary containing:
        chamber, billtype, number, year,
@@ -207,6 +214,7 @@ def parse_bill_page(billno, year=None):
        curloc, curloclink, and contents_url.
     '''
 
+    print(billno)
     billdic = { 'billno': billno }
     (billdic['chamber'], billdic['billtype'],
      billdic['number'], billdic['year']) = billno_to_parts(billno, year)
@@ -215,10 +223,25 @@ def parse_bill_page(billno, year=None):
                                   billdic['billtype'],
                                   billdic['number'],
                                   billdic['year'])
+    if cache_locally:
+        filename = 'cache/20%s-%s.html' % (billdic['year'], billno)
+
+        # While in a debugging cycle, used cached pages
+        # so as not to hit the server so often.
+        # if os.path.exists(filename):
+        #     print("Temporarily using cache for", billno)
+        #     baseurl = filename
+
     if ':' in baseurl:
         billdic['bill_url'] = url_mapper.to_abs_link(baseurl, baseurl)
+        print("Fetching %s info from %s" % (billno, baseurl))
         r = requests.get(baseurl)
         soup = BeautifulSoup(r.text, 'lxml')
+
+        if cache_locally:
+            with open(filename, "w") as cachefp:
+                cachefp.write(r.text.encode('utf-8', "xmlcharrefreplace"))
+                print("Cached locally as %s" % filename)
     else:
         with open(baseurl) as fp:
             billdic['bill_url'] = baseurl
@@ -238,57 +261,80 @@ def parse_bill_page(billno, year=None):
     sponsor_a = soup.find("a",
                           id="MainContent_formViewLegislation_linkSponsor")
     billdic['sponsor'] = sponsor_a.text.strip()
-    billdic['sponsorlink'] = url_mapper.to_abs_link(sponsor_a['href'], baseurl)
+    billdic['sponsorlink'] = url_mapper.to_abs_link(sponsor_a.get('href'),
+                                                    baseurl)
 
     curloc_a  = soup.find("a",
                           id="MainContent_formViewLegislation_linkLocation")
     billdic['curloc'] = curloc_a.text.strip()
-    billdic['curloclink'] = url_mapper.to_abs_link(curloc_a['href'], baseurl)
+    billdic['curloclink'] = url_mapper.to_abs_link(curloc_a.get('href'),
+                                                   baseurl)
 
-    billdic['contents_url'] = url_mapper.to_abs_link(soup.find("a",
-                                          id="MainContent_formViewLegislationTextIntroduced_linkLegislationTextIntroducedHTML")['href'],
-                                           baseurl)
+    contents_a = soup.find("a",
+                           id="MainContent_formViewLegislationTextIntroduced_linkLegislationTextIntroducedHTML")
+    billdic['contents_url'] = url_mapper.to_abs_link(contents_a.get('href'),
+                                                     baseurl)
 
     # The all-important part: what was the most recent action?
     actiontable = soup.find("table",
       id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions")
+
+    # Unset modification date; hopefully we'll be able to set it
+    # from the page.
+    billdic['mod_date'] = None
+
     if actiontable:
         actions = actiontable.findAll("tr")
         status = None
         # Now we want the last nonempty action.
         # Unfortunately the page tends to have several empty <tr>s.
-        for tr in reversed(actions):
+        billdic["status"] = ''
+        billdic["statustext"] = ''
+        # for tr in reversed(actions):
+        for tr in actions:
             # span = tr.find("span")
             # if span:
             #     billdic["status"] = span
             if tr.text.strip():
                 # It is surprisingly hard to say "just give me
                 # what's inside this td."
-                billdic["status"] = ''.join(map(str, tr.find("td").contents))
+                th = ''.join(map(str, tr.find("td").contents))
                 # nmlegis erroneously uses <br>blah</br><strong> and
                 # apparently assumes browsers will put a break at the </br>.
                 # Since that's illegal HTML, BS doesn't parse it that way.
                 # But if we don't compensate, the status looks awful.
                 # So try to mitigate that by inserting a <br> before <strong>.
-                billdic["status"] = re.sub('<strong>', '<br><strong>',
-                                           billdic["status"])
+                th = re.sub('<strong>', '<br><strong>', th)
+                if billdic["status"]:
+                    billdic["status"] += "<br><br>"
+                billdic["status"] += th
 
-                # Make a similar fix for the plaintext version:
+                # Make a plaintext version:
                 t = tr.text
+
+                # Try to parse the most recent modification date from t.
+                match = re.search('Calendar Day: (\d\d/\d\d/\d\d\d\d)', t)
+                if match:
+                    billdic['mod_date'] = dateutil.parser.parse(match.group(1))
+
+                # Clean up the text, adding spaces and line breaks
+                # similar to what we did for the HTML:
                 while t.startswith('\n'):
                     t = t[1:]
                 t = '    ' + t
                 t = re.sub('(Legislative Day: [0-9]*)', '\\1\n    ', t)
                 t = re.sub('(Calendar Day: ../../....)', '\\1\n    ', t)
                 t = re.sub('\n\n*', '\n', t)
-                billdic["statustext"] = t
-                break
+                if billdic["statustext"]:
+                    billdic["statustext"] += '\n'
+                billdic["statustext"] += t
+
+        # Done with the tr actions loop. The final tr should be the
+        # most recent change.
 
     # The bill's page has other useful info, like votes, analysis etc.
     # but unfortunately that's all filled in later with JS and Ajax so
     # it's invisible to us.
-
-    billdic['mod_date'] = datetime.datetime.now()
 
     return billdic
 

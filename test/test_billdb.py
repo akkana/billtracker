@@ -23,7 +23,6 @@ class TestBillDB(unittest.TestCase):
 
         billdb.update_user(email="user@example.com")
         billdb.update_user(email="someone@example.com")
-        billdb.update_user("user@example.com", bills="SB83,SJM6")
 
     def test(self):
         try:
@@ -39,51 +38,78 @@ class TestBillDB(unittest.TestCase):
         self.assertEqual(bill,
                          { 'bill_url': None,
                            'billno': u'SB83',
+                           'chamber': None,
+                           'billtype': None,
+                           'number': None,
                            'contents_url': None,
                            'curloc': None,
                            'curloclink': None,
                            'mod_date': datetime.datetime(2018, 1, 18, 9, 30),
                            'sponsor': None,
                            'sponsorlink': None,
-                           'title': None
-                         })
+                           'status': None,
+                           'statuslink': None,
+                           'statustext': None,
+                           'year': None,
+                           'title': None })
 
         bill = billdb.fetch_bill('SJM6')
         self.assertEqual(bill,
                          { 'billno': u'SJM6',
                            'bill_url': None,
+                           'chamber': None,
+                           'billtype': None,
+                           'number': None,
                            'contents_url': None,
                            'curloc': None,
                            'curloclink': None,
                            'mod_date': datetime.datetime(2018, 1, 10, 12, 20),
                            'sponsor': None,
                            'sponsorlink': None,
+                           'status': None,
+                           'statuslink': None,
+                           'statustext': None,
+                           'year': None,
                            'title': None })
 
         # Now change a bill:
         bill['title'] = "DUMMY BILL"
-        billdb.dict_into_db(bill, "bills")
+        billdb.update_bill(bill)
 
         # and fetch it and check the results:
         bill = billdb.fetch_bill('SJM6')
         self.assertEqual(bill,
                          { 'billno': u'SJM6',
                            'bill_url': None,
+                           'chamber': None,
+                           'billtype': None,
+                           'number': None,
                            'contents_url': None,
                            'curloc': None,
                            'curloclink': None,
                            'mod_date': datetime.datetime(2018, 1, 10, 12, 20),
                            'sponsor': None,
                            'sponsorlink': None,
+                           'status': None,
+                           'statuslink': None,
+                           'statustext': None,
+                           'year': None,
                            'title': 'DUMMY BILL' })
 
         # Did we add user bills correctly?
         bills = billdb.get_user_bills("user@example.com")
+        self.assertEqual(bills, None)
+
+        # Try adding some:
+        billdb.update_user("user@example.com", bills="SB83,SJM6")
+        bills = billdb.get_user_bills("user@example.com")
         self.assertEqual(bills, ['SB83', 'SJM6'])
+
         bills = billdb.get_user_bills("someone@example.com")
         self.assertEqual(bills, None)
 
-        print(billdb.all_bills())
+        self.assertEqual(billdb.all_bills(),
+                         [{'billno': u'HJR22', 'status': None, 'statuslink': None, 'curloclink': None, 'title': None, 'statustext': None, 'year': None, 'sponsorlink': None, 'number': None, 'sponsor': None, 'chamber': None, 'bill_url': None, 'mod_date': datetime.datetime(2018, 1, 9, 10, 32), 'curloc': None, 'contents_url': None, 'billtype': None}, {'billno': u'SB83', 'status': None, 'statuslink': None, 'curloclink': None, 'title': None, 'statustext': None, 'year': None, 'sponsorlink': None, 'number': None, 'sponsor': None, 'chamber': None, 'bill_url': None, 'mod_date': datetime.datetime(2018, 1, 18, 9, 30), 'curloc': None, 'contents_url': None, 'billtype': None}, {'billno': u'SJM6', 'status': None, 'statuslink': None, 'curloclink': None, 'title': u'DUMMY BILL', 'statustext': None, 'year': None, 'sponsorlink': None, 'number': None, 'sponsor': None, 'chamber': None, 'bill_url': None, 'mod_date': datetime.datetime(2018, 1, 10, 12, 20), 'curloc': None, 'contents_url': None, 'billtype': None}] )
 
-        # billdb.update_and_quit()
+        # billdb.commit_and_quit()
 

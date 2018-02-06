@@ -12,12 +12,13 @@ cursor = None
 dbname = "./bills.sqlite"
 
 billfields = [ 'billno', 'mod_date', 'bill_url',
-               'title', 'contents_url',
+               'chamber', 'billtype', 'number', 'year',
+               'title', 'contents_url', 'status', 'statuslink', 'statustext',
                'sponsor', 'sponsorlink', 'curloc', 'curloclink'
              ]
 # Most fields are strings, which is the default, so use None for that.
-billfield_types = [ None, 'timestamp', None, None, None,
-                    None, None, None, None ]
+billfield_types = [ None, 'timestamp', None, None, None, None, None, None,
+                     None, None, None, None, None, None, None, None ]
 
 userfields = [ 'email', 'password', 'auth_code',
                'bills', 'last_check'
@@ -62,9 +63,7 @@ def dict_into_db(obj, tablename):
         setcolumns = ', '.join([ "%s = ?" % v for v in obj.keys()])
         sql = "UPDATE %s SET %s WHERE %s = ?" % (tablename, setcolumns,
                                                  primary_keys[tablename])
-        print("modify sql:", sql)
         vals = obj.values() + [obj[primary_keys[tablename]]]
-        print("with", vals)
         cursor.execute(sql, vals)
 
     else:
@@ -73,7 +72,6 @@ def dict_into_db(obj, tablename):
         placeholders = ', '.join('?' * len(obj))
         sql = 'INSERT INTO %s (%s) VALUES (%s)' % (tablename,
                                                    columns, placeholders)
-        print("insert sql:", sql)
         cursor.execute(sql, obj.values())
 
 #
@@ -125,7 +123,11 @@ def exists_in_db(key, table):
         return False
     return True
 
-def update_and_quit():
+def commit():
+    dbconn.commit()
+    print("Updated database")
+
+def commit_and_quit():
     dbconn.commit()
     dbconn.close()
     print("Updated database")
@@ -149,18 +151,23 @@ def update_bill(bill, date=None):
     '''Update a bill, which is either a billno as a string, like "SB1",
        or a dictionary containing all bill values.
     '''
+    if not bill:
+        return
     if isinstance(bill, dict):
         if date:
             bill["mod_date"] = date
-        insert_dict_into_db(values, tablename)
+        dict_into_db(bill, "bills")
         return
 
     if exists_in_db(bill, "bills"):
         cursor.execute("UPDATE bills SET mod_date = ? WHERE billno = ?",
                        (date, bill))
     else:
-        cursor.execute("INSERT INTO bills VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                       (bill, date, None, None, None, None, None, None, None))
+        # How many fields are there in bills?
+        placeholders = ', '.join('?' * len(billfields))
+        # vals has bill and date as the first two fields, None elsewhere
+        vals = [ bill, date ] + ([ None ] * (len(billfields) - 2))
+        cursor.execute("INSERT INTO bills VALUES (%s)" % placeholders, vals)
 
 #
 # Functions relating to users:
@@ -184,8 +191,11 @@ def update_user(email, bills=None, last_check=None):
     if data is None:
         if not last_check:
             last_check = datetime.datetime.now()
-        cursor.execute("INSERT INTO users VALUES (?, ?, ?, ?, ?)",
-                       (email, "", "", "", last_check))
+
+        # How many fields are there in users?
+        placeholders = ', '.join('?' * len(userfields))
+        vals = (email, None, None, bills, last_check)
+        cursor.execute("INSERT INTO users VALUES (%s)" % placeholders, vals)
         return
 
     # The user already exists.
@@ -196,20 +206,13 @@ def update_user(email, bills=None, last_check=None):
         return
 
     # Update what we can. Don't change last_check unless it was specified.
-    setters = []
-    vals = []
     if bills != None:
-        setters.append("bills=?")
-        vals.append(bills)
+        cursor.execute('UPDATE users SET bills = ? WHERE email=?',
+                       (bills, email))
     if last_check:
-        setters.append("last_check=?")
-        vals.append(last_check)
-
-    vals.append(email)
-
-    cursor.execute('UPDATE users SET %s WHERE email=?' % ', '.join(setters),
-                   vals)
-    dbconn.commit()
+        cursor.execute('UPDATE users SET last_check = ? WHERE email=?',
+                       (last_check, email))
+    # dbconn.commit()
 
 def all_users():
     '''Return a list of all users in the database.'''
@@ -248,4 +251,4 @@ if __name__ == '__main__':
     for userdic in bills_users:
         print("%s bills: %s" % (userdic["email"], userdic["bills"]))
 
-    # update_and_quit()
+    # commit_and_quit()
