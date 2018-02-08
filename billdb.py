@@ -286,8 +286,8 @@ def user_bill_summary(user):
 
     # Set up the strings we'll return.
     # Keep bills that have changed separate from bills that haven't.
-    newertext = '''Bills that have changed since %s's last check at %s:''' \
-               % (user['email'], last_check.strftime('%m/%d/%Y'))
+    newertext = '''Bills that have changed since %s's\n      last check at %s:''' \
+               % (user['email'], last_check.strftime('%m/%d/%Y %H:%M'))
     oldertext = '''Bills that haven't changed:'''
     newerhtml = '''<html>
 <head>
@@ -362,4 +362,4 @@ def user_bill_summary(user):
                          action_datestr)
 
     return (newerhtml + olderhtml + '</body></html>',
-            newertext + "\n\n===============\n\n" + oldertext)
+            '===== ' + newertext + "\n\n===== " + oldertext)
