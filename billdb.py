@@ -283,6 +283,7 @@ def user_bill_summary(user):
     '''
     # How recently has this user updated?
     last_check = user['last_check']
+    print("Last check for %s is"% user['email'], last_check)
 
     # Set up the strings we'll return.
     # Keep bills that have changed separate from bills that haven't.
@@ -314,11 +315,18 @@ def user_bill_summary(user):
         else:
             action_datestr = None
 
+        # make sure mod_date is at least set, since we're about
+        # to do a date comparison on it.
+        if not billdic['mod_date']:
+            billdic['mod_date'] = billdic['update_date']
+
         # It shouldn't be possible that last action date is more
         # recent than last_check but mod_date doesn't reflect that;
         # but it doesn't hurt to be sure.
-        if billdic['mod_date'] >= last_check or \
-           billdic['last_action_date'] >= last_check:
+
+        if billdic['last_action_date'] >= last_check:
+            # or billdic['mod_date'] >= last_check
+            # ... if I ever get mod_date working right
             analysisText = ''
             analysisHTML = ''
             if billdic['FIRlink']:

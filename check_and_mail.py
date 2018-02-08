@@ -35,7 +35,7 @@ def update_all_user_bills():
     allbills = list(allbills)
     allbills.sort()
 
-    newenough = datetime.datetime.now() - datetime.timedelta(hours=12)
+    newenough = datetime.datetime.now() - datetime.timedelta(hours=1)
 
     for billno in allbills:
         billdic = billdb.fetch_bill(billno)
@@ -46,9 +46,11 @@ def update_all_user_bills():
             # Fetch the bill as currently represented in the database,
             # so we can see if anything changed since the last update_date.
             oldbill = billdb.fetch_bill(billno)
-            # Ignore mod_date and update_date for comparison purposes.
+
+            # Ignore the old mod_date and update_date for comparison purposes.
             oldbill['mod_date'] = billdic['mod_date']
             oldbill['update_date'] = billdic['update_date']
+
             if billdic != oldbill:
                 print("%s changed!" % billno)
                 billdic['mod_date'] = billdic['update_date']
