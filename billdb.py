@@ -322,23 +322,23 @@ def user_bill_summary(user):
             analysisText = ''
             analysisHTML = ''
             if billdic['FIRlink']:
-                analysisText += ' FIR: ' + billdic['FIRlink'] + '\n'
+                analysisText += '\n FIR: ' + billdic['FIRlink']
                 analysisHTML += '<a href="%s">FIR report</a>' \
                                 % billdic['FIRlink']
             if billdic['LESClink']:
-                analysisText += ' LESC: ' + billdic['LESClink'] + '\n'
+                analysisText += '\n LESC: ' + billdic['LESClink']
                 analysisHTML += '<a href="%s">LESC report</a>' \
                                 % billdic['LESClink']
             if analysisHTML:
                 analysisHTML += '<br />'
 
-            newertext += '''
-%s %s .. updated %s
+            newertext += '''\n
+%s %s .. updated %s (changed %s)
   Bill page: %s
   Bill text: %s
   Analysis: %s
   Status:
-%s''' % (billno, billdic['title'], action_datestr,
+%s''' % (billno, billdic['title'], action_datestr, str(billdic['mod_date']),
          billdic['bill_url'], billdic['contents_url'], analysisText,
          billdic['statustext'])
             newerhtml += '''<p>
@@ -362,4 +362,4 @@ def user_bill_summary(user):
                          action_datestr)
 
     return (newerhtml + olderhtml + '</body></html>',
-            newertext + "\n===============\n" + oldertext)
+            newertext + "\n\n===============\n\n" + oldertext)

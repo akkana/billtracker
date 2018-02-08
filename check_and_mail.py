@@ -98,8 +98,6 @@ if __name__ == '__main__':
         print("To send an email, pass server, user, passwd[, port]\n",
               file=sys.stderr)
 
-    now = datetime.datetime.now()
-
     billdb.init()
 
     # Get the list of users and update all user bills from the
@@ -107,6 +105,12 @@ if __name__ == '__main__':
     allusers = update_all_user_bills()
 
     sender = "billtracker@shallowsky.com"
+
+    # Set one "now" to use for updating all the users.
+    # But don't call this until we're finished with update_all_user_bills():
+    # otherwise it will seem like the bills have been updated more
+    # recently than the user.
+    now = datetime.datetime.now()
 
     for user in allusers:
         htmlpart, textpart = billdb.user_bill_summary(user)
