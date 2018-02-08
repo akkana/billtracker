@@ -19,7 +19,10 @@ import htmlmail
 #                                    'https://www.nmlegis.gov',
 #         '%s/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s')
 
-def load_bills_from_users():
+def update_all_user_bills():
+    '''For every bill any user cares about, update it from the nmlegis
+       page if our database hasn't updated it in the last 12 hours.
+    '''
     allusers = billdb.all_users()
     allbills = set()
     for user in allusers:
@@ -32,75 +35,19 @@ def load_bills_from_users():
     allbills = list(allbills)
     allbills.sort()
 
-    for bill in allbills:
-        billdic = nmlegisbill.parse_bill_page(bill)
-        billdb.update_bill(billdic)
+    newenough = datetime.datetime.now() - datetime.timedelta(hours=12)
 
-    billdb.commit()
+    for billno in allbills:
+        billdic = billdb.fetch_bill(billno)
+        if not billdic['mod_date'] or billdic['mod_date'] < newenough:
+            print("Updating bill", billno)
+            billdic = nmlegisbill.parse_bill_page(billno, newenough)
+            billdb.update_bill(billdic)
+            billdb.commit()
+        else:
+            print(billno, "is already new enough, not re-fetching")
 
     return allusers
-
-def check_user_bills(user):
-    '''user is a dictionary. Check last modified date for each of
-       user's bills, see if it's more recent than the user's last check.
-       Return summary strings in html and plaintext formats
-       (in that order) which can be emailed to the user.
-    '''
-    # How recently has this user updated?
-    last_check = user['last_check']
-
-    # Set up the strings we'll return.
-    # Keep bills that have changed separate from bills that haven't.
-    newertext = '''Bills that have changed since %s's last check at %s:''' \
-               % (user['email'], str(last_check))
-    oldertext = '''Bills that haven't changed:'''
-    newerhtml = '''<html>
-<head>
-<style type="text/css">
-  div.odd { background: #eef; margin=5px; }
-  div.even { background: #efe; margin=5px; }
-</style>
-</head>
-<body>
-<h2>%s</h2>''' % newertext
-    olderhtml = '<h2>%s</h2>' % oldertext
-
-    # Get the user's list of bills:
-    sep = re.compile('[,\s]+')
-    userbills = sep.split(user['bills'])
-
-    # For each bill, get the mod_date and see if it's newer:
-    even = True
-    for billno in userbills:
-        even = not even
-        billdic = billdb.fetch_bill(billno)
-        if billdic['mod_date'] > last_check:
-            newertext += '''
-%s %s .. updated %s
-  Bill page: %s
-  Bill text: %s
-  History:
-%s''' % (billno, billdic['title'], billdic['mod_date'].strftime('%m/%d/%Y'),
-         billdic['bill_url'], billdic['contents_url'], billdic['statustext'])
-            newerhtml += '''<p>
-<div class="%s">
-<a href="%s">%s: %s</a> .. updated %s<br />
-  <a href="%s">Text of bill</a><br />
-  History:
-%s
-</div>''' % ("even" if even else "odd",
-             billdic['bill_url'], billno, billdic['title'],
-             billdic['mod_date'].strftime('%m/%d/%Y'),
-             billdic['contents_url'], billdic['status'])
-        else:
-            oldertext += "\n%s %s .. %s" % (billno, billdic['title'],
-                                               billdic['mod_date'])
-            olderhtml += '<br /><a href="%s">%s %s</a> .. last updated %s' % \
-                        (billdic['bill_url'], billno, billdic['title'],
-                         billdic['mod_date'])
-
-    return (newerhtml + olderhtml + '</body></html>',
-            newertext + "\n===============\n" + oldertext)
 
 if __name__ == '__main__':
 
@@ -130,12 +77,12 @@ if __name__ == '__main__':
 
     # Get the list of users and update all user bills from the
     # nmlegis website pages.
-    allusers = load_bills_from_users()
+    allusers = update_all_user_bills()
 
     sender = "billtracker@shallowsky.com"
 
     for user in allusers:
-        htmlpart, textpart = check_user_bills(user)
+        htmlpart, textpart = billdb.user_bill_summary(user)
 
         if smtp_server:
             msg = htmlmail.compose_email_msg(user['email'], sender,
@@ -157,5 +104,6 @@ if __name__ == '__main__':
             print("<hr>")
         else:
             print(textpart)
+            print()
 
 

@@ -30,9 +30,10 @@ class TestNMlegisbill(unittest.TestCase):
 
         bill = nmlegisbill.parse_bill_page('SB83', year=2018)
         # mod date keeps changing. Don't try to test it.
-        del bill['mod_date']
+        bill['mod_date'] = None
         self.assertEqual(bill,
                          { 'billno': 'SB83',
+                           'mod_date': None,
                            'chamber': 'S',
                            'billtype': 'B',
                            'number': '83',
@@ -43,15 +44,19 @@ class TestNMlegisbill(unittest.TestCase):
                            'sponsorlink': 'http://www.nmlegis.gov/Members/Legislator?SponCode=SSRUE',
                            'curloc': 'Senate Finance Committee',
                            'curloclink': 'https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=SFC',
-                           'status': '\n<span class="list-group-item" id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_0"><br><strong>Sent to SPREF - Referrals: SPREF</strong></span>\n<br><br>\n<span class="list-group-item" id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_1">Legislative Day: 2<br/>Calendar Day: 01/18/2018<br><strong>Sent to SCC - Referrals: SCC/SPAC/SFC</strong></span>\n<br><br>\n<span class="list-group-item" id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_2">Legislative Day: 5<br/>Calendar Day: 01/22/2018<br><strong>SCC: Reported by committee to fall within the purview of a 30 day session</strong></span>\n<br><br>\n<span class="list-group-item" id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_3">Legislative Day: 9<br/>Calendar Day: 01/31/2018<br><strong>SPAC: Reported by committee with Do Pass recommendation</strong></span>\n',
-                           'statustext': '    Sent to SPREF - Referrals: SPREF\n\n    Legislative Day: 2\n    Calendar Day: 01/18/2018\n    Sent to SCC - Referrals: SCC/SPAC/SFC\n\n    Legislative Day: 5\n    Calendar Day: 01/22/2018\n    SCC: Reported by committee to fall within the purview of a 30 day session\n\n    Legislative Day: 9\n    Calendar Day: 01/31/2018\n    SPAC: Reported by committee with Do Pass recommendation\n',
+                           'status': '<span class="list-group-item" id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_3">Legislative Day: 9<br/>Calendar Day: 01/31/2018<br><strong>SPAC: Reported by committee with Do Pass recommendation</strong></span>',
+                           'statustext': '    Legislative Day: 9\n    Calendar Day: 01/31/2018\n    SPAC: Reported by committee with Do Pass recommendation',
+                           'last_action_date': datetime.datetime(2018, 1, 31, 0, 0),
+                           'FIRlink': None,
+                           'LESClink': None,
                            'contents_url': 'https://www.nmlegis.gov/Sessions/18%20Regular/bills/senate/SB0083.html'
                          })
 
         bill = nmlegisbill.parse_bill_page('HJR1', year=2018)
-        del bill['mod_date']
+        bill['mod_date'] = None
         self.assertEqual(bill,
                          { 'billno': 'HJR1',
+                           'mod_date': None,
                            'chamber': 'H',
                            'billtype': 'JR',
                            'number': '1',
@@ -62,12 +67,13 @@ class TestNMlegisbill(unittest.TestCase):
                            'sponsorlink': 'http://www.nmlegis.gov/Members/Legislator?SponCode=HMAES',
                            'curloc': 'House Calendar',
                            'curloclink': 'https://www.nmlegis.gov/Entity/House/Floor_Calendar',
-                           'status': '\n<span class="list-group-item" id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_0"><br><strong>Sent to HPREF - Referrals: HPREF</strong></span>\n<br><br>\n<span class="list-group-item" id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_1">Legislative Day: 1<br/>Calendar Day: 01/16/2018<br><strong>Sent to HEC - Referrals: HEC/HJC</strong></span>\n<br><br>\n<span class="list-group-item" id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_2">Legislative Day: 2<br/>Calendar Day: 01/24/2018<br><strong>HEC: Reported by committee with Do Pass recommendation with amendment(s)</strong></span>\n<br><br>\n<span class="list-group-item" id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_3">Legislative Day: 3<br/>Calendar Day: 01/30/2018<br><strong>HJC: Reported by committee with Do Pass recommendation</strong></span>\n',
-                           'statustext': '    Sent to HPREF - Referrals: HPREF\n\n    Legislative Day: 1\n    Calendar Day: 01/16/2018\n    Sent to HEC - Referrals: HEC/HJC\n\n    Legislative Day: 2\n    Calendar Day: 01/24/2018\n    HEC: Reported by committee with Do Pass recommendation with amendment(s)\n\n    Legislative Day: 3\n    Calendar Day: 01/30/2018\n    HJC: Reported by committee with Do Pass recommendation\n',
+                           'status': '<span class="list-group-item" id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_3">Legislative Day: 3<br/>Calendar Day: 01/30/2018<br><strong>HJC: Reported by committee with Do Pass recommendation</strong></span>',
+                           'statustext': '    Legislative Day: 3\n    Calendar Day: 01/30/2018\n    HJC: Reported by committee with Do Pass recommendation',
                            'title': 'LAND GRANT FUND DISTRIBUTIONS, CA',
+                           'last_action_date': datetime.datetime(2018, 1, 30, 0, 0),
+                           'FIRlink': None,
+                           'LESClink': None,
                            'contents_url': 'https://www.nmlegis.gov/Sessions/18%20Regular/resolutions/house/HJR01.html'
                          })
-
-
 
 

@@ -59,6 +59,12 @@ class URLmapper:
             url += '?' + purl.query
         return url
 
+    def to_local_link(self, url, cururl):
+        '''In URLmappers that are local, return a local link
+           that won't hit the server.
+        '''
+        return url
+
     def bill_url(self, chamber, billtype, number, year):
         return self.billurlpat % (self.baseurl, chamber, billtype, number,
                                   (year_to_2digit(year)))
@@ -74,17 +80,24 @@ class LocalhostURLmapper(URLmapper):
         self.remoteurl = realurl
         self.realbillurlpat = realbillurlpat
 
+    def to_local_link(self, url, cururl):
+        '''In URLmappers that are local, return a local link
+           that won't hit the server.
+        '''
+        if not url:
+            return url
+        return URLmapper.to_abs_link(self, url, cururl)
+        # This should be an absolute link in terms of localhost.
+
     def to_abs_link(self, url, cururl):
         '''Try to map relative, / and localhost URLs to absolute ones
            based on the realurl.
            cururl is the page on which the link was found,
            for relative links like ../
         '''
-        if not url:
-            return url
-        mapped_url = URLmapper.to_abs_link(self, url, cururl)
+        mapped_url = self.to_local_link(url, None)
 
-        # Now we should have an absolute link in terms of localhost.
+        # Now we have an absolute link in terms of localhost.
         # But if it's a bill URL like http://localhost/foo/cache/2018-HB98.html,
         # remap it to the real url of
         # http://www.nmlegis.gov/lcs/legislation.aspx?chamber=H&legtype=B&legno=98&year=18
@@ -110,6 +123,9 @@ class LocalhostURLmapper(URLmapper):
                                               year_to_2digit(year),
                                               chamber, billtype, number)
 
+    def get_url(self, url):
+        return url
+
 # Use cached local files: good for unit tests.
 class LocalURLmapper(URLmapper):
     '''For debugging, look for files like ./test/2018-HJR1.html
@@ -121,6 +137,18 @@ class LocalURLmapper(URLmapper):
     def bill_url(self, chamber, billtype, number, year):
         return './test/20%s-%s%s%s.html' % (year_to_2digit(year),
                                             chamber, billtype, number)
+
+    def to_local_link(self, url, cururl):
+        '''In URLmappers that are local, return a local link
+           that won't hit the server.
+        '''
+        if not url:
+            return url
+
+        # XXX This is bogus and will probably not return anything useful,
+        # but at least it won't hit the server.
+        purl = urlparse(url)
+        return './test/%s' % purl.path
 
 url_mapper = URLmapper('https://www.nmlegis.gov',
     '%s/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s')
@@ -205,6 +233,42 @@ def billno_to_parts(billno, year=None):
     chamber, billtype, number = match.groups()
     return chamber, billtype, number, year
 
+def check_analysis(billno):
+    '''See if there are any FIR or LESC analysis links.
+       The bill's webpage won't tell us because those are hidden
+       behind Javascript, so just try forming URLs and see if
+       anything's there.
+    '''
+    (chamber, billtype, number, year) = billno_to_parts(billno)
+    # number = int(number)
+
+    # XXX This urlmapper stuff needs to be redesigned.
+    # The to_local_link stuff here is just to keep us from
+    # hitting a remote server while running tests.
+    firlink = url_mapper.to_local_link(
+        '%s/Sessions/%s%%20Regular/firs/%s%s00%s.PDF' \
+        % (url_mapper.baseurl, year, chamber, billtype, number),
+        None)
+    lesclink = url_mapper.to_local_link(
+        '%s/Sessions/%s%%20Regular/LESCAnalysis/%s%s00%s.PDF' \
+               % (url_mapper.baseurl, year, chamber, billtype, number),
+        None)
+
+    if ':' in firlink:
+        request = requests.get(firlink)
+        if request.status_code != 200:
+            firlink = None
+    else:
+        firlink = None
+    if ':' in lesclink:
+        request = requests.get(lesclink)
+        if request.status_code != 200:
+            lesclink = None
+    else:
+        lesclink = None
+
+    return firlink, lesclink
+
 def parse_bill_page(billno, year=None, cache_locally=False):
     '''Download and parse a bill's page on nmlegis.org.
        Return a dictionary containing:
@@ -281,64 +345,65 @@ def parse_bill_page(billno, year=None, cache_locally=False):
     actiontable = soup.find("table",
       id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions")
 
-    # Unset modification date; hopefully we'll be able to set it
-    # from the page.
-    billdic['mod_date'] = None
+    actions = actiontable.findAll('span', class_="list-group-item")
+    if actions:
+        lastaction = actions[-1]
 
-    if actiontable:
-        actions = actiontable.findAll("tr")
-        status = None
-        # Now we want the last nonempty action.
-        # Unfortunately the page tends to have several empty <tr>s.
-        billdic["status"] = ''
-        billdic["statustext"] = ''
-        # for tr in reversed(actions):
-        for tr in actions:
-            # span = tr.find("span")
-            # if span:
-            #     billdic["status"] = span
-            if tr.text.strip():
-                # It is surprisingly hard to say "just give me
-                # what's inside this td."
-                th = ''.join(map(str, tr.find("td").contents))
-                # nmlegis erroneously uses <br>blah</br><strong> and
-                # apparently assumes browsers will put a break at the </br>.
-                # Since that's illegal HTML, BS doesn't parse it that way.
-                # But if we don't compensate, the status looks awful.
-                # So try to mitigate that by inserting a <br> before <strong>.
-                th = re.sub('<strong>', '<br><strong>', th)
-                if billdic["status"]:
-                    billdic["status"] += "<br><br>"
-                billdic["status"] += th
+        # Try to parse the most recent modification date from it:
+        actiontext = lastaction.text
+        match = re.search('Calendar Day: (\d\d/\d\d/\d\d\d\d)', actiontext)
+        if match:
+            last_action_date = dateutil.parser.parse(match.group(1))
+        else:
+            last_action_date = None
+        billdic['last_action_date'] = last_action_date
 
-                # Make a plaintext version:
-                t = tr.text
+        # nmlegis erroneously uses <br>blah</br><strong> and
+        # apparently assumes browsers will put a break at the </br>.
+        # Since that's illegal HTML, BS doesn't parse it that way.
+        # But if we don't compensate, the status looks awful.
+        # So try to mitigate that by inserting a <br> before <strong>.
+        billdic["status"] = re.sub('<strong>', '<br><strong>', str(lastaction))
 
-                # Try to parse the most recent modification date from t.
-                match = re.search('Calendar Day: (\d\d/\d\d/\d\d\d\d)', t)
-                if match:
-                    billdic['mod_date'] = dateutil.parser.parse(match.group(1))
-
-                # Clean up the text, adding spaces and line breaks
-                # similar to what we did for the HTML:
-                while t.startswith('\n'):
-                    t = t[1:]
-                t = '    ' + t
-                t = re.sub('(Legislative Day: [0-9]*)', '\\1\n    ', t)
-                t = re.sub('(Calendar Day: ../../....)', '\\1\n    ', t)
-                t = re.sub('\n\n*', '\n', t)
-                if billdic["statustext"]:
-                    billdic["statustext"] += '\n'
-                billdic["statustext"] += t
-
-        # Done with the tr actions loop. The final tr should be the
-        # most recent change.
+        # Clean up the text in a similar way, adding spaces and line breaks.
+        while actiontext.startswith('\n'):
+            actiontext = actiontext[1:]
+        actiontext = '    ' + actiontext
+        actiontext = re.sub('(Legislative Day: [0-9]*)', '\\1\n    ',
+                            actiontext)
+        actiontext = re.sub('(Calendar Day: ../../....)', '\\1\n    ',
+                            actiontext)
+        actiontext = re.sub('\n\n*', '\n', actiontext)
+        billdic["statustext"] = actiontext
 
     # The bill's page has other useful info, like votes, analysis etc.
     # but unfortunately that's all filled in later with JS and Ajax so
-    # it's invisible to us.
+    # it's invisible to us. But we can make a guess at FIR and LESC links:
+
+    billdic['FIRlink'], billdic['LESClink'] = check_analysis(billno)
 
     return billdic
+
+def most_recent_action(billdic):
+    '''Return a date, plus text and HTML, for the most recent action
+       represented in billdic["status"].
+    '''
+    if not billdic["status"]:
+        return None
+    soup = BeautifulSoup(billdic["status"])
+    actions = soup.findAll('span', class_="list-group-item")
+    if not actions:
+        return None
+    lastaction = actions[-1]
+
+    # Try to parse the most recent modification date from t.
+    match = re.search('Calendar Day: (\d\d/\d\d/\d\d\d\d)', lastaction)
+    if match:
+        last_action_date = dateutil.parser.parse(match.group(1))
+    else:
+        last_action_date = None
+    billdic['last_action_date'] = last_action_date
+    return last_action_date, str(lastaction), lastaction.text
 
 # There doesn't seem to be a way, without javascript,
 # to get a list of all current legislation. Sigh.

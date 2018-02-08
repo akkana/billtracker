@@ -118,6 +118,8 @@ def user_page():
         header("New Mexico Bill Tracker: Edit User %s" % email)
         # print("user CGI:", form)
 
+        htmlpart, textpart = billdb.user_bill_summary(user)
+
         bills = billdb.get_user_bills(email)
         if bills:
             print('''<h2>%s's bills:</h2>

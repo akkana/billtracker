@@ -16,11 +16,13 @@ dbname = "./bills.sqlite"
 billfields = [ 'billno', 'mod_date', 'bill_url',
                'chamber', 'billtype', 'number', 'year',
                'title', 'contents_url', 'status', 'statuslink', 'statustext',
-               'sponsor', 'sponsorlink', 'curloc', 'curloclink'
+               'sponsor', 'sponsorlink', 'curloc', 'curloclink',
+               'FIRlink', 'LESClink', 'last_action_date'
              ]
 # Most fields are strings, which is the default, so use None for that.
 billfield_types = [ None, 'timestamp', None, None, None, None, None, None,
-                     None, None, None, None, None, None, None, None ]
+                    None, None, None, None, None, None, None, None, None,
+                    None, 'timestamp' ]
 
 userfields = [ 'email', 'password', 'auth_code',
                'bills', 'last_check'
@@ -103,10 +105,7 @@ def init(alternate_db=None):
     # everything else is updated from nmlegis.gov web pages.
     try:
         create_dict_table("users", userfields, userfield_types)
-        print("Added user table")
         create_dict_table("bills", billfields, billfield_types)
-        print("Added bills table")
-
         dbconn.commit()
 
     except sqlite3.OperationalError:
@@ -114,12 +113,10 @@ def init(alternate_db=None):
 
 # sqlite apparently has no real way to test for existence.
 def exists_in_db(key, table):
-    if table == "bills":
-        cursor.execute("SELECT * from bills WHERE billno=?", (key,))
-    elif table == "users":
-        cursor.execute("SELECT * from users WHERE username=?", (key,))
-    else:
-        return False
+    cursor.execute("SELECT %s from %s WHERE %s=?" % (primary_keys[table],
+                                                     table,
+                                                     primary_keys[table]),
+                   (key,))
     data = cursor.fetchone()
     if data is None:
         return False
@@ -228,6 +225,8 @@ def get_user_bills(email):
     # fetchone() returns a tuple even though it's explicitly
     # asking for only one. Go figure.
     bills = cursor.fetchone()
+    if not bills:
+        return None
     if bills['bills']:
         # Bills may be either comma or whitespace separated.
         sep = re.compile('[,\s]+')
@@ -254,3 +253,80 @@ if __name__ == '__main__':
         print("%s bills: %s" % (userdic["email"], userdic["bills"]))
 
     # commit_and_quit()
+
+def user_bill_summary(user):
+    '''user is a dictionary. Check last modified date for each of
+       user's bills, see if it's more recent than the user's last check.
+       Return summary strings in html and plaintext formats
+       (in that order) which can be emailed to the user.
+    '''
+    # How recently has this user updated?
+    last_check = user['last_check']
+
+    # Set up the strings we'll return.
+    # Keep bills that have changed separate from bills that haven't.
+    newertext = '''Bills that have changed since %s's last check at %s:''' \
+               % (user['email'], str(last_check))
+    oldertext = '''Bills that haven't changed:'''
+    newerhtml = '''<html>
+<head>
+<style type="text/css">
+  div.odd { background: #eef; margin=5px; }
+  div.even { background: #efe; margin=5px; }
+</style>
+</head>
+<body>
+<h2>%s</h2>''' % newertext
+    olderhtml = '<h2>%s</h2>' % oldertext
+
+    # Get the user's list of bills:
+    sep = re.compile('[,\s]+')
+    userbills = sep.split(user['bills'])
+
+    # For each bill, get the mod_date and see if it's newer:
+    even = True
+    for billno in userbills:
+        even = not even
+        billdic = fetch_bill(billno)
+        analysisText = ''
+        analysisHTML = ''
+        if billdic['FIRlink']:
+            analysisText += '  FIR: ' + billdic['FIRlink'] + '\n'
+            analysisHTML += '<a href="%s">FIR report</a>' % billdic['FIRlink']
+        if billdic['LESClink']:
+            analysisText += '  LESC: ' + billdic['LESClink'] + '\n'
+            analysisHTML += '<a href="%s">LESC report</a>' % billdic['LESClink']
+        if billdic['FIRlink'] or billdic['LESClink']:
+            analysisHTML += '<br />'
+
+        if billdic['mod_date'] > last_check:
+            newertext += '''
+%s %s .. updated %s
+  Bill page: %s
+  Bill text: %s
+  Analysis: %s
+  History:
+%s''' % (billno, billdic['title'], billdic['mod_date'].strftime('%m/%d/%Y'),
+         billdic['bill_url'], billdic['contents_url'], analysisText,
+         billdic['statustext'])
+            newerhtml += '''<p>
+<div class="%s">
+<a href="%s">%s: %s</a> .. updated %s<br />
+  <a href="%s">Text of bill</a><br />
+  %s
+  History:
+%s
+</div>''' % ("even" if even else "odd",
+             billdic['bill_url'], billno, billdic['title'],
+             billdic['mod_date'].strftime('%m/%d/%Y'),
+             billdic['contents_url'], analysisHTML, billdic['status'])
+
+        else:
+            oldertext += "\n%s %s .. %s" % (billno, billdic['title'],
+                                               billdic['mod_date'])
+            olderhtml += '<br /><a href="%s">%s %s</a> .. last updated %s' % \
+                        (billdic['bill_url'], billno, billdic['title'],
+                         billdic['mod_date'])
+
+    return (newerhtml + olderhtml + '</body></html>',
+            newertext + "\n===============\n" + oldertext)
