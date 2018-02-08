@@ -266,7 +266,7 @@ def user_bill_summary(user):
     # Set up the strings we'll return.
     # Keep bills that have changed separate from bills that haven't.
     newertext = '''Bills that have changed since %s's last check at %s:''' \
-               % (user['email'], str(last_check))
+               % (user['email'], last_check.strftime('%m/%d/%Y'))
     oldertext = '''Bills that haven't changed:'''
     newerhtml = '''<html>
 <head>
@@ -291,22 +291,23 @@ def user_bill_summary(user):
         analysisText = ''
         analysisHTML = ''
         if billdic['FIRlink']:
-            analysisText += '  FIR: ' + billdic['FIRlink'] + '\n'
+            analysisText += ' FIR: ' + billdic['FIRlink'] + '\n'
             analysisHTML += '<a href="%s">FIR report</a>' % billdic['FIRlink']
         if billdic['LESClink']:
-            analysisText += '  LESC: ' + billdic['LESClink'] + '\n'
+            analysisText += ' LESC: ' + billdic['LESClink'] + '\n'
             analysisHTML += '<a href="%s">LESC report</a>' % billdic['LESClink']
         if billdic['FIRlink'] or billdic['LESClink']:
             analysisHTML += '<br />'
+        action_datestr = billdic['last_action_date'].strftime('%m/%d/%Y')
 
-        if billdic['mod_date'] > last_check:
+        if billdic['last_action_date'] >= last_check:
             newertext += '''
 %s %s .. updated %s
   Bill page: %s
   Bill text: %s
   Analysis: %s
-  History:
-%s''' % (billno, billdic['title'], billdic['mod_date'].strftime('%m/%d/%Y'),
+  Status:
+%s''' % (billno, billdic['title'], action_datestr,
          billdic['bill_url'], billdic['contents_url'], analysisText,
          billdic['statustext'])
             newerhtml += '''<p>
@@ -314,19 +315,20 @@ def user_bill_summary(user):
 <a href="%s">%s: %s</a> .. updated %s<br />
   <a href="%s">Text of bill</a><br />
   %s
-  History:
+  Status:
 %s
 </div>''' % ("even" if even else "odd",
              billdic['bill_url'], billno, billdic['title'],
-             billdic['mod_date'].strftime('%m/%d/%Y'),
+             action_datestr,
              billdic['contents_url'], analysisHTML, billdic['status'])
 
         else:
-            oldertext += "\n%s %s .. %s" % (billno, billdic['title'],
-                                               billdic['mod_date'])
+            oldertext += "\n%s %s (last changed %s)" % (billno,
+                                                        billdic['title'],
+                                                        action_datestr)
             olderhtml += '<br /><a href="%s">%s %s</a> .. last updated %s' % \
                         (billdic['bill_url'], billno, billdic['title'],
-                         billdic['mod_date'])
+                         action_datestr)
 
     return (newerhtml + olderhtml + '</body></html>',
             newertext + "\n===============\n" + oldertext)
