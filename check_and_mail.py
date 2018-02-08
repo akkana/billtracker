@@ -9,7 +9,7 @@ import billdb
 import nmlegisbill
 import datetime
 import re
-import sys
+import sys, os
 
 import htmlmail
 
@@ -39,15 +39,37 @@ def update_all_user_bills():
 
     for billno in allbills:
         billdic = billdb.fetch_bill(billno)
-        if not billdic['mod_date'] or billdic['mod_date'] < newenough:
+        if not billdic['update_date'] or billdic['update_date'] < newenough:
             print("Updating bill", billno)
             billdic = nmlegisbill.parse_bill_page(billno, newenough)
+
+            # Fetch the bill as currently represented in the database,
+            # so we can see if anything changed since the last update_date.
+            oldbill = billdb.fetch_bill(billno)
+            # Ignore mod_date and update_date for comparison purposes.
+            oldbill['mod_date'] = billdic['mod_date']
+            oldbill['update_date'] = billdic['update_date']
+            if billdic != oldbill:
+                print("%s changed!" % billno)
+                billdic['mod_date'] = billdic['update_date']
+
             billdb.update_bill(billdic)
             billdb.commit()
         else:
             print(billno, "is already new enough, not re-fetching")
 
     return allusers
+
+def Usage():
+    print('''Usage: %s smtp_server [smtp_user [smtp_passwd [smtp_port]]]
+       %s [--html]
+
+With SMTP information, check bills for all users and send email to each user,
+and update the database.
+Without SMTP info, print what would be sent, in text (default) or HTML
+format, but don't update anything.''' % (os.path.basename(sys.argv[0]),
+                                         os.path.basename(sys.argv[0])))
+    sys.exit(0)
 
 if __name__ == '__main__':
 
@@ -56,8 +78,13 @@ if __name__ == '__main__':
     smtp_user = None
     smtp_passwd = None
     smtp_port = 587
-    if len(sys.argv) == 2 and sys.argv[1].endswith('html'):
-        html_mode = True
+    if len(sys.argv) == 2:
+        if sys.argv[1] == '-h' or sys.argv[1] == '--help':
+            Usage()
+        if sys.argv[1].endswith('html'):
+            html_mode = True
+        else:
+            smtp_server = sys.argv[1]
     elif len(sys.argv) > 1:
         smtp_server = sys.argv[1]
         if len(sys.argv) > 2:
@@ -68,7 +95,7 @@ if __name__ == '__main__':
                     smtp_port = sys.argv[4]
 
     if not smtp_server:
-        print("To send an email, pass server, user, passwd[, port]",
+        print("To send an email, pass server, user, passwd[, port]\n",
               file=sys.stderr)
 
     now = datetime.datetime.now()
@@ -99,6 +126,7 @@ if __name__ == '__main__':
             continue
 
         # Not actually sending mail for this user, so just print the parts.
+        # If we're not emailing, we also won't update the user's last_check.
         if html_mode:
             print(htmlpart)
             print("<hr>")

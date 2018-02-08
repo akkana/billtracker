@@ -275,6 +275,8 @@ def parse_bill_page(billno, year=None, cache_locally=False):
        chamber, billtype, number, year,
        title, sponsor, sponsorlink,
        curloc, curloclink, and contents_url.
+       Set update_date to now.
+       Does *not* save the fetched bill back to the database.
     '''
 
     billdic = { 'billno': billno }
@@ -363,7 +365,8 @@ def parse_bill_page(billno, year=None, cache_locally=False):
         # Since that's illegal HTML, BS doesn't parse it that way.
         # But if we don't compensate, the status looks awful.
         # So try to mitigate that by inserting a <br> before <strong>.
-        billdic["status"] = re.sub('<strong>', '<br><strong>', str(lastaction))
+        billdic["statusHTML"] = re.sub('<strong>', '<br><strong>',
+                                       str(lastaction))
 
         # Clean up the text in a similar way, adding spaces and line breaks.
         while actiontext.startswith('\n'):
@@ -379,18 +382,20 @@ def parse_bill_page(billno, year=None, cache_locally=False):
     # The bill's page has other useful info, like votes, analysis etc.
     # but unfortunately that's all filled in later with JS and Ajax so
     # it's invisible to us. But we can make a guess at FIR and LESC links:
-
     billdic['FIRlink'], billdic['LESClink'] = check_analysis(billno)
+
+    billdic['update_date'] = datetime.datetime.now()
+    billdic['mod_date'] = None
 
     return billdic
 
 def most_recent_action(billdic):
     '''Return a date, plus text and HTML, for the most recent action
-       represented in billdic["status"].
+       represented in billdic["statusHTML"].
     '''
-    if not billdic["status"]:
+    if not billdic['statusHTML']:
         return None
-    soup = BeautifulSoup(billdic["status"])
+    soup = BeautifulSoup(billdic["statusHTML"])
     actions = soup.findAll('span', class_="list-group-item")
     if not actions:
         return None

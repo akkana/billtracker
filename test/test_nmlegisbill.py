@@ -31,9 +31,11 @@ class TestNMlegisbill(unittest.TestCase):
         bill = nmlegisbill.parse_bill_page('SB83', year=2018)
         # mod date keeps changing. Don't try to test it.
         bill['mod_date'] = None
+        bill['update_date'] = None
         self.assertEqual(bill,
                          { 'billno': 'SB83',
                            'mod_date': None,
+                           'update_date': None,
                            'chamber': 'S',
                            'billtype': 'B',
                            'number': '83',
@@ -44,7 +46,7 @@ class TestNMlegisbill(unittest.TestCase):
                            'sponsorlink': 'http://www.nmlegis.gov/Members/Legislator?SponCode=SSRUE',
                            'curloc': 'Senate Finance Committee',
                            'curloclink': 'https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=SFC',
-                           'status': '<span class="list-group-item" id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_3">Legislative Day: 9<br/>Calendar Day: 01/31/2018<br><strong>SPAC: Reported by committee with Do Pass recommendation</strong></span>',
+                           'statusHTML': '<span class="list-group-item" id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_3">Legislative Day: 9<br/>Calendar Day: 01/31/2018<br><strong>SPAC: Reported by committee with Do Pass recommendation</strong></span>',
                            'statustext': '    Legislative Day: 9\n    Calendar Day: 01/31/2018\n    SPAC: Reported by committee with Do Pass recommendation',
                            'last_action_date': datetime.datetime(2018, 1, 31, 0, 0),
                            'FIRlink': None,
@@ -54,9 +56,11 @@ class TestNMlegisbill(unittest.TestCase):
 
         bill = nmlegisbill.parse_bill_page('HJR1', year=2018)
         bill['mod_date'] = None
+        bill['update_date'] = None
         self.assertEqual(bill,
                          { 'billno': 'HJR1',
                            'mod_date': None,
+                           'update_date': None,
                            'chamber': 'H',
                            'billtype': 'JR',
                            'number': '1',
@@ -67,7 +71,7 @@ class TestNMlegisbill(unittest.TestCase):
                            'sponsorlink': 'http://www.nmlegis.gov/Members/Legislator?SponCode=HMAES',
                            'curloc': 'House Calendar',
                            'curloclink': 'https://www.nmlegis.gov/Entity/House/Floor_Calendar',
-                           'status': '<span class="list-group-item" id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_3">Legislative Day: 3<br/>Calendar Day: 01/30/2018<br><strong>HJC: Reported by committee with Do Pass recommendation</strong></span>',
+                           'statusHTML': '<span class="list-group-item" id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_3">Legislative Day: 3<br/>Calendar Day: 01/30/2018<br><strong>HJC: Reported by committee with Do Pass recommendation</strong></span>',
                            'statustext': '    Legislative Day: 3\n    Calendar Day: 01/30/2018\n    HJC: Reported by committee with Do Pass recommendation',
                            'title': 'LAND GRANT FUND DISTRIBUTIONS, CA',
                            'last_action_date': datetime.datetime(2018, 1, 30, 0, 0),

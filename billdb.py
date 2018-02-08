@@ -13,16 +13,37 @@ dbconn = None
 cursor = None
 dbname = "./bills.sqlite"
 
-billfields = [ 'billno', 'mod_date', 'bill_url',
+billfields = [ 'billno', 'mod_date', 'update_date', 'bill_url',
                'chamber', 'billtype', 'number', 'year',
-               'title', 'contents_url', 'status', 'statuslink', 'statustext',
+               'title', 'contents_url',
+               'statusHTML', 'statustext', 'last_action_date',
                'sponsor', 'sponsorlink', 'curloc', 'curloclink',
-               'FIRlink', 'LESClink', 'last_action_date'
+               'FIRlink', 'LESClink'
              ]
 # Most fields are strings, which is the default, so use None for that.
-billfield_types = [ None, 'timestamp', None, None, None, None, None, None,
-                    None, None, None, None, None, None, None, None, None,
-                    None, 'timestamp' ]
+billfield_types = [ None, 'timestamp', 'timestamp', None,
+                    None, None, None, None,
+                    None, None,
+                    None, None, 'timestamp',
+                    None, None, None, None,
+                    None, None ]
+billfield_descriptions = [
+    "Bill designation",
+    "When was this bill's page last changed?",
+    "When did we last check the bill's page?",
+    "URL for the bill's page",
+    "Chamber (S or H)",
+    "Bill type, e.g. B (bill), M (memorial), JR (joint resolution)",
+    "Number, e.g. 83 for SB83", "Year (default to current)",
+    "Bill title", "URL to HTML text of bill",
+    "Status (last action) on the bill, in HTML format",
+    "Status (last action) on the bill, in text format",
+    "Bill's sponsor (legislator who introduced it)",
+    "URL for bill's sponsor",
+    "Current location (e.g. which committee)", "Link for current location",
+    "Link to FIR analysis, if any", "Link to LESC analysis, if any",
+    "Date of last action as represented in the status"
+]
 
 userfields = [ 'email', 'password', 'auth_code',
                'bills', 'last_check'
@@ -255,10 +276,10 @@ if __name__ == '__main__':
     # commit_and_quit()
 
 def user_bill_summary(user):
-    '''user is a dictionary. Check last modified date for each of
-       user's bills, see if it's more recent than the user's last check.
-       Return summary strings in html and plaintext formats
-       (in that order) which can be emailed to the user.
+    '''user is a dictionary. Examine each of user's bills,
+       see if it looks like it's changed since user's last check.
+       Return summary strings in html and plaintext formats (in that
+       order) showing which bills have changed and which haven't.
     '''
     # How recently has this user updated?
     last_check = user['last_check']
@@ -288,19 +309,29 @@ def user_bill_summary(user):
     for billno in userbills:
         even = not even
         billdic = fetch_bill(billno)
-        analysisText = ''
-        analysisHTML = ''
-        if billdic['FIRlink']:
-            analysisText += ' FIR: ' + billdic['FIRlink'] + '\n'
-            analysisHTML += '<a href="%s">FIR report</a>' % billdic['FIRlink']
-        if billdic['LESClink']:
-            analysisText += ' LESC: ' + billdic['LESClink'] + '\n'
-            analysisHTML += '<a href="%s">LESC report</a>' % billdic['LESClink']
-        if billdic['FIRlink'] or billdic['LESClink']:
-            analysisHTML += '<br />'
-        action_datestr = billdic['last_action_date'].strftime('%m/%d/%Y')
+        if billdic['last_action_date']:
+            action_datestr = billdic['last_action_date'].strftime('%m/%d/%Y')
+        else:
+            action_datestr = None
 
-        if billdic['last_action_date'] >= last_check:
+        # It shouldn't be possible that last action date is more
+        # recent than last_check but mod_date doesn't reflect that;
+        # but it doesn't hurt to be sure.
+        if billdic['mod_date'] >= last_check or \
+           billdic['last_action_date'] >= last_check:
+            analysisText = ''
+            analysisHTML = ''
+            if billdic['FIRlink']:
+                analysisText += ' FIR: ' + billdic['FIRlink'] + '\n'
+                analysisHTML += '<a href="%s">FIR report</a>' \
+                                % billdic['FIRlink']
+            if billdic['LESClink']:
+                analysisText += ' LESC: ' + billdic['LESClink'] + '\n'
+                analysisHTML += '<a href="%s">LESC report</a>' \
+                                % billdic['LESClink']
+            if analysisHTML:
+                analysisHTML += '<br />'
+
             newertext += '''
 %s %s .. updated %s
   Bill page: %s
@@ -320,10 +351,10 @@ def user_bill_summary(user):
 </div>''' % ("even" if even else "odd",
              billdic['bill_url'], billno, billdic['title'],
              action_datestr,
-             billdic['contents_url'], analysisHTML, billdic['status'])
+             billdic['contents_url'], analysisHTML, billdic['statusHTML'])
 
         else:
-            oldertext += "\n%s %s (last changed %s)" % (billno,
+            oldertext += "\n%s %s (last action %s)" % (billno,
                                                         billdic['title'],
                                                         action_datestr)
             olderhtml += '<br /><a href="%s">%s %s</a> .. last updated %s' % \

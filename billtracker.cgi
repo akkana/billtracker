@@ -59,7 +59,7 @@ def show_bill_list(bills):
                                                     billdic['sponsor']))
         print('<tr><td>Current Location:<td><a href="%s">%s</a>' \
               % (billdic['curloclink'], billdic['curloc']))
-        print("<tr><td>Most recent action:<td>", billdic['status'])
+        print("<tr><td>Most recent action:<td>", billdic['statusHTML'])
     print("</table>")
 
 def bills_page():
