@@ -293,8 +293,9 @@ def user_bill_summary(user):
     newerhtml = '''<html>
 <head>
 <style type="text/css">
-  div.odd { background: #eef; margin=5px; }
-  div.even { background: #efe; margin=5px; }
+  body { background: white; }
+  div.odd { background: #ffe; padding: 15px; }
+  div.even { background: #efe; padding: 15px; }
 </style>
 </head>
 <body>
@@ -343,22 +344,25 @@ def user_bill_summary(user):
             newertext += '''\n
 %s %s .. updated %s (changed %s)
   Bill page: %s
+  Current location: %s %s
   Bill text: %s
   Analysis: %s
   Status:
 %s''' % (billno, billdic['title'], action_datestr, str(billdic['mod_date']),
-         billdic['bill_url'], billdic['contents_url'], analysisText,
+         billdic['bill_url'], billdic['curloc'], billdic['curloclink'],
+         billdic['contents_url'], analysisText,
          billdic['statustext'])
-            newerhtml += '''<p>
+            newerhtml += '''
 <div class="%s">
 <a href="%s">%s: %s</a> .. updated %s<br />
+  Current location: <a href="%s">%s</a><br />
   <a href="%s">Text of bill</a><br />
   %s
   Status:
 %s
 </div>''' % ("even" if even else "odd",
              billdic['bill_url'], billno, billdic['title'],
-             action_datestr,
+             action_datestr, billdic['curloc'], billdic['curloclink'],
              billdic['contents_url'], analysisHTML, billdic['statusHTML'])
 
         else:
