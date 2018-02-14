@@ -253,6 +253,10 @@ def check_analysis(billno):
         '%s/Sessions/%s%%20Regular/LESCAnalysis/%s%s00%s.PDF' \
                % (url_mapper.baseurl, year, chamber, billtype, number),
         None)
+    amendlink = url_mapper.to_local_link(
+        '%s/Sessions/%s%%20Regular/Amendments_In_Context/%s%s00%s.PDF' \
+               % (url_mapper.baseurl, year, chamber, billtype, number),
+        None)
 
     if ':' in firlink:
         request = requests.get(firlink)
@@ -267,7 +271,7 @@ def check_analysis(billno):
     else:
         lesclink = None
 
-    return firlink, lesclink
+    return firlink, lesclink, amendlink
 
 def parse_bill_page(billno, year=None, cache_locally=False):
     '''Download and parse a bill's page on nmlegis.org.
@@ -343,6 +347,24 @@ def parse_bill_page(billno, year=None, cache_locally=False):
     billdic['contents_url'] = url_mapper.to_abs_link(contents_a.get('href'),
                                                      baseurl)
 
+    # Does the bill have any amendments?
+    # Unfortunately we can't get the amendments themselves --
+    # they're only available in PDF. But we can see if they exist.
+    # amenddiv = soup.find("div", id="MainContent_tabContainerLegislation_tabPanelFloorReports")
+    #     # Inside this div is a div for a label (Proposed, Adopted, Not Adopted)
+    #     # followed by a table where (I think) there's a <tr><td> for each
+    #     # amendment in that class; the actual amendment will look like
+    #     # <a ... href="/Sessions/18%20Regular/memorials/house/HJM010FH1.pdf">
+    #     #   <span ...>House Floor Amendment 1</span> &nbsp;
+    #     #   <span ...">2/07/18</span>
+    #     # </a>
+
+    # Alternately, the "Amendments in Context" button:
+    amendbutton = soup.find("a", id="MainContent_formViewAmendmentsInContext_linkAmendmentsInContext")
+    if amendbutton:
+        billdic["amendlink"] = url_mapper.to_abs_link(amendbutton.get('href'),
+                                                      baseurl)
+
     # The all-important part: what was the most recent action?
     actiontable = soup.find("table",
       id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions")
@@ -382,7 +404,8 @@ def parse_bill_page(billno, year=None, cache_locally=False):
     # The bill's page has other useful info, like votes, analysis etc.
     # but unfortunately that's all filled in later with JS and Ajax so
     # it's invisible to us. But we can make a guess at FIR and LESC links:
-    billdic['FIRlink'], billdic['LESClink'] = check_analysis(billno)
+    billdic['FIRlink'], billdic['LESClink'], billdic['amendlink'] \
+        = check_analysis(billno)
 
     billdic['update_date'] = datetime.datetime.now()
     billdic['mod_date'] = None

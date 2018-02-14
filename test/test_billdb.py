@@ -25,6 +25,9 @@ class TestBillDB(unittest.TestCase):
         billdb.update_user(email="someone@example.com")
 
     def test(self):
+        # To see long diffs:
+        self.maxDiff = None
+
         try:
             os.unlink('testdb.sqlite')
         except:
@@ -52,6 +55,7 @@ class TestBillDB(unittest.TestCase):
                            'year': None,
                            'FIRlink': None,
                            'LESClink': None,
+                           'amendlink': None,
                            'last_action_date': None,
                            'update_date': None,
                            'title': None })
@@ -74,6 +78,7 @@ class TestBillDB(unittest.TestCase):
                            'year': None,
                            'FIRlink': None,
                            'LESClink': None,
+                           'amendlink': None,
                            'last_action_date': None,
                            'update_date': None,
                            'title': None })
@@ -101,6 +106,7 @@ class TestBillDB(unittest.TestCase):
                            'year': None,
                            'FIRlink': None,
                            'LESClink': None,
+                           'amendlink': None,
                            'last_action_date': None,
                            'update_date': None,
                            'title': 'DUMMY BILL' })
@@ -118,7 +124,9 @@ class TestBillDB(unittest.TestCase):
         self.assertEqual(bills, None)
 
         self.assertEqual(billdb.all_bills(),
-                         [{'billno': 'HJR22', 'mod_date': datetime.datetime(2018, 1, 9, 10, 32), 'bill_url': None, 'chamber': None, 'billtype': None, 'number': None, 'year': None, 'title': None, 'contents_url': None, 'statusHTML': None, 'statustext': None, 'sponsor': None, 'sponsorlink': None, 'curloc': None, 'curloclink': None, 'FIRlink': None, 'LESClink': None, 'last_action_date': None, 'update_date': None,}, {'billno': 'SB83', 'mod_date': datetime.datetime(2018, 1, 18, 9, 30), 'bill_url': None, 'chamber': None, 'billtype': None, 'number': None, 'year': None, 'title': None, 'contents_url': None, 'statusHTML': None, 'statustext': None, 'sponsor': None, 'sponsorlink': None, 'curloc': None, 'curloclink': None, 'FIRlink': None, 'LESClink': None, 'last_action_date': None, 'update_date': None,}, {'billno': 'SJM6', 'mod_date': datetime.datetime(2018, 1, 10, 12, 20), 'bill_url': None, 'chamber': None, 'billtype': None, 'number': None, 'year': None, 'title': 'DUMMY BILL', 'contents_url': None, 'statusHTML': None, 'statustext': None, 'sponsor': None, 'sponsorlink': None, 'curloc': None, 'curloclink': None, 'FIRlink': None, 'LESClink': None, 'last_action_date': None, 'update_date': None,}] )
+                         [{'billno': 'HJR22', 'mod_date': datetime.datetime(2018, 1, 9, 10, 32), 'bill_url': None, 'chamber': None, 'billtype': None, 'number': None, 'year': None, 'title': None, 'contents_url': None, 'statusHTML': None, 'statustext': None, 'sponsor': None, 'sponsorlink': None, 'curloc': None, 'curloclink': None, 'FIRlink': None, 'LESClink': None,  'amendlink': None, 'last_action_date': None, 'update_date': None,},
+                          {'billno': 'SB83', 'mod_date': datetime.datetime(2018, 1, 18, 9, 30), 'bill_url': None, 'chamber': None, 'billtype': None, 'number': None, 'year': None, 'title': None, 'contents_url': None, 'statusHTML': None, 'statustext': None, 'sponsor': None, 'sponsorlink': None, 'curloc': None, 'curloclink': None, 'FIRlink': None, 'LESClink': None,  'amendlink': None, 'last_action_date': None, 'update_date': None,},
+                          {'billno': 'SJM6', 'mod_date': datetime.datetime(2018, 1, 10, 12, 20), 'bill_url': None, 'chamber': None, 'billtype': None, 'number': None, 'year': None, 'title': 'DUMMY BILL', 'contents_url': None, 'statusHTML': None, 'statustext': None, 'sponsor': None, 'sponsorlink': None, 'curloc': None, 'curloclink': None, 'FIRlink': None, 'LESClink': None, 'amendlink': None, 'last_action_date': None, 'update_date': None,}] )
 
         # billdb.commit_and_quit()
 

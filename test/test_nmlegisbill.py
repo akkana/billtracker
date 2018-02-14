@@ -51,6 +51,7 @@ class TestNMlegisbill(unittest.TestCase):
                            'last_action_date': datetime.datetime(2018, 1, 31, 0, 0),
                            'FIRlink': None,
                            'LESClink': None,
+                           'amendlink': './test//Sessions/18%20Regular/Amendments_In_Context/SB0083.PDF',
                            'contents_url': 'https://www.nmlegis.gov/Sessions/18%20Regular/bills/senate/SB0083.html'
                          })
 
@@ -77,6 +78,7 @@ class TestNMlegisbill(unittest.TestCase):
                            'last_action_date': datetime.datetime(2018, 1, 30, 0, 0),
                            'FIRlink': None,
                            'LESClink': None,
+                           'amendlink': './test//Sessions/18%20Regular/Amendments_In_Context/HJR001.PDF',
                            'contents_url': 'https://www.nmlegis.gov/Sessions/18%20Regular/resolutions/house/HJR01.html'
                          })
 

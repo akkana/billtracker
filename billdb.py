@@ -18,7 +18,7 @@ billfields = [ 'billno', 'mod_date', 'update_date', 'bill_url',
                'title', 'contents_url',
                'statusHTML', 'statustext', 'last_action_date',
                'sponsor', 'sponsorlink', 'curloc', 'curloclink',
-               'FIRlink', 'LESClink'
+               'FIRlink', 'LESClink', 'amendlink'
              ]
 # Most fields are strings, which is the default, so use None for that.
 billfield_types = [ None, 'timestamp', 'timestamp', None,
@@ -26,10 +26,10 @@ billfield_types = [ None, 'timestamp', 'timestamp', None,
                     None, None,
                     None, None, 'timestamp',
                     None, None, None, None,
-                    None, None ]
+                    None, None, None ]
 billfield_descriptions = [
     "Bill designation",
-    "When was this bill's page last changed?",
+    "When did this bill's status last change on the website?",
     "When did we last check the bill's page?",
     "URL for the bill's page",
     "Chamber (S or H)",
@@ -42,6 +42,7 @@ billfield_descriptions = [
     "URL for bill's sponsor",
     "Current location (e.g. which committee)", "Link for current location",
     "Link to FIR analysis, if any", "Link to LESC analysis, if any",
+    "Link to amendments PDF, if any",
     "Date of last action as represented in the status"
 ]
 
@@ -309,49 +310,53 @@ def user_bill_summary(user):
     # For each bill, get the mod_date and see if it's newer:
     even = True
     for billno in userbills:
-        even = not even
         billdic = fetch_bill(billno)
+
+        # Make a string indicating the last action and also when the
+        # website was updated, which might be significantly later.
+        action_datestr = ''
         if billdic['last_action_date']:
-            action_datestr = billdic['last_action_date'].strftime('%m/%d/%Y')
-        else:
-            action_datestr = None
+            action_datestr = "last action " \
+                             + billdic['last_action_date'].strftime('%m/%d/%Y')
 
-        # make sure mod_date is at least set, since we're about
-        # to do a date comparison on it.
-        if not billdic['mod_date']:
-            billdic['mod_date'] = billdic['update_date']
+        if billdic['mod_date']:
+            if action_datestr:
+                action_datestr += ", "
+            action_datestr += "updated " \
+                             + billdic['mod_date'].strftime('%m/%d/%Y')
 
-        # It shouldn't be possible that last action date is more
-        # recent than last_check but mod_date doesn't reflect that;
-        # but it doesn't hurt to be sure.
-
-        if billdic['last_action_date'] >= last_check:
+        if billdic['mod_date'] and billdic['mod_date'] >= last_check:
             # or billdic['mod_date'] >= last_check
             # ... if I ever get mod_date working right
             analysisText = ''
             analysisHTML = ''
+            if billdic['amendlink']:
+                analysisText += '\n   Amendments: ' + billdic['amendlink']
+                analysisHTML += '<a href="%s">Amendments</a>' \
+                                % billdic['amendlink']
             if billdic['FIRlink']:
-                analysisText += '\n FIR: ' + billdic['FIRlink']
+                analysisText += '\n   FIR: ' + billdic['FIRlink']
                 analysisHTML += '<a href="%s">FIR report</a>' \
                                 % billdic['FIRlink']
             if billdic['LESClink']:
-                analysisText += '\n LESC: ' + billdic['LESClink']
+                analysisText += '\n   LESC: ' + billdic['LESClink']
                 analysisHTML += '<a href="%s">LESC report</a>' \
                                 % billdic['LESClink']
             if analysisHTML:
                 analysisHTML += '<br />'
 
+            even = not even
             newertext += '''\n
-%s %s .. updated %s (changed %s)
+%s %s
+  (%s)
   Bill page: %s
   Current location: %s %s
   Bill text: %s
   Analysis: %s
   Status:
-%s''' % (billno, billdic['title'], action_datestr, str(billdic['mod_date']),
+%s''' % (billno, billdic['title'], action_datestr,
          billdic['bill_url'], billdic['curloc'], billdic['curloclink'],
-         billdic['contents_url'], analysisText,
-         billdic['statustext'])
+         billdic['contents_url'], analysisText, billdic['statustext'])
             newerhtml += '''
 <div class="%s">
 <a href="%s">%s: %s</a> .. updated %s<br />
@@ -369,7 +374,7 @@ def user_bill_summary(user):
             oldertext += "\n%s %s (last action %s)" % (billno,
                                                         billdic['title'],
                                                         action_datestr)
-            olderhtml += '<br /><a href="%s">%s %s</a> .. last updated %s' % \
+            olderhtml += '<br /><a href="%s">%s %s</a> .. last action %s' % \
                         (billdic['bill_url'], billno, billdic['title'],
                          action_datestr)
 

@@ -19,6 +19,13 @@ import htmlmail
 #                                    'https://www.nmlegis.gov',
 #         '%s/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s')
 
+def show_changes(oldbill, newbill):
+    print("Differences in %s" % oldbill['billno'])
+    for field in oldbill:
+        if oldbill[field] != newbill[field]:
+            print(field, oldbill[field], "->", newbill[field])
+    print()
+
 def update_all_user_bills():
     '''For every bill any user cares about, update it from the nmlegis
        page if our database hasn't updated it in the last 12 hours.
@@ -47,12 +54,22 @@ def update_all_user_bills():
             # so we can see if anything changed since the last update_date.
             oldbill = billdb.fetch_bill(billno)
 
-            # Ignore the old mod_date and update_date for comparison purposes.
-            oldbill['mod_date'] = billdic['mod_date']
+            # Compare the old bill and the new one to see if anything changed.
+            # update_date will be different, of course, so we'll ignore that.
             oldbill['update_date'] = billdic['update_date']
 
+            # mod_date is None as it comes from parse_bill_page,
+            # so set that to the old mod_date; we'll only change it
+            # if we actually saw a change.
+            billdic['mod_date'] = oldbill['mod_date']
+
+            # XXX TEMPORARY: we're introducing amendlink so oldbill won't have that:
+            oldbill['amendlink'] = billdic['amendlink']
+
+            # Now we're ready to compare:
             if billdic != oldbill:
                 print("%s changed!" % billno)
+                show_changes(oldbill, billdic)
                 billdic['mod_date'] = billdic['update_date']
 
             billdb.update_bill(billdic)
