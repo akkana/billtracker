@@ -63,13 +63,10 @@ def update_all_user_bills():
             # if we actually saw a change.
             billdic['mod_date'] = oldbill['mod_date']
 
-            # XXX TEMPORARY: we're introducing amendlink so oldbill won't have that:
-            oldbill['amendlink'] = billdic['amendlink']
-
             # Now we're ready to compare:
             if billdic != oldbill:
                 print("%s changed!" % billno)
-                show_changes(oldbill, billdic)
+                # show_changes(oldbill, billdic)
                 billdic['mod_date'] = billdic['update_date']
 
             billdb.update_bill(billdic)
