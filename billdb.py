@@ -371,10 +371,10 @@ def user_bill_summary(user):
              billdic['contents_url'], analysisHTML, billdic['statusHTML'])
 
         else:
-            oldertext += "\n%s %s (last action %s)" % (billno,
-                                                        billdic['title'],
-                                                        action_datestr)
-            olderhtml += '<br /><a href="%s">%s %s</a> .. last action %s' % \
+            oldertext += "\n%s %s (%s)" % (billno,
+                                           billdic['title'],
+                                           action_datestr)
+            olderhtml += '<br /><a href="%s">%s %s</a> .. %s' % \
                         (billdic['bill_url'], billno, billdic['title'],
                          action_datestr)
 
