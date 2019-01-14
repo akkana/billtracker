@@ -116,6 +116,10 @@ class Bill(db.Model):
         return 'Bill %s' % (self.billno)
 
     def show_html(self):
-        return '<b>%s: updated %s<br>%s' % (self.billno, str(self.mod_date),
-                                            self.statusHTML)
+        s = '<b>%s</b>:' % self.billno
+        if self.mod_date:
+            s += 'Modified %s' % str(self.mod_date)
+        if self.statusHTML:
+            s += '<br>' + self.statusHTML
+        return s
 

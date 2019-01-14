@@ -10,7 +10,7 @@ billno: {{ billno }}
 <form action="" method="post">
 {{ form.hidden_tag() }}
 <p>
-{{ form.billno.label }}   {{ form.billno(size=5) }}
+{{ form.billno.label }}   {{ form.billno(size=5, autofocus=true) }}
 <br>
   {% for error in form.billno.errors %}
       <span style="color: red;">[{{ error }}]</span>

@@ -12,10 +12,11 @@
 You have bills:
 {{ current_user.show_bills() }}
 
-<table>
+<table border=1>
     {% for bill in current_user.bills %}
 
-<tr><td>{{ bill.show_html() }}</td></tr>
+  <tr class="{% if loop.index0 % 2 %}alt{% endif %}">
+    <td>{{ bill.show_html() | safe }}</td></tr>
 
     {% endfor %}
 </table>
