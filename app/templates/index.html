@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Bills for {{ current_user.username }}!</h1>
+
+<p>
+<b><a href="/addbills">Follow more bills</a></b>
+
+<p>
+{% if current_user.bills is defined and current_user.bills|length > 0 %}
+
+You have bills:
+{{ current_user.show_bills() }}
+
+<table>
+    {% for bill in current_user.bills %}
+
+<tr><td>{{ bill.show_html() }}</td></tr>
+
+    {% endfor %}
+</table>
+
+{% else %}
+
+You have no bills yet.
+
+{% endif %}
+
+{% endblock %}
