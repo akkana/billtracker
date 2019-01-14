@@ -3,7 +3,10 @@ from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, AddBillsForm
-from app.models import User
+from app.models import User, Bill
+from app.bills import nmlegisbill
+import datetime
+import sys
 
 
 @app.route('/')
@@ -62,16 +65,74 @@ def register():
 def addbills():
     form = AddBillsForm()
     if form.validate_on_submit():
-        billnum = form.billnum.data
-        print("addbills(): billnum =", billnum)
+        billno = form.billno.data
+        print("addbills(): billno =", billno, file=sys.stderr)
         # do stuff with valid form
         # then redirect to "end" the form
         # return redirect(url_for('addbills'))
+        bill = Bill.query.filter_by(billno=billno).first()
+        if bill:
+            print("Woohoo, we already know about bill", billno,
+                  file=sys.stderr)
+            print(bill, file=sys.stderr)
+        else:
+            # It's a bill not in the database yet: need to fetch it.
+            print("fetching billno =", billno, file=sys.stderr)
+            b = nmlegisbill.parse_bill_page(billno,
+                                            year=datetime.datetime.now().year,
+                                            cache_locally=True)
+            print("Keys:", file=sys.stderr)
+            for k in b.keys():
+                try:
+                    print("  ", k, len(b[k]), file=sys.stderr)
+                except:
+                    print("  ", k, "- no len, type", type(b[k]),
+                          file=sys.stderr)
+            from pprint import pprint
+            pprint(b)
+
+            # bill = Bill(billno = b.billno,
+            #                chamber = b.chamber,
+            #                billtype = b.billtype,
+            #                number = b.number,
+            #                year = b.year,
+            #                mod_date = b.mod_date,
+            #                update_date = b.update_date,
+            #                last_action_date = b.last_action_date,
+            #                title = b.title,
+            #                statusHTML = b.statusHTML,
+            #                statustext = b.statustext,
+            #                sponsor = b.sponsor,
+            #                sponsorlink = b.sponsorlink,
+            #                curloclink = b.curloclink,
+            #                FIRlink = b.FIRlink,
+            #                LESClink = b.LESClink,
+            #                amendlink = b.amendlink)
+            bill = Bill(**b)
+
+            try:
+                db.session.add(bill)
+                print("Supposedly added %s to the database" % billno,
+                      file=sys.stderr)
+            except:
+                print("Couldn't add %s to the database" % billno,
+                      file=sys.stderr)
+                sys.exit(1)
+
+        # Either way, bill should be set to a Bill object now.
+        # Add it to the current user:
+        user = User.query.filter_by(username=current_user.username).first()
+        print("%s's bills are:" % user.username, user.bills)
+        user.bills.append(bill)
+        db.session.add(user)
+        print("Supposedly updated user")
+
+        db.session.commit()
 
         # Clear the form field
-        form.billnum.data = ""
+        form.billno.data = ""
     else:
-        billnum = None
+        billno = None
 
     return render_template('addbills.html', title='Add More Bills', form=form,
-                           billnum=billnum)
+                           billno=billno)

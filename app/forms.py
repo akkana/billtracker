@@ -1,3 +1,4 @@
+
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
@@ -30,15 +31,16 @@ class RegistrationForm(FlaskForm):
             raise ValidationError('Please use a different email address.')
 
 class AddBillsForm(FlaskForm):
-    billnum = StringField('Bill Designation (e.g. SB01)',
+    billno = StringField('Bill Designation (e.g. SB01)',
                           validators=[DataRequired()])
     submit = SubmitField('Track a Bill')
 
-    def validate_billnum(self, billnum):
-        designation = billnum.data
-        print("Should we validate billnum", designation, "?")
+    def validate_billno(self, billno):
+        designation = billno.data
+        print("Should we validate billno", designation, "?")
         designation = designation.upper()
         if designation[0] not in ['S', 'H', 'J']:
             raise ValidationError('Bills should start with S, H or J.')
 
         print(designation, "validates.")
+        billno.data = designation

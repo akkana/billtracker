@@ -2,153 +2,17 @@
 
 from __future__ import print_function
 
+from .billutils import URLmapper, year_to_2digit, billno_to_parts
+
 # Scrape bill data from bill pages from nmlegis.org.
 
 import sys, os
 import datetime, dateutil.parser
+import time
 import re
 import requests
 import posixpath
 from bs4 import BeautifulSoup
-
-if sys.version[:1] == '2':
-    from urlparse import urlparse
-else:
-    from urllib.parse import urlparse
-
-# For offline debugging without hitting the real nmlegis site too often,
-# URL handling goes through this class, which can be set to debug mode.
-# For debugging, set:
-# nmlegisbill.url_mapper = nmlegisbill.LocalURLmapper('https://www.nmlegis.gov')
-# nmlegisbill.url_mapper = \
-#     nmlegisbill.LocalhostURLmapper('http://localhost/billtracker',
-#                                    'https://www.nmlegis.gov')
-# or define your own URL mapper class: see DebugURLMapper below.
-
-class URLmapper:
-    def __init__(self, baseurl, billurlpat):
-        '''baseurl is the basic top-level home page (no terminal slash).
-           billurlpat is the URL pattern for bills, taking five arguments:
-           baseurl, chamber, billtype, number and (2-digit string) year.
-           If you need something that doesn't include these four
-           patterns in that order, redefine bill_url() accordingly.
-        '''
-        self.baseurl = baseurl
-        self.billurlpat = billurlpat
-
-    def to_abs_link(self, url, cururl):
-        '''Try to map relative and / URLs to absolute ones.
-           cururl is the page on which the link was found,
-           for relative links like ../
-        '''
-        if not url:
-            return url
-        purl = urlparse(url)
-        if purl.scheme:
-            return url
-
-        if purl.path.startswith('/'):
-            return self.baseurl + url
-
-        # Otherwise it's (we hope) a relative URL, relative to cururl.
-        curl = urlparse(cururl)
-        path = posixpath.normpath(posixpath.join(posixpath.dirname(curl.path),
-                                                 purl.path))
-        url = curl.scheme  + '://' + curl.netloc + path
-        if purl.query:
-            url += '?' + purl.query
-        return url
-
-    def to_local_link(self, url, cururl):
-        '''In URLmappers that are local, return a local link
-           that won't hit the server.
-        '''
-        return url
-
-    def bill_url(self, chamber, billtype, number, year):
-        return self.billurlpat % (self.baseurl, chamber, billtype, number,
-                                  (year_to_2digit(year)))
-
-#
-# Two derived classes that are useful for debugging:
-#
-
-# Use localhost:// with cached files, for testing CGI:
-class LocalhostURLmapper(URLmapper):
-    def __init__(self, localurl, realurl, realbillurlpat):
-        self.baseurl = localurl
-        self.remoteurl = realurl
-        self.realbillurlpat = realbillurlpat
-
-    def to_local_link(self, url, cururl):
-        '''In URLmappers that are local, return a local link
-           that won't hit the server.
-        '''
-        if not url:
-            return url
-        return URLmapper.to_abs_link(self, url, cururl)
-        # This should be an absolute link in terms of localhost.
-
-    def to_abs_link(self, url, cururl):
-        '''Try to map relative, / and localhost URLs to absolute ones
-           based on the realurl.
-           cururl is the page on which the link was found,
-           for relative links like ../
-        '''
-        mapped_url = self.to_local_link(url, None)
-
-        # Now we have an absolute link in terms of localhost.
-        # But if it's a bill URL like http://localhost/foo/cache/2018-HB98.html,
-        # remap it to the real url of
-        # http://www.nmlegis.gov/lcs/legislation.aspx?chamber=H&legtype=B&legno=98&year=18
-        if not mapped_url.startswith(self.baseurl):
-            return mapped_url
-
-        mapped_url = mapped_url.replace(self.baseurl, '')
-
-        # Now it's just /cache/2018-HB98.html
-        if not mapped_url.startswith('/cache/20'):
-            return mapped_url
-        year = mapped_url[8:10]
-        match = re.match('([HS])([A-Z]+)([0-9]+)', mapped_url[11:-5])
-        if not match:
-            return mapped_url
-        chamber, billtype, number = match.groups()
-        return self.realbillurlpat % (self.remoteurl, chamber,
-                                      billtype, number,
-                                      (year_to_2digit(year)))
-
-    def bill_url(self, chamber, billtype, number, year):
-        return '%s/cache/20%s-%s%s%s.html' % (self.baseurl,
-                                              year_to_2digit(year),
-                                              chamber, billtype, number)
-
-    def get_url(self, url):
-        return url
-
-# Use cached local files: good for unit tests.
-class LocalURLmapper(URLmapper):
-    '''For debugging, look for files like ./test/2018-HJR1.html
-       but still use the real links for other links.
-    '''
-    def __init__(self, baseurl):
-        self.baseurl = baseurl
-
-    def bill_url(self, chamber, billtype, number, year):
-        return './test/20%s-%s%s%s.html' % (year_to_2digit(year),
-                                            chamber, billtype, number)
-
-    def to_local_link(self, url, cururl):
-        '''In URLmappers that are local, return a local link
-           that won't hit the server.
-        '''
-        if not url:
-            return url
-
-        # XXX This is bogus and will probably not return anything useful,
-        # but at least it won't hit the server.
-        purl = urlparse(url)
-        return './test/%s' % purl.path
 
 url_mapper = URLmapper('https://www.nmlegis.gov',
     '%s/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s')
@@ -204,34 +68,7 @@ committees = {
 #     'sponsorlink'  : 'Sponsor link',
 #     'curloc'       : 'Current Location',
 #     'curloclink'   : 'Current Location Link',
-#     'contents_url' : 'Bill Contents Link',
 # }
-
-def year_to_2digit(year):
-    '''Translate a year in various formats to a 2-digit string.
-    '''
-
-    if type(year) is int:
-        if year > 2000:
-            year -= 2000
-        return '%02d' % year
-
-    elif type(year) is str:
-        if len(year) > 2:
-            return year[-2:]
-
-    # Use this year if not defined or in an unknown format.
-    return '%02d' % (datetime.datetime.now().year - 2000)
-
-def billno_to_parts(billno, year=None):
-    year = year_to_2digit(year)
-
-    # billno is chamber, bill type, digits, e.g. HJM4. Parse that:
-    match = re.match('([HS])([A-Z]+)([0-9]+)', billno)
-    if not match:
-        raise RuntimeError("Can't parse bill name '%s'" % billno)
-    chamber, billtype, number = match.groups()
-    return chamber, billtype, number, year
 
 def check_analysis(billno):
     '''See if there are any FIR or LESC analysis links.
@@ -273,13 +110,22 @@ def check_analysis(billno):
 
     return firlink, lesclink, amendlink
 
-def parse_bill_page(billno, year=None, cache_locally=False):
+def bill_url(billno):
+    chamber, billtype, number, year = billno_to_parts(billno, year=None)
+
+    return 'https://www.nmlegis.gov/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=2s' % (chamber, billtype, number, year)
+
+def parse_bill_page(billno, year=None, cache_locally=True):
     '''Download and parse a bill's page on nmlegis.org.
        Return a dictionary containing:
-       chamber, billtype, number, year,
-       title, sponsor, sponsorlink,
-       curloc, curloclink, and contents_url.
+       chamber, billtype, number, year, title, sponsor, sponsorlink,
+       curloc, curloclink.
        Set update_date to now.
+
+       If cache_locally, will save downloaded files to local cache.
+       Will try to read back from cache if the cache file isn't more
+       than 2 hours old.
+
        Does *not* save the fetched bill back to the database.
     '''
 
@@ -291,28 +137,38 @@ def parse_bill_page(billno, year=None, cache_locally=False):
                                   billdic['billtype'],
                                   billdic['number'],
                                   billdic['year'])
+    print("billdic:", billdic)
     if cache_locally:
         filename = 'cache/20%s-%s.html' % (billdic['year'], billno)
 
         # While in a debugging cycle, used cached pages
         # so as not to hit the server so often.
         if os.path.exists(filename):
-            print("Temporarily using cache for", billno, file=sys.stderr)
-            baseurl = filename
+            filestat = os.stat(filename)
+            if (time.time() - filestat.st_mtime) < 2 * 60 * 60:
+                print("Already cached:", billno, file=sys.stderr)
+                baseurl = filename
+            else:
+                print("Re-fetching: cache has expired on", billno,
+                      file=sys.stderr)
 
+    print("baseurl", baseurl)
     if ':' in baseurl:
-        billdic['bill_url'] = url_mapper.to_abs_link(baseurl, baseurl)
+        # billdic['bill_url'] = url_mapper.to_abs_link(baseurl, baseurl)
         print("Fetching %s info from %s" % (billno, baseurl), file=sys.stderr)
         r = requests.get(baseurl)
         soup = BeautifulSoup(r.text, 'lxml')
 
         if cache_locally:
+            print("Trying to write to", filename)
             with open(filename, "w") as cachefp:
-                cachefp.write(r.text.encode('utf-8', "xmlcharrefreplace"))
+                # r.text is str and shouldn't need decoding
+                cachefp.write(r.text)
+                # cachefp.write(r.text.decode())
                 print("Cached locally as %s" % filename, file=sys.stderr)
     else:
         with open(baseurl) as fp:
-            billdic['bill_url'] = baseurl
+            # billdic['bill_url'] = baseurl
             soup = BeautifulSoup(fp, 'lxml')
 
         # This probably ought to be folded into the url mapper somehow.
@@ -344,8 +200,8 @@ def parse_bill_page(billno, year=None, cache_locally=False):
 
     contents_a = soup.find("a",
                            id="MainContent_formViewLegislationTextIntroduced_linkLegislationTextIntroducedHTML")
-    billdic['contents_url'] = url_mapper.to_abs_link(contents_a.get('href'),
-                                                     baseurl)
+    # billdic['contents_url'] = url_mapper.to_abs_link(contents_a.get('href'),
+    #                                                  baseurl)
 
     # Does the bill have any amendments?
     # Unfortunately we can't get the amendments themselves --
@@ -446,14 +302,127 @@ def most_recent_action(billdic):
 #     r = requests.post('https://nmlegis.gov/Legislation/Legislation_List',
 #                       data=payload)
 
+def contents_url(billno):
+    if bill.startswith('S'):
+        chamber = 'senate'
+    else:
+        chamber = 'house'
+    return 'https://www.nmlegis.gov/Sessions/19%20Regular/bills/%s/%s.html' \
+        % (chamber, billno)
+
 if __name__ == '__main__':
     def print_bill_dic(bd):
         print("%s: %s" % (bd['billno'], bd['title']))
         print("Current location: %s --> %s" % (bd['curloc'],
                                                bd['curloclink']))
         print("Sponsor: %s --> %s" % (bd['sponsor'], bd['sponsorlink']))
-        print("Contents at: %s" % (bd['contents_url']))
+        print("Contents at: %s" % (contents_url(bd['billno'])))
 
     billdic = parse_bill_page('HJR1')
     print_bill_dic(billdic)
 
+def user_bill_summary(user):
+    '''user is a dictionary. Examine each of user's bills,
+       see if it looks like it's changed since user's last check.
+       Return summary strings in html and plaintext formats (in that
+       order) showing which bills have changed and which haven't.
+    '''
+    # How recently has this user updated?
+    last_check = user['last_check']
+    print("Last check for %s is"% user['email'], last_check)
+
+    # Set up the strings we'll return.
+    # Keep bills that have changed separate from bills that haven't.
+    newertext = '''Bills that have changed since %s's\n      last check at %s:''' \
+               % (user['email'], last_check.strftime('%m/%d/%Y %H:%M'))
+    oldertext = '''Bills that haven't changed:'''
+    newerhtml = '''<html>
+<head>
+<style type="text/css">
+  body { background: white; }
+  div.odd { background: #ffe; padding: 15px; }
+  div.even { background: #efe; padding: 15px; }
+</style>
+</head>
+<body>
+<h2>%s</h2>''' % newertext
+    olderhtml = '<h2>%s</h2>' % oldertext
+
+    # Get the user's list of bills:
+    sep = re.compile('[,\s]+')
+    userbills = sep.split(user['bills'])
+
+    # For each bill, get the mod_date and see if it's newer:
+    even = True
+    for billno in userbills:
+        billdic = fetch_bill(billno)
+
+        # Make a string indicating the last action and also when the
+        # website was updated, which might be significantly later.
+        action_datestr = ''
+        if billdic['last_action_date']:
+            action_datestr = "last action " \
+                             + billdic['last_action_date'].strftime('%m/%d/%Y')
+
+        if billdic['mod_date']:
+            if action_datestr:
+                action_datestr += ", "
+            action_datestr += "updated " \
+                             + billdic['mod_date'].strftime('%m/%d/%Y')
+
+        if billdic['mod_date'] and billdic['mod_date'] >= last_check:
+            # or billdic['mod_date'] >= last_check
+            # ... if I ever get mod_date working right
+            analysisText = ''
+            analysisHTML = ''
+            if billdic['amendlink']:
+                analysisText += '\n   Amendments: ' + billdic['amendlink']
+                analysisHTML += '<a href="%s">Amendments</a>' \
+                                % billdic['amendlink']
+            if billdic['FIRlink']:
+                analysisText += '\n   FIR: ' + billdic['FIRlink']
+                analysisHTML += '<a href="%s">FIR report</a>' \
+                                % billdic['FIRlink']
+            if billdic['LESClink']:
+                analysisText += '\n   LESC: ' + billdic['LESClink']
+                analysisHTML += '<a href="%s">LESC report</a>' \
+                                % billdic['LESClink']
+            if analysisHTML:
+                analysisHTML += '<br />'
+
+            even = not even
+            newertext += '''\n
+%s %s
+  (%s)
+  Bill page: %s
+  Current location: %s %s
+  Bill text: %s
+  Analysis: %s
+  Status:
+%s''' % (billno, billdic['title'], action_datestr,
+         bill_url(billno),
+         billdic['curloc'], billdic['curloclink'],
+         contents_url(billno), analysisText, billdic['statustext'])
+            newerhtml += '''
+<div class="%s">
+<a href="%s">%s: %s</a> .. updated %s<br />
+  Current location: <a href="%s">%s</a><br />
+  <a href="%s">Text of bill</a><br />
+  %s
+  Status:
+%s
+</div>''' % ("even" if even else "odd",
+             bill_url(billno), billno, billdic['title'],
+             action_datestr, billdic['curloc'], billdic['curloclink'],
+             contents_url(billno), analysisHTML, billdic['statusHTML'])
+
+        else:
+            oldertext += "\n%s %s (%s)" % (billno,
+                                           billdic['title'],
+                                           action_datestr)
+            olderhtml += '<br /><a href="%s">%s %s</a> .. %s' % \
+                        (bill_url(billno), billno, billdic['title'],
+                         action_datestr)
+
+    return (newerhtml + olderhtml + '</body></html>',
+            '===== ' + newertext + "\n\n===== " + oldertext)

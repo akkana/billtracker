@@ -5,14 +5,14 @@
 <h1>Track Bills</h1>
 
 <p>
-billnum: {{ billnum }}
+billno: {{ billno }}
 
 <form action="" method="post">
 {{ form.hidden_tag() }}
 <p>
-{{ form.billnum.label }}   {{ form.billnum(size=5) }}
+{{ form.billno.label }}   {{ form.billno(size=5) }}
 <br>
-  {% for error in form.billnum.errors %}
+  {% for error in form.billno.errors %}
       <span style="color: red;">[{{ error }}]</span>
   {% endfor %}
 </p>

@@ -1,0 +1,22 @@
+# Notes on Flask
+
+(helpful when adding new functionality)
+
+# Templates
+
+Any variables that you want a template to be able to access with {{ var }}
+should be passed as render_template(..., var=value) otherwise the template
+won't see them (except certain global variables, maybe).
+
+# Form submission:
+
+To add a new form, reate a URL in routes.py, a class in forms.py,
+and a template in templates/.
+
+Validation happens in forms.py.
+Any code that does something useful with the submitted data needs
+to go in routes.py.
+routes.py is also the place to clear the form field if you go back to
+the same form after submitting.
+
+

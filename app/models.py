@@ -56,14 +56,14 @@ class Bill(db.Model):
     # Bill designation, e.g. SB172
     billno = db.Column(db.String(20))
 
-    # When did this bill's status last change on the website?
-    mod_date = db.Column(db.DateTime, nullable=False)
+    # When did this bill's status last change on NMLegis?
+    mod_date = db.Column(db.DateTime)
 
     # When did we last check the bill's page?
-    update_date = db.Column(db.DateTime, nullable=False)
+    update_date = db.Column(db.DateTime)
 
     # Date of last action as represented in the status on NMLegis.gov
-    last_action_date = db.Column(db.DateTime, nullable=True)
+    last_action_date = db.Column(db.DateTime)
 
     # Chamber (S or H)
     chamber = db.Column(db.String(2))
