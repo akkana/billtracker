@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Bills for {{ current_user.username }}!</h1>
+<h1>Bills {{ current_user.username }} is Tracking</h1>
 
 <p>
 <b><a href="/addbills">Follow more bills</a></b>
@@ -9,13 +9,10 @@
 <p>
 {% if current_user.bills is defined and current_user.bills|length > 0 %}
 
-You have bills:
-{{ current_user.show_bills() }}
-
-<table border=1>
+<table>
     {% for bill in current_user.bills %}
 
-  <tr class="{% if loop.index0 % 2 %}alt{% endif %}">
+  <tr class="{% if loop.index0 % 2 %}odd{% else %}even{% endif %}">
     <td>{{ bill.show_html() | safe }}</td></tr>
 
     {% endfor %}

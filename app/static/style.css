@@ -1,0 +1,14 @@
+
+body { color: black; background: white; }
+a { color: blue; }
+a.visited { color: purple; }
+a:hover, a:active { background: #eef; }
+
+/*
+li:nth-child(odd) { background: lightblue; }</style>
+ */
+
+tr.odd td  { background: #fff; }
+tr.even td { background: #efe; }
+
+</style>
