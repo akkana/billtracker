@@ -63,7 +63,9 @@ def register():
 @app.route('/addbills', methods=['GET', 'POST'])
 @login_required
 def addbills():
+    user = User.query.filter_by(username=current_user.username).first()
     form = AddBillsForm()
+
     if form.validate_on_submit():
         billno = form.billno.data
         print("addbills(): billno =", billno, file=sys.stderr)
@@ -74,29 +76,21 @@ def addbills():
         if bill:
             print("Woohoo, we already know about bill", billno,
                   file=sys.stderr)
-            print(bill, file=sys.stderr)
+
+            # But is the user already following it?
+            if bill in user.bills:
+                flash("You're already following " + billno)
+                return redirect(url_for('addbills'))
         else:
-            # It's a bill not in the database yet: need to fetch it.
-            print("fetching billno =", billno, file=sys.stderr)
+            # It's a bill not in the database yet: fetch it.
             b = nmlegisbill.parse_bill_page(billno,
                                             year=datetime.datetime.now().year,
                                             cache_locally=True)
-            print("Keys:", file=sys.stderr)
-            for k in b.keys():
-                try:
-                    print("  ", k, len(b[k]), file=sys.stderr)
-                except:
-                    print("  ", k, "- no len, type", type(b[k]),
-                          file=sys.stderr)
-            from pprint import pprint
-            pprint(b)
 
             bill = Bill(**b)
 
             try:
                 db.session.add(bill)
-                print("Supposedly added %s to the database" % billno,
-                      file=sys.stderr)
             except:
                 print("Couldn't add %s to the database" % billno,
                       file=sys.stderr)
@@ -104,18 +98,14 @@ def addbills():
 
         # Either way, bill should be set to a Bill object now.
         # Add it to the current user:
-        user = User.query.filter_by(username=current_user.username).first()
-        print("%s's bills are:" % user.username, user.bills)
         user.bills.append(bill)
         db.session.add(user)
-        print("Supposedly updated user")
-
         db.session.commit()
 
         # Clear the form field
         form.billno.data = ""
     else:
-        billno = None
+        bill = None
 
     return render_template('addbills.html', title='Add More Bills', form=form,
-                           billno=billno)
+                           user=user, addedbill=bill)

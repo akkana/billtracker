@@ -69,27 +69,33 @@ class User(UserMixin, db.Model):
         '''
         changed, unchanged = self.check_for_changes()
 
-        outstr = '<h2>Bills with recent changes:</h2>\n<table>'
-        odd = True
-        for bill in changed:
-            if odd:
-                cl = 'odd'
-            else:
-                cl = 'even'
-            odd = not odd
-            outstr += '<tr class="%s"><td>%s\n' % (cl, bill.show_html(True))
-        outstr += '</table>\n'
+        if changed:
+            outstr = '<h2>Bills with recent changes:</h2>\n<table>\n'
+            odd = True
+            for bill in changed:
+                if odd:
+                    cl = 'odd'
+                else:
+                    cl = 'even'
+                odd = not odd
+                outstr += '<tr class="%s"><td>%s\n' % (cl, bill.show_html(True))
+            outstr += '</table>\n'
+        else:
+            outstr = "<h2>No bills have changed</h2>\n"
 
-        outstr += "<h2>Bills that haven't changed:</h2>\n<table>"
-        odd = True
-        for bill in unchanged:
-            if odd:
-                cl = 'odd'
-            else:
-                cl = 'even'
-            odd = not odd
-            outstr += '<tr class="%s"><td>%s\n' % (cl, bill.show_html(False))
-        outstr += '</table>\n'
+        if unchanged:
+            outstr += "<h2>Bills that haven't changed:</h2>\n<table>\n"
+            odd = True
+            for bill in unchanged:
+                if odd:
+                    cl = 'odd'
+                else:
+                    cl = 'even'
+                odd = not odd
+                outstr += '<tr class="%s"><td>%s\n' % (cl, bill.show_html(False))
+            outstr += '</table>\n'
+        else:
+            outstr += "<h2>No unchanged bills</h2>\n"
 
         return outstr
 

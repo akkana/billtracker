@@ -1,11 +1,17 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Bills {{ current_user.username }} is Tracking</h1>
-
-<p>
-<b><a href="/addbills">Follow more bills</a></b>
+<h1>Bills {{ current_user.username }} is tracking:</h1>
 
 {{ current_user.show_bills() | safe }}
+
+<p>
+<b><a href="/addbills">Follow
+{% if current_user.bills is defined and current_user.bills|length > 0 %}
+more
+{% else %}
+some
+{% endif %}
+bills</a></b>
 
 {% endblock %}
