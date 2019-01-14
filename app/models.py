@@ -2,6 +2,8 @@ from datetime import datetime
 from app import db, login
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from app.bills import nmlegisbill
+import sys
 
 
 # Many-to-many relationship between users and bills requires
@@ -40,10 +42,56 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    # temp
-    def show_bills(self):
-        return "You have %d bills:<br>%s" % (len(self.bills), self.bills)
+    def check_for_changes(self):
+        '''Have any bills changed? Update any bills that need it,
+           commit the updates to the database if need be,
+           and return a list of changed and unchanged bills.
+        '''
+        changed = []
+        unchanged = []
+        needs_commit = False
+        for bill in self.bills:
+            needs_commit |= bill.update()
+            if bill.last_action_date and \
+               bill.last_action_date > self.last_check:
+                changed.append(bill)
+            else:
+                unchanged.append(bill)
 
+        if needs_commit:
+            print("Updated something, committing", file=sys.stderr)
+            db.session.commit()
+
+        return changed, unchanged
+
+    def show_bills(self):
+        '''Return a long HTML string showing bill statuses.
+        '''
+        changed, unchanged = self.check_for_changes()
+
+        outstr = '<h2>Bills with recent changes:</h2>\n<table>'
+        odd = True
+        for bill in changed:
+            if odd:
+                cl = 'odd'
+            else:
+                cl = 'even'
+            odd = not odd
+            outstr += '<tr class="%s"><td>%s\n' % (cl, bill.show_html(True))
+        outstr += '</table>\n'
+
+        outstr += "<h2>Bills that haven't changed:</h2>\n<table>"
+        odd = True
+        for bill in unchanged:
+            if odd:
+                cl = 'odd'
+            else:
+                cl = 'even'
+            odd = not odd
+            outstr += '<tr class="%s"><td>%s\n' % (cl, bill.show_html(False))
+        outstr += '</table>\n'
+
+        return outstr
 
 @login.user_loader
 def load_user(id):
@@ -115,11 +163,48 @@ class Bill(db.Model):
     def __repr__(self):
         return 'Bill %s' % (self.billno)
 
-    def show_html(self):
-        s = '<b>%s</b>:' % self.billno
-        if self.mod_date:
-            s += 'Modified %s' % str(self.mod_date)
+    def update(self):
+        '''Have we updated this bill in the last two hours?
+           Return True if we make a new update, False otherwise.
+           Do not commit to the database: the caller should check
+           return values and commit after all bills have been updated.
+        '''
+        now = datetime.now()
+        if (now - self.update_date).seconds < 2*60*60:
+            return False
+
+        print("fetching billno =", self.billno, file=sys.stderr)
+        b = nmlegisbill.parse_bill_page(self.billno,
+                                        year=now.year,
+                                        cache_locally=True)
+        for k in b:
+            # print("Setting", k, "to", b[k], file=sys.stderr)
+            setattr(self, k, b[k])
+            # print("Now self.%s is" % k, b[k], file=sys.stderr)
+        self.update_date = now
+
+        try:
+            db.session.add(self)
+            print("Supposedly added %s to the database" % self.billno,
+                  file=sys.stderr)
+        except Exception as e:
+            print("Couldn't add %s to the database" % self.billno,
+                  file=sys.stderr)
+            print(e)
+            sys.exit(1)
+
+        return True
+
+    def show_html(self, longform):
+        '''Show a summary of the bill's status.
+           longform=True is slightly longer: it assumes a bill has
+           changed recently so there's a need to show what changed.
+        '''
+        outstr = '<b>%s</b>: %s' % (self.billno, self.title)
+        if self.last_action_date:
+            outstr += "<br>Last action: " + self.last_action.strftime('%m/%d/%Y')
         if self.statusHTML:
-            s += '<br>' + self.statusHTML
-        return s
+            outstr += "<br>Status: " + self.statusHTML
+
+        return outstr
 

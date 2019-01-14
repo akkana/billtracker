@@ -138,11 +138,21 @@ def parse_bill_page(billno, year=None, cache_locally=True):
                                   billdic['number'],
                                   billdic['year'])
     print("billdic:", billdic)
-    if cache_locally:
-        filename = 'cache/20%s-%s.html' % (billdic['year'], billno)
 
-        # While in a debugging cycle, used cached pages
-        # so as not to hit the server so often.
+    if cache_locally:
+        cachedir = 'cache'
+        if not os.path.exists(cachedir):
+            try:
+                os.mkdir(cachedir)
+            except:
+                print("Couldn't create cache dir", cachedir, "-- not caching")
+                cache_locally = False
+
+    if cache_locally:
+        filename = os.path.join(cachedir,
+                                '20%s-%s.html' % (billdic['year'], billno))
+
+        # Use cached pages so as not to hit the server so often.
         if os.path.exists(filename):
             filestat = os.stat(filename)
             if (time.time() - filestat.st_mtime) < 2 * 60 * 60:

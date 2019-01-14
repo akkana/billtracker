@@ -91,23 +91,6 @@ def addbills():
             from pprint import pprint
             pprint(b)
 
-            # bill = Bill(billno = b.billno,
-            #                chamber = b.chamber,
-            #                billtype = b.billtype,
-            #                number = b.number,
-            #                year = b.year,
-            #                mod_date = b.mod_date,
-            #                update_date = b.update_date,
-            #                last_action_date = b.last_action_date,
-            #                title = b.title,
-            #                statusHTML = b.statusHTML,
-            #                statustext = b.statustext,
-            #                sponsor = b.sponsor,
-            #                sponsorlink = b.sponsorlink,
-            #                curloclink = b.curloclink,
-            #                FIRlink = b.FIRlink,
-            #                LESClink = b.LESClink,
-            #                amendlink = b.amendlink)
             bill = Bill(**b)
 
             try:
