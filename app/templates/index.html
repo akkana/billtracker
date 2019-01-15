@@ -3,7 +3,9 @@
 {% block content %}
 <h1>Bills {{ current_user.username }} is tracking:</h1>
 
+<div class="bill_list">
 {{ current_user.show_bills() | safe }}
+</div>
 
 <p>
 <b><a href="/addbills">Follow

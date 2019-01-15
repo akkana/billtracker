@@ -23,12 +23,16 @@ table#banner {
  * Body content:
  */
 
+table.bill_list { width: 99%; }
+/* Seems like padding should be on the tr, but that doesn't work */
+table.bill_list td { padding: 1em; }
+
 /*
 li:nth-child(odd) { background: lightblue; }</style>
  */
 
 tr.odd td  { background: #fff; }
-tr.even td { background: #efe; }
+tr.even td { background: #cfd; }
 
 div.error { color: red; }
 

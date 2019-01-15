@@ -26,13 +26,13 @@
     <p>
     <div>
       NMBillTracker:
-      <a href="{{ url_for('index') }}">Home</a> |
-      <a href="{{ url_for('addbills') }}">Track more bills</a> |
+      <a href="{{ url_for('index') }}">Home</a> &bull;
+      <a href="{{ url_for('addbills') }}">Track more bills</a> &bull;
       {% if current_user.is_anonymous %}
         <a href="{{ url_for('login') }}">Login</a>
       {% else %}
         <a href="{{ url_for('logout') }}">Logout</a>
-      {% endif %} |
+      {% endif %} &bull;
       <a href="{{ url_for('about') }}">About NMBillTracker</a>
     </div>
 

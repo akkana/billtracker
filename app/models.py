@@ -70,7 +70,9 @@ class User(UserMixin, db.Model):
         changed, unchanged = self.check_for_changes()
 
         if changed:
-            outstr = '<h2>Bills with recent changes:</h2>\n<table>\n'
+            outstr = '''<h2>Bills with recent changes:</h2>
+<table class="bill_list">
+'''
             odd = True
             for bill in changed:
                 if odd:
@@ -84,7 +86,9 @@ class User(UserMixin, db.Model):
             outstr = "<h2>No bills have changed</h2>\n"
 
         if unchanged:
-            outstr += "<h2>Bills that haven't changed:</h2>\n<table>\n"
+            outstr += """<h2>Bills that haven't changed:</h2>
+<table class="bill_list">
+"""
             odd = True
             for bill in unchanged:
                 if odd:
@@ -92,7 +96,8 @@ class User(UserMixin, db.Model):
                 else:
                     cl = 'even'
                 odd = not odd
-                outstr += '<tr class="%s"><td>%s\n' % (cl, bill.show_html(False))
+                outstr += '<tr class="%s"><td>%s\n' % (cl,
+                                                       bill.show_html(False))
             outstr += '</table>\n'
         else:
             outstr += "<h2>No unchanged bills</h2>\n"
@@ -170,13 +175,15 @@ class Bill(db.Model):
         return 'Bill %s' % (self.billno)
 
     def update(self):
-        '''Have we updated this bill in the last two hours?
+        '''Have we updated this bill in the last few hours?
            Return True if we make a new update, False otherwise.
            Do not commit to the database: the caller should check
            return values and commit after all bills have been updated.
         '''
+        hours = 4
+
         now = datetime.now()
-        if (now - self.update_date).seconds < 2*60*60:
+        if (now - self.update_date).seconds < hours * 60*60:
             return False
 
         print("fetching billno =", self.billno, file=sys.stderr)
@@ -184,9 +191,8 @@ class Bill(db.Model):
                                         year=now.year,
                                         cache_locally=True)
         for k in b:
-            # print("Setting", k, "to", b[k], file=sys.stderr)
             setattr(self, k, b[k])
-            # print("Now self.%s is" % k, b[k], file=sys.stderr)
+
         self.update_date = now
 
         try:
@@ -206,11 +212,48 @@ class Bill(db.Model):
            longform=True is slightly longer: it assumes a bill has
            changed recently so there's a need to show what changed.
         '''
-        outstr = '<b>%s</b>: %s' % (self.billno, self.title)
+        outstr = '<b><a href="%s">%s: %s</a></b><br />' % \
+            (nmlegisbill.bill_url(self.billno), self.billno, self.title)
+
         if self.last_action_date:
-            outstr += "<br>Last action: " + self.last_action.strftime('%m/%d/%Y')
-        if self.statusHTML:
-            outstr += "<br>Status: " + self.statusHTML
+            outstr += "<br>Last action: %s<br />" % \
+                self.last_action_date.strftime('%m/%d/%Y')
+        if self.statustext:
+            # statusHTML is full of crap this year, so prefer statustext
+            # even in HTML output until/unless I find a way around that.
+            outstr += 'Status: ' + self.statustext
+        elif self.statusHTML:
+            outstr += 'Status: ' + self.statusHTML
+
+
+        if False and not longform:
+            return outstr
+
+        outstr += '<br /><a href="%s">Full text of %s</a><br />' % \
+            (nmlegisbill.contents_url(self.billno), self.billno)
+
+        if self.sponsor and self.sponsorlink:
+            outstr += 'Sponsor: <a href="%s">%s</a><br />' % (self.sponsorlink,
+                                                              self.sponsor)
+
+        if self.curloc and self.curloclink:
+            outstr += 'Current locagion: <a href="%s">%s</a><br />' % \
+                (self.curloclink, self.curloc)
+        elif self.curloc:
+            outstr += 'Current location: ' + self.curloc + '<br />'
+
+        analysis = []
+        if self.amendlink:
+            analysis.append('<a href="%s">Amendments</a>' % self.amendlink)
+
+        if self.FIRlink:
+            analysis.append('<a href="%s">FIR Report</a>' % self.FIRlink)
+
+        if self.LESClink:
+            analysis.append('<a href="%s">LESC Report</a>' % self.LESClink)
+
+        if analysis:
+            outstr += ' &bull; '.join(analysis)
 
         return outstr
 

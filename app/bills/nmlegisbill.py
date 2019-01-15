@@ -113,7 +113,7 @@ def check_analysis(billno):
 def bill_url(billno):
     chamber, billtype, number, year = billno_to_parts(billno, year=None)
 
-    return 'https://www.nmlegis.gov/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=2s' % (chamber, billtype, number, year)
+    return 'https://www.nmlegis.gov/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s' % (chamber, billtype, number, year)
 
 def parse_bill_page(billno, year=None, cache_locally=True):
     '''Download and parse a bill's page on nmlegis.org.
@@ -272,6 +272,8 @@ def parse_bill_page(billno, year=None, cache_locally=True):
     # it's invisible to us. But we can make a guess at FIR and LESC links:
     billdic['FIRlink'], billdic['LESClink'], billdic['amendlink'] \
         = check_analysis(billno)
+    print("Checked analysis:", billdic['FIRlink'], billdic['LESClink'],
+          billdic['amendlink'], file=sys.stderr)
 
     billdic['update_date'] = datetime.datetime.now()
     billdic['mod_date'] = None
@@ -313,11 +315,11 @@ def most_recent_action(billdic):
 #                       data=payload)
 
 def contents_url(billno):
-    if bill.startswith('S'):
+    if billno.startswith('S'):
         chamber = 'senate'
     else:
         chamber = 'house'
-    return 'https://www.nmlegis.gov/Sessions/19%20Regular/bills/%s/%s.html' \
+    return 'https://www.nmlegis.gov/Sessions/19%%20Regular/bills/%s/%s.html' \
         % (chamber, billno)
 
 if __name__ == '__main__':
