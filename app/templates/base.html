@@ -8,14 +8,32 @@
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
   </head>
   <body>
+
+    <!-- As usual, couldn't get this to work with pure CSS
+         but it works fine with a table.
+     -->
+    <table id="banner">
+      <tr>
+        <td style="width:238px">
+          <img src="/static/img/trackerdog.png" align=left width=238 height=150>
+        <td id="bannermiddle">
+          <h1>The New Mexico Bill Tracker</h1>
+          <p>
+          <i>Track bills you're interested in during the NM legislative session.</i>
+        <td style="width:150px"><img src="/static/img/scroll-pen.png" align=left width=150 height=150>
+    </table>
+
+    <p>
     <div>
-      BillTracker:
-      <a href="{{ url_for('index') }}">Home</a>
+      NMBillTracker:
+      <a href="{{ url_for('index') }}">Home</a> |
+      <a href="{{ url_for('addbills') }}">Track more bills</a> |
       {% if current_user.is_anonymous %}
         <a href="{{ url_for('login') }}">Login</a>
       {% else %}
         <a href="{{ url_for('logout') }}">Logout</a>
-      {% endif %}
+      {% endif %} |
+      <a href="{{ url_for('about') }}">About NMBillTracker</a>
     </div>
 
     <hr>

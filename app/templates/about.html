@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>About the New Mexico Bill Tracker</h1>
+
+<p>
+BillTracker is a free service written by Akkana Peck.
+<p>
+I wrote it because I was frustrated at how difficult it is
+to find out when bills are actively being considered in the
+legislature. I wanted something I could use to track bills;
+and I figured, if I wanted that, maybe other people did too.
+<p>
+And besides, if I help make it easier for people to keep track
+of what our government is doing, maybe more people will be
+active and help our state move in the right direction.
+<p>
+BillTracker collects email addresses so it can send you updates.
+I promise I won't do anything nefarious with your email address;
+it is used only by billtracker during the legislative session.
+If you don't want updates and just want to check your bill
+page online, you can leave the email field blank.
+
+<p>
+Right now BillTracker only works in New Mexico, but it should be
+fairly easy to extend it to any state that has bill status online.
+NMBillTracker uses Python to scrape the New Mexico Legislative website;
+if you're interested in using BillTracker in your state, of course
+you can fork the code, but I'd also be happy to work with you to
+integrate scrapers for other states into the BillTracker base source.
+Drop me a line.
+
+<p>
+This app is fully open source, using Python and Flask as a backend:
+<a href="https://github.com/akkana/billtracker">billtracker on GitHub</a>.
+Contributions are welcome!
+
+{% endblock %}

@@ -5,6 +5,25 @@ a.visited { color: purple; }
 a:hover, a:active { background: #eef; }
 
 /*
+ * The top banner:
+ */
+table#banner {
+  height: 150px; width: 100%;
+  background-color: #efe;
+  border: 0; margin: 0; padding: 0;
+}
+
+#bannermiddle {
+  background-image: url("/static/img/footprints.png");
+  background-repeat: repeat-x;
+  vertical-align: top;
+}
+
+/*
+ * Body content:
+ */
+
+/*
 li:nth-child(odd) { background: lightblue; }</style>
  */
 
@@ -12,3 +31,5 @@ tr.odd td  { background: #fff; }
 tr.even td { background: #efe; }
 
 div.error { color: red; }
+
+

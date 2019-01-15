@@ -58,7 +58,9 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
-# in templates/index.html, {{ url_for(addbills) }} doesn't work. Why not?
+@app.route('/about')
+def about():
+    return render_template('about.html', title='About NMBillTracker')
 
 @app.route('/addbills', methods=['GET', 'POST'])
 @login_required
