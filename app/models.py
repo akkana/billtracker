@@ -47,13 +47,18 @@ class User(UserMixin, db.Model):
            commit the updates to the database if need be,
            and return a list of changed and unchanged bills.
         '''
+        now = datetime.now()
+        oneday = 24 * 60 * 60    # seconds in a day
         changed = []
         unchanged = []
         needs_commit = False
         for bill in self.bills:
             needs_commit |= bill.update()
-            if bill.last_action_date and \
-               bill.last_action_date > self.last_check:
+            # A changed bill is one that has a last_action_date since the
+            # user's last_check, OR a last_action_date in the last 24 hours.
+            if bill.last_action_date and (
+                    bill.last_action_date > self.last_check or
+                    (now - bill.last_action_date).seconds < oneday):
                 changed.append(bill)
             else:
                 unchanged.append(bill)
@@ -101,6 +106,10 @@ class User(UserMixin, db.Model):
             outstr += '</table>\n'
         else:
             outstr += "<h2>No unchanged bills</h2>\n"
+
+        self.last_check = datetime.now()
+        db.session.add(self)
+        db.session.commit()
 
         return outstr
 
@@ -221,26 +230,25 @@ class Bill(db.Model):
         if self.statustext:
             # statusHTML is full of crap this year, so prefer statustext
             # even in HTML output until/unless I find a way around that.
-            outstr += 'Status: ' + self.statustext
+            outstr += 'Status: %s<br />\n' % self.statustext
         elif self.statusHTML:
-            outstr += 'Status: ' + self.statusHTML
-
-
-        if False and not longform:
-            return outstr
-
-        outstr += '<br /><a href="%s">Full text of %s</a><br />' % \
-            (nmlegisbill.contents_url(self.billno), self.billno)
-
-        if self.sponsor and self.sponsorlink:
-            outstr += 'Sponsor: <a href="%s">%s</a><br />' % (self.sponsorlink,
-                                                              self.sponsor)
+            outstr += 'Status: %s<br />\n' % self.statusHTML
 
         if self.curloc and self.curloclink:
             outstr += 'Current locagion: <a href="%s">%s</a><br />' % \
                 (self.curloclink, self.curloc)
         elif self.curloc:
             outstr += 'Current location: ' + self.curloc + '<br />'
+
+        if False and not longform:
+            return outstr
+
+        outstr += '<a href="%s">Full text of %s</a><br />' % \
+            (nmlegisbill.contents_url(self.billno), self.billno)
+
+        if self.sponsor and self.sponsorlink:
+            outstr += 'Sponsor: <a href="%s">%s</a><br />' % (self.sponsorlink,
+                                                              self.sponsor)
 
         analysis = []
         if self.amendlink:

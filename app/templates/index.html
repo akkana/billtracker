@@ -2,6 +2,13 @@
 
 {% block content %}
 <h1>Bills {{ current_user.username }} is tracking:</h1>
+<p>
+{% if current_user.last_check is not defined %}
+This is your first check,
+{% else %}
+You last checked at {{ current_user.last_check.strftime('%H:%M %m/%d/%Y') }},
+{% endif %}
+but this will also show any bills that changed in the last day.
 
 <div class="bill_list">
 {{ current_user.show_bills() | safe }}

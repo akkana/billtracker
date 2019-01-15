@@ -1,3 +1,4 @@
+/* Styles for BillTracker */
 
 body { color: black; background: white; }
 a { color: blue; }
@@ -9,15 +10,18 @@ a:hover, a:active { background: #eef; }
  */
 table#banner {
   height: 150px; width: 100%;
-  background-color: #efe;
+  background-color: white;    /* or #efe; */
   border: 0; margin: 0; padding: 0;
 }
 
 #bannermiddle {
-  background-image: url("/static/img/footprints.png");
+  background-image: url("/static/img/footprintsg.png");
   background-repeat: repeat-x;
   vertical-align: top;
 }
+
+.toolbar { text-align: center }
+#bannermiddle { text-align: center }
 
 /*
  * Body content:
@@ -35,5 +39,4 @@ tr.odd td  { background: #fff; }
 tr.even td { background: #cfd; }
 
 div.error { color: red; }
-
 

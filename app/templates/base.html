@@ -5,6 +5,7 @@
     {% else %}
     <title>Welcome to the New Mexico Bill Tracker</title>
     {% endif %}
+
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
   </head>
   <body>
@@ -24,16 +25,15 @@
     </table>
 
     <p>
-    <div>
-      NMBillTracker:
+    <div class="toolbar">
       <a href="{{ url_for('index') }}">Home</a> &bull;
-      <a href="{{ url_for('addbills') }}">Track more bills</a> &bull;
+      <a href="{{ url_for('addbills') }}">Add bills</a> &bull;
       {% if current_user.is_anonymous %}
         <a href="{{ url_for('login') }}">Login</a>
       {% else %}
         <a href="{{ url_for('logout') }}">Logout</a>
       {% endif %} &bull;
-      <a href="{{ url_for('about') }}">About NMBillTracker</a>
+      <a href="{{ url_for('about') }}">About</a>
     </div>
 
     <hr>
