@@ -157,7 +157,6 @@ def onebill():
     curbill += 1
 
     curstr = '<br />' + str(curbill) + '...'
-    print("Returning", curstr, file=sys.stderr);
 
     return json.dumps({
         "summary"  : curstr,
