@@ -227,6 +227,9 @@ class Bill(db.Model):
         if self.last_action_date:
             outstr += "<br>Last action: %s<br />" % \
                 self.last_action_date.strftime('%m/%d/%Y')
+        else:
+            outstr += "No action yet.<br />"
+
         if self.statustext:
             # statusHTML is full of crap this year, so prefer statustext
             # even in HTML output until/unless I find a way around that.
