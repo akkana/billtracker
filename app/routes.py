@@ -139,26 +139,45 @@ def add():
 # Gradual bill updating using AJAX.
 #
 
-@app.route("/loadbills")
-def loadbills():
-    return render_template('loadbills.html')
+# A dictionary: keys are all the users currently updating their bill lists,
+# values are a list of all bills not yet updated.
+users_updating = {}
 
-curbill = 0
-curstr = ''
-
-@app.route("/api/onebill")
-def onebill():
+@app.route("/api/onebill/<username>")
+def onebill(username):
     '''Returns JSON.
     '''
-    global curbill, curstr
+    global users_updating
 
-    time.sleep(5)
+    if not username:
+        return "No username specified!"
 
-    curbill += 1
+    # Are we already updating this user?
+    for user in users_updating:
+        if user.username == username:
+            bills = users_updating[user]
+            break
+    else:    # Not already updating this username
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            return "Unknown user: " + username
+        bills = user.bills
+        users_updating[user] = bills
 
-    curstr = '<br />' + str(curbill) + '...'
+    # Now user is set and bills is a list of bills
+    if not bills:
+        return json.dumps({
+            "summary"  : "(No more)",
+            "more"      : False
+        })
+
+    bill = bills.pop(0)
+
+    time.sleep(3)
 
     return json.dumps({
-        "summary"  : curstr,
-        "more"      : (curbill < 10)
+        "summary"  : bill.show_html(True),
+        "more"     : len(bills) > 0
         })
+
+

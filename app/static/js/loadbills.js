@@ -1,8 +1,6 @@
 /* Load bills as they come in, until they're all there */
 
 var ajax_get = function(url, callback) {
-    console.log("Making AJAX request");
-
     // 1. Create a new XMLHttpRequest object
     let xhr = new XMLHttpRequest();
 
@@ -18,7 +16,7 @@ var ajax_get = function(url, callback) {
             // if it's not 200, consider it an error
             // e.g. 404: Not Found
             callback(xhr.status + ': ' + xhr.statusText);
-            console.log(xhr.status + ': ' + xhr.statusText);
+            //console.log(xhr.status + ': ' + xhr.statusText);
         } else {
             // responseText is the server response
             //console.log("Received data: " + xhr.responseText);
@@ -27,39 +25,50 @@ var ajax_get = function(url, callback) {
     }
 };
 
-var url = "/api/onebill"
-var busywait = false;
+var url = "/api/onebill/" + current_user;
+var even = true;
 
 var display_result = function(data) {
-    console.log(data);
-    console.log("display_result: data = " + data + ", type " + typeof(data));
-    console.log("'summary' is: " + data['summary']);
-    console.log("'more' is: " + data['more']);
+    //console.log(data);
 
-    var billsum = document.getElementById('bill_summary');
-    if (busywait)
-        billsum.innerHTML = '';
+    var billtable = document.getElementById('bill_list').getElementsByTagName('tbody')[0];
 
-    more = data["more"];
+    even = !even;
+    if (even)
+        evenodd = "even";
+    else
+        evenodd = "odd";
+
     if (data["summary"]) {
-        billsum.innerHTML += data["summary"];
-        busywait = false;
+        text = data["summary"];
+
+        // Now insert text as a td inside a tr with class evenodd.
+
+        // Insert a row in the table at the last row
+        var newRow   = billtable.insertRow(billtable.rows.length);
+        newRow.classList.add(evenodd);
+
+        // Insert a cell in the row at index 0
+        var newCell  = newRow.insertCell(0);
+
+        newCell.innerHTML = text;
+
+        if (data["more"]) {
+            ajax_get(url, display_result);
+        }
+        else {
+            // Done: clear busy indicator.
+            document.getElementById('busybusy').innerHTML = '';
+        }
     }
     else {
-        billsum.innerHTML += data;
-    }
-    if (data["more"]) {
-        console.log("Looping");
-        ajax_get(url, display_result);
+        // It's text. Show it in the busy indicator area.
+        document.getElementById('busybusy').innerHTML = data;
     }
 };
 
 window.onload = function () {
-    // console.log isn't useful, doesn't get called
-    console.log("onload function");
-
     display_result("Updating, please wait ...");
-    busywait = true;
 
     ajax_get(url, display_result);
 }
