@@ -5,7 +5,7 @@ from app import app, db
 from app.forms import LoginForm, RegistrationForm, AddBillsForm
 from app.models import User, Bill
 from app.bills import nmlegisbill
-import datetime
+from datetime import datetime
 import sys
 
 
@@ -139,8 +139,10 @@ def add():
 # Gradual bill updating using AJAX.
 #
 
-# A dictionary: keys are all the users currently updating their bill lists,
-# values are a list of all bills not yet updated.
+# A dictionary: keys are all the usernames currently updating their bill lists,
+# values are a list of all billids not yet updated.
+# XXX If something goes wrong with this, how do we remove the user from
+# the queue? Maybe have to pass in some sort of "first_time" variable.
 users_updating = {}
 
 @app.route("/api/onebill/<username>")
@@ -152,32 +154,50 @@ def onebill(username):
     if not username:
         return "No username specified!"
 
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return "Unknown user: " + username
+
     # Are we already updating this user?
-    for user in users_updating:
-        if user.username == username:
-            bills = users_updating[user]
+    billids = None
+    for un in users_updating:
+        if un == username:
+            billids = users_updating[username]
             break
     else:    # Not already updating this username
-        user = User.query.filter_by(username=username).first()
-        if not user:
-            return "Unknown user: " + username
-        bills = user.bills
-        users_updating[user] = bills
+        billids = [b.id for b in user.bills]
+        users_updating[username] = billids
 
-    # Now user is set and bills is a list of bills
-    if not bills:
+    # Now user and billids are set.
+    if not billids:
+        del users_updating[username]
         return json.dumps({
             "summary"  : "(No more)",
             "more"      : False
         })
 
-    bill = bills.pop(0)
+    billid = billids.pop(0)
+    bill = Bill.query.filter_by(id=billid).first()
 
-    time.sleep(3)
+    # Check whether the bill wants to update itself:
+    if bill.update():
+        db.session.add(bill)
+        db.session.commit()
+
+    # Is the bill changed as far as the user is concerned?
+    now = datetime.now()
+    oneday = 24 * 60 * 60    # seconds in a day
+    if (bill.last_action_date and (
+            bill.last_action_date > user.last_check or
+            (now - bill.last_action_date).seconds < oneday)):
+        changep = True
+    else:
+        changep = False
 
     return json.dumps({
         "summary"  : bill.show_html(True),
-        "more"     : len(bills) > 0
+        "changed"  : changep,
+        "more"     : len(billids) > 0
         })
 
 

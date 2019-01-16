@@ -26,23 +26,37 @@ var ajax_get = function(url, callback) {
 };
 
 var url = "/api/onebill/" + current_user;
-var even = true;
+var even_changed = true;
+var even_unchanged = true;
 
 var display_result = function(data) {
     //console.log(data);
 
-    var billtable = document.getElementById('bill_list').getElementsByTagName('tbody')[0];
-
-    even = !even;
-    if (even)
-        evenodd = "even";
-    else
-        evenodd = "odd";
+    var changedbilltable = document.getElementById('changed_bills')
+        .getElementsByTagName('tbody')[0];
+    var unchangedbilltable = document.getElementById('unchanged_bills')
+        .getElementsByTagName('tbody')[0];
 
     if (data["summary"]) {
         text = data["summary"];
 
         // Now insert text as a td inside a tr with class evenodd.
+
+        if (data["changed"]) {
+            billtable = changedbilltable;
+            even_changed = !even_changed;
+            even = even_changed;
+        }
+        else {
+            billtable = unchangedbilltable;
+            even_unchanged = !even_unchanged;
+            even = even_unchanged;
+        }
+
+        if (even)
+            evenodd = "even";
+        else
+            evenodd = "odd";
 
         // Insert a row in the table at the last row
         var newRow   = billtable.insertRow(billtable.rows.length);
