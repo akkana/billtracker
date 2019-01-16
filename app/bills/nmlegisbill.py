@@ -171,7 +171,12 @@ def parse_bill_page(billno, year=None, cache_locally=True):
 
         if cache_locally:
             print("Trying to write to", filename)
-            with open(filename, "w") as cachefp:
+
+            # Python 3 these days is supposed to use the system default
+            # encoding, I thought, but sometimes it doesn't and dies
+            # trying to write to the cache file unless you specify
+            # an encoding explicitly:
+            with open(filename, "w", encoding="utf-8") as cachefp:
                 # r.text is str and shouldn't need decoding
                 cachefp.write(r.text)
                 # cachefp.write(r.text.decode())
