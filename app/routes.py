@@ -111,3 +111,55 @@ def addbills():
 
     return render_template('addbills.html', title='Add More Bills', form=form,
                            user=user, addedbill=bill)
+
+import time
+import json
+
+@app.route("/ajax")
+def ajax():
+    return render_template('ajax.html')
+
+@app.route("/api/calc")
+def add():
+    a = int(request.args.get('a', 0))
+    b = int(request.args.get('b', 0))
+    div = 'na'
+    if b != 0:
+        div = a/b
+    return json.dumps({
+        "a"        :  a,
+        "b"        :  b,
+        "add"      :  a+b,
+        "multiply" :  a*b,
+        "subtract" :  a-b,
+        "divide"   :  div,
+    })
+
+#
+# Gradual bill updating using AJAX.
+#
+
+@app.route("/loadbills")
+def loadbills():
+    return render_template('loadbills.html')
+
+curbill = 0
+curstr = ''
+
+@app.route("/api/onebill")
+def onebill():
+    '''Returns JSON.
+    '''
+    global curbill, curstr
+
+    time.sleep(5)
+
+    curbill += 1
+
+    curstr = '<br />' + str(curbill) + '...'
+    print("Returning", curstr, file=sys.stderr);
+
+    return json.dumps({
+        "summary"  : curstr,
+        "more"      : (curbill < 10)
+        })
