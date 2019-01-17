@@ -19,4 +19,32 @@ to go in routes.py.
 routes.py is also the place to clear the form field if you go back to
 the same form after submitting.
 
+# Database Upgrade and Downgrade Workflow
 
+- Update models.db
+- flask db migrate
+- review the migration file to make sure it looks right
+- flask db upgrade
+
+## Migrations: adding/dropping tables in sqlite3
+
+sqlite3 doesn't have any support for dropping tables.
+Alembic has a way to do that with batch operations but it doesn't
+do it by default. So if your migration has a line like:
+    op.drop_column('user', 'bills_seen')
+you need to edit it to use batch operations instead:
+    with op.batch_alter_table('user') as batch_op:
+        batch_op.drop_column('bills_seen')
+None of the flask db tutorials I've seen mentioned this
+even though most of them use sqlite.
+
+## Fixing a migration problem
+
+I made a migration, did flask db migrate but not flask db upgrade,
+then decided I didn't want that migration after all and removed the
+file. This makes alembic unhappy. But you can set the current version:
+flask db stamp head
+
+# Restart apache:
+
+apachectl -k graceful

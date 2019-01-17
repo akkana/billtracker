@@ -6,6 +6,8 @@ from app.forms import LoginForm, RegistrationForm, AddBillsForm
 from app.models import User, Bill
 from app.bills import nmlegisbill
 from datetime import datetime
+import json
+import collections
 import sys
 
 
@@ -112,8 +114,30 @@ def addbills():
     return render_template('addbills.html', title='Add More Bills', form=form,
                            user=user, addedbill=bill)
 
-import time
-import json
+
+@app.route('/newbills')
+@login_required
+def newbills():
+    user = User.query.filter_by(username=current_user.username).first()
+    if user.bills_seen:
+        bills_seen = user.bills_seen.split(',')
+    else:
+        bills_seen = []
+
+    allbills = nmlegisbill.all_bills()
+    # This is an OrderedDic, billno: title
+
+    lines = []
+    for billno in allbills:
+        if billno not in bills_seen:
+            lines.append([billno, allbills[billno][0], allbills[billno][1]])
+
+    # Update user
+    user.bills_seen = ','.join(allbills.keys())
+    db.session.add(user)
+    db.session.commit()
+
+    return render_template('newbills.html', lines=lines)
 
 @app.route("/ajax")
 def ajax():

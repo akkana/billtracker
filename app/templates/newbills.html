@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Newly Filed Bills</h1>
+
+{% if lines is defined and lines|length > 0 %}
+  <ul>
+
+  {% for line in lines %}
+    <li><a href="{{ line[2] }}">{{ line[0] }}: {{ line[1] }}</a>
+  {% endfor %}
+
+  </ul>
+
+{% else %}
+  <p>
+  Nothing new since you last looked.
+{% endif %}
+
+{% endblock %}
+

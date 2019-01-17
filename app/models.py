@@ -31,6 +31,14 @@ class User(UserMixin, db.Model):
     bills = db.relationship('Bill', secondary=userbills, lazy='subquery',
                             backref=db.backref('users', lazy=True))
 
+    # List of bill IDs the user has seen -- these bills may not even
+    # be in the database, but they've been on the "all bills" list
+    # so the user has had a chance to review them.
+    # SQL doesn't have any list types, so just use comma separated.
+    # Bill IDs are usually under 6 characters and a session isn't
+    # likely to have more than 2500 bills, so 20000 would be a safe length.
+    bills_seen = db.Column(db.String())
+
     last_check = db.Column(db.DateTime, nullable=True)
 
     def __repr__(self):

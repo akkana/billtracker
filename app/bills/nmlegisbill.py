@@ -12,6 +12,7 @@ import time
 import re
 import requests
 import posixpath
+from collections import OrderedDict
 from bs4 import BeautifulSoup
 
 url_mapper = URLmapper('https://www.nmlegis.gov',
@@ -443,3 +444,34 @@ def user_bill_summary(user):
 
     return (newerhtml + olderhtml + '</body></html>',
             '===== ' + newertext + "\n\n===== " + oldertext)
+
+def all_bills():
+    '''Return an OrderedDict of all bills, billno: [title, url]
+    '''
+    baseurl = 'https://www.nmlegis.gov/Legislation/'
+    url = baseurl + 'Legislation_List?Session=57'
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text, 'lxml')
+    # with open('/home/akkana/src/billtracker/resources/Legislation_List?Session=57') as fp:
+    #     t = fp.read()
+    #     soup = BeautifulSoup(t, 'lxml')
+
+    footable = soup.find('table', class_='footable')
+    if not footable:
+        print("Can't read the all-bills list", file=sys.stderr)
+        return None
+
+    allbills = OrderedDict()
+    billno_pat = re.compile('MainContent_gridViewLegislation_linkBillID.*')
+    title_pat = re.compile('MainContent_gridViewLegislation_lblTitle.*')
+    for tr in footable.findAll('tr'):
+        billno = tr.find('a', id=billno_pat)
+        title = tr.find('span', id=title_pat)
+        if billno and title:
+            # Remove spaces and stars:
+            allbills[billno.text.replace(' ', '').replace('*', '')] \
+                = [ title.text, baseurl + billno['href'] ]
+
+    return allbills
+
+
