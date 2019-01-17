@@ -3,7 +3,7 @@
 {% block content %}
 <h1>Bills {{ current_user.username }} is tracking:</h1>
 <p>
-{% if current_user.last_check is not defined %}
+{% if current_user.last_check is not defined or not current_user.last_check %}
 This is your first check,
 {% else %}
 You last checked at {{ current_user.last_check.strftime('%H:%M %m/%d/%Y') }},
