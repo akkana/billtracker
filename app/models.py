@@ -207,10 +207,22 @@ class Bill(db.Model):
         b = nmlegisbill.parse_bill_page(self.billno,
                                         year=now.year,
                                         cache_locally=True)
-        for k in b:
-            setattr(self, k, b[k])
+        if b:
+            for k in b:
+                setattr(self, k, b[k])
 
-        self.update_date = now
+            self.update_date = now
+        else:
+            errstr = "(Couldn't update)"
+            if self.statustext:
+                self.statustext = errstr + '\n' + self.statustext
+            else:
+                self.statustext = errstr
+
+            if self.statusHTML:
+                self.statusHTML = errstr + "<br /> " + self.statusHTML
+            else:
+                self.statusHTML = errstr
 
         try:
             db.session.add(self)
