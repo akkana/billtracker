@@ -2,6 +2,30 @@
 
 (helpful when adding new functionality)
 
+## Requirements
+
+In addition to basic flask, this requires:
+flask-login flask-sqlalchemy flask-migrate python-wtf Flask-Mail dateutil
+
+I like to install from Debian packages when I can, so I'll get
+security updates automatically. But python-wtf and Flask-Mail
+aren't available on some versions of Debian, e.g.
+[Bug 912069](https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=912069):
+watch [the Debian excuse page](https://qa.debian.org/excuses.php?package=flask-wtf) for updates.
+
+I created a python3 venv:
+python3 -m venv --system-site-packages python3-venv
+
+Enabled it:
+source python3-venv/bin/activate
+
+Installed wtf:
+pip3 install python-wtf
+pip3 install Flask-WTF
+
+Then inserted the relevant path into the .wsgi file apache will use:
+sys.path.insert(0, '/path/to/python3-venv/lib/python3.5/site-packages/')
+
 # Templates
 
 Any variables that you want a template to be able to access with {{ var }}

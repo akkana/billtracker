@@ -1,0 +1,14 @@
+
+<h1>Bills {{ recipient.username }} is tracking:</h1>
+
+
+<div class="bill_list">
+{{ recipient.show_bills(inline=True) | safe }}
+</div>
+
+<hr>
+This is the daily email from
+<a href="https://nmbilltracker.com/">The New Mexico Bill Tracker</a>.
+If you have a problem with these emails or want to stop receiving them,
+contact <a href="mailto:akkana@shallowsky.com">Akkana</a>.
+(I'm still working on the page that will let you change your settings online.)

@@ -77,23 +77,32 @@ class User(UserMixin, db.Model):
 
         return changed, unchanged
 
-    def show_bills(self):
+    def show_bills(self, inline=False):
         '''Return a long HTML string showing bill statuses.
+           If inline==True, add table row colors as inline CSS
+           since email can't use stylesheets.
         '''
         changed, unchanged = self.check_for_changes()
+
+        # Make the table rows alternate color.
+        # This is done through CSS on the website,
+        # but through inline styles in email.
+        if inline:
+            rowstyles = [ 'style="background: white"',
+                          'style="background: #cfd"' ]
+        else:
+            rowstyles = [ 'class="even"',
+                          'class="odd"' ]
 
         if changed:
             outstr = '''<h2>Bills with recent changes:</h2>
 <table class="bill_list">
 '''
-            odd = True
+            parity = 1
             for bill in changed:
-                if odd:
-                    cl = 'odd'
-                else:
-                    cl = 'even'
-                odd = not odd
-                outstr += '<tr class="%s"><td>%s\n' % (cl, bill.show_html(True))
+                parity = 1 - parity
+                outstr += '<tr %s><td>%s\n' % (rowstyles[parity],
+                                               bill.show_html(True))
             outstr += '</table>\n'
         else:
             outstr = "<h2>No bills have changed</h2>\n"
@@ -102,18 +111,39 @@ class User(UserMixin, db.Model):
             outstr += """<h2>Bills that haven't changed:</h2>
 <table class="bill_list">
 """
-            odd = True
+            parity = 1
             for bill in unchanged:
-                if odd:
-                    cl = 'odd'
-                else:
-                    cl = 'even'
-                odd = not odd
-                outstr += '<tr class="%s"><td>%s\n' % (cl,
-                                                       bill.show_html(False))
+                parity = 1 - parity
+                outstr += '<tr %s><td>%s\n' % (rowstyles[parity],
+                                               bill.show_html(False))
             outstr += '</table>\n'
         else:
             outstr += "<h2>No unchanged bills</h2>\n"
+
+        self.last_check = datetime.now()
+        db.session.add(self)
+        db.session.commit()
+
+        return outstr
+
+    def show_bills_text(self):
+        '''Return a long plaintext string showing bill statuses.
+        '''
+        changed, unchanged = self.check_for_changes()
+
+        if changed:
+            outstr = 'Bills with recent changes:\n\n'
+            for bill in changed:
+                outstr += bill.show_text(True) + "\n"
+        else:
+            outstr = "No bills have changed\n"
+
+        if unchanged:
+            outstr += "<h2>Bills that haven't changed:\n\n"
+            for bill in unchanged:
+                outstr += bill.show_html(False)
+        else:
+            outstr += "No unchanged bills\n"
 
         self.last_check = datetime.now()
         db.session.add(self)
@@ -285,6 +315,50 @@ class Bill(db.Model):
 
         if analysis:
             outstr += ' &bull; '.join(analysis)
+
+        return outstr
+
+
+    def show_text(self, longform):
+        '''Show a summary of the bill's status in plaintext format.
+           longform=True is slightly longer: it assumes a bill has
+           changed recently so there's a need to show what changed.
+        '''
+        outstr = '%s: %s\n' % (self.billno, self.title)
+        outstr += nmlegisbill.bill_url(self.billno) + '\n'
+
+        if self.last_action_date:
+            outstr += "Last action: %s\n" % \
+                self.last_action_date.strftime('%m/%d/%Y')
+        else:
+            outstr += "No action yet.\n"
+
+        if self.statustext:
+            outstr += 'Status: %s\n' % self.statustext
+
+        if self.curloc and self.curloclink:
+            outstr += 'Current locagion: %s <%s>\n' % \
+                (self.curloc, self.curloclink)
+        elif self.curloc:
+            outstr += 'Current location: ' + self.curloc + '\n'
+
+        if False and not longform:
+            return outstr
+
+        outstr += 'Full text of %s: %s\n' % \
+            (self.billno, nmlegisbill.contents_url(self.billno))
+
+        if self.sponsor and self.sponsorlink:
+            outstr += 'Sponsor: %s <%s>' % (self.sponsor, self.sponsorlink)
+
+        if self.amendlink:
+            outstr += 'Amendments: ' + self.amendlink + '\n'
+
+        if self.FIRlink:
+            outstr += 'FIR report: ' + self.FIRlink + '\n'
+
+        if self.LESClink:
+            outstr += 'LESC report: ' + self.LESClink + '\n'
 
         return outstr
 

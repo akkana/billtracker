@@ -27,8 +27,8 @@
     <p>
     <div class="toolbar">
       <a href="{{ url_for('index') }}">Home</a> &bull;
-      <a href="{{ url_for('addbills') }}">Add bills</a> &bull;
-      <a href="{{ url_for('newbills') }}">New bills</a> &bull;
+      <a href="{{ url_for('addbills') }}">Track more bills</a> &bull;
+      <a href="{{ url_for('newbills') }}">Recently filed</a> &bull;
       {% if current_user.is_anonymous %}
         <a href="{{ url_for('login') }}">Login</a>
       {% else %}

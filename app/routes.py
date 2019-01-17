@@ -1,10 +1,13 @@
 from flask import render_template, flash, redirect, url_for, request
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
+
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, AddBillsForm
 from app.models import User, Bill
 from app.bills import nmlegisbill
+from .emails import daily_bill_email
+
 from datetime import datetime
 import json
 import collections
@@ -111,8 +114,8 @@ def addbills():
     else:
         bill = None
 
-    return render_template('addbills.html', title='Add More Bills', form=form,
-                           user=user, addedbill=bill)
+    return render_template('addbills.html', title='Add More Bills',
+                           form=form, user=user, addedbill=bill)
 
 
 @app.route('/newbills')
@@ -158,6 +161,28 @@ def add():
         "subtract" :  a-b,
         "divide"   :  div,
     })
+
+# This next method is mostly for testing.
+# I don't expect it to be very useful for users.
+# Normally, emails will be scheduled to be sent once a day.
+
+@app.route('/sendmail')
+@login_required
+def sendmail():
+    user = User.query.filter_by(username=current_user.username).first()
+    if not user:
+        flash("Couldn't get your username")
+        return render_template('send_mail.html', title='Send Email', user=user)
+
+    if not user.email:
+        flash("You don't have an email address registered.")
+        return render_template('send_mail.html', title='Send Email', user=user)
+
+    print("Attempting to send email to", user.username)
+    daily_bill_email(user)
+
+    return render_template('send_mail.html', title='Send Email', user=user)
+
 
 #
 # Gradual bill updating using AJAX.
