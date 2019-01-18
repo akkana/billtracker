@@ -88,8 +88,8 @@ class User(UserMixin, db.Model):
         # This is done through CSS on the website,
         # but through inline styles in email.
         if inline:
-            rowstyles = [ 'style="background: white"',
-                          'style="background: #cfd"' ]
+            rowstyles = [ 'style="background: white; padding: .5em;"',
+                          'style="background: #cfd;  padding: .5em;"' ]
         else:
             rowstyles = [ 'class="even"',
                           'class="odd"' ]
