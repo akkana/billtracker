@@ -88,11 +88,13 @@ class User(UserMixin, db.Model):
         # This is done through CSS on the website,
         # but through inline styles in email.
         if inline:
-            rowstyles = [ 'style="background: white; padding: .5em;"',
-                          'style="background: #cfd;  padding: .5em;"' ]
+            rowstyles = [ 'style="background: white;"',
+                          'style="background: #cfd; "' ]
+            cellstyle = ' style="padding: .5em;"'
         else:
             rowstyles = [ 'class="even"',
                           'class="odd"' ]
+            cellstyle = ""
 
         if changed:
             outstr = '''<h2>Bills with recent changes:</h2>
@@ -101,8 +103,9 @@ class User(UserMixin, db.Model):
             parity = 1
             for bill in changed:
                 parity = 1 - parity
-                outstr += '<tr %s><td>%s\n' % (rowstyles[parity],
-                                               bill.show_html(True))
+                outstr += '<tr %s><td%s>%s\n' % (rowstyles[parity],
+                                                 cellstyle,
+                                                 bill.show_html(True))
             outstr += '</table>\n'
         else:
             outstr = "<h2>No bills have changed</h2>\n"
