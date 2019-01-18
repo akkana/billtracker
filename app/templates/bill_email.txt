@@ -1,5 +1,5 @@
 
-Bills {{ recipient.username }} is tracking:
+==== Bills {{ recipient.username }} is tracking ====
 
 {{ recipient.show_bills_text() | safe }}
 
