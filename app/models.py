@@ -142,7 +142,7 @@ class User(UserMixin, db.Model):
             outstr = "No bills have changed\n"
 
         if unchanged:
-            outstr += "<h2>Bills that haven't changed:\n\n"
+            outstr += "Bills that haven't changed:\n\n"
             for bill in unchanged:
                 outstr += bill.show_html(False)
         else:

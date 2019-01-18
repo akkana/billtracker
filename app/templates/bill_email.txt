@@ -1,9 +1,7 @@
 
-<h1>Bills {{ recipient.username }} is tracking:</h1>
+Bills {{ recipient.username }} is tracking:
 
-<div class="bill_list">
 {{ recipient.show_bills_text() | safe }}
-</div>
 
 -----------------------------------------------------------
 This is the daily email from The New Mexico Bill Tracker,
