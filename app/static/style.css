@@ -5,6 +5,9 @@ a { color: blue; }
 a.visited { color: purple; }
 a:hover, a:active { background: #eef; }
 
+/* So annoying how default styles make td and th so different! */
+td, th { text-align: left; margin: 0; border: 0; padding: 1; }
+
 /*
  * The top banner:
  */
@@ -27,9 +30,11 @@ table#banner {
  * Body content:
  */
 
-table.bill_list { width: 99%; }
-/* Seems like padding should be on the tr, but that doesn't work */
-table.bill_list td { padding: 1em; }
+table.bill_list, table.bill_minilist { width: 99%; }
+
+table.bill_list th, table.bill_list td { padding: 1em; }
+
+table.bill_minilist th, table.bill_minilist td { padding: .25em; }
 
 /*
 li:nth-child(odd) { background: lightblue; }</style>

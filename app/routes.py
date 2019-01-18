@@ -109,13 +109,52 @@ def addbills():
         db.session.add(user)
         db.session.commit()
 
+        flash("You're now tracking %s: %s" % (bill.billno, bill.title))
+
         # Clear the form field
         form.billno.data = ""
     else:
         bill = None
 
     return render_template('addbills.html', title='Add More Bills',
-                           form=form, user=user, addedbill=bill)
+                           form=form, user=user)
+
+
+#
+# WTForms apparently doesn't have any way to allow adding checkboxes
+# in a loop next to each entry; so this is an old-school form.
+#
+@app.route('/unfollow', methods=['GET', 'POST'])
+@login_required
+def unfollow():
+    if request.method == 'POST' or request.method == 'GET':
+        # request contains form (for POST), args (for GET),
+        # and values (combined); the first two are ImmutableMultiDict,
+        # values is CombinedMultiDict.
+        # I've found no way to iterate through
+        # either ImmutableMultiDict or CombinedMultiDict;
+        # to_dict() is the only way I've found of accessing the contents.
+
+        unfollow = []
+        values = request.values.to_dict()
+        for billno in values:
+            if values[billno] == 'on':
+                if billno[0] not in 'SHJ':
+                    continue
+                unfollow.append(billno)
+        if unfollow:
+            user = User.query.filter_by(username=current_user.username).first()
+            newbills = []
+            for bill in user.bills:
+                if bill.billno not in unfollow:
+                    newbills.append(bill)
+            user.bills = newbills
+            db.session.add(user)
+            db.session.commit()
+
+            flash("Unfollowed " + ", ".join(unfollow))
+
+    return redirect(url_for('addbills'))
 
 
 @app.route('/allbills')

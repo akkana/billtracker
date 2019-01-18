@@ -4,35 +4,50 @@
 
 <h1>Track Bills</h1>
 
-<p>
-{% if addedbill is defined and addedbill %}
-You're now tracking {{ addedbill.billno }}: {{ addedbill.title }}
-{% endif %}
-
 <form action="" method="post">
 {{ form.hidden_tag() }}
-<p>
+
 {{ form.billno.label }}   {{ form.billno(size=5, autofocus=true) }}
+{{ form.submit() }}</p>
+
 <br>
   {% for error in form.billno.errors %}
       <span style="color: red;">[{{ error }}]</span>
   {% endfor %}
-</p>
-<p>{{ form.submit() }}</p>
+
 </form>
 
 <hr>
 
+{% if user is defined and user.bills is defined and user.bills|length > 0 %}
+
+<form method="POST" action="/unfollow">
+
 <p>
 You're currently following:
-<p>
+<br>
 
-{% if user is defined and user.bills is defined and user.bills|length > 0 %}
+<table class="bill_minilist">
+  <tr><th>Bill <th>Title <th>Unfollow
+
   {% for bill in current_user.bills %}
-    <br />{{ bill.billno }}: {{ bill.title }}
+
+    <tr class="{{ loop.cycle('odd', 'even') }}">
+      <td>{{ bill.billno }}
+      <td>{{ bill.title }}
+      <td><input type="checkbox" name='{{bill.billno}}'">
+
   {% endfor %}
+
+<tr><td><td><td><input type="submit" value="Unfollow Bills">
+
+</table>
+
+</form>
+
 {% else %}
-no bills.
+You're not following any bills yet.
+
 {% endif %}
 
 {% endblock %}
