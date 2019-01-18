@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>All Bills</h1>
+
+{% if newlines is defined and newlines|length > 0 %}
+  <h2>Recently Filed Bills</h2>
+
+  <p>
+  These are the bills since the last time you checked this page.
+  (Warning: that means that if you leave this page and come back,
+  or hit reload, these bills will no longer be there!
+  So check them now.)
+
+  <ul>
+
+  {% for line in newlines %}
+    <li><a href="{{ line[2] }}">{{ line[0] }}: {{ line[1] }}</a>
+  {% endfor %}
+
+  </ul>
+
+{% else %}
+  <p>
+  Nothing new since you last looked.
+{% endif %}
+
+<h2>Older</h2>
+
+{% if oldlines is defined and oldlines|length > 0 %}
+  <ul>
+
+  {% for line in oldlines %}
+    <li><a href="{{ line[2] }}">{{ line[0] }}: {{ line[1] }}</a>
+  {% endfor %}
+
+  </ul>
+
+{% endif %}
+
+{% endblock %}
+
