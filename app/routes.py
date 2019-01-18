@@ -118,9 +118,12 @@ def addbills():
                            form=form, user=user, addedbill=bill)
 
 
-@app.route('/newbills')
+@app.route('/allbills')
 @login_required
-def newbills():
+def allbills():
+    '''Show all bills, with titles and links.
+       New bills the user hasn't seen before are listed first.
+    '''
     user = User.query.filter_by(username=current_user.username).first()
     if user.bills_seen:
         bills_seen = user.bills_seen.split(',')
@@ -130,17 +133,21 @@ def newbills():
     allbills = nmlegisbill.all_bills()
     # This is an OrderedDic, billno: title
 
-    lines = []
+    newlines = []
+    oldlines = []
     for billno in allbills:
         if billno not in bills_seen:
-            lines.append([billno, allbills[billno][0], allbills[billno][1]])
+            newlines.append([billno, allbills[billno][0], allbills[billno][1]])
+        else:
+            oldlines.append([billno, allbills[billno][0], allbills[billno][1]])
 
     # Update user
     user.bills_seen = ','.join(allbills.keys())
     db.session.add(user)
     db.session.commit()
 
-    return render_template('newbills.html', lines=lines)
+    return render_template('allbills.html',
+                           newlines=newlines, oldlines=oldlines)
 
 @app.route("/ajax")
 def ajax():
