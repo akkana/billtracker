@@ -91,7 +91,7 @@ def addbills():
         else:
             # It's a bill not in the database yet: fetch it.
             b = nmlegisbill.parse_bill_page(billno,
-                                            year=datetime.datetime.now().year,
+                                            year=datetime.now().year,
                                             cache_locally=True)
 
             bill = Bill(**b)
