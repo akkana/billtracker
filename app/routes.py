@@ -6,7 +6,7 @@ from app import app, db
 from app.forms import LoginForm, RegistrationForm, AddBillsForm
 from app.models import User, Bill
 from app.bills import nmlegisbill
-from .emails import daily_bill_email
+from .emails import daily_user_email
 
 from datetime import datetime
 import json
@@ -160,7 +160,8 @@ def unfollow():
 @app.route('/allbills')
 @login_required
 def allbills():
-    '''Show all bills, with titles and links.
+    '''Show all bills that have been filed, with titles and links,
+       whether or not they're in our database or any user is tracking them.
        New bills the user hasn't seen before are listed first.
     '''
     user = User.query.filter_by(username=current_user.username).first()
@@ -188,46 +189,56 @@ def allbills():
     return render_template('allbills.html',
                            newlines=newlines, oldlines=oldlines)
 
-@app.route("/ajax")
-def ajax():
-    return render_template('ajax.html')
 
-@app.route("/api/calc")
-def add():
-    a = int(request.args.get('a', 0))
-    b = int(request.args.get('b', 0))
-    div = 'na'
-    if b != 0:
-        div = a/b
-    return json.dumps({
-        "a"        :  a,
-        "b"        :  b,
-        "add"      :  a+b,
-        "multiply" :  a*b,
-        "subtract" :  a-b,
-        "divide"   :  div,
-    })
+@app.route("/api/all_daily_emails")
+def all_daily_emails():
+    '''Send out daily emails to all users with an email address registered.
+       A cron job will visit this URL once a day.
+    '''
+    for user in User.query.all():
+        if user.username != 'akkana':
+            print("%s is not akkana, skipping" % user.username)
+            continue
 
-# This next method is mostly for testing.
+        if not user.email:
+            print("%s doesn't have an email address" % user.username)
+            continue
+
+        print("User %s's bills are: %s" % (user.username,
+                                      ', '.join([str(b) for b in user.bills])))
+        mailto(user.username)
+
+    return "OK"
+
+@app.route('/api/mailto/<username>')
+def mailto(username):
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        flash("Couldn't get user for " + username)
+        return redirect(url_for('mailto'))
+
+    if not user.email:
+        flash("%s doesn't have an email address registered." % username)
+        return redirect(url_for('mailto'))
+
+    print("Attempting to send email to", user.username)
+    # daily_user_email(user)
+
+    user.last_check = datetime.now()
+    db.session.add(user)
+    db.session.commit()
+
+    return render_template('send_mail.html', title='Send Email', user=user)
+
+
+# This next method is mostly for testing and will go away soon.
 # I don't expect it to be very useful for users.
 # Normally, emails will be scheduled to be sent once a day.
 
 @app.route('/sendmail')
 @login_required
 def sendmail():
-    user = User.query.filter_by(username=current_user.username).first()
-    if not user:
-        flash("Couldn't get your username")
-        return render_template('send_mail.html', title='Send Email', user=user)
-
-    if not user.email:
-        flash("You don't have an email address registered.")
-        return render_template('send_mail.html', title='Send Email', user=user)
-
-    print("Attempting to send email to", user.username)
-    daily_bill_email(user)
-
-    return render_template('send_mail.html', title='Send Email', user=user)
+    return mailto(current_user.username)
 
 
 #
@@ -294,5 +305,4 @@ def onebill(username):
         "changed"  : changep,
         "more"     : len(billids) > 0
         })
-
 

@@ -71,6 +71,8 @@ class User(UserMixin, db.Model):
             else:
                 unchanged.append(bill)
 
+        # bill.update() might have updated something in one or more bills.
+        # In that case, commit all the changes to the database together.
         if needs_commit:
             print("Updated something, committing", file=sys.stderr)
             db.session.commit()
@@ -81,6 +83,7 @@ class User(UserMixin, db.Model):
         '''Return a long HTML string showing bill statuses.
            If inline==True, add table row colors as inline CSS
            since email can't use stylesheets.
+           Does not update last_check; the caller should.
         '''
         changed, unchanged = self.check_for_changes()
 
@@ -123,14 +126,11 @@ class User(UserMixin, db.Model):
         else:
             outstr += "<h2>No unchanged bills</h2>\n"
 
-        self.last_check = datetime.now()
-        db.session.add(self)
-        db.session.commit()
-
         return outstr
 
     def show_bills_text(self):
         '''Return a long plaintext string showing bill statuses.
+           Does not update last_check; the caller should.
         '''
         changed, unchanged = self.check_for_changes()
 
@@ -147,10 +147,6 @@ class User(UserMixin, db.Model):
                 outstr += bill.show_html(False)
         else:
             outstr += "No unchanged bills\n"
-
-        self.last_check = datetime.now()
-        db.session.add(self)
-        db.session.commit()
 
         return outstr
 
@@ -278,7 +274,7 @@ class Bill(db.Model):
             (nmlegisbill.bill_url(self.billno), self.billno, self.title)
 
         if self.last_action_date:
-            outstr += "<br>Last action: %s<br />" % \
+            outstr += "Last action: %s<br />" % \
                 self.last_action_date.strftime('%m/%d/%Y')
         else:
             outstr += "No action yet.<br />"

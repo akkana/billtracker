@@ -11,7 +11,9 @@ def send_email(subject, sender, recipients, text_body, html_body):
     msg.html = html_body
     mail.send(msg)
 
-def daily_bill_email(recipient):
+def daily_user_email(recipient):
+    '''Given a user object, send daily mail to that user.
+    '''
     if not recipient.email:
         return
     send_email("NM Bill Tracker Daily Update",
