@@ -288,7 +288,7 @@ class Bill(db.Model):
             outstr += 'Status: %s<br />\n' % self.statusHTML
 
         if self.curloc and self.curloclink:
-            outstr += 'Current locagion: <a href="%s">%s</a><br />' % \
+            outstr += 'Current location: <a href="%s">%s</a><br />' % \
                 (self.curloclink, self.curloc)
         elif self.curloc:
             outstr += 'Current location: ' + self.curloc + '<br />'
@@ -337,7 +337,7 @@ class Bill(db.Model):
             outstr += 'Status: %s\n' % self.statustext
 
         if self.curloc and self.curloclink:
-            outstr += 'Current locagion: %s <%s>\n' % \
+            outstr += 'Current location: %s <%s>\n' % \
                 (self.curloc, self.curloclink)
         elif self.curloc:
             outstr += 'Current location: ' + self.curloc + '\n'
