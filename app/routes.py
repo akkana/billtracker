@@ -207,16 +207,18 @@ def all_daily_emails(key):
 
     return "OK"
 
-@app.route('/api/mailto/<username>')
-def mailto(username):
+
+@app.route('/api/mailto/<username>/<key>')
+def mailto(username, key):
+    if key != app.config["SECRET_KEY"]:
+        return "FAIL Bad key"
+
     user = User.query.filter_by(username=username).first()
     if not user:
-        flash("Couldn't get user for " + username)
-        return redirect(url_for('mailto'))
+        return "FAIL Couldn't get user for " + username
 
     if not user.email:
-        flash("%s doesn't have an email address registered." % username)
-        return redirect(url_for('mailto'))
+        return "FAIL %s doesn't have an email address registered." % username
 
     print("Attempting to send email to", user.username)
     daily_user_email(user)
@@ -225,17 +227,7 @@ def mailto(username):
     db.session.add(user)
     db.session.commit()
 
-    return render_template('send_mail.html', title='Send Email', user=user)
-
-
-# This next method is mostly for testing and will go away soon.
-# I don't expect it to be very useful for users.
-# Normally, emails will be scheduled to be sent once a day.
-
-@app.route('/sendmail')
-@login_required
-def sendmail():
-    return mailto(current_user.username)
+    return "OK Mail sent to " + username
 
 
 #
