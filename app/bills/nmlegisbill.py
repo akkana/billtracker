@@ -138,7 +138,6 @@ def parse_bill_page(billno, year=None, cache_locally=True):
                                   billdic['billtype'],
                                   billdic['number'],
                                   billdic['year'])
-    print("billdic:", billdic)
 
     if cache_locally:
         cachedir = 'cache'
@@ -163,15 +162,10 @@ def parse_bill_page(billno, year=None, cache_locally=True):
                 print("Re-fetching: cache has expired on", billno,
                       file=sys.stderr)
 
-    print("baseurl", baseurl)
     if ':' in baseurl:
         # billdic['bill_url'] = url_mapper.to_abs_link(baseurl, baseurl)
-        print("Fetching %s info from %s" % (billno, baseurl), file=sys.stderr)
         r = requests.get(baseurl)
         soup = BeautifulSoup(r.text, 'lxml')
-
-        if cache_locally:
-            print("Trying to write to", filename)
 
             # Python 3 these days is supposed to use the system default
             # encoding, I thought, but sometimes it doesn't and dies
@@ -278,8 +272,8 @@ def parse_bill_page(billno, year=None, cache_locally=True):
     # it's invisible to us. But we can make a guess at FIR and LESC links:
     billdic['FIRlink'], billdic['LESClink'], billdic['amendlink'] \
         = check_analysis(billno)
-    print("Checked analysis:", billdic['FIRlink'], billdic['LESClink'],
-          billdic['amendlink'], file=sys.stderr)
+    # print("Checked analysis:", billdic['FIRlink'], billdic['LESClink'],
+    #       billdic['amendlink'], file=sys.stderr)
 
     billdic['update_date'] = datetime.datetime.now()
     billdic['mod_date'] = None

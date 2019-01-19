@@ -64,9 +64,10 @@ class User(UserMixin, db.Model):
             needs_commit |= bill.update()
             # A changed bill is one that has a last_action_date since the
             # user's last_check, OR a last_action_date in the last 24 hours.
-            if bill.last_action_date and (
-                    bill.last_action_date > self.last_check or
-                    (now - bill.last_action_date).seconds < oneday):
+            if not self.last_check or (
+                    bill.last_action_date and
+                    (bill.last_action_date > self.last_check or
+                     (now - bill.last_action_date).seconds < oneday)):
                 changed.append(bill)
             else:
                 unchanged.append(bill)
