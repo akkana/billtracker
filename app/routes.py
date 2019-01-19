@@ -190,22 +190,19 @@ def allbills():
                            newlines=newlines, oldlines=oldlines)
 
 
-@app.route("/api/all_daily_emails")
-def all_daily_emails():
+@app.route("/api/all_daily_emails/<key>")
+def all_daily_emails(key):
     '''Send out daily emails to all users with an email address registered.
        A cron job will visit this URL once a day.
     '''
-    for user in User.query.all():
-        if user.username != 'akkana':
-            print("%s is not akkana, skipping" % user.username)
-            continue
+    if key != app.config["SECRET_KEY"]:
+        return "FAIL Bad key"
 
+    for user in User.query.all():
         if not user.email:
             print("%s doesn't have an email address" % user.username)
             continue
 
-        print("User %s's bills are: %s" % (user.username,
-                                      ', '.join([str(b) for b in user.bills])))
         mailto(user.username)
 
     return "OK"
@@ -222,7 +219,7 @@ def mailto(username):
         return redirect(url_for('mailto'))
 
     print("Attempting to send email to", user.username)
-    # daily_user_email(user)
+    daily_user_email(user)
 
     user.last_check = datetime.now()
     db.session.add(user)
