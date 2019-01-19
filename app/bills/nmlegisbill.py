@@ -167,6 +167,7 @@ def parse_bill_page(billno, year=None, cache_locally=True):
         r = requests.get(baseurl)
         soup = BeautifulSoup(r.text, 'lxml')
 
+        if cache_locally:
             # Python 3 these days is supposed to use the system default
             # encoding, I thought, but sometimes it doesn't and dies
             # trying to write to the cache file unless you specify
