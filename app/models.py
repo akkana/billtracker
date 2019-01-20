@@ -1,8 +1,10 @@
-from datetime import datetime
 from app import db, login
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.bills import nmlegisbill
+
+from datetime import datetime
+import re
 import sys
 
 
@@ -72,6 +74,9 @@ class User(UserMixin, db.Model):
             else:
                 unchanged.append(bill)
 
+        changed.sort()
+        unchanged.sort()
+
         # bill.update() might have updated something in one or more bills.
         # In that case, commit all the changes to the database together.
         if needs_commit:
@@ -86,6 +91,8 @@ class User(UserMixin, db.Model):
            If inline==True, add table row colors as inline CSS
            since email can't use stylesheets.
         '''
+        bill_list.sort(key=Bill.bill_key)
+
         # Make the table rows alternate color.
         # This is done through CSS on the website,
         # but through inline styles in email.
@@ -222,6 +229,37 @@ class Bill(db.Model):
 
     def __repr__(self):
         return 'Bill %s' % (self.billno)
+
+    #
+    # How to sort by billno.
+    # Sorting in python 3 is so unintuitive, this "key" business
+    # instead of a straightforward cmp() function. Oh, well.
+    #   Sort a list of billnos:  billnos.sort(key=Bill.natural_key)
+    #   Sort a list of bills:    bills.sorted(key=Bill.bill_key)
+    # This will be used in several places.
+    #
+    @staticmethod
+    def a2order(text):
+        if text.isdigit():
+            return int(text)
+        # Put Senate bills first
+        if text and text[0] == 'S':
+            return 'A' + text
+        return text
+
+    @staticmethod
+    def natural_key(text):
+        '''
+        alist.sort(key=natural_key) sorts in human order
+        http://nedbatchelder.com/blog/200712/human_sorting.html
+        (See Toothy's implementation in the comments)
+        '''
+        return [ Bill.a2order(c) for c in re.split('(\d+)', text) ]
+
+    @staticmethod
+    def bill_key(bill):
+        return Bill.natural_key(bill.billno)
+
 
     def update(self):
         '''Have we updated this bill in the last few hours?

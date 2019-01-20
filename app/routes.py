@@ -8,7 +8,7 @@ from app.models import User, Bill
 from app.bills import nmlegisbill
 from .emails import daily_user_email
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import collections
 import sys
@@ -241,6 +241,7 @@ def mailto(username, key):
 # the queue? Maybe have to pass in some sort of "first_time" variable.
 users_updating = {}
 
+
 @app.route("/api/onebill/<username>")
 def onebill(username):
     '''Returns JSON.
@@ -256,17 +257,19 @@ def onebill(username):
     now = datetime.now()
 
     # Are we already updating this user?
-    billids = None
+    billnos = None
     for un in users_updating:
         if un == username:
-            billids = users_updating[username]
+            billnos = users_updating[username]
             break
     else:    # Not already updating this username
-        billids = [b.id for b in user.bills]
-        users_updating[username] = billids
+        billnos = [b.billno for b in user.bills]
+        billnos.sort(key=Bill.natural_key)
+        # print("Sorted:", billnos)
+        users_updating[username] = billnos
 
-    # Now user and billids are set.
-    if not billids:
+    # Now user and billnos are set.
+    if not billnos:
         # This was this user's last bill. Remove the user from the list:
         del users_updating[username]
 
@@ -280,8 +283,8 @@ def onebill(username):
             "more"      : False
         })
 
-    billid = billids.pop(0)
-    bill = Bill.query.filter_by(id=billid).first()
+    billno = billnos.pop(0)
+    bill = Bill.query.filter_by(billno=billno).first()
 
     # Check whether the bill wants to update itself:
     if bill.update():
@@ -289,10 +292,12 @@ def onebill(username):
         db.session.commit()
 
     # Is the bill changed as far as the user is concerned?
-    oneday = 24 * 60 * 60    # seconds in a day
+    oneday = timedelta(days=1)
     if (bill.last_action_date and (
             bill.last_action_date > user.last_check or
-            (now - bill.last_action_date).seconds < oneday)):
+            (now - bill.last_action_date) < oneday)):
+        print("%s is changed: last action %s, user's last check %s"
+              % (billno, str(bill.last_action_date), str(user.last_check)))
         changep = True
     else:
         changep = False
@@ -301,6 +306,6 @@ def onebill(username):
         "summary"  : bill.show_html(True),
         "billno"   : bill.billno,
         "changed"  : changep,
-        "more"     : len(billids) > 0
+        "more"     : len(billnos) > 0
         })
 
