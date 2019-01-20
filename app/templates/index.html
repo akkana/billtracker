@@ -4,21 +4,27 @@
 <h1>Bills {{ current_user.username }} is tracking:</h1>
 <p>
 {% if current_user.last_check is not defined or not current_user.last_check %}
-This is your first check,
+This is your first check.
 {% else %}
 You last checked at {{ current_user.last_check.strftime('%H:%M %m/%d/%Y') }},
-{% endif %}
 but this will also show any bills that changed in the last day.
-
-<div id="busybusy"></div>
+{% endif %}
 
 <h2>Bills With Recent Changes:</h2>
 
-<table id="changed_bills" class="bill_list"><tbody></tbody></table>
+<table id="changed_bills" class="bill_list">
+<tbody>
+<tr><td id="busywait">(Checking ...)
+</tbody>
+</table>
 
 <h2>Bills That Haven't Changed:</h2>
 
-<table id="unchanged_bills" class="bill_list"><tbody></tbody></table>
+<table id="unchanged_bills" class="bill_list">
+<tbody>
+  {{ current_user.show_bill_table(current_user.bills) | safe }}
+</tbody>
+</table>
 
 <p>
 <b><a href="/addbills">Follow
@@ -30,7 +36,7 @@ some
 bills</a></b>
 
 <script type="text/javascript">
-  // Prepare some variables for loadbills
+  // loadbills.js needs to know the current username:
   var current_user = "{{ current_user.username }}";
 </script>
 <script src="/static/js/loadbills.js"></script>

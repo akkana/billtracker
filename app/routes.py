@@ -291,6 +291,7 @@ def onebill(username):
 
     return json.dumps({
         "summary"  : bill.show_html(True),
+        "billno"   : bill.billno,
         "changed"  : changep,
         "more"     : len(billids) > 0
         })

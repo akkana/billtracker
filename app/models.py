@@ -80,14 +80,11 @@ class User(UserMixin, db.Model):
 
         return changed, unchanged
 
-    def show_bills(self, inline=False):
-        '''Return a long HTML string showing bill statuses.
+    def show_bill_table(self, bill_list, inline=False):
+        '''Return an HTML string showing status for a list of bills.
            If inline==True, add table row colors as inline CSS
            since email can't use stylesheets.
-           Does not update last_check; the caller should.
         '''
-        changed, unchanged = self.check_for_changes()
-
         # Make the table rows alternate color.
         # This is done through CSS on the website,
         # but through inline styles in email.
@@ -100,30 +97,34 @@ class User(UserMixin, db.Model):
                           'class="odd"' ]
             cellstyle = ""
 
+        parity = 1
+        outstr = '<table class="bill_list">\n'
+        for bill in bill_list:
+            parity = 1 - parity
+            outstr += '<tr %s><td id="%s"%s>%s\n' % (rowstyles[parity],
+                                                     bill.billno,
+                                                     cellstyle,
+                                                     bill.show_html(True))
+        outstr += '</table>\n'
+        return outstr
+
+    def show_bills(self, inline=False):
+        '''Return a long HTML string showing bill statuses.
+           If inline==True, add table row colors as inline CSS
+           since email can't use stylesheets.
+           Does not update last_check; that's up to the caller.
+        '''
+        changed, unchanged = self.check_for_changes()
+
         if changed:
-            outstr = '''<h2>Bills with recent changes:</h2>
-<table class="bill_list">
-'''
-            parity = 1
-            for bill in changed:
-                parity = 1 - parity
-                outstr += '<tr %s><td%s>%s\n' % (rowstyles[parity],
-                                                 cellstyle,
-                                                 bill.show_html(True))
-            outstr += '</table>\n'
+            outstr = '<h2>Bills with recent changes:</h2>\n'
+            outstr += show_bill_table(changed, inline)
         else:
             outstr = "<h2>No bills have changed</h2>\n"
 
         if unchanged:
-            outstr += """<h2>Bills that haven't changed:</h2>
-<table class="bill_list">
-"""
-            parity = 1
-            for bill in unchanged:
-                parity = 1 - parity
-                outstr += '<tr %s><td>%s\n' % (rowstyles[parity],
-                                               bill.show_html(False))
-            outstr += '</table>\n'
+            outstr += "<h2>Bills that haven't changed:</h2>\n"
+            outstr += show_bill_table(unchanged, inline)
         else:
             outstr += "<h2>No unchanged bills</h2>\n"
 

@@ -32,26 +32,22 @@ var even_unchanged = true;
 var display_result = function(data) {
     //console.log(data);
 
-    var changedbilltable = document.getElementById('changed_bills')
-        .getElementsByTagName('tbody')[0];
-    var unchangedbilltable = document.getElementById('unchanged_bills')
-        .getElementsByTagName('tbody')[0];
-
     if (data["summary"]) {
         text = data["summary"];
 
-        // Now insert text as a td inside a tr with class evenodd.
+        // If the bill has changed, insert it in the changed table
+        // as a td inside a tr with class evenodd:
 
-        if (data["changed"]) {
-            billtable = changedbilltable;
-            even_changed = !even_changed;
-            even = even_changed;
+        if (! data["changed"]) {
+            return;
         }
-        else {
-            billtable = unchangedbilltable;
-            even_unchanged = !even_unchanged;
-            even = even_unchanged;
-        }
+
+        var changedbilltable = document.getElementById('changed_bills')
+            .getElementsByTagName('tbody')[0];
+
+        billtable = changedbilltable;
+        even_changed = !even_changed;
+        even = even_changed;
 
         if (even)
             evenodd = "even";
@@ -61,23 +57,43 @@ var display_result = function(data) {
         // Insert a row in the table at the last row
         var newRow   = billtable.insertRow(billtable.rows.length);
         newRow.classList.add(evenodd);
+        newRow.id = "ch_" + data["billno"];
 
         // Insert a cell in the row at index 0
         var newCell  = newRow.insertCell(0);
 
         newCell.innerHTML = text;
 
+        // Now remove it from the unchanged table.
+        /*
+        var unchangedbilltable = document.getElementById('unchanged_bills')
+            .getElementsByTagName('tbody')[0];
+
+        console.log("unchangedbilltable: " + unchangedbilltable);
+        */
+        var oldline = document.getElementById(data["billno"]);
+        if (oldline) {
+            oldline.parentNode.removeChild(oldline);
+        }
+
+        // Is this the last bill?
         if (data["more"]) {
             ajax_get(url, display_result);
         }
         else {
             // Done: clear busy indicator.
-            document.getElementById('busybusy').innerHTML = '';
+            var busywait = document.getElementById("busywait");
+            if (busywait) {
+                busywait.parentNode.removeChild(busywait);
+            }
+            else {
+                console.log("Can't get busywait");
+            }
         }
     }
     else {
         // It's text. Show it in the busy indicator area.
-        document.getElementById('busybusy').innerHTML = data;
+        document.getElementById('busywait').innerHTML = data;
     }
 };
 
