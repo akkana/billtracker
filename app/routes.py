@@ -223,6 +223,7 @@ def mailto(username, key):
     print("Attempting to send email to", user.username)
     daily_user_email(user)
 
+    # Update the user's last_check time and commit it to the database:
     user.last_check = datetime.now()
     db.session.add(user)
     db.session.commit()
@@ -252,6 +253,7 @@ def onebill(username):
     user = User.query.filter_by(username=username).first()
     if not user:
         return "Unknown user: " + username
+    now = datetime.now()
 
     # Are we already updating this user?
     billids = None
@@ -265,7 +267,14 @@ def onebill(username):
 
     # Now user and billids are set.
     if not billids:
+        # This was this user's last bill. Remove the user from the list:
         del users_updating[username]
+
+        # Update the user's last_check time and commit it to the database:
+        user.last_check = now
+        db.session.add(user)
+        db.session.commit()
+
         return json.dumps({
             "summary"  : "(No more)",
             "more"      : False
@@ -280,7 +289,6 @@ def onebill(username):
         db.session.commit()
 
     # Is the bill changed as far as the user is concerned?
-    now = datetime.now()
     oneday = 24 * 60 * 60    # seconds in a day
     if (bill.last_action_date and (
             bill.last_action_date > user.last_check or

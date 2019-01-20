@@ -80,6 +80,7 @@ class User(UserMixin, db.Model):
 
         return changed, unchanged
 
+
     def show_bill_table(self, bill_list, inline=False):
         '''Return an HTML string showing status for a list of bills.
            If inline==True, add table row colors as inline CSS
