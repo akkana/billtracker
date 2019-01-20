@@ -45,3 +45,6 @@ tr.even td { background: #cfd; }
 
 div.error { color: red; }
 
+/* Some things are shown only with Javascript, so are initially made invisible.
+ */
+.scriptonly { display: none; }
