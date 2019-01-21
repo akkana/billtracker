@@ -384,8 +384,12 @@ class Bill(db.Model):
         outstr += 'Full text of %s: %s\n' % \
             (self.billno, nmlegisbill.contents_url(self.billno))
 
-        if self.sponsor and self.sponsorlink:
-            outstr += 'Sponsor: %s <%s>' % (self.sponsor, self.sponsorlink)
+        # print('Sponsor: %s : %s' % (self.sponsor, self.sponsorlink))
+        if self.sponsor:
+            if self.sponsorlink:
+                outstr += 'Sponsor: %s <%s>' % (self.sponsor, self.sponsorlink)
+            else:
+                outstr += 'Sponsor:  %s' % self.sponsor
 
         if self.amendlink:
             outstr += 'Amendments: ' + self.amendlink + '\n'

@@ -84,31 +84,37 @@ def check_analysis(billno):
     # The to_local_link stuff here is just to keep us from
     # hitting a remote server while running tests.
     firlink = url_mapper.to_local_link(
-        '%s/Sessions/%s%%20Regular/firs/%s%s00%s.PDF' \
+        '%s/Sessions/%s%%20Regular/firs/%s%s000%s.PDF' \
         % (url_mapper.baseurl, year, chamber, billtype, number),
         None)
     lesclink = url_mapper.to_local_link(
-        '%s/Sessions/%s%%20Regular/LESCAnalysis/%s%s00%s.PDF' \
+        '%s/Sessions/%s%%20Regular/LESCAnalysis/%s%s000%s.PDF' \
                % (url_mapper.baseurl, year, chamber, billtype, number),
         None)
     amendlink = url_mapper.to_local_link(
-        '%s/Sessions/%s%%20Regular/Amendments_In_Context/%s%s00%s.PDF' \
+        '%s/Sessions/%s%%20Regular/Amendments_In_Context/%s%s000%s.PDF' \
                % (url_mapper.baseurl, year, chamber, billtype, number),
         None)
 
-    if ':' in firlink:
-        request = requests.head(firlink)
+    # The legislative website doesn't give errors for missing PDFs;
+    # instead, it serves a short HTML page instead of a PDF.
+    # (Maybe unclear on how to do a custom 404 page?)
+    def check_for_pdf(url):
+        # print("PDF url:", url)
+        if not url or ':' not in url:
+            return None
+        request = requests.head(url)
         if request.status_code != 200:
-            firlink = None
-        # Might be able to get something useful out of requests.headers
-    else:
-        firlink = None
-    if ':' in lesclink:
-        request = requests.head(lesclink)
-        if request.status_code != 200:
-            lesclink = None
-    else:
-        lesclink = None
+            # print("Bad status code")
+            return None
+        if request.headers['Content-Type'] != 'application/pdf':
+            # print("Bad Content-Type:", request.headers['Content-Type'])
+            return None
+        return url
+
+    firlink = check_for_pdf(firlink)
+    lesclink = check_for_pdf(lesclink)
+    amendlink = check_for_pdf(amendlink)
 
     return firlink, lesclink, amendlink
 

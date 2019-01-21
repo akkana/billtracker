@@ -93,22 +93,27 @@ def addbills():
                                             year=datetime.now().year,
                                             cache_locally=True)
 
-            bill = Bill(**b)
+            if b:
+                bill = Bill(**b)
 
-            try:
-                db.session.add(bill)
-            except:
-                print("Couldn't add %s to the database" % billno,
-                      file=sys.stderr)
-                sys.exit(1)
+                try:
+                    db.session.add(bill)
+                except:
+                    flash("Couldn't add %s to the database" % billno)
+                    print("Couldn't add %s to the database" % billno,
+                          file=sys.stderr)
+            else:
+                bill = None
+                flash("Couldn't fetch information for %s" % billno)
 
         # Either way, bill should be set to a Bill object now.
         # Add it to the current user:
-        user.bills.append(bill)
-        db.session.add(user)
-        db.session.commit()
+        if bill:
+            user.bills.append(bill)
+            db.session.add(user)
+            db.session.commit()
 
-        flash("You're now tracking %s: %s" % (bill.billno, bill.title))
+            flash("You're now tracking %s: %s" % (bill.billno, bill.title))
 
         # Clear the form field
         form.billno.data = ""
@@ -369,7 +374,7 @@ def onebill(username):
 
     # Is the bill changed as far as the user is concerned?
     oneday = timedelta(days=1)
-    if (bill.last_action_date and (
+    if not user.last_check or (bill.last_action_date and (
             bill.last_action_date > user.last_check or
             (now - bill.last_action_date) < oneday)):
         changep = True
