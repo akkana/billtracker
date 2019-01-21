@@ -9,7 +9,8 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # administrator list
-ADMINS = ['akkana@shallowsky.com']
+ADMINS = [ os.environ.get('FLASK_ADMIN') or 'user@example.com']
+print("ADMINS:", ADMINS)
 
 # Email server. This will fail except on a machine that's running
 # a mail server that allows local connections.
