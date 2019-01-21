@@ -49,3 +49,8 @@ class AddBillsForm(FlaskForm):
 
         print(designation, "validates.")
         billno.data = designation
+
+
+class PasswordResetForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    submit = SubmitField('Send Password Reset')

@@ -3,15 +3,17 @@ from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, AddBillsForm
+from app.forms import LoginForm, RegistrationForm, AddBillsForm, \
+    PasswordResetForm
 from app.models import User, Bill
 from app.bills import nmlegisbill
-from .emails import daily_user_email
+from .emails import daily_user_email, send_email
 from config import ADMINS
 
 from datetime import datetime, timedelta
 import json
 import collections
+import random
 import sys, os
 
 
@@ -195,6 +197,40 @@ def config():
         return render_template('config.html', users=None)
 
     return render_template('config.html', users=User.query.all())
+
+
+@app.route("/password_reset", methods=['GET', 'POST'])
+def password_reset():
+    form = PasswordResetForm()
+
+    if form.validate_on_submit():
+        username = form.username.data
+        user = User.query.filter_by(username=form.username.data).first()
+        if user.email:
+            # Generate a new password
+            lc = 'abcdefghijklmnopqrstuvwxyz'
+            uc = lc.upper()
+            num = '0123456789'
+            punct = '-.!@$%*'
+            charset = lc+uc+num+punct
+            newpasswd = ''
+            passwdlen = 7
+            for i in range(passwdlen):
+                newpasswd += random.choice(charset)
+
+            print("Sending email to", user.email)
+            send_email("NM Bill Tracker Password Reset",
+                       "noreply@nmbilltracker.com", [ user.email ],
+                       render_template("passwd_reset.txt", recipient=username,
+                                       newpasswd=newpasswd))
+            user.set_password(newpasswd)
+
+            flash("Mailed a new password to your email address")
+        else:
+            flash("Sorry, no user %s with an email address" % username)
+
+    return render_template('passwd_reset.html', title='Password Reset',
+                           form=form)
 
 
 #

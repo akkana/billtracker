@@ -35,6 +35,7 @@ table#banner {
            border-radius: 10px;
          }
 
+/* Dispense with the silly space-wasting banner images on small screens. */
 @media (max-width: 799px) {
   #bannerleft, #bannerright { display: none; }
   #bannermiddle { background-image: none; }

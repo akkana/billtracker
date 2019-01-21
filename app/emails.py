@@ -5,10 +5,11 @@ from app import mail
 from flask import render_template
 from config import ADMINS
 
-def send_email(subject, sender, recipients, text_body, html_body):
+def send_email(subject, sender, recipients, text_body, html_body=None):
     msg = Message(subject, sender=sender, recipients=recipients)
     msg.body = text_body
-    msg.html = html_body
+    if html_body:
+        msg.html = html_body
     mail.send(msg)
 
 def daily_user_email(recipient):
@@ -20,4 +21,3 @@ def daily_user_email(recipient):
                "noreply@nmbilltracker.com", [ recipient.email ],
                render_template("bill_email.txt", recipient=recipient),
                render_template("bill_email.html", recipient=recipient))
-
