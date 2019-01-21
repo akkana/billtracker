@@ -51,6 +51,18 @@ class AddBillsForm(FlaskForm):
         billno.data = designation
 
 
+class UserSettingsForm(FlaskForm):
+    email = StringField('Email', validators=[Optional(), Email()])
+    password = PasswordField('New Password')
+    password2 = PasswordField('Repeat New Password',
+                              validators=[EqualTo('password')])
+    submit = SubmitField('Update Settings')
+
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user is not None:
+            raise ValidationError('That email address is already in use.')
+
 class PasswordResetForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
+    username = StringField('Username or email', validators=[DataRequired()])
     submit = SubmitField('Send Password Reset')

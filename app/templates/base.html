@@ -30,6 +30,9 @@
 
     <p>
     <div class="toolbar">
+      {% if current_user and not current_user.is_anonymous %}
+        <b>{{ current_user.username }}:</b> &nbsp;
+      {% endif %}
       <a href="{{ url_for('index') }}">Home</a> &bull;
       <a href="{{ url_for('addbills') }}">Track more bills</a> &bull;
       <a href="{{ url_for('allbills') }}">All bills</a> &bull;
@@ -38,6 +41,7 @@
       {% else %}
         <a href="{{ url_for('logout') }}">Logout</a>
       {% endif %} &bull;
+      <a href="{{ url_for('user_settings') }}">Settings</a> &bull;
       <a href="{{ url_for('about') }}">About</a>
     </div>
 

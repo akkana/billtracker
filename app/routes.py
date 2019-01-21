@@ -4,7 +4,7 @@ from werkzeug.urls import url_parse
 
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, AddBillsForm, \
-    PasswordResetForm
+    UserSettingsForm, PasswordResetForm
 from app.models import User, Bill
 from app.bills import nmlegisbill
 from .emails import daily_user_email, send_email
@@ -199,6 +199,31 @@ def config():
     return render_template('config.html', users=User.query.all())
 
 
+@app.route("/settings", methods=['GET', 'POST'])
+def user_settings():
+    form = UserSettingsForm(obj=current_user)
+
+    if form.validate_on_submit():
+        newpasswd = form.password.data
+        email = form.email.data
+        updated = []
+
+        if newpasswd:
+            current_user.set_password(newpasswd)
+            updated.append("password")
+
+        if email:
+            current_user.email = email
+            updated.append("email")
+
+        if updated:
+            db.session.add(current_user)
+            db.session.commit()
+            flash("Updated " + ' and '.join(updated))
+
+    return render_template('settings.html', form=form)
+
+
 @app.route("/password_reset", methods=['GET', 'POST'])
 def password_reset():
     form = PasswordResetForm()
@@ -206,7 +231,10 @@ def password_reset():
     if form.validate_on_submit():
         username = form.username.data
         user = User.query.filter_by(username=form.username.data).first()
-        if user.email:
+        if not user:
+            user = User.query.filter_by(email=form.username.data).first()
+
+        if user and user.email:
             # Generate a new password
             lc = 'abcdefghijklmnopqrstuvwxyz'
             uc = lc.upper()
@@ -224,6 +252,8 @@ def password_reset():
                        render_template("passwd_reset.txt", recipient=username,
                                        newpasswd=newpasswd))
             user.set_password(newpasswd)
+            db.session.add(user)
+            db.session.commit()
 
             flash("Mailed a new password to your email address")
         else:

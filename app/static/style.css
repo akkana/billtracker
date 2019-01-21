@@ -51,6 +51,8 @@ table.bill_list th, table.bill_list td { padding: 1em; }
 
 table.bill_minilist th, table.bill_minilist td { padding: .25em; }
 
+td.rightalign { text-align: right; }
+
 /*
 li:nth-child(odd) { background: lightblue; }</style>
  */
