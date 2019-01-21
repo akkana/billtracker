@@ -7,11 +7,12 @@ from app.forms import LoginForm, RegistrationForm, AddBillsForm
 from app.models import User, Bill
 from app.bills import nmlegisbill
 from .emails import daily_user_email
+from config import ADMINS
 
 from datetime import datetime, timedelta
 import json
 import collections
-import sys
+import sys, os
 
 
 @app.route('/')
@@ -185,6 +186,20 @@ def allbills():
     return render_template('allbills.html',
                            newlines=newlines, oldlines=oldlines)
 
+
+@app.route("/config")
+@login_required
+def config():
+    if current_user.email not in ADMINS:
+        flash("Sorry, this page is only available to administrators.")
+        return render_template('config.html', users=None)
+
+    return render_template('config.html', users=User.query.all())
+
+
+#
+# API calls, not meant to be visited directly by users:
+#
 
 @app.route("/api/all_daily_emails/<key>")
 def all_daily_emails(key):

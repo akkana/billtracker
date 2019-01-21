@@ -21,10 +21,12 @@ table#banner {
   background-image: url("/static/img/footprintsg.png");
   background-repeat: repeat-x;
   vertical-align: top;
+  text-align: center; 
 }
 
-.toolbar { text-align: center }
-#bannermiddle { text-align: center }
+.toolbar { text-align: center; width: 90%; background: #ffe;
+           padding: .4em; margin: 0 auto; border: 2px outset #eee;
+         }
 
 /*
  * Body content:

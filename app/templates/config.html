@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if users is defined and users and users|length > 0 %}
+
+<h3>Registered Users:</h3>
+
+<ul>
+{% for user in users %}
+  <li>{{ user.username }}
+{% endfor %}
+</ul>
+
+{% endif %}
+
+{% endblock %}

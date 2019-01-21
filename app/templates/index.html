@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+
 <h1>Bills {{ current_user.username }} is tracking:</h1>
 <p>
 {% if current_user.last_check is not defined or not current_user.last_check %}
