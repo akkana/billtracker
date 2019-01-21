@@ -4,10 +4,8 @@ on the New Mexico Bill Tracker.
 
 Your new password is: {{ newpasswd }}
 
-Ideally, you should log in and change it right away.
-Unfortunately, I haven't implemented password changing yet
-(working on it!), so for now, please write this password down,
-and I'll try to get a password change page working soon.
+Please log in as soon as possible: https://nmbilltracker.com/login
+and click on Settings to change it.
 
 If you still have a problem logging in, contact Akkana (akkana@shallowsky.com).
 
