@@ -17,16 +17,28 @@ table#banner {
   border: 0; margin: 0; padding: 0;
 }
 
+#bannerleft {
+    width:238px; height=150;
+}
 #bannermiddle {
   background-image: url("/static/img/footprintsg.png");
   background-repeat: repeat-x;
   vertical-align: top;
-  text-align: center; 
+  text-align: center;
+}
+#bannerright {
+    width:150px; height=150;
 }
 
 .toolbar { text-align: center; width: 90%; background: #ffe;
            padding: .4em; margin: 0 auto; border: 2px outset #eee;
+           border-radius: 10px;
          }
+
+@media (max-width: 799px) {
+  #bannerleft, #bannerright { display: none; }
+  #bannermiddle { background-image: none; }
+}
 
 /*
  * Body content:
