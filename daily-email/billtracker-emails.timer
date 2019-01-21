@@ -1,0 +1,11 @@
+
+[Unit]
+Description=Send daily NMBillTracker emails
+
+[Timer]
+OnCalendar=*-*-* 19:49:00
+Persistent=false
+
+[Install]
+WantedBy=timers.target
+

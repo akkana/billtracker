@@ -1,0 +1,28 @@
+Enabling Daily Emails:
+
+# Systemd timers:
+
+- Edit billtracker-emails.timer and adjust the time as desired
+- Edit billtracker-emails.service and change the KEY to the secret key
+  you're using.
+- Move billtracker-emails.timer and billtracker-emails.service
+  into /lib/systemd/system,
+  (on some systems /etc/systemd/system/ or some other location may be better).
+
+Then:
+
+systemctl enable billtracker-emails.timer
+systemctl start billtracker-emails.timer
+
+Verify the timer was added by listing timers:
+systemctl --no-pager list-timers
+
+
+
+#  Crontab:
+
+If you don't use systemd, crontab's format is:
+
+MIN HOUR DAY MON DOW CMD
+09  19   *   *   *   wget https://nmbilltracker.com/api/all_daily_emails/KEY -O /var/log/billtracker-emails.out
+

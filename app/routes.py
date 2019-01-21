@@ -75,15 +75,11 @@ def addbills():
 
     if form.validate_on_submit():
         billno = form.billno.data
-        print("addbills(): billno =", billno, file=sys.stderr)
         # do stuff with valid form
         # then redirect to "end" the form
         # return redirect(url_for('addbills'))
         bill = Bill.query.filter_by(billno=billno).first()
         if bill:
-            print("Woohoo, we already know about bill", billno,
-                  file=sys.stderr)
-
             # But is the user already following it?
             if bill in user.bills:
                 flash("You're already following " + billno)
@@ -196,29 +192,29 @@ def all_daily_emails(key):
        A cron job will visit this URL once a day.
     '''
     if key != app.config["SECRET_KEY"]:
-        return "FAIL Bad key"
+        return "FAIL Bad key\n"
 
     for user in User.query.all():
         if not user.email:
             print("%s doesn't have an email address" % user.username)
             continue
 
-        mailto(user.username)
+        mailto(user.username, key)
 
-    return "OK"
+    return "OK\n"
 
 
 @app.route('/api/mailto/<username>/<key>')
 def mailto(username, key):
     if key != app.config["SECRET_KEY"]:
-        return "FAIL Bad key"
+        return "FAIL Bad key\n"
 
     user = User.query.filter_by(username=username).first()
     if not user:
-        return "FAIL Couldn't get user for " + username
+        return "FAIL Couldn't get user for %s\n" % username
 
     if not user.email:
-        return "FAIL %s doesn't have an email address registered." % username
+        return "FAIL %s doesn't have an email address registered.\n" % username
 
     print("Attempting to send email to", user.username)
     daily_user_email(user)
@@ -228,7 +224,7 @@ def mailto(username, key):
     db.session.add(user)
     db.session.commit()
 
-    return "OK Mail sent to " + username
+    return "OK Mail sent to %s\n" % username
 
 
 #
@@ -265,7 +261,6 @@ def onebill(username):
     else:    # Not already updating this username
         billnos = [b.billno for b in user.bills]
         billnos.sort(key=Bill.natural_key)
-        # print("Sorted:", billnos)
         users_updating[username] = billnos
 
     # Now user and billnos are set.
@@ -296,8 +291,6 @@ def onebill(username):
     if (bill.last_action_date and (
             bill.last_action_date > user.last_check or
             (now - bill.last_action_date) < oneday)):
-        print("%s is changed: last action %s, user's last check %s"
-              % (billno, str(bill.last_action_date), str(user.last_check)))
         changep = True
     else:
         changep = False

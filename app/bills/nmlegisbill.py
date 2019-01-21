@@ -97,13 +97,14 @@ def check_analysis(billno):
         None)
 
     if ':' in firlink:
-        request = requests.get(firlink)
+        request = requests.head(firlink)
         if request.status_code != 200:
             firlink = None
+        # Might be able to get something useful out of requests.headers
     else:
         firlink = None
     if ':' in lesclink:
-        request = requests.get(lesclink)
+        request = requests.head(lesclink)
         if request.status_code != 200:
             lesclink = None
     else:
@@ -301,19 +302,6 @@ def most_recent_action(billdic):
         last_action_date = None
     billdic['last_action_date'] = last_action_date
     return last_action_date, str(lastaction), lastaction.text
-
-# There doesn't seem to be a way, without javascript,
-# to get a list of all current legislation. Sigh.
-# Here's a failed attempt.
-# def get_all_legislation(year):
-#     payload = {'ctl00$MainContent$ddlSessionStart': '56',
-#                'ctl00$MainContent$ddlSessionEnd': '56',
-#                'ctl00$MainContent$chkSearchBills': 'on',
-#                'ctl00$MainContent$chkSearchMemorials': 'on',
-#                'MainContent_chkSearchResolutions': 'on',
-#               }
-#     r = requests.post('https://nmlegis.gov/Legislation/Legislation_List',
-#                       data=payload)
 
 def contents_url(billno):
     if billno.startswith('S'):

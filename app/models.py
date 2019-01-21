@@ -74,13 +74,12 @@ class User(UserMixin, db.Model):
             else:
                 unchanged.append(bill)
 
-        changed.sort()
-        unchanged.sort()
+        changed.sort(key=Bill.bill_key)
+        unchanged.sort(key=Bill.bill_key)
 
         # bill.update() might have updated something in one or more bills.
         # In that case, commit all the changes to the database together.
         if needs_commit:
-            print("Updated something, committing", file=sys.stderr)
             db.session.commit()
 
         return changed, unchanged
@@ -126,13 +125,13 @@ class User(UserMixin, db.Model):
 
         if changed:
             outstr = '<h2>Bills with recent changes:</h2>\n'
-            outstr += show_bill_table(changed, inline)
+            outstr += self.show_bill_table(changed, inline)
         else:
             outstr = "<h2>No bills have changed</h2>\n"
 
         if unchanged:
             outstr += "<h2>Bills that haven't changed:</h2>\n"
-            outstr += show_bill_table(unchanged, inline)
+            outstr += self.show_bill_table(unchanged, inline)
         else:
             outstr += "<h2>No unchanged bills</h2>\n"
 
@@ -273,7 +272,6 @@ class Bill(db.Model):
         if (now - self.update_date).seconds < hours * 60*60:
             return False
 
-        print("fetching billno =", self.billno, file=sys.stderr)
         b = nmlegisbill.parse_bill_page(self.billno,
                                         year=now.year,
                                         cache_locally=True)
@@ -296,8 +294,6 @@ class Bill(db.Model):
 
         try:
             db.session.add(self)
-            print("Supposedly added %s to the database" % self.billno,
-                  file=sys.stderr)
         except Exception as e:
             print("Couldn't add %s to the database" % self.billno,
                   file=sys.stderr)

@@ -1,0 +1,8 @@
+[Unit]
+Description=Send daily NMBillTracker emails
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/wget https://nmbilltracker.com/api/all_daily_emails/KEY -O /var/log/billtracker-emails.out
+KillMode=process
+TimeoutStopSec=900
