@@ -6,14 +6,16 @@
     <title>New Mexico Bill Tracker</title>
     {% endif %}
 
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
   </head>
   <body>
 
-    <!-- As usual, couldn't get this to work with pure CSS
-         but it works fine with a table.
-     -->
+    <!-- Banner: as usual, couldn't get this to work with pure CSS
+         but it works fine with a table. -->
     <table id="banner">
       <tr>
         <td style="width:238px">
