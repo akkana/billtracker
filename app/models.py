@@ -280,8 +280,11 @@ class Bill(db.Model):
                 setattr(self, k, b[k])
 
             self.update_date = now
+
         else:
-            errstr = "(Couldn't update)"
+            errstr = "Couldn't update %b" % self.billno
+            print(errstr, file=sys.stderr)
+
             if self.statustext:
                 self.statustext = errstr + '\n' + self.statustext
             else:
@@ -298,7 +301,6 @@ class Bill(db.Model):
             print("Couldn't add %s to the database" % self.billno,
                   file=sys.stderr)
             print(e)
-            sys.exit(1)
 
         return True
 

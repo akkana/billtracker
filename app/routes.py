@@ -355,6 +355,7 @@ def onebill(username):
         del users_updating[username]
 
         # Update the user's last_check time and commit it to the database:
+        print("updating last_check for %s" % user.username)
         user.last_check = now
         db.session.add(user)
         db.session.commit()
