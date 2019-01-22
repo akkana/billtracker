@@ -268,8 +268,10 @@ class Bill(db.Model):
         '''Sort bills by last action date, most recent first,
            with a secondary sort on billno.
         '''
-        return bill.last_action_date.strftime('%Y-%m-%d %H:%M:%s') \
-            + Bill.a2order(bill.billno)
+        if bill.last_action_date:
+            return bill.last_action_date.strftime('%Y-%m-%d %H:%M:%s') \
+                + Bill.a2order(bill.billno)
+        return 'ZZ-ZZ-ZZ ZZ:ZZ:ZZ' + Bill.a2order(bill.billno)
 
 
     def update(self):
