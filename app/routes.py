@@ -386,6 +386,6 @@ def onebill(username):
         "summary"  : bill.show_html(True),
         "billno"   : bill.billno,
         "changed"  : changep,
-        "more"     : len(billnos) > 0
+        "more"     : len(billnos)
         })
 

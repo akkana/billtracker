@@ -28,6 +28,7 @@ var ajax_get = function(url, callback) {
 var url = "/api/onebill/" + current_user;
 var even_changed = true;
 var even_unchanged = true;
+var number = 0;
 
 var display_result = function(data) {
     //console.log(data);
@@ -69,14 +70,16 @@ var display_result = function(data) {
         }
 
         // Is this the last bill?
+        var busywait = document.getElementById("busywait");
         if (data["more"]) {
-            console.log("That was " + data["billno"] + ", but there's more");
+            if (busywait)
+                busywait.innerHTML = "Checking "
+                                     + (total_bills - parseInt(data["more"]))
+                                     + " / " + total_bills;
             ajax_get(url, display_result);
         }
         else {
             // Done: clear busy indicator.
-            console.log("That's all, folks");
-            var busywait = document.getElementById("busywait");
             if (busywait) {
                 busywait.parentNode.removeChild(busywait);
             }
@@ -93,8 +96,14 @@ var display_result = function(data) {
     */
 };
 
+var total_bills;
+
 window.onload = function () {
     display_result("Updating, please wait ...");
+
+    total_bills = document.getElementById("unchanged_bills").getElementsByTagName("tbody")[0].getElementsByTagName("tr").length - 1;
+
+    console.log("Row count: " + total_bills);
 
     ajax_get(url, display_result);
 }

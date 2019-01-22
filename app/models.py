@@ -86,7 +86,9 @@ class User(UserMixin, db.Model):
 
 
     def show_bill_table(self, bill_list, inline=False):
-        '''Return an HTML string showing status for a list of bills.
+        '''Return an HTML string showing status for a list of bills
+           as HTML table rows.
+           Does not inclue the enclosing <table> or <tbody> tags.
            If inline==True, add table row colors as inline CSS
            since email can't use stylesheets.
         '''
@@ -104,15 +106,14 @@ class User(UserMixin, db.Model):
                           'class="odd"' ]
             cellstyle = ""
 
+        outstr = ''
         parity = 1
-        outstr = '<table class="bill_list">\n'
         for bill in bill_list:
             parity = 1 - parity
             outstr += '<tr %s><td id="%s"%s>%s\n' % (rowstyles[parity],
                                                      bill.billno,
                                                      cellstyle,
                                                      bill.show_html(True))
-        outstr += '</table>\n'
         return outstr
 
     def show_bills(self, inline=False):
