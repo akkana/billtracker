@@ -8,7 +8,7 @@
 This is your first check.
 {% else %}
 You last checked at {{ current_user.last_check.strftime('%H:%M %m/%d/%Y') }},
-but this will also show any bills that changed in the last day.
+but this will also show any bills that changed in the last few days.
 {% endif %}
 
 <h2 class="scriptonly">Bills With Recent Changes:</h2>

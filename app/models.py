@@ -74,8 +74,8 @@ class User(UserMixin, db.Model):
             else:
                 unchanged.append(bill)
 
-        changed.sort(key=Bill.bill_key)
-        unchanged.sort(key=Bill.bill_key)
+        changed.sort(key=Bill.last_action_key)
+        unchanged.sort(key=Bill.last_action_key)
 
         # bill.update() might have updated something in one or more bills.
         # In that case, commit all the changes to the database together.
@@ -92,7 +92,7 @@ class User(UserMixin, db.Model):
            If inline==True, add table row colors as inline CSS
            since email can't use stylesheets.
         '''
-        bill_list.sort(key=Bill.bill_key)
+        bill_list.sort(key=Bill.last_action_key)
 
         # Make the table rows alternate color.
         # This is done through CSS on the website,
@@ -235,7 +235,8 @@ class Bill(db.Model):
     # Sorting in python 3 is so unintuitive, this "key" business
     # instead of a straightforward cmp() function. Oh, well.
     #   Sort a list of billnos:  billnos.sort(key=Bill.natural_key)
-    #   Sort a list of bills:    bills.sorted(key=Bill.bill_key)
+    #   Sort a list of bills by last action date:
+    #                            bills.sorted(key=Bill.last_action_key)
     # This will be used in several places.
     #
     @staticmethod
@@ -258,7 +259,17 @@ class Bill(db.Model):
 
     @staticmethod
     def bill_key(bill):
+        '''Sort bills by billno'''
         return Bill.natural_key(bill.billno)
+
+
+    @staticmethod
+    def last_action_key(bill):
+        '''Sort bills by last action date, most recent first,
+           with a secondary sort on billno.
+        '''
+        return bill.last_action_date.strftime('%Y-%m-%d %H:%M:%s') \
+            + Bill.a2order(bill.billno)
 
 
     def update(self):
