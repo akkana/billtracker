@@ -318,13 +318,18 @@ class Bill(db.Model):
 
         return True
 
+    # Jinja templates can't import; they need methods that are part
+    # of the model.
+    def bill_url(self):
+        return nmlegisbill.bill_url(self.billno)
+
     def show_html(self, longform):
         '''Show a summary of the bill's status.
            longform=True is slightly longer: it assumes a bill has
            changed recently so there's a need to show what changed.
         '''
         outstr = '<b><a href="%s">%s: %s</a></b><br />' % \
-            (nmlegisbill.bill_url(self.billno), self.billno, self.title)
+            (self.bill_url(), self.billno, self.title)
 
         if self.last_action_date:
             outstr += "Last action: %s<br />" % \
@@ -377,7 +382,7 @@ class Bill(db.Model):
            changed recently so there's a need to show what changed.
         '''
         outstr = '%s: %s\n' % (self.billno, self.title)
-        outstr += nmlegisbill.bill_url(self.billno) + '\n'
+        outstr += self.bill_url() + '\n'
 
         if self.last_action_date:
             outstr += "Last action: %s\n" % \
