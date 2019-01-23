@@ -30,7 +30,7 @@ You're currently following:
 <table class="bill_minilist">
   <tr><th>Bill <th>Title <th>Unfollow
 
-  {% for bill in current_user.bills %}
+  {% for bill in current_user.bills_by_number() %}
 
     <tr class="{{ loop.cycle('odd', 'even') }}">
       <td>{{ bill.billno }}

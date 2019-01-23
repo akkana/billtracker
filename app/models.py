@@ -85,6 +85,10 @@ class User(UserMixin, db.Model):
         return changed, unchanged
 
 
+    def bills_by_number(self):
+        return sorted(self.bills, key=Bill.bill_natural_key)
+
+
     def show_bill_table(self, bill_list, inline=False):
         '''Return an HTML string showing status for a list of bills
            as HTML table rows.
@@ -241,6 +245,10 @@ class Bill(db.Model):
     #
     @staticmethod
     def a2order(text):
+        '''
+        Sort in sensible order with digits considered numerically (SB33 < SB123)
+        http://nedbatchelder.com/blog/200712/human_sorting.html
+        '''
         if text.isdigit():
             return int(text)
         # Put Senate bills first
@@ -250,18 +258,15 @@ class Bill(db.Model):
 
     @staticmethod
     def natural_key(text):
-        '''
-        alist.sort(key=natural_key) sorts in human order
-        http://nedbatchelder.com/blog/200712/human_sorting.html
-        (See Toothy's implementation in the comments)
+        '''Natural key, digits considered as numbers, for sorting text.
         '''
         return [ Bill.a2order(c) for c in re.split('(\d+)', text) ]
 
     @staticmethod
-    def bill_key(bill):
-        '''Sort bills by billno'''
-        return Bill.natural_key(bill.billno)
-
+    def bill_natural_key(bill):
+        '''Natural key, digits considered as numbers, for sorting Bills.
+        '''
+        return [ Bill.a2order(c) for c in re.split('(\d+)', bill.billno) ]
 
     @staticmethod
     def last_action_key(bill):
