@@ -282,8 +282,13 @@ def all_daily_emails(key):
 
     for user in User.query.all():
         if not user.email:
-            print("%s doesn't have an email address" % user.username)
+            print("%s doesn't have an email address: not sending email"
+                  % user.username)
             continue
+
+        if not user.bills:
+            print("%s doesn't have any bills registered: not sending email"
+                  % user.username)
 
         mailto(user.username, key)
 
