@@ -74,8 +74,8 @@ class User(UserMixin, db.Model):
             else:
                 unchanged.append(bill)
 
-        changed.sort(key=Bill.last_action_key)
-        unchanged.sort(key=Bill.last_action_key)
+        changed.sort(key=Bill.last_action_key, reverse=True)
+        unchanged.sort(key=Bill.last_action_key, reverse=True)
 
         # bill.update() might have updated something in one or more bills.
         # In that case, commit all the changes to the database together.
@@ -92,7 +92,7 @@ class User(UserMixin, db.Model):
            If inline==True, add table row colors as inline CSS
            since email can't use stylesheets.
         '''
-        bill_list.sort(key=Bill.last_action_key)
+        bill_list.sort(key=Bill.last_action_key, reverse=True)
 
         # Make the table rows alternate color.
         # This is done through CSS on the website,
