@@ -27,10 +27,13 @@ to a new committee, or to the House or Senate floor for a vote.
         <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
         <p>{{ form.submit() }}</p>
     </form>
-    <p>New User? <a href="{{ url_for('register') }}">Register here.</a></p>
+    <p>
+    <b>New User?</b> <a href="{{ url_for('register') }}">Register here.</a>
+    </p>
     <p>
     Forgot your password? <a href="{{ url_for('password_reset') }}">Reset it.</a>
+    </p>
     <p>
-    Or find out more <a href="">about the New Mexico Bill Tracker</a>.
+    Find out more <a href="">about the New Mexico Bill Tracker</a>.
     </p>
 {% endblock %}
