@@ -147,7 +147,7 @@ class User(UserMixin, db.Model):
         if changed:
             outstr = 'Bills with recent changes:\n\n'
             for bill in changed:
-                outstr += bill.show_text(True) + "\n"
+                outstr += bill.show_text(True) + "\n\n"
         else:
             outstr = "No bills have changed\n"
 
@@ -156,7 +156,7 @@ class User(UserMixin, db.Model):
             for bill in unchanged:
                 outstr += bill.show_html(False)
         else:
-            outstr += "No unchanged bills\n"
+            outstr += "No unchanged bills\n\n"
 
         return outstr
 
