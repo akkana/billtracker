@@ -2,9 +2,9 @@
 <h1>Bills {{ recipient.username }} is tracking:</h1>
 
 
-<div class="bill_list">
+<table class="bill_list">
 {{ recipient.show_bills(inline=True) | safe }}
-</div>
+</table>
 
 <hr>
 This is the daily email from
