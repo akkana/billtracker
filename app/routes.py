@@ -308,14 +308,19 @@ def mailto(username, key):
         return "FAIL %s doesn't have an email address registered.\n" % username
 
     print("Attempting to send email to", user.username)
-    daily_user_email(user)
+    try:
+        daily_user_email(user)
+    except Exception as e:
+        print("Error, couldn't send email to %s" % username, file=sys.stderr)
+        print(e, file=sys.stderr)
+        return "FAIL couldn't send email to %s" % username
 
     # Update the user's last_check time and commit it to the database:
     user.last_check = datetime.now()
     db.session.add(user)
     db.session.commit()
 
-    return "OK Mail sent to %s\n" % username
+    return "OK Mail sent to %s %s\n" % (username, user.email)
 
 
 #
@@ -360,7 +365,6 @@ def onebill(username):
         del users_updating[username]
 
         # Update the user's last_check time and commit it to the database:
-        print("updating last_check for %s" % user.username)
         user.last_check = now
         db.session.add(user)
         db.session.commit()
@@ -379,7 +383,7 @@ def onebill(username):
         db.session.commit()
 
     # Is the bill changed as far as the user is concerned?
-    twodays = timedelta(days=2)
+    twodays = timedelta(days=1)
     if not user.last_check or (
             bill.last_action_date and
             (bill.last_action_date > user.last_check or

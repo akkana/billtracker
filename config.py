@@ -2,24 +2,32 @@ import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
+def str2bool(s):
+    if not s: return False
+    if s[0].upper() != 'T': return False
+    s = s.lower()
+    return s == 't' or s == 'true'
+
+
 class Config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY') or 's945v7490wcn4w47w8n9cp'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'localhost'
+    MAIL_PORT = os.environ.get('MAIL_PORT') or 25
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME') or "nmbilltracker"
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+
+    MAIL_USE_TLS = str2bool(os.environ.get('MAIL_USE_TLS'))
+    MAIL_USE_SSL = str2bool(os.environ.get('MAIL_USE_SSL'))
+
+    # Enable mail even on a testing server:
+    MAIL_SUPPRESS_SEND=False
+    MAIL_DEBUG=True
+    TESTING=False
+
 # administrator list
 ADMINS = [ os.environ.get('FLASK_ADMIN') or 'user@example.com']
 
-# Email server. This will fail except on a machine that's running
-# a mail server that allows local connections.
-MAIL_SERVER = 'localhost'
-MAIL_PORT = 25
-# MAIL_PORT = 465
-MAIL_USE_TLS = False
-MAIL_USE_SSL = False
-
-# MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
-MAIL_USERNAME = "nmbilltracker"
-
-# MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')

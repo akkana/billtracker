@@ -53,7 +53,7 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
     def check_for_changes(self):
-        '''Have any bills changed? Update any bills that need it,
+        '''Have any bills changed recently? Update any bills that need it,
            commit the updates to the database if need be,
            and return a list of changed and unchanged bills.
         '''
