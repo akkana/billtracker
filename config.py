@@ -23,10 +23,10 @@ class Config(object):
     MAIL_USE_TLS = str2bool(os.environ.get('MAIL_USE_TLS'))
     MAIL_USE_SSL = str2bool(os.environ.get('MAIL_USE_SSL'))
 
-    # Enable mail even on a testing server:
-    MAIL_SUPPRESS_SEND=False
-    MAIL_DEBUG=True
-    TESTING=False
+    # Needed for testing mail on a testing server:
+    MAIL_SUPPRESS_SEND = str2bool(os.environ.get('MAIL_SUPPRESS_SEND'))
+    MAIL_DEBUG = str2bool(os.environ.get('MAIL_DEBUG'))
+    TESTING = str2bool(os.environ.get('TESTING'))
 
 # administrator list
 ADMINS = [ os.environ.get('FLASK_ADMIN') or 'user@example.com']
