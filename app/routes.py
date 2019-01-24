@@ -383,7 +383,7 @@ def onebill(username):
         db.session.commit()
 
     # Is the bill changed as far as the user is concerned?
-    twodays = timedelta(days=1)
+    twodays = timedelta(days=2, hours=12)
     if not user.last_check or (
             bill.last_action_date and
             (bill.last_action_date > user.last_check or
