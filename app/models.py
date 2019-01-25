@@ -2,9 +2,11 @@ from app import db, login
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.bills import nmlegisbill
+from app.emails import send_email
 
 from datetime import datetime
 import re
+import random
 import sys
 
 
@@ -43,6 +45,8 @@ class User(UserMixin, db.Model):
 
     last_check = db.Column(db.DateTime, nullable=True)
 
+    AUTH_CODE_CONFIRMED = "Confirmed"
+
     def __repr__(self):
         return '<User %s (%d)>' % (self.username, self.id)
 
@@ -51,6 +55,51 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def email_confirmed(self):
+        return self.email and self.auth_code == self.AUTH_CODE_CONFIRMED
+
+    def confirm_email(self):
+        if not self.email:
+            print("Yikes, can't confirm %s without email" % self.username)
+            return
+        self.auth_code = self.AUTH_CODE_CONFIRMED
+        db.session.add(self)
+        db.session.commit()
+
+    def send_confirmation_mail(self):
+        authcode = ''
+        for i in range(5):
+            charset = 'abcdefghijklmnopqrstuvwxyz0123456789'
+            codelen = 6
+            for i in range(codelen):
+                authcode += random.choice(charset)
+
+            if not User.query.filter_by(auth_code=authcode).first():
+                break
+            authcode = ''
+
+        if not authcode:
+            raise RuntimeError("Can't generate unique auth code")
+
+        self.auth_code = authcode
+        db.session.add(self)
+        db.session.commit()
+
+        send_email("New Mexico Bill Tracker Confirmation",
+                   "noreply@nmbilltracker.com",
+                   [ self.email ],
+                   """Welcome to the New Mexico Bill Tracker!
+
+Account: %s
+Email:   %s
+
+To confirm your email address so you can get daily updates about
+bills that have changed, please follow this link:
+
+https://nmbilltracker.com/confirm_email/%s
+
+""" % (self.username, self.email, self.auth_code))
 
     def check_for_changes(self):
         '''Have any bills changed recently? Update any bills that need it,

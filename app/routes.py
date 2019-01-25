@@ -47,11 +47,10 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
+
 # The mega tutorial called this /register,
 # but flask seems to have a problem calling anything /register.
 # As long as it's named something else, this works.
-# I'm not sure why there are methods defined here,
-# nothing's passed to this page.
 @app.route('/newaccount', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
@@ -60,15 +59,41 @@ def register():
     if form.validate_on_submit():
         user = User(username=form.username.data, email=form.email.data)
         user.set_password(form.password.data)
+
+        if user.email:
+            try:
+                user.send_confirmation_mail()
+                flash("Welcome to the NM Bill Tracker. A confirmation message has been mailed to %s."
+                      % user.email)
+            except:
+                flash("You're registered! But something went wrong trying to send you a confirmation mail, so your email address won't work yet. Please contact an administrator. Sorry about that!")
+        else:
+            flash('Welcome to the NM Bill Tracker. Click Login to sign in.')
+
         db.session.add(user)
         db.session.commit()
-        flash('Congratulations, you are now a registered user!')
+
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
+
+
+@app.route('/confirm_email/<auth>')
+def confirm_email(auth):
+    user = User.query.filter_by(auth_code=auth).first()
+    if not user:
+        flash("Sorry, I don't know that code. Please contact an administrator.")
+        return redirect(url_for('user_settings'))
+
+    # Correct code. Hooray!
+    user.confirm_email()
+    flash("Your email address is now confirmed.")
+    return redirect(url_for('login'))
+
 
 @app.route('/about')
 def about():
     return render_template('about.html', title='About NMBillTracker')
+
 
 @app.route('/addbills', methods=['GET', 'POST'])
 @login_required
@@ -218,6 +243,12 @@ def user_settings():
             updated.append("password")
 
         if email:
+            # Make sure the new email address is unique:
+            u = User.query.filter_by(email=email).first()
+            if u and u != current_user:
+                flash("Sorry, that email address is not available")
+                return render_template('settingshtml', form=form)
+
             current_user.email = email
             updated.append("email")
 
@@ -225,6 +256,10 @@ def user_settings():
             db.session.add(current_user)
             db.session.commit()
             flash("Updated " + ' and '.join(updated))
+            if "email" in updated:
+                print("Sending confirmation mail, I hope")
+                current_user.send_confirmation_mail()
+                flash("Sent confirmation mail")
 
     return render_template('settings.html', form=form)
 
@@ -247,7 +282,7 @@ def password_reset():
             punct = '-.!@$%*'
             charset = lc+uc+num+punct
             newpasswd = ''
-            passwdlen = 7
+            passwdlen = 9
             for i in range(passwdlen):
                 newpasswd += random.choice(charset)
 
@@ -285,6 +320,10 @@ def all_daily_emails(key):
             print("%s doesn't have an email address: not sending email"
                   % user.username)
             continue
+
+        if not user.email_confirmed():
+            print("%s has an unconfirmed email address: not sending."
+                  % user.username)
 
         if not user.bills:
             print("%s doesn't have any bills registered: not sending email"

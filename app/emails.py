@@ -21,6 +21,7 @@ def send_email(subject, sender, recipients, text_body, html_body=None):
     thr = Thread(target=send_async_email, args=[app, msg])
     thr.start()
 
+
 def daily_user_email(recipient):
     '''Given a user object, send daily mail to that user.
     '''
