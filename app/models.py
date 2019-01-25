@@ -89,13 +89,15 @@ class User(UserMixin, db.Model):
         send_email("New Mexico Bill Tracker Confirmation",
                    "noreply@nmbilltracker.com",
                    [ self.email ],
-                   """Welcome to the New Mexico Bill Tracker!
+                   """
+You either registered for a new account on the New Mexico Bill Tracker,
+or changed your email address.
 
-Account: %s
-Email:   %s
+Username: %s
+Email:    %s
 
-To confirm your email address so you can get daily updates about
-bills that have changed, please follow this link:
+Please confirm your email address so you can get daily updates about
+bills that have changed by following this link:
 
 https://nmbilltracker.com/confirm_email/%s
 

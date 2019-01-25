@@ -324,10 +324,12 @@ def all_daily_emails(key):
         if not user.email_confirmed():
             print("%s has an unconfirmed email address: not sending."
                   % user.username)
+            continue
 
         if not user.bills:
             print("%s doesn't have any bills registered: not sending email"
                   % user.username)
+            continue
 
         mailto(user.username, key)
 
