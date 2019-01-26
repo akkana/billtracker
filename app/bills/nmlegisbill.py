@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import print_function
 
@@ -54,6 +54,12 @@ committees = {
     "SPAC": "Senate Public Affairs",
     "SRC": "Senate Rules Committee",
 }
+
+def committee_code(committee_name):
+    for com in committees:
+        if committees[com] == committee_name:
+            return com
+    return None
 
 # User-friendly strings for the various bill keys:
 # (Not actually used yet)
@@ -118,10 +124,64 @@ def check_analysis(billno):
 
     return firlink, lesclink, amendlink
 
+
 def bill_url(billno):
     chamber, billtype, number, year = billno_to_parts(billno, year=None)
 
     return 'https://www.nmlegis.gov/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s' % (chamber, billtype, number, year)
+
+
+cachedir = 'cache'
+
+def soup_from_cache_or_net(baseurl, cachefile=None):
+    '''baseurl is a full URL including https://www.nmlegis.gov/
+       or a full URL including that part.
+       If we have a recent cached version, use it,
+       otherwise fetch the file and cache it.
+       Either way, return a BS soup of the contents.
+    '''
+    if not os.path.exists(cachedir):
+        try:
+            os.mkdir(cachedir)
+        except:
+            print("Couldn't create cache dir", cachedir, "-- not caching")
+
+    if not cachefile:
+        cachefile = baseurl.replace('https://www.nmlegis.gov/', '').replace('/Legislation', '').replace('/', '_').replace('?', '_').replace('&', '_')
+
+    # Use cached pages so as not to hit the server so often.
+    if os.path.exists(cachefile):
+        filestat = os.stat(cachefile)
+        if (time.time() - filestat.st_mtime) < 2 * 60 * 60:
+            print("Already cached:", baseurl, file=sys.stderr)
+            baseurl = cachefile
+
+    if ':' in baseurl:
+        print("Re-fetching: cache has expired on", baseurl, file=sys.stderr)
+
+        # billdic['bill_url'] = url_mapper.to_abs_link(baseurl, baseurl)
+        r = requests.get(baseurl)
+        soup = BeautifulSoup(r.text, 'lxml')
+
+        # Python 3 these days is supposed to use the system default
+        # encoding, I thought, but sometimes it doesn't and dies
+        # trying to write to the cache file unless you specify
+        # an encoding explicitly:
+        with open(cachefile, "w", encoding="utf-8") as cachefp:
+            # r.text is str and shouldn't need decoding
+            cachefp.write(r.text)
+            # cachefp.write(r.text.decode())
+            print("Cached locally as %s" % cachefile, file=sys.stderr)
+
+    else:
+        with open(baseurl) as fp:
+            # billdic['bill_url'] = baseurl
+            soup = BeautifulSoup(fp, 'lxml')
+
+        # This probably ought to be folded into the url mapper somehow.
+        # baseurl = "http://www.nmlegis.gov/Legislation/Legislation"
+
+    return soup
 
 def parse_bill_page(billno, year=None, cache_locally=True):
     '''Download and parse a bill's page on nmlegis.org.
@@ -147,50 +207,13 @@ def parse_bill_page(billno, year=None, cache_locally=True):
                                   billdic['year'])
 
     if cache_locally:
-        cachedir = 'cache'
-        if not os.path.exists(cachedir):
-            try:
-                os.mkdir(cachedir)
-            except:
-                print("Couldn't create cache dir", cachedir, "-- not caching")
-                cache_locally = False
-
-    if cache_locally:
-        filename = os.path.join(cachedir,
-                                '20%s-%s.html' % (billdic['year'], billno))
-
-        # Use cached pages so as not to hit the server so often.
-        if os.path.exists(filename):
-            filestat = os.stat(filename)
-            if (time.time() - filestat.st_mtime) < 2 * 60 * 60:
-                print("Already cached:", billno, file=sys.stderr)
-                baseurl = filename
-            else:
-                print("Re-fetching: cache has expired on", billno,
-                      file=sys.stderr)
-
-    if ':' in baseurl:
-        # billdic['bill_url'] = url_mapper.to_abs_link(baseurl, baseurl)
+        cachefile = os.path.join(cachedir,
+                                 '20%s-%s.html' % (billdic['year'], billno))
+        soup = soup_from_cache_or_net(baseurl, cachefile=cachefile)
+    else:
         r = requests.get(baseurl)
         soup = BeautifulSoup(r.text, 'lxml')
 
-        if cache_locally:
-            # Python 3 these days is supposed to use the system default
-            # encoding, I thought, but sometimes it doesn't and dies
-            # trying to write to the cache file unless you specify
-            # an encoding explicitly:
-            with open(filename, "w", encoding="utf-8") as cachefp:
-                # r.text is str and shouldn't need decoding
-                cachefp.write(r.text)
-                # cachefp.write(r.text.decode())
-                print("Cached locally as %s" % filename, file=sys.stderr)
-    else:
-        with open(baseurl) as fp:
-            # billdic['bill_url'] = baseurl
-            soup = BeautifulSoup(fp, 'lxml')
-
-        # This probably ought to be folded into the url mapper somehow.
-        baseurl = "http://www.nmlegis.gov/Legislation/Legislation"
 
     # If something failed -- for instance, if we got an empty file
     # or an error page -- then the title span won't be there.
@@ -200,10 +223,11 @@ def parse_bill_page(billno, year=None, cache_locally=True):
                                      id="MainContent_formViewLegislation_lblTitle").text
     except AttributeError:
         # If we cached, remove the cache file.
-        if cache_locally and filename:
-            os.unlink(filename)
+        if cache_locally and cachefile:
+            os.unlink(cachefile)
         print("No such bill %s" % billno)
         return None
+
     sponsor_a = soup.find("a",
                           id="MainContent_formViewLegislation_linkSponsor")
     billdic['sponsor'] = sponsor_a.text.strip()
@@ -215,6 +239,13 @@ def parse_bill_page(billno, year=None, cache_locally=True):
     billdic['curloc'] = curloc_a.text.strip()
     billdic['curloclink'] = url_mapper.to_abs_link(curloc_a.get('href'),
                                                    baseurl)
+
+    # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    # XXX Left off XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    # curloc is the long name for the committee,
+    # but we need the committee code that's in the curloc link.
+    # Should probably just pass that back and let the caller map it.
+    # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
     contents_a = soup.find("a",
                            id="MainContent_formViewLegislationTextIntroduced_linkLegislationTextIntroducedHTML")
@@ -316,17 +347,6 @@ def contents_url(billno):
         chamber = 'house'
     return 'https://www.nmlegis.gov/Sessions/19%%20Regular/bills/%s/%s.html' \
         % (chamber, billno)
-
-if __name__ == '__main__':
-    def print_bill_dic(bd):
-        print("%s: %s" % (bd['billno'], bd['title']))
-        print("Current location: %s --> %s" % (bd['curloc'],
-                                               bd['curloclink']))
-        print("Sponsor: %s --> %s" % (bd['sponsor'], bd['sponsorlink']))
-        print("Contents at: %s" % (contents_url(bd['billno'])))
-
-    billdic = parse_bill_page('HJR1')
-    print_bill_dic(billdic)
 
 def user_bill_summary(user):
     '''user is a dictionary. Examine each of user's bills,
@@ -463,4 +483,66 @@ def all_bills():
 
     return allbills
 
+def expand_committee(code, cache_locally=True):
+    url = 'https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=%s' % code
+    if cache_locally:
+        soup = soup_from_cache_or_net(url)
+    else:
+        r = requests.get(url)
+        soup = BeautifulSoup(r.text, 'lxml')
 
+    next_mtg = ''
+    nextmtg_tbl = soup.find('table',
+                            id="MainContent_formViewCommitteeInformation")
+    if nextmtg_tbl:
+        mdate = nextmtg_tbl.find('span',
+                 id="MainContent_formViewCommitteeInformation_lblMeetingDate")
+        # Time and place of the next scheduled meeting:
+        if mdate:
+            next_mtg = mdate.text
+
+    # Loop over bills to be considered:
+    scheduled = []
+    billstbl = soup.find('table',
+                         id="MainContent_formViewCommitteeInformation_gridViewScheduledLegislation")
+    if not billstbl:
+        print("No bills table found in", url)
+
+    billno_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_linkBillID_[0-9]*')
+    sched_date_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_lblScheduledDate_[0-9]*')
+    for row in billstbl.findAll('tr'):
+        billno = row.find(id=billno_pat)
+        scheduled_date = row.find(id=sched_date_pat)
+        if billno and scheduled_date:
+            scheduled.append([billno.text, scheduled_date.text])
+
+    # Now get the list of members:
+    members = []
+    membertbl = soup.find('table', id='MainContent_formViewCommitteeInformation_gridViewCommitteeMembers')
+    for row in membertbl.findAll('tr'):
+        cells = row.findAll('td')
+        if cells:
+            members.append([cells[1].text.strip(), cells[0].text.strip(),
+                            cells[-1].text.strip()])
+
+    return scheduled, members, datetime.datetime
+
+#
+# __main__ doesn't work any more because of the relative import .billutils.
+#
+if __name__ == '__main__':
+    bills, member = expand_committee('SCORC')
+    print("Scheduled bills:", bills)
+    print("Members:", members)
+
+    sys.exit(0)
+
+    def print_bill_dic(bd):
+        print("%s: %s" % (bd['billno'], bd['title']))
+        print("Current location: %s --> %s" % (bd['curloc'],
+                                               bd['curloclink']))
+        print("Sponsor: %s --> %s" % (bd['sponsor'], bd['sponsorlink']))
+        print("Contents at: %s" % (contents_url(bd['billno'])))
+
+    billdic = parse_bill_page('HJR1')
+    print_bill_dic(billdic)
