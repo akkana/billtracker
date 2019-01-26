@@ -1,4 +1,4 @@
-"""empty message
+"""bills_seen
 
 Revision ID: 657ce93b2db0
 Revises: 0f7ea1f797a1
