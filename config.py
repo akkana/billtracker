@@ -15,6 +15,9 @@ class Config(object):
         'sqlite:///' + os.path.join(basedir, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # To watch queries:
+    # SQLALCHEMY_ECHO=True
+
     MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'localhost'
     MAIL_PORT = os.environ.get('MAIL_PORT') or 25
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME') or "nmbilltracker"

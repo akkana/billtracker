@@ -6,8 +6,15 @@ from config import Config
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
 db = SQLAlchemy(app)
+
 migrate = Migrate(app, db)
+
+# Not clear if this works to enable batch, but what does work is to edit
+# migrate/env.py after the first db init, and add render_as_batch=True.
+# migrate.init_app(app, db, render_as_batch=True)
+
 login = LoginManager(app)
 login.login_view = 'login'
 

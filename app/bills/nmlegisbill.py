@@ -11,9 +11,11 @@ import datetime, dateutil.parser
 import time
 import re
 import requests
+from ftplib import FTP
 import posixpath
 from collections import OrderedDict
 from bs4 import BeautifulSoup
+import xlrd
 
 url_mapper = URLmapper('https://www.nmlegis.gov',
     '%s/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s')
@@ -69,12 +71,11 @@ def committee_code(committee_name):
 #     'billtype'     : 'Type',
 #     'number'       : 'Number',
 #     'year'         : 'Year',
-#     'bill_url    ' : 'Bill Link',
+#     'bill_url'     : 'Bill Link',
 #     'title'        : 'Title',
 #     'sponsor'      : 'Sponsor',
 #     'sponsorlink'  : 'Sponsor link',
-#     'curloc'       : 'Current Location',
-#     'curloclink'   : 'Current Location Link',
+#     'curloc'       : 'Current Location (committee code)',
 # }
 
 def check_analysis(billno):
@@ -148,6 +149,7 @@ def soup_from_cache_or_net(baseurl, cachefile=None):
 
     if not cachefile:
         cachefile = baseurl.replace('https://www.nmlegis.gov/', '').replace('/Legislation', '').replace('/', '_').replace('?', '_').replace('&', '_')
+        cachefile = '%s/%s' % (cachedir, cachefile)
 
     # Use cached pages so as not to hit the server so often.
     if os.path.exists(cachefile):
@@ -187,7 +189,7 @@ def parse_bill_page(billno, year=None, cache_locally=True):
     '''Download and parse a bill's page on nmlegis.org.
        Return a dictionary containing:
        chamber, billtype, number, year, title, sponsor, sponsorlink,
-       curloc, curloclink.
+       location.
        Set update_date to now.
 
        If cache_locally, will save downloaded files to local cache.
@@ -225,7 +227,7 @@ def parse_bill_page(billno, year=None, cache_locally=True):
         # If we cached, remove the cache file.
         if cache_locally and cachefile:
             os.unlink(cachefile)
-        print("No such bill %s" % billno)
+        print("parse_bill_page: No such bill %s" % billno)
         return None
 
     sponsor_a = soup.find("a",
@@ -236,16 +238,19 @@ def parse_bill_page(billno, year=None, cache_locally=True):
 
     curloc_a  = soup.find("a",
                           id="MainContent_formViewLegislation_linkLocation")
-    billdic['curloc'] = curloc_a.text.strip()
-    billdic['curloclink'] = url_mapper.to_abs_link(curloc_a.get('href'),
-                                                   baseurl)
-
-    # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    # XXX Left off XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    # curloc is the long name for the committee,
-    # but we need the committee code that's in the curloc link.
-    # Should probably just pass that back and let the caller map it.
-    # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    # could be https://www.nmlegis.gov/Entity/House/Floor_Calendar
+    # or https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=HHHC
+    match = re.search('CommitteeCode=([A-Za-z]*)', curloc_a.get('href'))
+    if match:
+        billdic['curloc'] = match.group(1)
+    elif 'Floor_Calendar' in curloc_a:
+        if '/House/' in curloc_a:
+            billdic['curloc'] = 'House'
+        else:
+            billdic['curloc'] = 'Senate'
+    # XXX What's the code for On Governor's Desk? Or Failed, or others?
+    else:
+        billdic['curloc'] = ''
 
     contents_a = soup.find("a",
                            id="MainContent_formViewLegislationTextIntroduced_linkLegislationTextIntroducedHTML")
@@ -255,16 +260,6 @@ def parse_bill_page(billno, year=None, cache_locally=True):
     # Does the bill have any amendments?
     # Unfortunately we can't get the amendments themselves --
     # they're only available in PDF. But we can see if they exist.
-    # amenddiv = soup.find("div", id="MainContent_tabContainerLegislation_tabPanelFloorReports")
-    #     # Inside this div is a div for a label (Proposed, Adopted, Not Adopted)
-    #     # followed by a table where (I think) there's a <tr><td> for each
-    #     # amendment in that class; the actual amendment will look like
-    #     # <a ... href="/Sessions/18%20Regular/memorials/house/HJM010FH1.pdf">
-    #     #   <span ...>House Floor Amendment 1</span> &nbsp;
-    #     #   <span ...">2/07/18</span>
-    #     # </a>
-
-    # Alternately, the "Amendments in Context" button:
     amendbutton = soup.find("a", id="MainContent_formViewAmendmentsInContext_linkAmendmentsInContext")
     if amendbutton:
         billdic["amendlink"] = url_mapper.to_abs_link(amendbutton.get('href'),
@@ -348,142 +343,36 @@ def contents_url(billno):
     return 'https://www.nmlegis.gov/Sessions/19%%20Regular/bills/%s/%s.html' \
         % (chamber, billno)
 
-def user_bill_summary(user):
-    '''user is a dictionary. Examine each of user's bills,
-       see if it looks like it's changed since user's last check.
-       Return summary strings in html and plaintext formats (in that
-       order) showing which bills have changed and which haven't.
+def expand_house_or_senate(code, cache_locally=True):
+    '''Return a dictionary, with keys code, name, scheduled_bills.
+       Other fields that committees would have will be unset.
     '''
-    # How recently has this user updated?
-    last_check = user['last_check']
-    print("Last check for %s is"% user['email'], last_check)
+    url = 'https://www.nmlegis.gov/Entity/%s/Floor_Calendar' % code
+    if cache_locally:
+        soup = soup_from_cache_or_net(url)
+    else:
+        r = requests.get(url)
+        soup = BeautifulSoup(r.text, 'lxml')
 
-    # Set up the strings we'll return.
-    # Keep bills that have changed separate from bills that haven't.
-    newertext = '''Bills that have changed since %s's\n      last check at %s:''' \
-               % (user['email'], last_check.strftime('%m/%d/%Y %H:%M'))
-    oldertext = '''Bills that haven't changed:'''
-    newerhtml = '''<html>
-<head>
-<style type="text/css">
-  body { background: white; }
-  div.odd { background: #ffe; padding: 15px; }
-  div.even { background: #efe; padding: 15px; }
-</style>
-</head>
-<body>
-<h2>%s</h2>''' % newertext
-    olderhtml = '<h2>%s</h2>' % oldertext
+    ret = { 'code': code, 'name': code }
 
-    # Get the user's list of bills:
-    sep = re.compile('[,\s]+')
-    userbills = sep.split(user['bills'])
+    billno_pat = re.compile('.*_linkBillID_[0-9]*')
+    ret['scheduled_bills'] = []
+    for a in soup.findAll('a', id=billno_pat):
+        ret['scheduled_bills'].append(a.text.replace(' ', ''))
 
-    # For each bill, get the mod_date and see if it's newer:
-    even = True
-    for billno in userbills:
-        billdic = fetch_bill(billno)
-
-        # Make a string indicating the last action and also when the
-        # website was updated, which might be significantly later.
-        action_datestr = ''
-        if billdic['last_action_date']:
-            action_datestr = "last action " \
-                             + billdic['last_action_date'].strftime('%m/%d/%Y')
-
-        if billdic['mod_date']:
-            if action_datestr:
-                action_datestr += ", "
-            action_datestr += "updated " \
-                             + billdic['mod_date'].strftime('%m/%d/%Y')
-
-        if billdic['mod_date'] and billdic['mod_date'] >= last_check:
-            # or billdic['mod_date'] >= last_check
-            # ... if I ever get mod_date working right
-            analysisText = ''
-            analysisHTML = ''
-            if billdic['amendlink']:
-                analysisText += '\n   Amendments: ' + billdic['amendlink']
-                analysisHTML += '<a href="%s">Amendments</a>' \
-                                % billdic['amendlink']
-            if billdic['FIRlink']:
-                analysisText += '\n   FIR: ' + billdic['FIRlink']
-                analysisHTML += '<a href="%s">FIR report</a>' \
-                                % billdic['FIRlink']
-            if billdic['LESClink']:
-                analysisText += '\n   LESC: ' + billdic['LESClink']
-                analysisHTML += '<a href="%s">LESC report</a>' \
-                                % billdic['LESClink']
-            if analysisHTML:
-                analysisHTML += '<br />'
-
-            even = not even
-            newertext += '''\n
-%s %s
-  (%s)
-  Bill page: %s
-  Current location: %s %s
-  Bill text: %s
-  Analysis: %s
-  Status:
-%s''' % (billno, billdic['title'], action_datestr,
-         bill_url(billno),
-         billdic['curloc'], billdic['curloclink'],
-         contents_url(billno), analysisText, billdic['statustext'])
-            newerhtml += '''
-<div class="%s">
-<a href="%s">%s: %s</a> .. updated %s<br />
-  Current location: <a href="%s">%s</a><br />
-  <a href="%s">Text of bill</a><br />
-  %s
-  Status:
-%s
-</div>''' % ("even" if even else "odd",
-             bill_url(billno), billno, billdic['title'],
-             action_datestr, billdic['curloc'], billdic['curloclink'],
-             contents_url(billno), analysisHTML, billdic['statusHTML'])
-
-        else:
-            oldertext += "\n%s %s (%s)" % (billno,
-                                           billdic['title'],
-                                           action_datestr)
-            olderhtml += '<br /><a href="%s">%s %s</a> .. %s' % \
-                        (bill_url(billno), billno, billdic['title'],
-                         action_datestr)
-
-    return (newerhtml + olderhtml + '</body></html>',
-            '===== ' + newertext + "\n\n===== " + oldertext)
-
-def all_bills():
-    '''Return an OrderedDict of all bills, billno: [title, url]
-    '''
-    baseurl = 'https://www.nmlegis.gov/Legislation/'
-    url = baseurl + 'Legislation_List?Session=57'
-    r = requests.get(url)
-    soup = BeautifulSoup(r.text, 'lxml')
-    # with open('/home/akkana/src/billtracker/resources/Legislation_List?Session=57') as fp:
-    #     t = fp.read()
-    #     soup = BeautifulSoup(t, 'lxml')
-
-    footable = soup.find('table', class_='footable')
-    if not footable:
-        print("Can't read the all-bills list", file=sys.stderr)
-        return None
-
-    allbills = OrderedDict()
-    billno_pat = re.compile('MainContent_gridViewLegislation_linkBillID.*')
-    title_pat = re.compile('MainContent_gridViewLegislation_lblTitle.*')
-    for tr in footable.findAll('tr'):
-        billno = tr.find('a', id=billno_pat)
-        title = tr.find('span', id=title_pat)
-        if billno and title:
-            # Remove spaces and stars:
-            allbills[billno.text.replace(' ', '').replace('*', '')] \
-                = [ title.text, baseurl + billno['href'] ]
-
-    return allbills
+    return ret
 
 def expand_committee(code, cache_locally=True):
+    '''Return a dictionary, with keys code, name, mtg_time, chair,
+       members, scheduled_bills
+    '''
+
+    if code == 'House' or code == 'Senate':
+        return expand_house_or_senate(code, cache_locally)
+
+    # XXX Need some other special cases
+
     url = 'https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=%s' % code
     if cache_locally:
         soup = soup_from_cache_or_net(url)
@@ -491,30 +380,48 @@ def expand_committee(code, cache_locally=True):
         r = requests.get(url)
         soup = BeautifulSoup(r.text, 'lxml')
 
-    next_mtg = ''
-    nextmtg_tbl = soup.find('table',
-                            id="MainContent_formViewCommitteeInformation")
-    if nextmtg_tbl:
-        mdate = nextmtg_tbl.find('span',
-                 id="MainContent_formViewCommitteeInformation_lblMeetingDate")
-        # Time and place of the next scheduled meeting:
-        if mdate:
-            next_mtg = mdate.text
+    # The all-important committee code
+    ret = { 'code': code }
+
+    # Committee name
+    namespan = soup.find(id="MainContent_formViewCommitteeInformation_lblCommitteeName")
+    if namespan:
+        ret['name'] = namespan.text
+
+    # Meeting time/place (free text, not parsed)
+    timespan = soup.find(id="MainContent_formViewCommitteeInformation_lblMeetingDate")
+    if timespan:
+        ret['mtg_time'] = timespan.text
+
+    # # Next meeting:
+    # next_mtg = ''
+    # nextmtg_tbl = soup.find('table',
+    #                         id="MainContent_formViewCommitteeInformation")
+    # if nextmtg_tbl:
+    #     mdate = nextmtg_tbl.find('span',
+    #              id="MainContent_formViewCommitteeInformation_lblMeetingDate")
+    #     # Time and place of the next scheduled meeting:
+    #     if mdate:
+    #         next_mtg = mdate.text
 
     # Loop over bills to be considered:
     scheduled = []
     billstbl = soup.find('table',
                          id="MainContent_formViewCommitteeInformation_gridViewScheduledLegislation")
-    if not billstbl:
-        print("No bills table found in", url)
+    if billstbl:
+        billno_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_linkBillID_[0-9]*')
+        sched_date_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_lblScheduledDate_[0-9]*')
+        for row in billstbl.findAll('tr'):
+            billno = row.find(id=billno_pat)
+            scheduled_date = row.find(id=sched_date_pat)
+            if billno and scheduled_date:
+                # Bills on these pages have extra spaces, like 'HB 101'
+                scheduled.append([billno.text.replace(' ', ''),
+                                  scheduled_date.text.strip()])
 
-    billno_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_linkBillID_[0-9]*')
-    sched_date_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_lblScheduledDate_[0-9]*')
-    for row in billstbl.findAll('tr'):
-        billno = row.find(id=billno_pat)
-        scheduled_date = row.find(id=sched_date_pat)
-        if billno and scheduled_date:
-            scheduled.append([billno.text, scheduled_date.text])
+        ret['scheduled_bills'] = scheduled
+    else:
+        print("No bills table found in", url, file=sys.stderr)
 
     # Now get the list of members:
     members = []
@@ -522,20 +429,115 @@ def expand_committee(code, cache_locally=True):
     for row in membertbl.findAll('tr'):
         cells = row.findAll('td')
         if cells:
-            members.append([cells[1].text.strip(), cells[0].text.strip(),
-                            cells[-1].text.strip()])
+            # members.append([cells[1].text.strip(), cells[0].text.strip(),
+            #                 cells[-1].text.strip()])
+            # This is name, title, role.
+            # But we really need the sponcode rather than the name
+            sponcode = None
+            sponcode_a = cells[1].find('a')
+            if sponcode_a:
+                href = sponcode_a.get('href')
+                match = re.search('.*SponCode=([A-Z]*)', href)
+                if match:
+                    sponcode = match.group(1)
+                    members.append(sponcode)
+                    if cells[-1].text.strip() == 'Chair':
+                        ret['chair'] = cells[1].text.strip()
+    ret['members'] = members
 
-    return scheduled, members, datetime.datetime
+    return ret
+
+
+def get_sponcodes(url):
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text, 'lxml')
+    select = soup.find(id="MainContent_ddlLegislators")
+    legs = {}
+    for opt in select.findAll('option'):
+        value = opt.get('value')
+        if value == "...":
+            continue
+        legs[value] = opt.text
+    return legs
+
+
+def get_legislator_list():
+    '''Fetches Legislators.XLS from the legislative website;
+       returns a list of dictionaries.
+    '''
+    houseurl = 'https://www.nmlegis.gov/Members/Legislator_List?T=R'
+    senateurl = 'https://www.nmlegis.gov/Members/Legislator_List?T=S'
+    house_sponcodes = get_sponcodes(houseurl)
+    senate_sponcodes = get_sponcodes(senateurl)
+
+    # url = 'ftp://www.nmlegis.gov/Legislator%20Information/Legislators.XLS'
+    cachefile = '%s/%s' % (cachedir, 'Legislators.XLS')
+
+    # Seriously? requests can't handle ftp?
+    ftp = FTP('www.nmlegis.gov')
+    ftp.login()
+    ftp.cwd('Legislator Information')
+    ftp.retrbinary('RETR Legislators.XLS', open(cachefile, 'wb').write)
+    ftp.quit()
+    print("Cached in", cachefile)
+
+    wb = xlrd.open_workbook(cachefile)
+    sheet = wb.sheet_by_name(wb.sheet_names()[0])
+    if not sheet or sheet.ncols <= 0 :
+        print("Null sheet, couldn't read", cachefile, file=sys.stderr)
+        return
+
+    wanted_fields = [ "FNAME", "LNAME", "TITLE",
+                      "STREET", "CITY", "STATE", "ZIP",
+                      "OFF_PHONE", "OFF_ROOM", "WKPH", "HMPH",
+                      "PreferredEmail" ]
+    to_fields = [ "firstname", "lastname", "title",
+                  "street", "city", "state", "zip",
+                  "office_phone", "office", "work_phone", "home_phone",
+                  "email" ]
+
+    fields = [ sheet.cell(0, col).value for col in range(sheet.ncols) ]
+
+    legislators = []
+
+    for row in range(1, sheet.nrows):
+        leg = {}
+        for i, f in enumerate(wanted_fields):
+            leg[to_fields[i]] = sheet.cell(row, fields.index(f)).value
+
+        fullname = leg['firstname'] + ' ' + leg['lastname']
+
+        sponcode = None
+        for sp in senate_sponcodes:
+            if fullname == senate_sponcodes[sp]:
+                sponcode = sp
+                break
+        if not sponcode:
+            for sp in house_sponcodes:
+                if fullname == house_sponcodes[sp]:
+                    sponcode = sp
+                    break
+        if sponcode:
+            # print("%s: %s" % (sp, fullname))
+            leg['sponcode'] = sponcode
+            legislators.append(leg)
+        else:
+            print("**** no sponcode: %s" % (fullname), file=sys.stderr)
+
+    return legislators
+
 
 #
 # __main__ doesn't work any more because of the relative import .billutils.
 #
 if __name__ == '__main__':
+    update_legislator_list()
+
+    sys.exit(0)
+
     bills, member = expand_committee('SCORC')
     print("Scheduled bills:", bills)
     print("Members:", members)
-
-    sys.exit(0)
 
     def print_bill_dic(bd):
         print("%s: %s" % (bd['billno'], bd['title']))

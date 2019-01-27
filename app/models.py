@@ -4,7 +4,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app.bills import nmlegisbill
 from app.emails import send_email
 
-from datetime import datetime
+from datetime import datetime, timedelta
+import dateutil.parser
 import re
 import random
 import sys
@@ -37,12 +38,17 @@ class User(UserMixin, db.Model):
 
     # List of bill IDs the user has seen -- these bills may not even
     # be in the database, but they've been on the "all bills" list
-    # so the user has had a chance to review them.
+   # so the user has had a chance to review them.
     # SQL doesn't have any list types, so just use comma separated.
     # Bill IDs are usually under 6 characters and a session isn't
     # likely to have more than 2500 bills, so 20000 would be a safe length.
     bills_seen = db.Column(db.String())
 
+    # Comma-separated list of sponcodes for legislators this user
+    # might want to contact:
+    legislators = db.Column(db.String())
+
+    # When did the user check in last?
     last_check = db.Column(db.DateTime, nullable=True)
 
     AUTH_CODE_CONFIRMED = "Confirmed"
@@ -220,6 +226,35 @@ def load_user(id):
     return User.query.get(int(id))
 
 
+# This has to be defined before it's called from bill.update()
+def get_committee(comcode):
+    '''Look up the latest on a commitee and return a Committee object.
+       Fetch it from the web if it doesn't exist yet or hasn't been
+       updated recently, otherwise get it from the database.
+       Doesn't commit the db session; the caller should do that.
+    '''
+    comm = Committee.query.filter_by(code=comcode).first()
+    now = datetime.now()
+    if comm:
+        now = datetime.now()
+        # How often to check committee pages
+        interval = timedelta(hours=12)
+        if comm.last_check and now - comm.last_check < interval:
+            # It's new enough
+            return comm
+
+        # It's in the database but needs updating
+    else:
+        # New committee, haven't seen it before
+        comm = Committee()
+        comm.code = comcode
+
+    # com is now a Committee object.
+    # The only attr guaranteed to be set is code.
+    comm.update()
+    return comm
+
+
 class Bill(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -256,17 +291,15 @@ class Bill(db.Model):
     # Status (last action) on the bill, in plaintext format
     statustext = db.Column(db.String(500))
 
-    # Bill's sponsor (legislator who introduced it)
+    # Where is the bill now? A bill can have only one location;
+    # usually a committee, or "House", "Senate" etc.
+    location = db.Column(db.String(10))
+
+    # Bill's sponsor (legislator who introduced it), freetext.
     sponsor = db.Column(db.String(20))
 
     # URL for bill's sponsor
     sponsorlink = db.Column(db.String(150))
-
-    # Current location (e.g. which committee
-    curloc = db.Column(db.String(20))
-
-    # Link for current location
-    curloclink = db.Column(db.String(150))
 
     # Link to FIR analysis, if any
     FIRlink = db.Column(db.String(150))
@@ -276,6 +309,9 @@ class Bill(db.Model):
 
     # Link to amendments PDF, if any
     amendlink = db.Column(db.String(150))
+
+    # Is the bill scheduled to come up for debate?
+    scheduled_date = db.Column(db.DateTime)
 
     # We'll seldom need to know uses for a bill, so no need to
     # include it as a line here.
@@ -332,14 +368,14 @@ class Bill(db.Model):
 
     def update(self):
         '''Have we updated this bill in the last few hours?
-           Return True if we make a new update, False otherwise.
+           Return True if a new update is needed, False otherwise.
            Do not commit to the database: the caller should check
            return values and commit after all bills have been updated.
         '''
         hours = 4
 
         now = datetime.now()
-        if (now - self.update_date).seconds < hours * 60*60:
+        if False and (now - self.update_date).seconds < hours * 60*60:
             return False
 
         b = nmlegisbill.parse_bill_page(self.billno,
@@ -347,7 +383,15 @@ class Bill(db.Model):
                                         cache_locally=True)
         if b:
             for k in b:
-                setattr(self, k, b[k])
+                # For location, a bit more is needed: look up the committee.
+                if k == 'curloc':
+                    self.location = b['curloc']
+                    Committee = get_committee(b['curloc'])
+
+                # Bill doesn't have getattr() even though it has setattr()
+                # elif self.getattr(k) != b[k]:
+                else:
+                    setattr(self, k, b[k])
 
             self.update_date = now
 
@@ -400,11 +444,16 @@ class Bill(db.Model):
         elif self.statusHTML:
             outstr += 'Status: %s<br />\n' % self.statusHTML
 
-        if self.curloc and self.curloclink:
-            outstr += 'Current location: <a href="%s">%s</a><br />' % \
-                (self.curloclink, self.curloc)
-        elif self.curloc:
-            outstr += 'Current location: ' + self.curloc + '<br />'
+        if self.location:
+            l = Committee.query.filter_by(code=self.location).first()
+            outstr += 'Location: <a href="%s">%s</a>' % \
+                (l.get_link(), l.name)
+            if self.scheduled_date:
+                outstr += ' <b>SCHEDULED FOR: %s</b>' \
+                    % self.scheduled_date.strftime('%m/%d/%Y')
+            outstr += '<br />'
+        else:
+            outstr += 'Location: unknown<br />'
 
         if False and not longform:
             return outstr
@@ -449,11 +498,15 @@ class Bill(db.Model):
         if self.statustext:
             outstr += 'Status: %s\n' % self.statustext
 
-        if self.curloc and self.curloclink:
-            outstr += 'Current location: %s <%s>\n' % \
-                (self.curloc, self.curloclink)
-        elif self.curloc:
-            outstr += 'Current location: ' + self.curloc + '\n'
+        if self.location:
+            l = Committee.query.filter_by(code=self.location).first()
+            outstr += 'Current location: %s <%s>' % \
+                (l.name, l.get_link())
+            if self.scheduled_date:
+                outstr += ' SCHEDULED FOR: ' \
+                    + self.scheduled_date.strftime('%m/%d/%Y')
+            outstr += '\n'
+
 
         if False and not longform:
             return outstr
@@ -478,4 +531,166 @@ class Bill(db.Model):
             outstr += 'LESC report: ' + self.LESClink + '\n'
 
         return outstr
+
+
+#
+# Many to many relationship between Legislators and Committees
+#
+committee_members = db.Table('committee_members',
+                             db.Column('legislator_id', db.Integer,
+                                       db.ForeignKey('legislator.id'),
+                                       primary_key=True),
+                             db.Column('committee_id', db.Integer,
+                                       db.ForeignKey('committee.id'),
+                                       primary_key=True))
+
+
+#
+# Legislator list will be populated from
+# ftp://www.nmlegis.gov/Legislator%20Information/Legislators.XLS
+# Smaller, but missing crucial info like the whether the person is a
+# Senator or a Representative, is
+# ftp://www.nmlegis.gov/Legislator%20Information/LegislatorsCommaDelimitedforMerging.txt
+#
+class Legislator(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    sponcode = db.Column(db.String(9))
+
+    lastname = db.Column(db.String(25))
+    firstname = db.Column(db.String(25))
+    initial = db.Column(db.String(5))
+
+    # Senator, Representative etc.
+    title = db.Column(db.String(50))
+
+    # Contact info
+    street = db.Column(db.String(50))
+    city = db.Column(db.String(20))
+    state = db.Column(db.String(2))
+    zip = db.Column(db.String(10))
+
+    work_phone = db.Column(db.String(25))
+    home_phone = db.Column(db.String(25))
+    office_phone = db.Column(db.String(25))
+    email = db.Column(db.String(50))
+    office = db.Column(db.String(8))
+
+    # Comma-separated list of commmittees this legislator chairs:
+    chairships = db.Column(db.String(25))
+
+    # Things we don't care about yet, but are available in the XLS:
+    # party = db.Column(db.String(1))
+    # district = db.Column(db.String(4))
+    # county = db.Column(db.String(15))
+    # lead_posi = db.Column(db.String(5))
+    # start_year = db.Column(db.String(4))
+
+
+    def __repr__(self):
+        return '%s: %s %s %s' % (self.sponcode, self.title,
+                                 self.firstname, self.lastname)
+
+    @staticmethod
+    def update_legislators_list():
+        for newleg in nmlegisbill.get_legislator_list():
+            dbleg = Legislator.query.filter_by(sponcode=newleg['sponcode']).first()
+            if (dbleg):
+                for k in newleg:
+                    setattr(dbleg, k, newleg[k])
+            else:
+                dbleg = Legislator(**newleg)
+            db.session.add(dbleg)
+
+        db.session.commit()
+
+
+class Committee(db.Model):
+    '''A Committee object may be a committee, or another bill destination
+       such as House Floor, Governor's Desk or Dead.
+    '''
+    id = db.Column(db.Integer, primary_key=True)
+
+    code = db.Column(db.String(8))
+
+    last_check = db.Column(db.DateTime, nullable=True)
+
+    name = db.Column(db.String(80))
+
+    # Free-form meeting time/pkace description,
+    # e.g. "Monday, Wednesday & Friday- 8:30 a.m. (Room 315)"
+    mtg_time = db.Column(db.String(100))
+
+    # When did we last check this committee?
+    update_date = db.Column(db.DateTime)
+
+    # A committee can have only one chair.
+    chair = db.Column(db.Integer, db.ForeignKey('legislator.id'))
+
+    members = db.relationship('Legislator', secondary=committee_members,
+                              lazy='subquery',
+                              backref=db.backref('legislators', lazy=True))
+
+    def __repr__(self):
+        return 'Committee %s: %s' % (self.code, self.name)
+
+    def update(self):
+        '''Update a committee from its web page.
+        '''
+        print("Updating committee", self.code, "from the web")
+        newcom = nmlegisbill.expand_committee(self.code)
+
+        self.name = newcom['name']
+        self.mtg_time = newcom['mtg_time']
+        self.chair = newcom['chair']
+
+        members = []
+        newbies = []
+        need_legislators = False
+        for member in newcom['members']:
+            m = Legislator.query.filter_by(sponcode=member).first()
+            if m:
+                members.append(m)
+            else:
+                need_legislators = True
+                newbies.append(member)
+
+        # If there were any sponcodes we hadn't seen before,
+        # that means it's probably time to update the legislators list:
+        if need_legislators or True:
+            Legislator.update_legislators_list()
+
+        # Add any newbies:
+        for member in newbies:
+            m = Legislator.query.filter_by(sponcode=member).first()
+            if m:
+                members.append(m)
+            else:
+                print("Even after updating Legislators, couldn't find" + member,
+                      file=sys.stdout)
+
+        if members:
+            self.members = members
+        else:
+            self.members = None
+
+        # Loop over (billno, date) pairs where date is a string, 1/27/2019
+        for billdate in newcom['scheduled_bills']:
+            b = Bill.query.filter_by(billno=billdate[0]).first()
+            if b:
+                b.location = self.code
+                b.scheduled_date = dateutil.parser.parse(billdate[1])
+                # XXX Don't need to add(): that happens automatically
+                # when changing a field in an existing object.
+                db.session.add(b)
+            else:
+                print("Not tracking bill", billdate[0])
+
+        self.last_check = datetime.now()
+
+        db.session.add(self)
+
+
+    def get_link(self):
+        return 'https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=%s' % self.code
 
