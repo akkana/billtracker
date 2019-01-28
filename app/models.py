@@ -394,9 +394,13 @@ class Bill(db.Model):
                 # For location, a bit more is needed: look up the committee.
                 if k == 'curloc':
                     self.location = b['curloc']
-                    Committee = get_committee(b['curloc'])
+                    if b['curloc']:
+                        Committee = get_committee(b['curloc'])
+                    else:
+                        print("%s has no location!" % self.billno)
 
                 # Bill doesn't have getattr() even though it has setattr()
+                # XXX Worry about that some other time.
                 # elif self.getattr(k) != b[k]:
                 else:
                     setattr(self, k, b[k])
@@ -429,11 +433,14 @@ class Bill(db.Model):
 
     def recent_activity(self, user=None):
         '''Has the bill changed in the last day or two, or does it
-           have impending action like a scheduled committee hearing,
-           or has it changed since the user's last check if that's
+           have impending action like a scheduled committee hearing
+           or the House or Senate floor?
+           Or has it changed since the user's last check if that's
            longer than a day or two?
         '''
         if self.scheduled_date:
+            return True
+        if self.location == 'House' or self.location == 'Senate':
             return True
 
         if user:
@@ -484,6 +491,8 @@ class Bill(db.Model):
             if self.scheduled_date:
                 outstr += ' <b>SCHEDULED: %s</b>' \
                     % self.scheduled_date.strftime('%m/%d/%Y')
+            elif self.location == 'House' or self.location == 'Senate':
+                outstr += ' <b>%s Floor</b>' % self.location
             outstr += '<br />'
         else:
             outstr += 'Location: unknown<br />'
@@ -674,50 +683,51 @@ class Committee(db.Model):
         newcom = nmlegisbill.expand_committee(self.code)
 
         self.name = newcom['name']
-        self.mtg_time = newcom['mtg_time']
-        self.chair = newcom['chair']
+        if 'mtg_time' in newcom:
+            self.mtg_time = newcom['mtg_time']
+        if 'chair' in newcom:
+            self.chair = newcom['chair']
 
         members = []
         newbies = []
         need_legislators = False
-        for member in newcom['members']:
-            m = Legislator.query.filter_by(sponcode=member).first()
-            if m:
-                members.append(m)
-            else:
-                need_legislators = True
-                newbies.append(member)
+        if 'members' in newcom:
+            for member in newcom['members']:
+                m = Legislator.query.filter_by(sponcode=member).first()
+                if m:
+                    members.append(m)
+                else:
+                    need_legislators = True
+                    newbies.append(member)
 
-        # If there were any sponcodes we hadn't seen before,
-        # that means it's probably time to update the legislators list:
-        if need_legislators or True:
-            Legislator.update_legislators_list()
+            # If there were any sponcodes we hadn't seen before,
+            # that means it's probably time to update the legislators list:
+            if need_legislators or True:
+                Legislator.update_legislators_list()
 
-        # Add any newbies:
-        for member in newbies:
-            m = Legislator.query.filter_by(sponcode=member).first()
-            if m:
-                members.append(m)
-            else:
-                print("Even after updating Legislators, couldn't find" + member,
-                      file=sys.stdout)
+            # Add any newbies:
+            for member in newbies:
+                m = Legislator.query.filter_by(sponcode=member).first()
+                if m:
+                    members.append(m)
+                else:
+                    print("Even after updating Legislators, couldn't find"
+                          + member, file=sys.stdout)
 
-        if members:
-            self.members = members
-        else:
-            self.members = None
+        self.members = members
 
         # Loop over (billno, date) pairs where date is a string, 1/27/2019
-        for billdate in newcom['scheduled_bills']:
-            b = Bill.query.filter_by(billno=billdate[0]).first()
-            if b:
-                b.location = self.code
-                b.scheduled_date = dateutil.parser.parse(billdate[1])
-                # XXX Don't need to add(): that happens automatically
-                # when changing a field in an existing object.
-                db.session.add(b)
-            else:
-                print("Not tracking bill", billdate[0])
+        if 'scheduled_bills' in newcom:
+            for billdate in newcom['scheduled_bills']:
+                b = Bill.query.filter_by(billno=billdate[0]).first()
+                if b:
+                    b.location = self.code
+                    b.scheduled_date = dateutil.parser.parse(billdate[1])
+                    # XXX Don't need to add(): that happens automatically
+                    # when changing a field in an existing object.
+                    db.session.add(b)
+                else:
+                    print("Not tracking bill", billdate[0])
 
         self.last_check = datetime.now()
 
@@ -725,5 +735,8 @@ class Committee(db.Model):
 
 
     def get_link(self):
+        if self.code == 'House' or self.code == 'Senate':
+            return 'https://www.nmlegis.gov/Entity/%s/Floor_Calendar' \
+                % self.code
         return 'https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=%s' % self.code
 

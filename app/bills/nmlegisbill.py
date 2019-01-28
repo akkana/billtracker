@@ -176,7 +176,7 @@ def soup_from_cache_or_net(baseurl, cachefile=None):
             print("Cached locally as %s" % cachefile, file=sys.stderr)
 
     else:
-        with open(baseurl) as fp:
+        with open(baseurl, encoding="utf-8") as fp:
             # billdic['bill_url'] = baseurl
             soup = BeautifulSoup(fp, 'lxml')
 
@@ -238,13 +238,14 @@ def parse_bill_page(billno, year=None, cache_locally=True):
 
     curloc_a  = soup.find("a",
                           id="MainContent_formViewLegislation_linkLocation")
+    curloc_href = curloc_a.get('href')
     # could be https://www.nmlegis.gov/Entity/House/Floor_Calendar
     # or https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=HHHC
-    match = re.search('CommitteeCode=([A-Za-z]*)', curloc_a.get('href'))
+    match = re.search('CommitteeCode=([A-Za-z]*)', curloc_href)
     if match:
         billdic['curloc'] = match.group(1)
-    elif 'Floor_Calendar' in curloc_a:
-        if '/House/' in curloc_a:
+    elif 'Floor_Calendar' in curloc_href:
+        if '/House/' in curloc_href:
             billdic['curloc'] = 'House'
         else:
             billdic['curloc'] = 'Senate'
@@ -388,7 +389,7 @@ def expand_house_or_senate(code, cache_locally=True):
     billno_pat = re.compile('.*_linkBillID_[0-9]*')
     ret['scheduled_bills'] = []
     for a in soup.findAll('a', id=billno_pat):
-        ret['scheduled_bills'].append(a.text.replace(' ', ''))
+        ret['scheduled_bills'].append([a.text.replace(' ', ''), None])
 
     return ret
 
@@ -455,24 +456,25 @@ def expand_committee(code, cache_locally=True):
     # Now get the list of members:
     members = []
     membertbl = soup.find('table', id='MainContent_formViewCommitteeInformation_gridViewCommitteeMembers')
-    for row in membertbl.findAll('tr'):
-        cells = row.findAll('td')
-        if cells:
-            # members.append([cells[1].text.strip(), cells[0].text.strip(),
-            #                 cells[-1].text.strip()])
-            # This is name, title, role.
-            # But we really need the sponcode rather than the name
-            sponcode = None
-            sponcode_a = cells[1].find('a')
-            if sponcode_a:
-                href = sponcode_a.get('href')
-                match = re.search('.*SponCode=([A-Z]*)', href)
-                if match:
-                    sponcode = match.group(1)
-                    members.append(sponcode)
-                    if cells[-1].text.strip() == 'Chair':
-                        ret['chair'] = cells[1].text.strip()
-    ret['members'] = members
+    if membertbl:
+        for row in membertbl.findAll('tr'):
+            cells = row.findAll('td')
+            if cells:
+                # members.append([cells[1].text.strip(), cells[0].text.strip(),
+                #                 cells[-1].text.strip()])
+                # This is name, title, role.
+                # But we really need the sponcode rather than the name
+                sponcode = None
+                sponcode_a = cells[1].find('a')
+                if sponcode_a:
+                    href = sponcode_a.get('href')
+                    match = re.search('.*SponCode=([A-Z]*)', href)
+                    if match:
+                        sponcode = match.group(1)
+                        members.append(sponcode)
+                        if cells[-1].text.strip() == 'Chair':
+                            ret['chair'] = cells[1].text.strip()
+        ret['members'] = members
 
     return ret
 
