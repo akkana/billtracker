@@ -26,6 +26,12 @@ userbills = db.Table('userbills',
 # How recent does a bill have to be to show it as "Recently changed"?
 RECENT = timedelta(days=1, hours=12)
 
+# How often should bill pages be refreshed?
+BILLPAGE_REFRESH = timedelta(hours=6)
+
+# How often should committee pages be refreshed?
+COMMITTEEPAGE_REFRESH = timedelta(hours=6)
+
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -126,8 +132,6 @@ https://nmbilltracker.com/confirm_email/%s
         for bill in self.bills:
             needs_commit |= bill.update()
 
-            # A changed bill is one that has a last_action_date since the
-            # user's last_check, OR a last_action_date in the last 24 hours.
             if bill.recent_activity(self):
                 changed.append(bill)
             else:
@@ -245,8 +249,7 @@ def get_committee(comcode):
     if comm:
         now = datetime.now()
         # How often to check committee pages
-        interval = timedelta(hours=12)
-        if comm.last_check and now - comm.last_check < interval:
+        if comm.last_check and now - comm.last_check < COMMITTEEPAGE_REFRESH:
             # It's new enough
             return comm
 
@@ -283,13 +286,13 @@ class Bill(db.Model):
     # Bill type, e.g. B (bill), M (memorial), JR (joint resolution)
     billtype = db.Column(db.String(10))
 
-    # Number, e.g. 83 for SB83
+    # Number, e.g. 83 for SB83, in string form
     number = db.Column(db.String(10))
 
     # Year (default to current)
     year = db.Column(db.String(4))
 
-    # Bill title", "URL to HTML text of bill
+    # Bill title
     title = db.Column(db.String(200))
 
     # Status (last action) on the bill, in HTML format
@@ -307,6 +310,10 @@ class Bill(db.Model):
 
     # URL for bill's sponsor
     sponsorlink = db.Column(db.String(150))
+
+    # URL for the full text of the bill.
+    # These are inconsistent and don't follow fixed rules based on the billno.
+    contentslink = db.Column(db.String(150))
 
     # Link to FIR analysis, if any
     FIRlink = db.Column(db.String(150))
@@ -373,39 +380,42 @@ class Bill(db.Model):
         return 'ZZ-ZZ-ZZ ZZ:ZZ:ZZ' + Bill.a2order(bill.billno)
 
 
+    def set_from_parsed_page(self, b):
+        for k in b:
+            # For location, a bit more is needed: look up the committee.
+            if k == 'curloc':
+                self.location = b['curloc']
+                if b['curloc']:
+                    Committee = get_committee(b['curloc'])
+                else:
+                    print("%s has no location!" % self.billno)
+
+            # Bill doesn't have getattr() even though it has setattr()
+            # XXX Worry about that some other time.
+            # elif self.getattr(k) != b[k]:
+            else:
+                setattr(self, k, b[k])
+
+        self.update_date = datetime.now()
+
+
     def update(self):
-        '''Have we updated this bill in the last few hours?
+        '''Have we updated this bill recently?
            If it's been too long, fetch the bill's page and update
            the database, and return True, otherwise False.
            Do not commit to the database: the caller should check
            return values and commit after all bills have been updated.
         '''
-        hours = 4
 
         now = datetime.now()
-        if (now - self.update_date).seconds < hours * 60*60:
+        if now - self.update_date < BILLPAGE_REFRESH:
             return False
 
         b = nmlegisbill.parse_bill_page(self.billno,
                                         year=now.year,
                                         cache_locally=True)
         if b:
-            for k in b:
-                # For location, a bit more is needed: look up the committee.
-                if k == 'curloc':
-                    self.location = b['curloc']
-                    if b['curloc']:
-                        Committee = get_committee(b['curloc'])
-                    else:
-                        print("%s has no location!" % self.billno)
-
-                # Bill doesn't have getattr() even though it has setattr()
-                # XXX Worry about that some other time.
-                # elif self.getattr(k) != b[k]:
-                else:
-                    setattr(self, k, b[k])
-
-            self.update_date = now
+            self.set_from_parsed_page(b)
 
         else:
             errstr = "Couldn't update %b" % self.billno
@@ -468,7 +478,7 @@ class Bill(db.Model):
            longform=True is slightly longer: it assumes a bill has
            changed recently so there's a need to show what changed.
         '''
-        outstr = '<b><a href="%s">%s: %s</a></b><br />' % \
+        outstr = '<b><a href="%s" target="_blank">%s: %s</a></b><br />' % \
             (self.bill_url(), self.billno, self.title)
 
         if self.last_action_date:
@@ -486,7 +496,7 @@ class Bill(db.Model):
 
         if self.location:
             l = Committee.query.filter_by(code=self.location).first()
-            outstr += 'Location: <a href="%s">%s</a>' % \
+            outstr += 'Location: <a href="%s" target="_blank">%s</a>' % \
                 (l.get_link(), l.name)
             if self.scheduled_date:
                 outstr += ' <b>SCHEDULED: %s</b>' \
@@ -500,22 +510,32 @@ class Bill(db.Model):
         if False and not longform:
             return outstr
 
-        outstr += '<a href="%s">Full text of %s</a><br />' % \
-            (nmlegisbill.contents_url(self.billno), self.billno)
+        if not self.contentslink:
+            print("%s: Populating self.contentslink" % self.billno)
+            self.contentslink \
+                = nmlegisbill.contents_url_for_parts(self.chamber,
+                                                     self.billtype,
+                                                     self.number,
+                                                     self.year)
+        outstr += '<a href="%s" target="_blank">Full text of %s</a><br />' % \
+            (self.contentslink, self.billno)
 
         if self.sponsor and self.sponsorlink:
-            outstr += 'Sponsor: <a href="%s">%s</a><br />' % (self.sponsorlink,
-                                                              self.sponsor)
+            outstr += 'Sponsor: <a href="%s" target="_blank">%s</a><br />' % \
+                (self.sponsorlink, self.sponsor)
 
         analysis = []
         if self.amendlink:
-            analysis.append('<a href="%s">Amendments</a>' % self.amendlink)
+            analysis.append('<a href="%s" target="_blank">Amendments</a>' % \
+                            self.amendlink)
 
         if self.FIRlink:
-            analysis.append('<a href="%s">FIR Report</a>' % self.FIRlink)
+            analysis.append('<a href="%s" target="_blank">FIR Report</a>' % \
+                            self.FIRlink)
 
         if self.LESClink:
-            analysis.append('<a href="%s">LESC Report</a>' % self.LESClink)
+            analysis.append('<a href="%s" target="_blank">LESC Report</a>' % \
+                            self.LESClink)
 
         if analysis:
             outstr += ' &bull; '.join(analysis)
@@ -554,7 +574,7 @@ class Bill(db.Model):
             return outstr
 
         outstr += 'Full text of %s: %s\n' % \
-            (self.billno, nmlegisbill.contents_url(self.billno))
+            (self.billno, self.contentslink)
 
         # print('Sponsor: %s : %s' % (self.sponsor, self.sponsorlink))
         if self.sponsor:

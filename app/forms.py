@@ -42,12 +42,10 @@ class AddBillsForm(FlaskForm):
 
     def validate_billno(self, billno):
         designation = billno.data
-        print("Should we validate billno", designation, "?")
         designation = designation.upper()
         if designation[0] not in ['S', 'H', 'J']:
             raise ValidationError('Bills should start with S, H or J.')
 
-        print(designation, "validates.")
         billno.data = designation
 
 

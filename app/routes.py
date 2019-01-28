@@ -119,7 +119,8 @@ def addbills():
                                             cache_locally=True)
 
             if b:
-                bill = Bill(**b)
+                bill = Bill()
+                bill.set_from_parsed_page(b)
 
                 try:
                     db.session.add(bill)
@@ -205,10 +206,12 @@ def allbills():
     newlines = []
     oldlines = []
     for billno in allbills:
+        args = [billno, allbills[billno][0], allbills[billno][1],
+                nmlegisbill.contents_url_for_billno(billno)]
         if billno not in bills_seen:
-            newlines.append([billno, allbills[billno][0], allbills[billno][1]])
+            newlines.append(args)
         else:
-            oldlines.append([billno, allbills[billno][0], allbills[billno][1]])
+            oldlines.append(args)
 
     # Update user
     user.bills_seen = ','.join(allbills.keys())

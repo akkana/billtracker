@@ -134,11 +134,12 @@ def bill_url(billno):
 
 cachedir = 'cache'
 
-def soup_from_cache_or_net(baseurl, cachefile=None):
+def soup_from_cache_or_net(baseurl, cachefile=None, cachesecs=2*60*60):
     '''baseurl is a full URL including https://www.nmlegis.gov/
        or a full URL including that part.
        If we have a recent cached version, use it,
        otherwise fetch the file and cache it.
+       If the cache file is older than cachesecs, replace it.
        Either way, return a BS soup of the contents.
     '''
     if not os.path.exists(cachedir):
@@ -154,7 +155,7 @@ def soup_from_cache_or_net(baseurl, cachefile=None):
     # Use cached pages so as not to hit the server so often.
     if os.path.exists(cachefile):
         filestat = os.stat(cachefile)
-        if (time.time() - filestat.st_mtime) < 2 * 60 * 60:
+        if (time.time() - filestat.st_mtime) < cachesecs:
             print("Already cached:", baseurl, file=sys.stderr)
             baseurl = cachefile
 
@@ -203,6 +204,7 @@ def parse_bill_page(billno, year=None, cache_locally=True):
     (billdic['chamber'], billdic['billtype'],
      billdic['number'], billdic['year']) = billno_to_parts(billno, year)
 
+    # XXX number and year here are bogus
     baseurl = url_mapper.bill_url(billdic['chamber'],
                                   billdic['billtype'],
                                   billdic['number'],
@@ -255,8 +257,9 @@ def parse_bill_page(billno, year=None, cache_locally=True):
 
     contents_a = soup.find("a",
                            id="MainContent_formViewLegislationTextIntroduced_linkLegislationTextIntroducedHTML")
-    # billdic['contents_url'] = url_mapper.to_abs_link(contents_a.get('href'),
-    #                                                  baseurl)
+    if contents_a:
+        billdic['contentslink'] = url_mapper.to_abs_link(contents_a.get('href'),
+                                                         baseurl)
 
     # Does the bill have any amendments?
     # Unfortunately we can't get the amendments themselves --
@@ -336,14 +339,6 @@ def most_recent_action(billdic):
     billdic['last_action_date'] = last_action_date
     return last_action_date, str(lastaction), lastaction.text
 
-def contents_url(billno):
-    if billno.startswith('S'):
-        chamber = 'senate'
-    else:
-        chamber = 'house'
-    return 'https://www.nmlegis.gov/Sessions/19%%20Regular/bills/%s/%s.html' \
-        % (chamber, billno)
-
 def all_bills():
     '''Return an OrderedDict of all bills, billno: [title, url]
     '''
@@ -372,6 +367,81 @@ def all_bills():
                 = [ title.text, baseurl + billno['href'] ]
 
     return allbills
+
+# Link lists from contents_url_for_parts
+# A dictionary with keys of 'SB', 'HB', 'SJR' etc.
+# each of whose contents are a dictionary of int billno: url.
+Link_lists = {}
+
+def contents_url_for_parts(chamber, billtype, number, year):
+    '''A link to a page with a bill's contents in HTML.
+       This alas cannot be inferred from the billno,
+       because there is an unpredictable number of zeroes
+       inserted in the middle: HR001, HM011, HM0111.
+    '''
+    chambertype = chamber + billtype    # e.g. HJR
+    billnumint = int(number)
+
+    try:
+        return Link_lists[chambertype][billnumint]
+    except:    # most likely KeyError, but why not catch everything?
+        pass
+
+    # We don't have it cached. Re-fetch the relevant index.
+
+    if chamber == 'S':
+        chambername = 'senate'
+    else:
+        chambername = 'house'
+
+    if billtype[-1] == 'M':
+        typedir = 'memorials'
+    elif billtype[-1] == 'R':
+        typedir = 'resolutions'
+    else:
+        typedir = 'bills'
+
+    url = 'https://www.nmlegis.gov/Sessions/%s%%20Regular/%s/%s/' % \
+        (year, typedir, chambername)
+
+    # Check the relevant directory listing.
+    # If these go away, could use the ftp equivalent:
+    # ftp://www.nmlegis.gov/resolutions/senate
+    # Only re-fetch these twice a day:
+    soup = soup_from_cache_or_net(url, cachesecs=12*60*60)
+    if chambertype not in Link_lists:
+        Link_lists[chambertype] = {}
+
+    for a in soup.findAll('a'):
+        href = a.get('href')
+        if not href.endswith('.HTML'):
+            continue
+        if not href.startswith('/Sessions/'):
+            continue
+        href = url_mapper.to_abs_link(href, url)
+
+        base, ext = os.path.splitext(os.path.basename(href))
+        # base is now something like HJM005
+        match = re.search('([A-Z]*)([0-9]*)', base)
+        if match:
+            billandtype = match.group(1)
+            num = match.group(2)
+
+        Link_lists[chambertype][int(num)] = href
+
+    # Hope we have it now!
+    try:
+        return Link_lists[chambertype][billnumint]
+    except:
+        pass
+    return ''
+
+def contents_url_for_billno(billno):
+    '''A link to a page with a bill's contents in HTML,
+       for bills not yet in the database.
+    '''
+    (chamber, billtype, number, year) = billno_to_parts(billno)
+    return contents_url_for_parts(chamber, billtype, number, year)
 
 def expand_house_or_senate(code, cache_locally=True):
     '''Return a dictionary, with keys code, name, scheduled_bills.
@@ -575,7 +645,6 @@ if __name__ == '__main__':
         print("Current location: %s --> %s" % (bd['curloc'],
                                                bd['curloclink']))
         print("Sponsor: %s --> %s" % (bd['sponsor'], bd['sponsorlink']))
-        print("Contents at: %s" % (contents_url(bd['billno'])))
 
     billdic = parse_bill_page('HJR1')
     print_bill_dic(billdic)
