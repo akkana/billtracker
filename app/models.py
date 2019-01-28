@@ -189,7 +189,7 @@ https://nmbilltracker.com/confirm_email/%s
         changed, unchanged = self.check_for_changes()
 
         if changed:
-            outstr = '<h2>Bills with recent activity:</h2>\n'
+            outstr = '<h2>Bills with recent or upcoming activity:</h2>\n'
             outstr += '<table class="bill_list">'
             outstr += self.show_bill_table(changed, inline)
             outstr += '</table>'
@@ -213,7 +213,7 @@ https://nmbilltracker.com/confirm_email/%s
         changed, unchanged = self.check_for_changes()
 
         if changed:
-            outstr = 'Bills with recent activity:\n\n'
+            outstr = 'Bills with recent or upcoming activity:\n\n'
             for bill in changed:
                 outstr += bill.show_text(True) + "\n\n"
         else:
