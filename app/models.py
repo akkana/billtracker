@@ -23,6 +23,10 @@ userbills = db.Table('userbills',
                                db.ForeignKey('bill.id'), primary_key=True))
 
 
+# How recent does a bill have to be to show it as "Recently changed"?
+RECENT = timedelta(days=1, hours=12)
+
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
@@ -121,12 +125,10 @@ https://nmbilltracker.com/confirm_email/%s
         needs_commit = False
         for bill in self.bills:
             needs_commit |= bill.update()
+
             # A changed bill is one that has a last_action_date since the
             # user's last_check, OR a last_action_date in the last 24 hours.
-            if not self.last_check or (
-                    bill.last_action_date and
-                    (bill.last_action_date > self.last_check or
-                     (now - bill.last_action_date).seconds < oneday)):
+            if bill.recent_activity(self):
                 changed.append(bill)
             else:
                 unchanged.append(bill)
@@ -178,7 +180,8 @@ https://nmbilltracker.com/confirm_email/%s
         return outstr
 
     def show_bills(self, inline=False):
-        '''Return a long HTML string showing bill statuses.
+        '''Return a long HTML string showing bill statuses,
+           to be used for the daily email alerts.
            If inline==True, add table row colors as inline CSS
            since email can't use stylesheets.
            Does not update last_check; that's up to the caller.
@@ -186,14 +189,18 @@ https://nmbilltracker.com/confirm_email/%s
         changed, unchanged = self.check_for_changes()
 
         if changed:
-            outstr = '<h2>Bills with recent changes:</h2>\n'
+            outstr = '<h2>Bills with recent or activity:</h2>\n'
+            outstr += '<table class="bill_list">'
             outstr += self.show_bill_table(changed, inline)
+            outstr += '</table>'
         else:
             outstr = "<h2>No bills have changed</h2>\n"
 
         if unchanged:
-            outstr += "<h2>Bills that haven't changed:</h2>\n"
+            outstr += "<h2>Other bills:</h2>\n"
+            outstr += '<table class="bill_list">'
             outstr += self.show_bill_table(unchanged, inline)
+            outstr += '</table>'
         else:
             outstr += "<h2>No unchanged bills</h2>\n"
 
@@ -368,14 +375,15 @@ class Bill(db.Model):
 
     def update(self):
         '''Have we updated this bill in the last few hours?
-           Return True if a new update is needed, False otherwise.
+           If it's been too long, fetch the bill's page and update
+           the database, and return True, otherwise False.
            Do not commit to the database: the caller should check
            return values and commit after all bills have been updated.
         '''
         hours = 4
 
         now = datetime.now()
-        if False and (now - self.update_date).seconds < hours * 60*60:
+        if (now - self.update_date).seconds < hours * 60*60:
             return False
 
         b = nmlegisbill.parse_bill_page(self.billno,
@@ -418,10 +426,35 @@ class Bill(db.Model):
 
         return True
 
+
+    def recent_activity(self, user=None):
+        '''Has the bill changed in the last day or two, or does it
+           have impending action like a scheduled committee hearing,
+           or has it changed since the user's last check if that's
+           longer than a day or two?
+        '''
+        if self.scheduled_date:
+            return True
+
+        if user:
+            if not user.last_check:
+                return True
+            if not self.last_action_date:
+                return False
+            if self.last_action_date > user.last_check:
+                return True
+
+        if datetime.now() - self.last_action_date < RECENT:
+            return True
+
+        return False
+
+
     # Jinja templates can't import; they need methods that are part
     # of the model.
     def bill_url(self):
         return nmlegisbill.bill_url(self.billno)
+
 
     def show_html(self, longform):
         '''Show a summary of the bill's status.
@@ -449,7 +482,7 @@ class Bill(db.Model):
             outstr += 'Location: <a href="%s">%s</a>' % \
                 (l.get_link(), l.name)
             if self.scheduled_date:
-                outstr += ' <b>SCHEDULED FOR: %s</b>' \
+                outstr += ' <b>SCHEDULED: %s</b>' \
                     % self.scheduled_date.strftime('%m/%d/%Y')
             outstr += '<br />'
         else:
