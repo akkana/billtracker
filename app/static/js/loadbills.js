@@ -1,6 +1,7 @@
 /* Load bills as they come in, until they're all there */
 
 var ajax_get = function(url, callback) {
+    console.log("ajax_get " + url);
     // 1. Create a new XMLHttpRequest object
     let xhr = new XMLHttpRequest();
 
@@ -99,6 +100,7 @@ var display_result = function(data) {
 var total_bills;
 
 window.onload = function () {
+    console.log("window onload");
     display_result("Updating, please wait ...");
 
     total_bills = document.getElementById("unchanged_bills").getElementsByTagName("tbody")[0].getElementsByTagName("tr").length - 1;

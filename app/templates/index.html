@@ -8,22 +8,16 @@
 This is your first check.
 {% else %}
 You last checked at {{ current_user.last_check.strftime('%H:%M %m/%d/%Y') }}.
+{{ current_user.update_last_check() }}
 {% endif %}
-
-<h2 class="scriptonly">Bills With Recent or Upcoming Activity:</h2>
 
 <table id="changed_bills" class="bill_list scriptonly">
 <tbody>
-<tr><td id="busywait">(Checking ...)
+<tr class="scriptonly"><td id="busywait"></td></tr>
 </tbody>
 </table>
-
-<p>
-<h2 class="scriptonly">Other Bills:</h2>
-
 <table id="unchanged_bills" class="bill_list">
-<tbody>
-  {{ current_user.show_bill_table(current_user.bills) | safe }}
+{{ current_user.show_bill_table(current_user.bills) | safe }}
 </tbody>
 </table>
 

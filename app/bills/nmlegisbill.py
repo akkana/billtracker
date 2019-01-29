@@ -515,8 +515,9 @@ def expand_committee(code, cache_locally=True):
             billno = row.find(id=billno_pat)
             scheduled_date = row.find(id=sched_date_pat)
             if billno and scheduled_date:
-                # Bills on these pages have extra spaces, like 'HB 101'
-                scheduled.append([billno.text.replace(' ', ''),
+                # Bills on these pages have extra spaces, like 'HB 101'.
+                # Some of them also start with * for unexplained reasons.
+                scheduled.append([billno.text.replace(' ', '').replace('*', ''),
                                   scheduled_date.text.strip()])
 
         ret['scheduled_bills'] = scheduled

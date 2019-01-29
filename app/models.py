@@ -119,6 +119,14 @@ https://nmbilltracker.com/confirm_email/%s
 
 """ % (self.username, self.email, self.auth_code))
 
+
+    def update_last_check(self):
+        self.last_check = datetime.now()
+        db.session.commit()
+        # So this can be called from a template:
+        return ''
+
+
     def check_for_changes(self):
         '''Have any bills changed recently? Update any bills that need it,
            commit the updates to the database if need be,
@@ -183,6 +191,7 @@ https://nmbilltracker.com/confirm_email/%s
                                                      bill.show_html(True))
         return outstr
 
+
     def show_bills(self, inline=False):
         '''Return a long HTML string showing bill statuses,
            to be used for the daily email alerts.
@@ -205,8 +214,6 @@ https://nmbilltracker.com/confirm_email/%s
             outstr += '<table class="bill_list">'
             outstr += self.show_bill_table(unchanged, inline)
             outstr += '</table>'
-        else:
-            outstr += "<h2>No unchanged bills</h2>\n"
 
         return outstr
 
@@ -510,8 +517,10 @@ class Bill(db.Model):
         if False and not longform:
             return outstr
 
+        # XXX This clause should go away; it's only here temporarily
+        # so that people's first few views after the database upgrade
+        # won't be missing the contentslink.
         if not self.contentslink:
-            print("%s: Populating self.contentslink" % self.billno)
             self.contentslink \
                 = nmlegisbill.contents_url_for_parts(self.chamber,
                                                      self.billtype,
@@ -742,7 +751,8 @@ class Committee(db.Model):
                 b = Bill.query.filter_by(billno=billdate[0]).first()
                 if b:
                     b.location = self.code
-                    b.scheduled_date = dateutil.parser.parse(billdate[1])
+                    if billdate[1]:
+                        b.scheduled_date = dateutil.parser.parse(billdate[1])
                     # XXX Don't need to add(): that happens automatically
                     # when changing a field in an existing object.
                     db.session.add(b)

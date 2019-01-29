@@ -17,10 +17,24 @@ import random
 import sys, os
 
 
+# A dictionary used by /api/onebill, for the AJAX updating:
+# keys are all the usernames currently updating their bill lists,
+# values are a list of all billids not yet updated.
+# XXX If something goes wrong with this, how do we remove the user from
+# the queue? Maybe have to pass in some sort of "first_time" variable.
+users_updating = {}
+
+
 @app.route('/')
 @app.route('/index')
 @login_required
 def index():
+    # Make sure any AJAX updates start from scratch:
+    try:
+        del users_updating[current_user.username]
+    except:
+        pass
+
     return render_template('index.html', title='Home')
 
 
@@ -370,13 +384,6 @@ def mailto(username, key):
 #
 # Gradual bill updating using AJAX.
 #
-
-# A dictionary: keys are all the usernames currently updating their bill lists,
-# values are a list of all billids not yet updated.
-# XXX If something goes wrong with this, how do we remove the user from
-# the queue? Maybe have to pass in some sort of "first_time" variable.
-users_updating = {}
-
 
 @app.route("/api/onebill/<username>")
 def onebill(username):
