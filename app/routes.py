@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 import json
 import collections
 import random
+import traceback
 import sys, os
 
 
@@ -371,6 +372,7 @@ def mailto(username, key):
     except Exception as e:
         print("Error, couldn't send email to %s" % username, file=sys.stderr)
         print(e, file=sys.stderr)
+        print(traceback.format_exc())
         return "FAIL couldn't send email to %s" % username
 
     # Update the user's last_check time and commit it to the database:

@@ -241,17 +241,20 @@ def parse_bill_page(billno, year=None, cache_locally=True):
     curloc_a  = soup.find("a",
                           id="MainContent_formViewLegislation_linkLocation")
     curloc_href = curloc_a.get('href')
-    # could be https://www.nmlegis.gov/Entity/House/Floor_Calendar
-    # or https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=HHHC
-    match = re.search('CommitteeCode=([A-Za-z]*)', curloc_href)
-    if match:
-        billdic['curloc'] = match.group(1)
-    elif 'Floor_Calendar' in curloc_href:
-        if '/House/' in curloc_href:
-            billdic['curloc'] = 'House'
-        else:
-            billdic['curloc'] = 'Senate'
+    if curloc_href:
+        # could be https://www.nmlegis.gov/Entity/House/Floor_Calendar
+        # or https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=HHHC
+        match = re.search('CommitteeCode=([A-Za-z]*)', curloc_href)
+        if match:
+            billdic['curloc'] = match.group(1)
+        elif 'Floor_Calendar' in curloc_href:
+            if '/House/' in curloc_href:
+                billdic['curloc'] = 'House'
+            else:
+                billdic['curloc'] = 'Senate'
+
     # XXX What's the code for On Governor's Desk? Or Failed, or others?
+
     else:
         billdic['curloc'] = ''
 
