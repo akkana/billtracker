@@ -27,7 +27,7 @@ userbills = db.Table('userbills',
 RECENT = timedelta(days=1, hours=12)
 
 # How often should bill pages be refreshed?
-BILLPAGE_REFRESH = timedelta(hours=6)
+BILLPAGE_REFRESH = timedelta(hours=3)
 
 # How often should committee pages be refreshed?
 COMMITTEEPAGE_REFRESH = timedelta(hours=6)
@@ -381,6 +381,9 @@ class Bill(db.Model):
         '''Sort bills by last action date, most recent first,
            with a secondary sort on billno.
         '''
+        if bill.scheduled_date:
+            return bill.scheduled_date.strftime('%Y-%m-%d %H:%M:%s') \
+                + Bill.a2order(bill.billno)
         if bill.last_action_date:
             return bill.last_action_date.strftime('%Y-%m-%d %H:%M:%s') \
                 + Bill.a2order(bill.billno)
