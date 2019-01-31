@@ -2,7 +2,8 @@
 
 from __future__ import print_function
 
-from .billutils import URLmapper, year_to_2digit, billno_to_parts
+from .billutils import URLmapper, year_to_2digit, billno_to_parts, \
+      ftp_get, ftp_index
 
 # Scrape bill data from bill pages from nmlegis.org.
 
@@ -11,7 +12,6 @@ import datetime, dateutil.parser
 import time
 import re
 import requests
-from ftplib import FTP
 import posixpath
 from collections import OrderedDict
 from bs4 import BeautifulSoup
@@ -20,63 +20,6 @@ import xlrd
 url_mapper = URLmapper('https://www.nmlegis.gov',
     '%s/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s')
 
-committees = {
-    "HAFC": "House Appropriations & Finance",
-    "HAWC": "House Agriculture, Water & Wildlife",
-    "HAWR": "Agriculture, Water Resources",
-    "HBEC": "House Business & Employment",
-    "HBIC": "House Business &amp; Industry",
-    "HCAL": "House Calendar (for a vote)",
-    "HCPAC": "Consumer &amp; Public Affairs",
-    "HEC": "House Education Committee",
-    "HEENC": "House Energy, Environment & Natural Resources",
-    "HGEIC": "House Gov't, Elections & Indian Affairs",
-    "HHC": "House Health",
-    "HHHC": "House Health and Human Services",
-    "HJC": "House Judiciary",
-    "HLEDC": "House Labor &amp; Economic Development",
-    "HLELC": " House Local Government, Elections, Land Grants &amp; Cultural Affairs",
-    "HR": "House Rules",
-    "HXRC": "House Rules & Order of Business Committee",
-    "HRPA": "House Regulatory & Public Affairs",
-    "HSCA": "House Safety & Civil Affairs",
-    "HSIVC": "House  State Gov't, Indian &amp; Veteran Affairs",
-    "HTPWC": "House Transportation, Public Works &amp; Capital Improvements",
-    "HTPW": "House Transportation & Public Works",
-    "HTRC": "House Tax &amp; Revenue",
-    "HWMC": "House Ways & Means",
-    "SAIC": "Senate Indian and Cultural Affairs",
-    "SCAL": "Senate Calendar (for vote)",
-    "SXCC": "Senate Committee on Committees",
-    "SCON": "Senate Conservation",
-    "SCORC": "Senate Corporations & Transportation",
-    "SEC": "Senate Education Committee",
-    "SFC": "Senate Finance Committee",
-    "SJC": "Senate Judiciary Committee",
-    "SPAC": "Senate Public Affairs",
-    "SRC": "Senate Rules Committee",
-}
-
-def committee_code(committee_name):
-    for com in committees:
-        if committees[com] == committee_name:
-            return com
-    return None
-
-# User-friendly strings for the various bill keys:
-# (Not actually used yet)
-# keytitles = {
-#     'billno'       : 'Bill #',
-#     'chamber'      : 'Chamber',
-#     'billtype'     : 'Type',
-#     'number'       : 'Number',
-#     'year'         : 'Year',
-#     'bill_url'     : 'Bill Link',
-#     'title'        : 'Title',
-#     'sponsor'      : 'Sponsor',
-#     'sponsorlink'  : 'Sponsor link',
-#     'curloc'       : 'Current Location (committee code)',
-# }
 
 def check_analysis(billno):
     '''See if there are any FIR or LESC analysis links.
@@ -579,12 +522,8 @@ def get_legislator_list():
     cachefile = '%s/%s' % (cachedir, 'Legislators.XLS')
 
     # Seriously? requests can't handle ftp?
-    ftp = FTP('www.nmlegis.gov')
-    ftp.login()
-    ftp.cwd('Legislator Information')
-    ftp.retrbinary('RETR Legislators.XLS', open(cachefile, 'wb').write)
-    ftp.quit()
-    print("Cached in", cachefile)
+    ftp_get('www.nmlegis.gov', 'Legislator Information',
+            'RETR Legislators.XLS', outfile=cachefile)
 
     wb = xlrd.open_workbook(cachefile)
     sheet = wb.sheet_by_name(wb.sheet_names()[0])
@@ -630,6 +569,36 @@ def get_legislator_list():
             print("**** no sponcode: %s" % (fullname), file=sys.stderr)
 
     return legislators
+
+'''
+ftp://www.nmlegis.gov/ has the following directories:
+
+bills, memorials, resolutions
+  house, senate
+    e.g. HB0001.pdf
+
+firs, LESCAnalysis
+  e.g. HB0001.PDF
+  e.g. HB0005.PDF
+
+Amendments_In_Context
+  e.g. HB0001.pdf
+Floor_Amendments
+  e.g. SB0048SFL1.pdf
+
+Legislator Information
+  (already being parsed)
+
+Not needed (yet):
+final
+ExecMessages
+votes
+
+Probably never needed:
+LFCForms
+capitaloutlays
+other
+'''
 
 
 #

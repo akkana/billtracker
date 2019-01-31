@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, url_for, request
+from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 
@@ -6,14 +6,16 @@ from app import app, db
 from app.forms import LoginForm, RegistrationForm, AddBillsForm, \
     UserSettingsForm, PasswordResetForm
 from app.models import User, Bill
-from app.bills import nmlegisbill
+from app.bills import nmlegisbill, billutils
 from .emails import daily_user_email, send_email
 from config import ADMINS
 
 from datetime import datetime, timedelta
 import json
+import requests
 import collections
 import random
+import multiprocessing
 import traceback
 import sys, os
 
@@ -440,4 +442,97 @@ def onebill(username):
         "changed"  : bill.recent_activity(user),
         "more"     : len(billnos)
         })
+
+
+
+@app.route('/api/update_bills', methods=['POST'])
+def update_bills():
+    '''Update a bill from JSON (which must include billid).
+    '''
+    updated = []
+
+    # The docs say get_json() is supposed to parse, but in practice
+    # it returns the unparsed string.
+    # print("Is json?", request.is_json)
+    # bills_to_update = request.get_json(force=True)
+    # print("get_json() returned", bills_to_update,
+    #       "type", type(bills_to_update))
+
+    # This works, though.
+    bills_to_update = json.loads(request.json)
+
+    for bill_to_update in bills_to_update:
+        changed = False
+        if 'billno' not in bill_to_update:
+            print("update_bills: no billno in", bill_to_update)
+            continue
+
+        bill = Bill.query.filter_by(billno=bill_to_update['billno']).first()
+        if not bill:
+            # print("Bill %s isn't in the database: not updating" \
+            #       % bill_to_update['billno'])
+            continue
+
+        for key in bill_to_update:
+            if key == 'billno':
+                continue
+            setattr(bill, key, bill_to_update[key])
+            changed = True
+        if changed:
+            db.session.add(bill)
+            updated.append(bill.billno)
+
+    if updated:
+        print("Committing")
+        db.session.commit()
+
+    updated_str = ', '.join(updated)
+    print("updated bills " + updated_str)
+    return "OK " + updated_str
+
+def fetchlegisdata(url, target):
+    '''Called from update_legisdata in a separate thread.
+       Fetch files from the legislative website, which may be slow,
+       and update bills to reflect what files are available.
+    '''
+    index = billutils.ftp_url_index(url)
+    print("Fetched %s" % url)
+    billupdates = []
+    for l in index:
+        try:
+            filename, date, size = l
+        except:
+            print("Can't parse ftp line: %s" % l)
+            continue
+
+        # filenames are e.g. HB0032.PDF
+        base, ext = os.path.splitext(filename)
+        billno = base.replace('0', '')
+        billupdates.append( {'billno': billno, target: url + filename } )
+
+    url = 'http://127.0.0.1:5000/api/update_bills'
+    res = requests.post(url, json=json.dumps(billupdates))
+
+    return True
+
+
+# Long-running updaters:
+# Test with:
+# rdata = { "TARGET": "LESClink", "URL": "ftp://www.nmlegis.gov/LESCAnalysis"
+# requests.post('http://127.0.0.1:5000/api/update_legisdata', rdata)
+# Works for LESC, FIR, amendments
+@app.route("/api/update_legisdata", methods=['GET', 'POST'])
+def update_legisdata():
+    '''Fetch a file from the legislative website in a separate thread,
+       which will eventually update a specific field in the bills database.
+       POST data should include TARGET (database field to be changed)
+       and URL, e.g. FIRlink and ftp://www.nmlegis.gov/firs/
+    '''
+    url = request.values.get('URL')
+    target = request.values.get('TARGET')
+    print("update_legisdata %s from %s" % (target, url))
+
+    thread = multiprocessing.Process(target=fetchlegisdata, args=(url, target))
+    thread.start()
+    return "OK started thread"
 
