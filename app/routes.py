@@ -16,6 +16,7 @@ import requests
 import collections
 import random
 import multiprocessing
+import posixpath
 import traceback
 import sys, os
 
@@ -508,10 +509,13 @@ def fetchlegisdata(url, target):
         # filenames are e.g. HB0032.PDF
         base, ext = os.path.splitext(filename)
         billno = base.replace('0', '')
-        billupdates.append( {'billno': billno, target: url + filename } )
+        billupdates.append( {'billno': billno,
+                             target: posixpath.join(url, filename) } )
 
-    url = 'http://127.0.0.1:5000/api/update_bills'
-    res = requests.post(url, json=json.dumps(billupdates))
+    # requests needs an absolute URL, or it will raise MissingSchema.
+    # _external=True makes it absolute.
+    res = requests.post(url_for("update_bills", _external=True),
+                        json=json.dumps(billupdates))
 
     return True
 
@@ -519,7 +523,7 @@ def fetchlegisdata(url, target):
 # Long-running updaters:
 # Test with:
 # rdata = { "TARGET": "LESClink", "URL": "ftp://www.nmlegis.gov/LESCAnalysis"
-# requests.post('http://127.0.0.1:5000/api/update_legisdata', rdata)
+# requests.post('http://.../api/update_legisdata', rdata)
 # Works for LESC, FIR, amendments
 @app.route("/api/update_legisdata", methods=['GET', 'POST'])
 def update_legisdata():
