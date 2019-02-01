@@ -497,13 +497,6 @@ class Bill(db.Model):
         else:
             outstr += "No action yet.<br />"
 
-        if self.statustext:
-            # statusHTML is full of crap this year, so prefer statustext
-            # even in HTML output until/unless I find a way around that.
-            outstr += 'Status: %s<br />\n' % self.statustext
-        elif self.statusHTML:
-            outstr += 'Status: %s<br />\n' % self.statusHTML
-
         if self.location:
             l = Committee.query.filter_by(code=self.location).first()
             outstr += 'Location: <a href="%s" target="_blank">%s</a>' % \
@@ -520,37 +513,38 @@ class Bill(db.Model):
         if False and not longform:
             return outstr
 
-        # XXX This clause should go away; it's only here temporarily
-        # so that people's first few views after the database upgrade
-        # won't be missing the contentslink.
-        if not self.contentslink:
-            self.contentslink \
-                = nmlegisbill.contents_url_for_parts(self.chamber,
-                                                     self.billtype,
-                                                     self.number,
-                                                     self.year)
-        outstr += '<a href="%s" target="_blank">Full text of %s</a><br />' % \
-            (self.contentslink, self.billno)
+        if self.statustext:
+            # statusHTML is full of crap this year, so prefer statustext
+            # even in HTML output until/unless I find a way around that.
+            outstr += 'Status: %s<br />\n' % self.statustext
+        elif self.statusHTML:
+            outstr += 'Status: %s<br />\n' % self.statusHTML
+
+        contents = []
+        if self.contentslink:
+            contents.append('<a href="%s" target="_blank">Full text</a>' %
+                            self.contentslink)
+        else:
+            print("Bill %s has no contents link" % self.billno)
+
+        if self.amendlink:
+            contents.append('<a href="%s" target="_blank">Amendments</a>' %
+                            self.amendlink)
+
+        if self.FIRlink:
+            contents.append('<a href="%s" target="_blank">FIR Report</a>' %
+                            self.FIRlink)
+
+        if self.LESClink:
+            contents.append('<a href="%s" target="_blank">LESC Report</a>' %
+                            self.LESClink)
+
+        if contents:
+            outstr += ' &bull; '.join(contents) + '<br />'
 
         if self.sponsor and self.sponsorlink:
             outstr += 'Sponsor: <a href="%s" target="_blank">%s</a><br />' % \
                 (self.sponsorlink, self.sponsor)
-
-        analysis = []
-        if self.amendlink:
-            analysis.append('<a href="%s" target="_blank">Amendments</a>' % \
-                            self.amendlink)
-
-        if self.FIRlink:
-            analysis.append('<a href="%s" target="_blank">FIR Report</a>' % \
-                            self.FIRlink)
-
-        if self.LESClink:
-            analysis.append('<a href="%s" target="_blank">LESC Report</a>' % \
-                            self.LESClink)
-
-        if analysis:
-            outstr += ' &bull; '.join(analysis)
 
         return outstr
 
