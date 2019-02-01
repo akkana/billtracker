@@ -451,9 +451,10 @@ def update_bills():
     '''Update a bill from JSON (which must include billid).
     '''
     updated = []
+    unknown = []
 
-    # The docs say get_json() is supposed to parse, but in practice
-    # it returns the unparsed string.
+    # The docs say get_json() is supposed to parse,
+    # but in practice it returns the unparsed string.
     # print("Is json?", request.is_json)
     # bills_to_update = request.get_json(force=True)
     # print("get_json() returned", bills_to_update,
@@ -470,8 +471,7 @@ def update_bills():
 
         bill = Bill.query.filter_by(billno=bill_to_update['billno']).first()
         if not bill:
-            # print("Bill %s isn't in the database: not updating" \
-            #       % bill_to_update['billno'])
+            unknown.append(bill_to_update['billno'])
             continue
 
         for key in bill_to_update:
@@ -488,7 +488,8 @@ def update_bills():
         db.session.commit()
 
     updated_str = ', '.join(updated)
-    print("updated bills " + updated_str)
+    print("Updated bills: " + updated_str)
+    print("Skipped (not in db): ", ', '.join(unknown))
     return "OK " + updated_str
 
 def fetchlegisdata(url, target):
@@ -496,7 +497,11 @@ def fetchlegisdata(url, target):
        Fetch files from the legislative website, which may be slow,
        and update bills to reflect what files are available.
     '''
-    index = billutils.ftp_url_index(url)
+    try:
+        index = billutils.ftp_url_index(url)
+    except:
+        print("Couldn't fetch", url)
+        return
     print("Fetched %s" % url)
     billupdates = []
     for l in index:
@@ -522,16 +527,22 @@ def fetchlegisdata(url, target):
 
 # Long-running updaters:
 # Test with:
-# rdata = { "TARGET": "LESClink", "URL": "ftp://www.nmlegis.gov/LESCAnalysis"
-# requests.post('http://.../api/update_legisdata', rdata)
+# posturl = 'http://.../api/update_legisdata/KEY'
+# lescdata = { "TARGET": "LESClink", "URL": "ftp://www.nmlegis.gov/LESCAnalysis" }
+# firdata = { "TARGET": "FIRlink", "URL": "ftp://www.nmlegis.gov/firs" }
+# amenddata = { "TARGET": "amendlink", "URL": "ftp://www.nmlegis.gov/Amendments_In_Context" }
+# requests.post(posturl, xyzdata)
 # Works for LESC, FIR, amendments
-@app.route("/api/update_legisdata", methods=['GET', 'POST'])
-def update_legisdata():
+@app.route("/api/update_legisdata/<key>", methods=['GET', 'POST'])
+def update_legisdata(key):
     '''Fetch a file from the legislative website in a separate thread,
        which will eventually update a specific field in the bills database.
        POST data should include TARGET (database field to be changed)
        and URL, e.g. FIRlink and ftp://www.nmlegis.gov/firs/
     '''
+    if key != app.config["SECRET_KEY"]:
+        return "FAIL Bad key\n"
+
     url = request.values.get('URL')
     target = request.values.get('TARGET')
     print("update_legisdata %s from %s" % (target, url))
