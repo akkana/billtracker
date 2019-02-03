@@ -27,7 +27,7 @@ BASEURL = os.environ.get('BILLTRACKER_HOME') or 'https://yourdomain'
 LOGFILE = '/var/log/billtracker-update.log'
 
 # Times for various services:
-email_hours = [ 21 ]
+email_hours = [ 19 ]
 legislator_hours = [ ]    # Should happen automatically when needed
 FIR_hours = [ 2, 13 ]
 LESC_hours = [ 3, 16 ]

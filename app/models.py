@@ -443,8 +443,12 @@ class Bill(db.Model):
             outstr += 'Location: <a href="%s" target="_blank">%s</a>' % \
                 (l.get_link(), l.name)
             if self.scheduled_date:
-                outstr += ' <b>SCHEDULED: %s</b>' \
-                    % self.scheduled_date.strftime('%m/%d/%Y')
+                if self.scheduled_date > datetime.now():
+                    outstr += ' <b>SCHEDULED: %s</b>' \
+                        % self.scheduled_date.strftime('%m/%d/%Y')
+                else:
+                    outstr += ' Was scheduled: %s' \
+                        % self.scheduled_date.strftime('%m/%d/%Y')
             elif self.location == 'House' or self.location == 'Senate':
                 outstr += ' <b>%s Floor</b>' % self.location
             outstr += '<br />'
@@ -506,7 +510,7 @@ class Bill(db.Model):
             l = Committee.query.filter_by(code=self.location).first()
             outstr += 'Current location: %s <%s>' % \
                 (l.name, l.get_link())
-            if self.scheduled_date:
+            if self.scheduled_date and self.scheduled_date > datetime.now():
                 outstr += ' SCHEDULED FOR: ' \
                     + self.scheduled_date.strftime('%m/%d/%Y')
             outstr += '\n'
