@@ -27,12 +27,12 @@ BASEURL = os.environ.get('BILLTRACKER_HOME') or 'https://yourdomain'
 LOGFILE = '/var/log/billtracker-update.log'
 
 # Times for various services:
-email_hours = [ 19 ]
+email_hours = [ 21 ]
 legislator_hours = [ ]    # Should happen automatically when needed
 FIR_hours = [ 2, 13 ]
 LESC_hours = [ 3, 16 ]
 amend_hours = [ 4, 15 ]
-committee_hours = [ 6, 12, 16, 22 ]
+committee_hours = [ 5, 11, 17, 22 ]
 
 # Bill updating is a bit more complicated since there are so many bills
 # and we want to avoid flooding the legislative website.

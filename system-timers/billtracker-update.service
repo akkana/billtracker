@@ -3,6 +3,6 @@ Description=Periodically update NMBillTracker data
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/wget /var/www/nmbilltracker/system-timers/billtracker-update.py -O /var/log/nmbilltracker.log
+ExecStart=/path/to/billtracker/billtracker-update.py
 KillMode=process
 TimeoutStopSec=900

@@ -2,20 +2,41 @@ Enabling Daily Emails, or other timed services
 
 # Systemd timers:
 
-- Edit billtracker-emails.timer and adjust the time as desired
-- Edit billtracker-emails.service and change the KEY to the secret key
-  you're using.
-- Move billtracker-emails.timer and billtracker-emails.service
-  into /lib/systemd/system,
+Assume the billtracker is installed at $BILLTRACKERHOME
+
+- Edit billtracker-update.timer and adjust the time as desired.
+
+- Edit billtracker-update.service and adjust the path to billtracker-update.py.
+
+- Copy billtracker-update.timer and billtracker-update.service
+  into /lib/systemd/system
   (on some systems /etc/systemd/system/ or some other location may be better).
+
+- Copy $BILLTRACKERHOME/billtracker/system-timers/billtracker-update.py
+  into $BILLTRACKERHOME so you'll have a copy you can edit.
+
+- Edit $BILLTRACKERHOME/billtracker-update.py and change MY_SECRET_KEY
+  and BASEURL.
+  (Yes, there ought to be a better place to set these. Working on it.)
+
+- Copy billtracker-update.timer and billtracker-update.service
+  into /lib/systemd/system
+  (on some systems /etc/systemd/system/ or some other location may be better).
+
+- Edit /lib/systemd/system/billtracker-update.service and adjust the path
+  to call $BILLTRACKERHOME/billtracker-update.py.
+  Verify that it's pointing to the version with the key set properly.
 
 Then:
 
-systemctl enable billtracker-emails.timer
-systemctl start billtracker-emails.timer
+systemctl enable billtracker-update.timer
+systemctl start billtracker-update.timer
 
 Verify the timer was added by listing timers:
 systemctl --no-pager list-timers
+
+In case you ever need to disable it:
+systemd disable billtracker-update.timer
 
 
 
