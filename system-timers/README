@@ -1,4 +1,4 @@
-Enabling Daily Emails:
+Enabling Daily Emails, or other timed services
 
 # Systemd timers:
 
@@ -24,5 +24,5 @@ systemctl --no-pager list-timers
 If you don't use systemd, crontab's format is:
 
 MIN HOUR DAY MON DOW CMD
-09  19   *   *   *   wget https://nmbilltracker.com/api/all_daily_emails/KEY -O /var/log/billtracker-emails.out
+09  22   *   *   *   wget https://nmbilltracker.com/api/all_daily_emails/KEY -O /var/log/billtracker-emails.out
 

@@ -592,7 +592,10 @@ class Legislator(db.Model):
                                  self.firstname, self.lastname)
 
     @staticmethod
-    def update_legislators_list():
+    def refresh_legislators_list():
+        '''Long-running, fetches XLS file from website,
+           should not be called in user-facing code.
+        '''
         for newleg in nmlegisbill.get_legislator_list():
             dbleg = Legislator.query.filter_by(sponcode=newleg['sponcode']).first()
             if (dbleg):
@@ -637,6 +640,7 @@ class Committee(db.Model):
     def update(self):
         '''Update a committee from its web page.
         '''
+        return
         print("Updating committee", self.code, "from the web")
         newcom = nmlegisbill.expand_committee(self.code)
 
@@ -662,10 +666,8 @@ class Committee(db.Model):
             # that means it's probably time to update the legislators list:
             if need_legislators:
                 try:
-                    Legislator.update_legislators_list()
+                    Legislator.refresh_legislators_list()
                 except:
-                    # This is failing
-                    # ftp_get www.nmlegis.gov Legislator Information RETR Legislators.XLS cache/Legislators.XLS
                     print("Couldn't update legislators list")
                     print(traceback.format_exc())
 

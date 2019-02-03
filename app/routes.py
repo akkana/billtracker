@@ -5,12 +5,13 @@ from werkzeug.urls import url_parse
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, AddBillsForm, \
     UserSettingsForm, PasswordResetForm
-from app.models import User, Bill
+from app.models import User, Bill, Legislator, Committee
 from app.bills import nmlegisbill, billutils
 from .emails import daily_user_email, send_email
 from config import ADMINS
 
 from datetime import datetime, timedelta
+import dateutil.parser
 import json
 import requests
 import collections
@@ -446,7 +447,7 @@ def bills_by_update_date():
 # (relatively long-running, see comment above re threads).
 #
 # Test with:
-# posturl = '%s/api/update_legisdata' % baseurl
+# posturl = '%s/api/refresh_legisdata' % baseurl
 # lescdata = { "TARGET": "LESClink",
 #              "URL": "ftp://www.nmlegis.gov/LESCAnalysis",
 #              "KEY"='...' }
@@ -456,8 +457,8 @@ def bills_by_update_date():
 #               "URL": "ftp://www.nmlegis.gov/Amendments_In_Context",
 #               "KEY"='...' }
 # requests.post(posturl, xyzdata).text
-@app.route("/api/update_legisdata", methods=['POST'])
-def update_legisdata():
+@app.route("/api/refresh_legisdata", methods=['POST'])
+def refresh_legisdata():
     '''Fetch a file from the legislative website in a separate thread,
        which will eventually update a specific field in the bills database.
        POST data required:
@@ -471,7 +472,7 @@ def update_legisdata():
 
     url = request.values.get('URL')
     target = request.values.get('TARGET')
-    print("update_legisdata %s from %s" % (target, url))
+    print("refresh_legisdata %s from %s" % (target, url))
 
     try:
         index = billutils.ftp_url_index(url)
@@ -513,3 +514,106 @@ def update_legisdata():
 
     db.session.commit()
     return "OK Updated " + ','.join(changes)
+
+
+@app.route("/api/refresh_legislators", methods=['POST'])
+def refresh_legislators():
+    '''POST data is only for specifying KEY.
+    '''
+    key = request.values.get('KEY')
+    if key != app.config["SECRET_KEY"]:
+        return "FAIL Bad key\n"
+
+    Legislator.refresh_legislators_list()
+
+
+@app.route("/api/all_committees")
+def list_committees():
+    '''List all committee codes in the db, in no particular order.
+       No key required.
+    '''
+    return ','.join([ c.code for c in Committee.query.all() ])
+
+
+@app.route("/api/refresh_committee", methods=['POST'])
+def refresh_committee():
+    '''Long-running API: update a committee from its website.
+       POST data includes COMCODE and KEY.
+    '''
+    key = request.values.get('KEY')
+    if key != app.config["SECRET_KEY"]:
+        return "FAIL Bad key\n"
+
+    comcode = request.values.get('COMCODE')
+    if not comcode:
+        return "FAIL No COMCODE\n"
+
+    print("Updating committee", comcode, "from the web")
+    newcom = nmlegisbill.expand_committee(comcode)
+    if not newcom:
+        return "FAIL Couldn't expand committee %s" % comcode
+
+    committee = Committee.query.filter_by(code=comcode).first()
+    if not committee:
+        print("Creating a new committee: %s" % comcode)
+        committee = Committee()
+        committee.code = comcode
+
+    committee.name = newcom['name']
+    if 'mtg_time' in newcom:
+        committee.mtg_time = newcom['mtg_time']
+    if 'chair' in newcom:
+        committee.chair = newcom['chair']
+
+    members = []
+    newbies = []
+    need_legislators = False
+    if 'members' in newcom:
+        for member in newcom['members']:
+            m = Legislator.query.filter_by(sponcode=member).first()
+            if m:
+                members.append(m)
+            else:
+                need_legislators = True
+                newbies.append(member)
+
+        # If there were any sponcodes we hadn't seen before,
+        # that means it's probably time to update the legislators list:
+        if need_legislators:
+            try:
+                Legislator.refresh_legislators_list()
+            except:
+                print("Couldn't refresh legislators list")
+                print(traceback.format_exc())
+
+        # Add any newbies:
+        for member in newbies:
+            m = Legislator.query.filter_by(sponcode=member).first()
+            if m:
+                members.append(m)
+            else:
+                print("Even after updating Legislators, couldn't find"
+                      + member, file=sys.stdout)
+
+    committee.members = members
+
+    # Loop over (billno, date) pairs where date is a string, 1/27/2019
+    if 'scheduled_bills' in newcom:
+        for billdate in newcom['scheduled_bills']:
+            b = Bill.query.filter_by(billno=billdate[0]).first()
+            if b:
+                b.location = committee.code
+                if billdate[1]:
+                    b.scheduled_date = dateutil.parser.parse(billdate[1])
+                # XXX Don't need to add(): that happens automatically
+                # when changing a field in an existing object.
+                db.session.add(b)
+            else:
+                print("Not tracking bill", billdate[0])
+
+    committee.last_check = datetime.now()
+
+    db.session.add(committee)
+
+    return "OK Updated committee %s" % comcode
+
