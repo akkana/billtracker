@@ -200,7 +200,7 @@ def unfollow():
             db.session.add(user)
             db.session.commit()
 
-            flash("Unfollowed " + ", ".join(unfollow))
+            flash("Unfollowed " + ','.join(unfollow))
 
     return redirect(url_for('addbills'))
 
@@ -387,158 +387,83 @@ def mailto(username, key):
 
 
 #
-# Gradual bill updating using AJAX.
+# Background bill updating:
+#
+# These are queries intended to be called from an update script,
+# not from user action, to update bills and other information
+# from their respective legislative website pages in the background.
+#
+# It would be nice to be able to spawn off a separate thread for
+# updates, but there doesn't seem to be a way to do that in Flask with
+# sqlite3 that's either documented or reliable (it tends to hit
+# "database is locked" errors). But WSGI in Apache uses multiple
+# threads and that sort of threading does work with Flask, so one of
+# those threads will be used for refresh queries.
 #
 
-@app.route("/api/onebill/<username>")
-def onebill(username):
-    '''Returns JSON.
-    '''
-    global users_updating
-
-    if not username:
-        return "No username specified!"
-
-    user = User.query.filter_by(username=username).first()
-    if not user:
-        return "Unknown user: " + username
-    now = datetime.now()
-
-    # Are we already updating this user?
-    billnos = None
-    for un in users_updating:
-        if un == username:
-            billnos = users_updating[username]
-            break
-    else:    # Not already updating this username
-        billnos = [b.billno for b in user.bills]
-        billnos.sort(key=Bill.natural_key)
-        users_updating[username] = billnos
-
-    # Now user and billnos are set.
-    if not billnos:
-        # This was this user's last bill. Remove the user from the list:
-        del users_updating[username]
-
-        # Update the user's last_check time and commit it to the database:
-        user.last_check = now
-        db.session.add(user)
-        db.session.commit()
-
-        return json.dumps({
-            "summary"  : "(No more)",
-            "more"      : False
-        })
-
-    billno = billnos.pop(0)
-    bill = Bill.query.filter_by(billno=billno).first()
-
-    # Let the bill update itself if it seems appropriate:
-    if bill.update():
-        db.session.commit()
-
-    return json.dumps({
-        "summary"  : bill.show_html(True),
-        "billno"   : bill.billno,
-        "changed"  : bill.recent_activity(user),
-        "more"     : len(billnos)
-        })
-
-
-
-@app.route('/api/update_bills', methods=['POST'])
-def update_bills():
-    '''Update a bill from JSON (which must include billid).
-    '''
-    updated = []
-    unknown = []
-
-    # The docs say get_json() is supposed to parse,
-    # but in practice it returns the unparsed string.
-    # print("Is json?", request.is_json)
-    # bills_to_update = request.get_json(force=True)
-    # print("get_json() returned", bills_to_update,
-    #       "type", type(bills_to_update))
-
-    # This works, though.
-    bills_to_update = json.loads(request.json)
-
-    for bill_to_update in bills_to_update:
-        changed = False
-        if 'billno' not in bill_to_update:
-            print("update_bills: no billno in", bill_to_update)
-            continue
-
-        bill = Bill.query.filter_by(billno=bill_to_update['billno']).first()
-        if not bill:
-            unknown.append(bill_to_update['billno'])
-            continue
-
-        for key in bill_to_update:
-            if key == 'billno':
-                continue
-            setattr(bill, key, bill_to_update[key])
-            changed = True
-        if changed:
-            db.session.add(bill)
-            updated.append(bill.billno)
-
-    if updated:
-        print("Committing")
-        db.session.commit()
-
-    updated_str = ', '.join(updated)
-    print("Updated bills: " + updated_str)
-    print("Skipped (not in db): ", ', '.join(unknown))
-    return "OK " + updated_str
-
-def fetchlegisdata(url, target):
-    '''Called from update_legisdata in a separate thread.
-       Fetch files from the legislative website, which may be slow,
-       and update bills to reflect what files are available.
-    '''
-    try:
-        index = billutils.ftp_url_index(url)
-    except:
-        print("Couldn't fetch", url)
-        return
-    print("Fetched %s" % url)
-    billupdates = []
-    for l in index:
-        try:
-            filename, date, size = l
-        except:
-            print("Can't parse ftp line: %s" % l)
-            continue
-
-        # filenames are e.g. HB0032.PDF
-        base, ext = os.path.splitext(filename)
-        billno = base.replace('0', '')
-        billupdates.append( {'billno': billno,
-                             target: posixpath.join(url, filename) } )
-
-    # requests needs an absolute URL, or it will raise MissingSchema.
-    # _external=True makes it absolute.
-    res = requests.post(url_for("update_bills", _external=True),
-                        json=json.dumps(billupdates))
-
-    return True
-
-
-# Long-running updaters:
+#
 # Test with:
-# posturl = 'http://.../api/update_legisdata'
-# lescdata = { "TARGET": "LESClink", "URL": "ftp://www.nmlegis.gov/LESCAnalysis", KEY='...' }
-# firdata = { "TARGET": "FIRlink", "URL": "ftp://www.nmlegis.gov/firs", KEY='...' }
-# amenddata = { "TARGET": "amendlink", "URL": "ftp://www.nmlegis.gov/Amendments_In_Context", KEY='...' }
-# requests.post(posturl, xyzdata)
-# Works for LESC, FIR, amendments
-@app.route("/api/update_legisdata", methods=['GET', 'POST'])
+# requests.post('%s/api/refresh_one_bill' % baseurl,
+#               { "BILLNO": billno, "KEY": key }).text
+#
+@app.route("/api/refresh_one_bill", methods=['POST'])
+def refresh_one_bill():
+    '''Long-running query: fetch the page for a bill and update it in the db.
+       Send the billno as BILLNO and the app key as KEY in POST data.
+    '''
+    key = request.values.get('KEY')
+    if key != app.config["SECRET_KEY"]:
+        return "FAIL Bad key\n"
+    billno = request.values.get('BILLNO')
+
+    now = datetime.now()
+    b = nmlegisbill.parse_bill_page(billno, year=now.year, cache_locally=True)
+    if not b:
+        return "FAIL Couldn't fetch %s bill page" % billno
+
+    bill = Bill.query.filter_by(billno=billno).first()
+    if not bill:
+        bill = Bill()
+
+    bill.set_from_parsed_page(b)
+    print("Updated", bill)
+    db.session.add(bill)
+    db.session.commit()
+
+    return "OK Updated %s" % billno
+
+
+@app.route("/api/bills_by_update_date")
+def bills_by_update_date():
+    '''Return a list of bills sorted by how recently they've been updated,
+       oldest first. No key required.
+    '''
+    bill_list = Bill.query.order_by(Bill.update_date).all()
+    return ','.join([ bill.billno for bill in bill_list ])
+
+
+# Update LESC, FIR, amendments
+# (relatively long-running, see comment above re threads).
+#
+# Test with:
+# posturl = '%s/api/update_legisdata' % baseurl
+# lescdata = { "TARGET": "LESClink",
+#              "URL": "ftp://www.nmlegis.gov/LESCAnalysis",
+#              "KEY"='...' }
+# firdata = { "TARGET": "FIRlink", "URL": "ftp://www.nmlegis.gov/firs",
+#             "KEY"='...' }
+# amenddata = { "TARGET": "amendlink",
+#               "URL": "ftp://www.nmlegis.gov/Amendments_In_Context",
+#               "KEY"='...' }
+# requests.post(posturl, xyzdata).text
+@app.route("/api/update_legisdata", methods=['POST'])
 def update_legisdata():
     '''Fetch a file from the legislative website in a separate thread,
        which will eventually update a specific field in the bills database.
-       POST data should include TARGET (database field to be changed)
-       and URL, e.g. FIRlink and ftp://www.nmlegis.gov/firs/
+       POST data required:
+         TARGET is the field to be changed (e.g. FIRlink);
+         URL is the ftp index for that link, e.g. ftp://www.nmlegis.gov/firs/
+         KEY is the app key.
     '''
     key = request.values.get('KEY')
     if key != app.config["SECRET_KEY"]:
@@ -548,7 +473,43 @@ def update_legisdata():
     target = request.values.get('TARGET')
     print("update_legisdata %s from %s" % (target, url))
 
-    thread = multiprocessing.Process(target=fetchlegisdata, args=(url, target))
-    thread.start()
-    return "OK started thread"
+    try:
+        index = billutils.ftp_url_index(url)
+    except:
+        return "FAIL Couldn't fetch %s" % url
 
+    print("Fetched %s" % url)
+
+    # Slow part is done. Now it's okay to access the database.
+
+    # Get all bills that might need updating:
+    # bills = Bill.query.filter(Bill.billno.in_(billnos)).all()
+
+    changes = []
+    for l in index:
+        try:
+            filename, date, size = l
+        except:
+            print("Can't parse ftp line: %s" % l)
+            continue
+
+        base, ext = os.path.splitext(filename)
+        print("base", base)
+
+        # filenames are e.g. HB0032.PDF. Remove zeros.
+        billno = base.replace('0', '')
+        print("billno", billno)
+        bill = Bill.query.filter_by(billno=billno).first()
+        if bill:
+            print("bill", bill)
+            setattr(bill, target, posixpath.join(url, filename))
+            db.session.add(bill)
+            changes.append(billno)
+        else:
+            print("%s isn't in the database" % billno)
+
+    if not changes:
+        return "OK but no bills updated"
+
+    db.session.commit()
+    return "OK Updated " + ','.join(changes)

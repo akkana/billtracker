@@ -6,6 +6,7 @@ from app.emails import send_email
 
 from datetime import datetime, timedelta
 import dateutil.parser
+import time
 import re
 import random
 import traceback
@@ -128,37 +129,13 @@ https://nmbilltracker.com/confirm_email/%s
         return ''
 
 
-    def check_for_changes(self):
-        '''Have any bills changed recently? Update any bills that need it,
-           commit the updates to the database if need be,
-           and return a list of changed and unchanged bills.
-        '''
-        now = datetime.now()
-        oneday = 24 * 60 * 60    # seconds in a day
-        changed = []
-        unchanged = []
-        needs_commit = False
-        for bill in self.bills:
-            needs_commit |= bill.update()
-
-            if bill.recent_activity(self):
-                changed.append(bill)
-            else:
-                unchanged.append(bill)
-
-        changed.sort(key=Bill.last_action_key, reverse=True)
-        unchanged.sort(key=Bill.last_action_key, reverse=True)
-
-        # bill.update() might have updated something in one or more bills.
-        # In that case, commit all the changes to the database together.
-        if needs_commit:
-            db.session.commit()
-
-        return changed, unchanged
-
-
     def bills_by_number(self):
         return sorted(self.bills, key=Bill.bill_natural_key)
+
+
+    def bills_by_action_date(self):
+        return sorted(self.bills_by_number(),
+                      key=Bill.last_action_key)
 
 
     def show_bill_table(self, bill_list, inline=False):
@@ -168,8 +145,6 @@ https://nmbilltracker.com/confirm_email/%s
            If inline==True, add table row colors as inline CSS
            since email can't use stylesheets.
         '''
-        bill_list.sort(key=Bill.last_action_key, reverse=True)
-
         # Make the table rows alternate color.
         # This is done through CSS on the website,
         # but through inline styles in email.
@@ -189,56 +164,9 @@ https://nmbilltracker.com/confirm_email/%s
             outstr += '<tr %s><td id="%s"%s>%s\n' % (rowstyles[parity],
                                                      bill.billno,
                                                      cellstyle,
-                                                     bill.show_html(True))
+                                                     bill.show_html())
         return outstr
 
-
-    def show_bills(self, inline=False):
-        '''Return a long HTML string showing bill statuses,
-           to be used for the daily email alerts.
-           If inline==True, add table row colors as inline CSS
-           since email can't use stylesheets.
-           Does not update last_check; that's up to the caller.
-        '''
-        changed, unchanged = self.check_for_changes()
-
-        if changed:
-            outstr = '<h2>Bills with recent or upcoming activity:</h2>\n'
-            outstr += '<table class="bill_list">'
-            outstr += self.show_bill_table(changed, inline)
-            outstr += '</table>'
-        else:
-            outstr = "<h2>No bills have changed</h2>\n"
-
-        if unchanged:
-            outstr += "<h2>Other bills:</h2>\n"
-            outstr += '<table class="bill_list">'
-            outstr += self.show_bill_table(unchanged, inline)
-            outstr += '</table>'
-
-        return outstr
-
-    def show_bills_text(self):
-        '''Return a long plaintext string showing bill statuses.
-           Does not update last_check; the caller should.
-        '''
-        changed, unchanged = self.check_for_changes()
-
-        if changed:
-            outstr = 'Bills with recent or upcoming activity:\n\n'
-            for bill in changed:
-                outstr += bill.show_text(True) + "\n\n"
-        else:
-            outstr = "No bills have changed\n"
-
-        if unchanged:
-            outstr += "Other bills:\n\n"
-            for bill in unchanged:
-                outstr += bill.show_html(False)
-        else:
-            outstr += "No unchanged bills\n\n"
-
-        return outstr
 
 @login.user_loader
 def load_user(id):
@@ -346,11 +274,8 @@ class Bill(db.Model):
     #
     # How to sort by billno.
     # Sorting in python 3 is so unintuitive, this "key" business
-    # instead of a straightforward cmp() function. Oh, well.
-    #   Sort a list of billnos:  billnos.sort(key=Bill.natural_key)
-    #   Sort a list of bills by last action date:
-    #                            bills.sorted(key=Bill.last_action_key)
-    # This will be used in several places.
+    # instead of a straightforward cmp function. Oh, well.
+    # See the User class for examples of how to use these keys.
     #
     @staticmethod
     def a2order(text):
@@ -381,14 +306,35 @@ class Bill(db.Model):
     def last_action_key(bill):
         '''Sort bills by last action date, most recent first,
            with a secondary sort on billno.
+           But if a bill is scheduled, put it first in the list,
+           with bills that have the earliest scheduled dates first.
         '''
+        # Bills scheduled for a committee meeting soon are the most
+        # important and must be listed first.
+        # Just checking for a scheduled date isn't enough;
+        # many committees don't update their schedules regularly
+        # so a bill's scheduled date may be several days in the past.
+        # List those bills before bills that have no scheduled date,
+        # but after bills that are actually scheduled for the future.
         if bill.scheduled_date:
-            return bill.scheduled_date.strftime('%Y-%m-%d %H:%M:%s') \
-                + Bill.a2order(bill.billno)
+            if bill.scheduled_date > datetime.now():
+                # This starts with 000 so it will always come first:
+                return bill.scheduled_date.strftime('0 %Y-%m-%d %H:%M:%s') \
+                    + Bill.a2order(bill.billno)
+            else:
+                return bill.scheduled_date.strftime('1 %Y-%m-%d %H:%M:%s') \
+                    + Bill.a2order(bill.billno)
+
         if bill.last_action_date:
-            return bill.last_action_date.strftime('%Y-%m-%d %H:%M:%s') \
+            # Need to reverse the date, so later dates return an
+            # earlier key. This will start with a digit other than 0.
+            return '2 ' \
+                + str(2000000000 -
+                      time.mktime(bill.last_action_date.timetuple())) \
                 + Bill.a2order(bill.billno)
-        return 'ZZ-ZZ-ZZ ZZ:ZZ:ZZ' + Bill.a2order(bill.billno)
+
+        # Bills with no last_action_date come last.
+        return '9 ' + Bill.a2order(bill.billno)
 
 
     def set_from_parsed_page(self, b):
@@ -396,15 +342,11 @@ class Bill(db.Model):
             # For location, a bit more is needed: look up the committee.
             if k == 'curloc':
                 self.location = b['curloc']
-                if b['curloc']:
-                    Committee = get_committee(b['curloc'])
-                else:
-                    print("%s has no location!" % self.billno)
 
-            # Bill doesn't have getattr() even though it has setattr()
-            # XXX Worry about that some other time.
-            # elif self.getattr(k) != b[k]:
-            else:
+            # Mysteriously, the converse of setattr is __getattribute__;
+            # Bill has no setattr() even though the python 3.7.2 docs say
+            # there should be. (Maybe that means it's an old-style class?)
+            elif self.__getattribute__(k) != b[k]:
                 setattr(self, k, b[k])
 
         self.update_date = datetime.now()
@@ -484,10 +426,8 @@ class Bill(db.Model):
         return nmlegisbill.bill_url(self.billno)
 
 
-    def show_html(self, longform):
+    def show_html(self):
         '''Show a summary of the bill's status.
-           longform=True is slightly longer: it assumes a bill has
-           changed recently so there's a need to show what changed.
         '''
         outstr = '<b><a href="%s" target="_blank">%s: %s</a></b><br />' % \
             (self.bill_url(), self.billno, self.title)
@@ -510,9 +450,6 @@ class Bill(db.Model):
             outstr += '<br />'
         else:
             outstr += 'Location: unknown<br />'
-
-        if False and not longform:
-            return outstr
 
         if self.statustext:
             # statusHTML is full of crap this year, so prefer statustext
@@ -550,10 +487,8 @@ class Bill(db.Model):
         return outstr
 
 
-    def show_text(self, longform):
+    def show_text(self):
         '''Show a summary of the bill's status in plaintext format.
-           longform=True is slightly longer: it assumes a bill has
-           changed recently so there's a need to show what changed.
         '''
         outstr = '%s: %s\n' % (self.billno, self.title)
         outstr += self.bill_url() + '\n'
@@ -576,19 +511,8 @@ class Bill(db.Model):
                     + self.scheduled_date.strftime('%m/%d/%Y')
             outstr += '\n'
 
-
-        if False and not longform:
-            return outstr
-
         outstr += 'Full text of %s: %s\n' % \
             (self.billno, self.contentslink)
-
-        # print('Sponsor: %s : %s' % (self.sponsor, self.sponsorlink))
-        if self.sponsor:
-            if self.sponsorlink:
-                outstr += 'Sponsor: %s <%s>' % (self.sponsor, self.sponsorlink)
-            else:
-                outstr += 'Sponsor:  %s' % self.sponsor
 
         if self.amendlink:
             outstr += 'Amendments: ' + self.amendlink + '\n'
@@ -598,6 +522,13 @@ class Bill(db.Model):
 
         if self.LESClink:
             outstr += 'LESC report: ' + self.LESClink + '\n'
+
+        # print('Sponsor: %s : %s' % (self.sponsor, self.sponsorlink))
+        if self.sponsor:
+            if self.sponsorlink:
+                outstr += 'Sponsor: %s <%s>' % (self.sponsor, self.sponsorlink)
+            else:
+                outstr += 'Sponsor:  %s' % self.sponsor + '\n'
 
         return outstr
 

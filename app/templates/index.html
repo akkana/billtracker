@@ -11,13 +11,8 @@ You last checked at {{ current_user.last_check.strftime('%H:%M %m/%d/%Y') }}.
 {{ current_user.update_last_check() }}
 {% endif %}
 
-<table id="changed_bills" class="bill_list scriptonly">
-<tbody>
-<tr class="scriptonly"><td id="busywait"></td></tr>
-</tbody>
-</table>
-<table id="unchanged_bills" class="bill_list">
-{{ current_user.show_bill_table(current_user.bills) | safe }}
+<table id="bills" class="bill_list">
+{{ current_user.show_bill_table(current_user.bills_by_action_date()) | safe }}
 </tbody>
 </table>
 
@@ -29,16 +24,5 @@ more
 some
 {% endif %}
 bills</a></b>
-
-<script type="text/javascript">
-  // Show all class="scriptonly" elements:
-  var classonly = document.getElementsByClassName("scriptonly");
-  for (i=0; i < classonly.length; ++i)
-    classonly[i] .style.display = "initial";
-
-  // loadbills.js needs to know the current username:
-  var current_user = "{{ current_user.username }}";
-</script>
-<script src="/static/js/loadbills.js"></script>
 
 {% endblock %}

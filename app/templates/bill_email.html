@@ -1,7 +1,9 @@
 
 <h1>Bills {{ recipient.username }} is tracking:</h1>
 
-{{ recipient.show_bills(inline=True) | safe }}
+<table class="bill_list">
+{{ recipient.show_bill_table(bill_list, True) | safe }}
+</table>
 
 <hr>
 This is the daily email from

@@ -1,7 +1,9 @@
 
 ==== Bills {{ recipient.username }} is tracking ====
 
-{{ recipient.show_bills_text() | safe }}
+{% for bill in bill_list %}
+    {{ bill.show_text() | safe }}
+{% endfor %}
 
 -----------------------------------------------------------
 This is the daily email from The New Mexico Bill Tracker,

@@ -28,9 +28,12 @@ def daily_user_email(recipient):
     if not recipient.email:
         return
 
+    # Get the sorted list of bills
+    bills = recipient.bills_by_action_date()
+
     send_email("NM Bill Tracker Daily Update",
                "noreply@nmbilltracker.com", [ recipient.email ],
                render_template("bill_email.txt",
-                               recipient=recipient),
+                               recipient=recipient, bill_list=bills),
                render_template("bill_email.html",
-                               recipient=recipient))
+                               recipient=recipient, bill_list=bills))
