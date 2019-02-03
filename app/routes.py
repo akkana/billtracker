@@ -527,19 +527,20 @@ def fetchlegisdata(url, target):
 
 # Long-running updaters:
 # Test with:
-# posturl = 'http://.../api/update_legisdata/KEY'
-# lescdata = { "TARGET": "LESClink", "URL": "ftp://www.nmlegis.gov/LESCAnalysis" }
-# firdata = { "TARGET": "FIRlink", "URL": "ftp://www.nmlegis.gov/firs" }
-# amenddata = { "TARGET": "amendlink", "URL": "ftp://www.nmlegis.gov/Amendments_In_Context" }
+# posturl = 'http://.../api/update_legisdata'
+# lescdata = { "TARGET": "LESClink", "URL": "ftp://www.nmlegis.gov/LESCAnalysis", KEY='...' }
+# firdata = { "TARGET": "FIRlink", "URL": "ftp://www.nmlegis.gov/firs", KEY='...' }
+# amenddata = { "TARGET": "amendlink", "URL": "ftp://www.nmlegis.gov/Amendments_In_Context", KEY='...' }
 # requests.post(posturl, xyzdata)
 # Works for LESC, FIR, amendments
-@app.route("/api/update_legisdata/<key>", methods=['GET', 'POST'])
-def update_legisdata(key):
+@app.route("/api/update_legisdata", methods=['GET', 'POST'])
+def update_legisdata():
     '''Fetch a file from the legislative website in a separate thread,
        which will eventually update a specific field in the bills database.
        POST data should include TARGET (database field to be changed)
        and URL, e.g. FIRlink and ftp://www.nmlegis.gov/firs/
     '''
+    key = request.values.get('KEY')
     if key != app.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 

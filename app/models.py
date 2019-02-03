@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import dateutil.parser
 import re
 import random
+import traceback
 import sys
 
 
@@ -728,13 +729,14 @@ class Committee(db.Model):
 
             # If there were any sponcodes we hadn't seen before,
             # that means it's probably time to update the legislators list:
-            if need_legislators or True:
+            if need_legislators:
                 try:
                     Legislator.update_legislators_list()
                 except:
                     # This is failing
                     # ftp_get www.nmlegis.gov Legislator Information RETR Legislators.XLS cache/Legislators.XLS
                     print("Couldn't update legislators list")
+                    print(traceback.format_exc())
 
             # Add any newbies:
             for member in newbies:

@@ -167,7 +167,7 @@ def parse_bill_page(billno, year=None, cache_locally=True):
     # Detect that:
     try:
         billdic['title'] = soup.find("span",
-                                     id="MainContent_formViewLegislation_lblTitle").text
+            id="MainContent_formViewLegislation_lblTitle").text
     except AttributeError:
         # If we cached, remove the cache file.
         if cache_locally and cachefile:

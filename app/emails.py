@@ -27,7 +27,10 @@ def daily_user_email(recipient):
     '''
     if not recipient.email:
         return
+
     send_email("NM Bill Tracker Daily Update",
                "noreply@nmbilltracker.com", [ recipient.email ],
-               render_template("bill_email.txt", recipient=recipient),
-               render_template("bill_email.html", recipient=recipient))
+               render_template("bill_email.txt",
+                               recipient=recipient),
+               render_template("bill_email.html",
+                               recipient=recipient))

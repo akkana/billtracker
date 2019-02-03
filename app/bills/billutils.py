@@ -183,10 +183,10 @@ def ftp_get(server, dir, filename, outfile):
     ftp.login()
     ftp.cwd(dir)
 
-    ftp.retrbinary('RETR %s' % filename, open(outfile, 'wb').write)
+    ftp.retrbinary('%s' % filename, open(outfile, 'wb').write)
 
     ftp.quit()
-    print("Cached in", cachefile)
+    print("Cached in", outfile)
 
 
 def ftp_index(server, ftpdir):
