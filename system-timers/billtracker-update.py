@@ -30,9 +30,13 @@ LOGFILE = '/var/log/billtracker-update.log'
 email_hours = [ 21 ]
 legislator_hours = [ ]    # Should happen automatically when needed
 FIR_hours = [ 2, 13 ]
-LESC_hours = [ 3, 16 ]
-amend_hours = [ 4, 15 ]
-committee_hours = [ 5, 11, 17, 22 ]
+LESC_hours = [ 3, 15 ]
+amend_hours = [ 4, 16 ]
+
+# Committees are really the important things to refresh:
+# they're the only way to find out when bills are scheduled,
+# and their schedules are updated randomly and sometimes frequently.
+committee_hours = [ 5, 11, 17, 23 ]
 
 # Bill updating is a bit more complicated since there are so many bills
 # and we want to avoid flooding the legislative website.
