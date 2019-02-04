@@ -314,23 +314,35 @@ class Bill(db.Model):
         # Just checking for a scheduled date isn't enough;
         # many committees don't update their schedules regularly
         # so a bill's scheduled date may be several days in the past.
-        # List those bills before bills that have no scheduled date,
-        # but after bills that are actually scheduled for the future.
+        # However, a scheduled date is just a day (time is 00:00:00);
+        # if it's morning, it's crucially important to see bills
+        # scheduled for today, but by evening, they're less interesting
+        now = datetime.now()
+        nowdate = datetime.date(now)
+        if now.hour > 18:
+            nowdate += timedelta(days=1)
+
+        lastaction = datetime.date(bill.last_action_date)
         if bill.scheduled_date:
-            if bill.scheduled_date > datetime.now():
-                # This starts with 000 so it will always come first:
-                return bill.scheduled_date.strftime('0 %Y-%m-%d %H:%M:%s') \
-                    + Bill.a2order(bill.billno)
-            else:
-                return bill.scheduled_date.strftime('1 %Y-%m-%d %H:%M:%s') \
+            scheddate = datetime.date(bill.scheduled_date)
+            if scheddate >= nowdate:
+                # This starts with 0 so it will always come first:
+                return scheddate.strftime('0 %Y-%m-%d') \
                     + Bill.a2order(bill.billno)
 
-        if bill.last_action_date:
+            if not lastaction or scheddate > lastaction:
+                lastaction = bill.scheduled_date
+
+        # If it's not scheduled for the future, then take the last action
+        # -- which may actually be the scheduled date, if that's more recent --
+        # in reversed order, so later dates return an earlier key.
+
+        if lastaction:
             # Need to reverse the date, so later dates return an
             # earlier key. This will start with a digit other than 0.
             return '2 ' \
                 + str(2000000000 -
-                      time.mktime(bill.last_action_date.timetuple())) \
+                      time.mktime(lastaction.timetuple())) \
                 + Bill.a2order(bill.billno)
 
         # Bills with no last_action_date come last.
@@ -443,11 +455,11 @@ class Bill(db.Model):
             outstr += 'Location: <a href="%s" target="_blank">%s</a>' % \
                 (l.get_link(), l.name)
             if self.scheduled_date:
-                if self.scheduled_date > datetime.now():
+                if datetime.date(self.scheduled_date) >= datetime.date(datetime.now()):
                     outstr += ' <b>SCHEDULED: %s</b>' \
                         % self.scheduled_date.strftime('%m/%d/%Y')
                 else:
-                    outstr += ' Was scheduled: %s' \
+                    outstr += ' Last scheduled: %s' \
                         % self.scheduled_date.strftime('%m/%d/%Y')
             elif self.location == 'House' or self.location == 'Senate':
                 outstr += ' <b>%s Floor</b>' % self.location
