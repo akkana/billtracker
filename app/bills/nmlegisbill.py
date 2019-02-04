@@ -156,7 +156,8 @@ def parse_bill_page(billno, year=None, cache_locally=True):
     if cache_locally:
         cachefile = os.path.join(cachedir,
                                  '20%s-%s.html' % (billdic['year'], billno))
-        soup = soup_from_cache_or_net(baseurl, cachefile=cachefile)
+        soup = soup_from_cache_or_net(baseurl, cachefile=cachefile,
+                                      cachesecs=2*60*60)
     else:
         r = requests.get(baseurl)
         soup = BeautifulSoup(r.text, 'lxml')
@@ -353,7 +354,7 @@ def contents_url_for_parts(chamber, billtype, number, year):
     # Check the relevant directory listing.
     # If these go away, could use the ftp equivalent:
     # ftp://www.nmlegis.gov/resolutions/senate
-    # Only re-fetch these twice a day:
+    # Only re-fetch these twice a day at most:
     soup = soup_from_cache_or_net(url, cachesecs=12*60*60)
     if chambertype not in Link_lists:
         Link_lists[chambertype] = {}
@@ -395,7 +396,7 @@ def expand_house_or_senate(code, cache_locally=True):
     '''
     url = 'https://www.nmlegis.gov/Entity/%s/Floor_Calendar' % code
     if cache_locally:
-        soup = soup_from_cache_or_net(url)
+        soup = soup_from_cache_or_net(url, cachesecs=3*60*60)
     else:
         r = requests.get(url)
         soup = BeautifulSoup(r.text, 'lxml')
@@ -421,7 +422,7 @@ def expand_committee(code, cache_locally=True):
 
     url = 'https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=%s' % code
     if cache_locally:
-        soup = soup_from_cache_or_net(url)
+        soup = soup_from_cache_or_net(url, cachesecs=2*60*60)
     else:
         r = requests.get(url)
         soup = BeautifulSoup(r.text, 'lxml')
