@@ -198,6 +198,11 @@ def parse_bill_page(billno, year=None, cache_locally=True):
                 billdic['curloc'] = 'Senate'
 
     # XXX What's the code for On Governor's Desk? Or Failed, or others?
+    # XXX There's also a case where curloc_a is blank and curloc will
+    # be something like "<b>Senate Intro</b> except with a lot of blanks
+    # and newlines inside. Currently those show up as 'unknown':
+    # I need to catch one in the act to test code to handle it,
+    # and they don't stay in that state for long.
 
     else:
         billdic['curloc'] = ''
