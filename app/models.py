@@ -197,7 +197,7 @@ def get_committee(comcode):
 
     # com is now a Committee object.
     # The only attr guaranteed to be set is code.
-    comm.update()
+    comm.refresh()
     return comm
 
 
@@ -302,6 +302,25 @@ class Bill(db.Model):
         '''
         return [ Bill.a2order(c) for c in re.split('(\d+)', bill.billno) ]
 
+
+    def scheduled_in_future(self):
+        '''Is a bill scheduled for a future *date*?
+           If the current time is 19:00 or later, we'll consider
+           a scheduled date of today to be in the past; if it's
+           earlier than that, it's in the future.
+           (Figuring not many committees meet later than 6pm.)
+        '''
+        now = datetime.now()
+        nowdate = datetime.date(now)
+        if now.hour >= 10:
+            nowdate += timedelta(days=1)
+
+        if self.scheduled_date:
+            scheddate = datetime.date(self.scheduled_date)
+            if scheddate >= nowdate:
+                return True
+
+
     @staticmethod
     def last_action_key(bill):
         '''Sort bills by last action date, most recent first,
@@ -317,43 +336,55 @@ class Bill(db.Model):
         # However, a scheduled date is just a day (time is 00:00:00);
         # if it's morning, it's crucially important to see bills
         # scheduled for today, but by evening, they're less interesting
-        now = datetime.now()
-        nowdate = datetime.date(now)
-        if now.hour > 18:
-            nowdate += timedelta(days=1)
-
-        lastaction = datetime.date(bill.last_action_date)
-        if bill.scheduled_date:
-            scheddate = datetime.date(bill.scheduled_date)
-            if scheddate >= nowdate:
-                # This starts with 0 so it will always come first:
-                return scheddate.strftime('0 %Y-%m-%d') \
-                    + Bill.a2order(bill.billno)
-
-            if not lastaction or scheddate > lastaction:
-                lastaction = bill.scheduled_date
-
-        # If it's not scheduled for the future, then take the last action
-        # -- which may actually be the scheduled date, if that's more recent --
-        # in reversed order, so later dates return an earlier key.
-
-        if lastaction:
-            # Need to reverse the date, so later dates return an
-            # earlier key. This will start with a digit other than 0.
-            return '2 ' \
-                + str(2000000000 -
-                      time.mktime(lastaction.timetuple())) \
+        if bill.scheduled_in_future():
+            # This starts with 0 so it will always come first:
+            print(bill.billno, "is scheduled in the future",
+                  bill.scheduled_date.strftime('0 %Y-%m-%d'))
+            return bill.scheduled_date.strftime('0 %Y-%m-%d') \
                 + Bill.a2order(bill.billno)
 
         # Bills with no last_action_date come last.
-        return '9 ' + Bill.a2order(bill.billno)
+        if not bill.last_action_date:
+            print(bill.billno, "has no scheduled date:",
+                  '9 ' + Bill.a2order(bill.billno))
+            return '9 ' + Bill.a2order(bill.billno)
+
+        # There's definitely a last_action_date.
+        # But if there's a scheduled_date that's more recent,
+        # use that as the last action:
+        lastaction = bill.last_action_date
+        if bill.scheduled_date and bill.scheduled_date > lastaction:
+            lastaction = bill.scheduled_date
+
+        # Sort by the last action in reverse order:
+        # so later dates return an earlier key.
+        # It's hard to reverse a datetime, but it's easy with Unix time.
+        lastaction = bill.last_action_date
+        print(bill.billno, ":")
+        if not lastaction or (bill.scheduled_date and
+                              bill.scheduled_date > lastaction):
+            lastaction = bill.scheduled_date
+            print("  lastaction is more recent than scheduled")
+        # Need to reverse the date, so later dates return an
+        # earlier key. This will start with a digit other than 0.
+        print("    ", '2 ' \
+            + '%010d' % (2000000000 -
+                         time.mktime(lastaction.timetuple())) \
+            + Bill.a2order(bill.billno))
+        return '2 ' \
+            + '%010d' % (2000000000 -
+                         time.mktime(lastaction.timetuple())) \
+            + Bill.a2order(bill.billno)
 
 
     def set_from_parsed_page(self, b):
         for k in b:
-            # For location, a bit more is needed: look up the committee.
+            # For location, there's a name change,
+            # and if the committee changes, also clear scheduled_date.
             if k == 'curloc':
-                self.location = b['curloc']
+                if self.location != b['curloc']:
+                    self.location = b['curloc']
+                    self.scheduled_date = None
 
             # Mysteriously, the converse of setattr is __getattribute__;
             # Bill has no setattr() even though the python 3.7.2 docs say
@@ -362,48 +393,6 @@ class Bill(db.Model):
                 setattr(self, k, b[k])
 
         self.update_date = datetime.now()
-
-
-    def update(self):
-        '''Have we updated this bill recently?
-           If it's been too long, fetch the bill's page and update
-           the database, and return True, otherwise False.
-           Do not commit to the database: the caller should check
-           return values and commit after all bills have been updated.
-        '''
-
-        now = datetime.now()
-        if now - self.update_date < BILLPAGE_REFRESH:
-            return False
-
-        b = nmlegisbill.parse_bill_page(self.billno,
-                                        year=now.year,
-                                        cache_locally=True)
-        if b:
-            self.set_from_parsed_page(b)
-
-        else:
-            errstr = "Couldn't update %b" % self.billno
-            print(errstr, file=sys.stderr)
-
-            if self.statustext:
-                self.statustext = errstr + '\n' + self.statustext
-            else:
-                self.statustext = errstr
-
-            if self.statusHTML:
-                self.statusHTML = errstr + "<br /> " + self.statusHTML
-            else:
-                self.statusHTML = errstr
-
-        try:
-            db.session.add(self)
-        except Exception as e:
-            print("Couldn't add %s to the database" % self.billno,
-                  file=sys.stderr)
-            print(e)
-
-        return True
 
 
     def recent_activity(self, user=None):
@@ -455,11 +444,16 @@ class Bill(db.Model):
             outstr += 'Location: <a href="%s" target="_blank">%s</a>' % \
                 (l.get_link(), l.name)
             if self.scheduled_date:
-                if datetime.date(self.scheduled_date) >= datetime.date(datetime.now()):
+                # This could call self.scheduled_in_future().
+                # But maybe it's actually better to keep it bold for
+                # bills that had hearings earlier today, even though
+                # they're no longer sorted at the top of the list.
+
+                if datetime.date(self.scheduled_date) > datetime.date(datetime.now()):
                     outstr += ' <b>SCHEDULED: %s</b>' \
                         % self.scheduled_date.strftime('%m/%d/%Y')
-                else:
-                    outstr += ' Last scheduled: %s' \
+                elif datetime.date(self.scheduled_date) == datetime.date(datetime.now()):
+                    outstr += ' Was scheduled today, %s' \
                         % self.scheduled_date.strftime('%m/%d/%Y')
             elif self.location == 'House' or self.location == 'Senate':
                 outstr += ' <b>%s Floor</b>' % self.location
@@ -653,8 +647,8 @@ class Committee(db.Model):
     def __repr__(self):
         return 'Committee %s: %s' % (self.code, self.name)
 
-    def update(self):
-        '''Update a committee from its web page.
+    def refresh(self):
+        '''Refresh a committee from its web page.
         '''
         return
         print("Updating committee", self.code, "from the web")
