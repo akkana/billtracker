@@ -134,8 +134,7 @@ https://nmbilltracker.com/confirm_email/%s
 
 
     def bills_by_action_date(self):
-        return sorted(self.bills_by_number(),
-                      key=Bill.last_action_key)
+        return sorted(self.bills, key=Bill.last_action_key)
 
 
     def show_bill_table(self, bill_list, inline=False):
@@ -312,7 +311,7 @@ class Bill(db.Model):
         '''
         now = datetime.now()
         nowdate = datetime.date(now)
-        if now.hour >= 10:
+        if now.hour >= 19:
             nowdate += timedelta(days=1)
 
         if self.scheduled_date:
@@ -328,7 +327,7 @@ class Bill(db.Model):
            But if a bill is scheduled, put it first in the list,
            with bills that have the earliest scheduled dates first.
         '''
-        # XXX temporary debugging aid:
+        # XXX temporary aid for debugging sorting:
         verbose = False
 
         # Bills scheduled for a committee meeting soon are the most
@@ -375,13 +374,11 @@ class Bill(db.Model):
         # Need to reverse the date, so later dates return an
         # earlier key. This will start with a digit other than 0.
         if verbose:
-            print("    ", '2 ' \
-                  + '%010d' % (2000000000 -
-                               time.mktime(lastaction.timetuple())) \
+            print('    2 %010d' % (2000000000 -
+                                   time.mktime(lastaction.timetuple()))
                   + Bill.a2order(bill.billno))
-        return '2 ' \
-            + '%010d' % (2000000000 -
-                         time.mktime(lastaction.timetuple())) \
+        return '2 %010d' % (2000000000 -
+                            time.mktime(lastaction.timetuple())) \
             + Bill.a2order(bill.billno)
 
 
@@ -441,33 +438,53 @@ class Bill(db.Model):
         outstr = '<b><a href="%s" target="_blank">%s: %s</a></b><br />' % \
             (self.bill_url(), self.billno, self.title)
 
-        if self.last_action_date:
-            outstr += "Last action: %s<br />" % \
-                self.last_action_date.strftime('%m/%d/%Y')
-        else:
-            outstr += "No action yet.<br />"
-
         if self.location:
             l = Committee.query.filter_by(code=self.location).first()
             outstr += 'Location: <a href="%s" target="_blank">%s</a>' % \
                 (l.get_link(), l.name)
-            if self.scheduled_date:
-                # This could call self.scheduled_in_future().
-                # But maybe it's actually better to keep it bold for
-                # bills that had hearings earlier today, even though
-                # they're no longer sorted at the top of the list.
 
-                if datetime.date(self.scheduled_date) > datetime.date(datetime.now()):
+            # The date to show is the most recent of last_action_date
+            # or scheduled_date.
+            last_action = self.last_action_date
+
+            if self.scheduled_date:
+                future = self.scheduled_in_future()
+                sched_date = datetime.date(self.scheduled_date)
+                today = datetime.date(datetime.now())
+
+                # If the bill is scheduled in the future, bold it:
+                if future:
                     outstr += ' <b>SCHEDULED: %s</b>' \
                         % self.scheduled_date.strftime('%m/%d/%Y')
-                elif datetime.date(self.scheduled_date) == datetime.date(datetime.now()):
+
+                # if it's not considered future but still today,
+                # highlight that:
+                elif sched_date == today:
                     outstr += ' Was scheduled today, %s' \
                         % self.scheduled_date.strftime('%m/%d/%Y')
-            elif self.location == 'House' or self.location == 'Senate':
+
+                # otherwise show the most recent of scheduled or last_action
+                elif (self.last_action_date
+                      and self.last_action_date > self.scheduled_date):
+                    outstr += ' Last action: %s' % \
+                        self.last_action_date.strftime('%m/%d/%Y')
+                else:
+                    outstr += ' (Last scheduled: %s)' \
+                        % sched_date.strftime('%m/%d/%Y')
+
+            # If it's on the House or Senate floor, highlight that:
+            if self.location == 'House' or self.location == 'Senate':
                 outstr += ' <b>%s Floor</b>' % self.location
             outstr += '<br />'
+
         else:
             outstr += 'Location: unknown<br />'
+
+        if self.last_action_date:
+            outstr += " Last action: %s<br />" % \
+                self.last_action_date.strftime('%m/%d/%Y')
+        else:
+            outstr += " No action yet.<br />"
 
         if self.statustext:
             # statusHTML is full of crap this year, so prefer statustext
@@ -652,16 +669,15 @@ class Committee(db.Model):
                               lazy='subquery',
                               backref=db.backref('legislators', lazy=True))
 
+
     def __repr__(self):
         return 'Committee %s: %s' % (self.code, self.name)
 
-    def refresh(self):
-        '''Refresh a committee from its web page.
-        '''
-        return
-        print("Updating committee", self.code, "from the web")
-        newcom = nmlegisbill.expand_committee(self.code)
 
+    def update_from_parsed_page(self, newcom):
+        '''Update a committee from the web, assuming the time-consuming
+           web fetch has already been done.
+        '''
         self.name = newcom['name']
         if 'mtg_time' in newcom:
             self.mtg_time = newcom['mtg_time']
@@ -700,8 +716,11 @@ class Committee(db.Model):
 
         self.members = members
 
+        updated_bills = []
+        not_updated_bills = []
         # Loop over (billno, date) pairs where date is a string, 1/27/2019
         if 'scheduled_bills' in newcom:
+            print("Looping over scheduled bills", newcom['scheduled_bills'])
             for billdate in newcom['scheduled_bills']:
                 b = Bill.query.filter_by(billno=billdate[0]).first()
                 if b:
@@ -711,12 +730,25 @@ class Committee(db.Model):
                     # XXX Don't need to add(): that happens automatically
                     # when changing a field in an existing object.
                     db.session.add(b)
+                    updated_bills.append(b.billno)
                 else:
-                    print("Not tracking bill", billdate[0])
+                    not_updated_bills.append(billdate[0])
 
         self.last_check = datetime.now()
 
         db.session.add(self)
+
+        print("Updated bills", ', '.join(updated_bills))
+        print("Skipped bills", ', '.join(not_updated_bills))
+
+
+    def refresh(self):
+        '''Refresh a committee from its web page.
+        '''
+        return
+        print("Updating committee", self.code, "from the web")
+        newcom = nmlegisbill.expand_committee(self.code)
+        self.update_from_parsed_page(newcom)
 
 
     def get_link(self):

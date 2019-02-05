@@ -553,67 +553,12 @@ def refresh_committee():
     if not newcom:
         return "FAIL Couldn't expand committee %s" % comcode
 
-    committee = Committee.query.filter_by(code=comcode).first()
-    if not committee:
-        print("Creating a new committee: %s" % comcode)
-        committee = Committee()
-        committee.code = comcode
+    com = Committee.query.filter_by(code=comcode).first()
+    if not com:
+        com = Committee()
+        com.code = comcode
 
-    committee.name = newcom['name']
-    if 'mtg_time' in newcom:
-        committee.mtg_time = newcom['mtg_time']
-    if 'chair' in newcom:
-        committee.chair = newcom['chair']
-
-    members = []
-    newbies = []
-    need_legislators = False
-    if 'members' in newcom:
-        for member in newcom['members']:
-            m = Legislator.query.filter_by(sponcode=member).first()
-            if m:
-                members.append(m)
-            else:
-                need_legislators = True
-                newbies.append(member)
-
-        # If there were any sponcodes we hadn't seen before,
-        # that means it's probably time to update the legislators list:
-        if need_legislators:
-            try:
-                Legislator.refresh_legislators_list()
-            except:
-                print("Couldn't refresh legislators list")
-                print(traceback.format_exc())
-
-        # Add any newbies:
-        for member in newbies:
-            m = Legislator.query.filter_by(sponcode=member).first()
-            if m:
-                members.append(m)
-            else:
-                print("Even after updating Legislators, couldn't find"
-                      + member, file=sys.stdout)
-
-    committee.members = members
-
-    # Loop over (billno, date) pairs where date is a string, 1/27/2019
-    if 'scheduled_bills' in newcom:
-        for billdate in newcom['scheduled_bills']:
-            b = Bill.query.filter_by(billno=billdate[0]).first()
-            if b:
-                b.location = committee.code
-                if billdate[1]:
-                    b.scheduled_date = dateutil.parser.parse(billdate[1])
-                # XXX Don't need to add(): that happens automatically
-                # when changing a field in an existing object.
-                db.session.add(b)
-            else:
-                print("Not tracking bill", billdate[0])
-
-    committee.last_check = datetime.now()
-
-    db.session.add(committee)
+    com.update_from_parsed_page(newcom)
+    db.session.commit()
 
     return "OK Updated committee %s" % comcode
-
