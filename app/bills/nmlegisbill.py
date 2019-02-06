@@ -185,6 +185,7 @@ def parse_bill_page(billno, year=None, cache_locally=True):
     curloc_a  = soup.find("a",
                           id="MainContent_formViewLegislation_linkLocation")
     curloc_href = curloc_a.get('href')
+    curloc_text = curloc_a.text.strip()
     if curloc_href:
         # could be https://www.nmlegis.gov/Entity/House/Floor_Calendar
         # or https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=HHHC
@@ -204,8 +205,14 @@ def parse_bill_page(billno, year=None, cache_locally=True):
     # I need to catch one in the act to test code to handle it,
     # and they don't stay in that state for long.
 
+    # Bills seem to have a text of "Chaptered", with no href,
+    # once they're signed:
+    elif curloc_text == 'Chaptered':
+        billdic['curloc'] = 'Chaptered'
+
     else:
-        billdic['curloc'] = ''
+        print("No curloc_href; curloc_text is '%s'" % curloc_text)
+        billdic['curloc'] = curloc_text
 
     contents_a = soup.find("a",
                            id="MainContent_formViewLegislationTextIntroduced_linkLegislationTextIntroducedHTML")
@@ -255,7 +262,7 @@ def parse_bill_page(billno, year=None, cache_locally=True):
         actiontext = re.sub('(Calendar Day: ../../....)', '\\1\n    ',
                             actiontext)
         actiontext = re.sub('\n\n*', '\n', actiontext)
-        billdic["statustext"] = actiontext
+        billdic["statustext"] = actiontext.strip()
 
     # The bill's page has other useful info, like votes, analysis etc.
     # but unfortunately that's all filled in later with JS and Ajax so

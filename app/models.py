@@ -438,7 +438,9 @@ class Bill(db.Model):
         outstr = '<b><a href="%s" target="_blank">%s: %s</a></b><br />' % \
             (self.bill_url(), self.billno, self.title)
 
-        if self.location:
+        if self.location == 'Chaptered':
+            outstr += 'Location: Chaptered<br />'
+        elif self.location:
             l = Committee.query.filter_by(code=self.location).first()
             outstr += 'Location: <a href="%s" target="_blank">%s</a>' % \
                 (l.get_link(), l.name)
@@ -483,8 +485,11 @@ class Bill(db.Model):
         if self.last_action_date:
             outstr += " Last action: %s<br />" % \
                 self.last_action_date.strftime('%m/%d/%Y')
-        else:
+
+        # Bills don't have action dates on signing:
+        elif not self.statustext.startswith('Signed'):
             outstr += " No action yet.<br />"
+            print(self.billno, "statustext:", self.statustext)
 
         if self.statustext:
             # statusHTML is full of crap this year, so prefer statustext
@@ -531,22 +536,58 @@ class Bill(db.Model):
         if self.last_action_date:
             outstr += "Last action: %s\n" % \
                 self.last_action_date.strftime('%m/%d/%Y')
-        else:
+        # Bills don't have action dates on signing:
+        elif not self.statustext.startswith('Signed'):
             outstr += "No action yet.\n"
+
+        if self.location == 'Chaptered':
+            outstr += 'Location: Chaptered\n'
+        elif self.location:
+            l = Committee.query.filter_by(code=self.location).first()
+            outstr += 'Location: %s <%s>' % \
+                (l.name, l.get_link())
+
+            # The date to show is the most recent of last_action_date
+            # or scheduled_date.
+            last_action = self.last_action_date
+
+            if self.scheduled_date:
+                future = self.scheduled_in_future()
+                sched_date = datetime.date(self.scheduled_date)
+                today = datetime.date(datetime.now())
+
+                # If the bill is scheduled in the future, bold it:
+                if future:
+                    outstr += ' SCHEDULED: %s' \
+                        % self.scheduled_date.strftime('%m/%d/%Y')
+
+                # if it's not considered future but still today,
+                # highlight that:
+                elif sched_date == today:
+                    outstr += ' Was scheduled today, %s' \
+                        % self.scheduled_date.strftime('%m/%d/%Y')
+
+                # otherwise show the most recent of scheduled or last_action
+                elif (self.last_action_date
+                      and self.last_action_date > self.scheduled_date):
+                    outstr += ' Last action: %s' % \
+                        self.last_action_date.strftime('%m/%d/%Y')
+                else:
+                    outstr += ' (Last scheduled: %s)' \
+                        % sched_date.strftime('%m/%d/%Y')
+
+            # If it's on the House or Senate floor, highlight that:
+            if self.location == 'House' or self.location == 'Senate':
+                outstr += ' ** %s Floor **' % self.location
+            outstr += '\n'
+
+        else:
+            outstr += 'Location: unknown\n'
 
         if self.statustext:
             outstr += 'Status: %s\n' % self.statustext
 
-        if self.location:
-            l = Committee.query.filter_by(code=self.location).first()
-            outstr += 'Current location: %s <%s>' % \
-                (l.name, l.get_link())
-            if self.scheduled_date and self.scheduled_date > datetime.now():
-                outstr += ' SCHEDULED FOR: ' \
-                    + self.scheduled_date.strftime('%m/%d/%Y')
-            outstr += '\n'
-
-        outstr += 'Full text of %s: %s\n' % \
+        outstr += 'Text of %s: %s\n' % \
             (self.billno, self.contentslink)
 
         if self.amendlink:
