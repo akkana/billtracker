@@ -62,6 +62,10 @@ tr.even td { background: #cfd; }
 
 div.error { color: red; }
 
+table.bordered, table.bordered td { border: 1px solid black; }
+table.bordered td { padding: .3em; }
+
+
 /* Some things are shown only with Javascript, so are initially made invisible.
  */
 .scriptonly { display: none; }
