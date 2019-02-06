@@ -114,6 +114,11 @@ def about():
     return render_template('about.html', title='About NMBillTracker')
 
 
+@app.route('/links')
+def links():
+    return render_template('links.html', title='Links for NM Bill Tracking')
+
+
 @app.route('/addbills', methods=['GET', 'POST'])
 @login_required
 def addbills():
