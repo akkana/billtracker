@@ -36,7 +36,7 @@ Verify the timer was added by listing timers:
 systemctl --no-pager list-timers
 
 In case you ever need to disable it:
-systemd disable billtracker-update.timer
+systemctl disable billtracker-update.timer
 
 
 
