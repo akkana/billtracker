@@ -438,12 +438,14 @@ class Bill(db.Model):
         outstr = '<b><a href="%s" target="_blank">%s: %s</a></b><br />' % \
             (self.bill_url(), self.billno, self.title)
 
-        if self.location == 'Chaptered':
-            outstr += 'Location: Chaptered<br />'
-        elif self.location:
-            l = Committee.query.filter_by(code=self.location).first()
-            outstr += 'Location: <a href="%s" target="_blank">%s</a>' % \
-                (l.get_link(), l.name)
+        if self.location:
+            comm = Committee.query.filter_by(code=self.location).first()
+            if comm:
+                outstr += 'Location: <a href="%s" target="_blank">%s</a>' % \
+                    (comm.get_link(), comm.name)
+
+            else:        # A location that has no committee entry
+                outstr += 'Location: %s<br />' % self.location
 
             # The date to show is the most recent of last_action_date
             # or scheduled_date.
@@ -474,12 +476,12 @@ class Bill(db.Model):
                     outstr += ' (Last scheduled: %s)' \
                         % sched_date.strftime('%m/%d/%Y')
 
-            # If it's on the House or Senate floor, highlight that:
-            if self.location == 'House' or self.location == 'Senate':
-                outstr += ' <b>%s Floor</b>' % self.location
-            outstr += '<br />'
+                # If it's on the House or Senate floor, highlight that:
+                if self.location == 'House' or self.location == 'Senate':
+                    outstr += ' <b>%s Floor</b>' % self.location
+                outstr += '<br />'
 
-        else:
+        else:            # No location set
             outstr += 'Location: unknown<br />'
 
         if self.last_action_date:
@@ -540,12 +542,13 @@ class Bill(db.Model):
         elif not self.statustext.startswith('Signed'):
             outstr += "No action yet.\n"
 
-        if self.location == 'Chaptered':
-            outstr += 'Location: Chaptered\n'
-        elif self.location:
-            l = Committee.query.filter_by(code=self.location).first()
-            outstr += 'Location: %s <%s>' % \
-                (l.name, l.get_link())
+        if self.location:
+            comm = Committee.query.filter_by(code=self.location).first()
+            if comm:
+                outstr += 'Location: %s <%s>' % \
+                    (comm.name, comm.get_link())
+            else:
+                outstr += 'Location: %s' % self.location
 
             # The date to show is the most recent of last_action_date
             # or scheduled_date.
