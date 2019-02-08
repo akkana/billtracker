@@ -7,72 +7,42 @@
 
 <h1>All Bills That Have Been Filed</h1>
 
-{% if newbills is defined and newbills|length > 0 %}
-
-{% if user %}
-  <h2>Recently Filed Bills</h2>
+{% set bill_lists = [
+  { 'thelist': newbills,
+    'header': """Recently Filed Bills:
   <p>
   These are the bills since the last time you checked this page.
   <br />
   (Warning: that means that if you leave this page and come back,
   or reload the page, these bills will no longer be there!
-  So check them now.)
-{% endif %}
+  So check them now.)""",
+    'alt': "Nothing new since you last looked."
+  },
+  { 'thelist': oldbills,
+    'header': "Older bills:",
+    'alt': ""
+  }
+]
+%}
+
+{% for bill_list in bill_lists %}
+{% if bill_list['thelist'] is defined and bill_list['thelist']|length > 0 %}
+
+<h3>{{ bill_list['header'] | safe }}</h3>
 
 <table class="bill_minilist">
  <thead>
   {% if user %}
     <tr><th><th><th>
-    <th colspan=2><input type="submit" value="Track and Untrack Bills">
+    <th colspan=2><input type="submit" value="Track / Untrack">
 
     <tr><th>Bill <th>Title <th>Bill text
-    <th>Track <th>Untrack
+    <th>Track <th>Untrack  <th>Users
   {% endif %}
  </thead>
 
  <tbody>
-  {% for bill_line in newbills %}
-    <tr class="{{ loop.cycle('odd', 'even') }}">
-      <td>{{ bill_line[0] }}
-      <td><a href="{{ bill_line[2] }}" target="_blank">{{ bill_line[1] }}</a>
-      <td><a href="{{ bill_line[3] }}" target="_blank">bill text</a>
-      {% if user %}
-        {% if user.tracking(bill_line[0]) %}
-          <td>
-          <td><input type="checkbox" class="untrack" name="u_{{ bill_line[0] }}">
-        {% else %}
-          <td><input type="checkbox" class="track" name="f_{{ bill_line[0] }}">
-          <td>
-        {% endif %}
-      {% else %}
-          <td>&nbsp; <td>&nbsp;
-      {% endif %}
-  {% endfor %}
-
- </tbody>
-</table>
-
-{% else %}
-  <p>
-  Nothing new since you last looked.
-
-<h2>Older</h2>
-{% endif %}
-
-{% if oldbills is defined and oldbills|length > 0 %}
-<table class="bill_minilist">
- <thead>
-  {% if user %}
-    <tr><th><th><th>
-    <th colspan=2><input type="submit" value="Track and Untrack Bills">
-
-    <tr><th>Bill <th>Title <th>Bill text
-    <th>Track <th>Untrack
-  {% endif %}
- </thead>
-
- <tbody>
-  {% for bill_line in oldbills %}
+  {% for bill_line in bill_list['thelist'] %}
     <tr class="{{ loop.cycle('odd', 'even') }}">
       <td>{{ bill_line[0] }}
       <td><a href="{{ bill_line[2] }}" target="_blank">{{ bill_line[1] }}</a>
@@ -86,18 +56,28 @@
           <td>
         {% endif %}
       {% else %}
-          <td>&nbsp; <td>&nbsp;
+          <td> <td>
       {% endif %}
+
+      {% set num_tracking = num_tracking_fcn(bill_line[0]) %}
+      <td>{% if num_tracking %} {{ num_tracking }} {% else %} &nbsp; {% endif %}
+
   {% endfor %}
 
   {% if user %}
-    <tr><th><th><th>
-    <th colspan=2><input type="submit" value="Track and Untrack Bills">
+    <tr><th><th><th><th>
+    <th colspan=2><input type="submit" value="Track / Untrack">
   {% endif %}
 
 </table>
 
+{% else %}
+  <p>
+  {{ bill_list['alt'] | safe }}
+
 {% endif %}
+
+{% endfor %}
 
 <p>
 Source: This comes from the

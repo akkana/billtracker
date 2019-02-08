@@ -311,6 +311,22 @@ class Bill(db.Model):
         return [ Bill.a2order(c) for c in re.split('(\d+)', bill.billno) ]
 
 
+    @staticmethod
+    def num_tracking_billno(billno):
+        b = Bill.query.filter_by(billno=billno).first()
+        if not b:
+            return 0
+        return b.num_tracking()
+
+
+    def num_tracking(self):
+        '''How many users are following this bill?
+        '''
+        # select COUNT(*) from userbills where bill_id=self.id;
+        # How to query a Table rather than a Model:
+        return db.session.query(userbills).filter_by(bill_id=self.id).count()
+
+
     def scheduled_in_future(self):
         '''Is a bill scheduled for a future *date*?
            If the current time is 19:00 or later, we'll consider
@@ -336,9 +352,6 @@ class Bill(db.Model):
            But if a bill is scheduled, put it first in the list,
            with bills that have the earliest scheduled dates first.
         '''
-        # XXX temporary aid for debugging sorting:
-        verbose = False
-
         # Bills scheduled for a committee meeting soon are the most
         # important and must be listed first.
         # Just checking for a scheduled date isn't enough;
@@ -349,17 +362,11 @@ class Bill(db.Model):
         # scheduled for today, but by evening, they're less interesting
         if bill.scheduled_in_future():
             # This starts with 0 so it will always come first:
-            if verbose:
-                print(bill.billno, "is scheduled in the future",
-                      bill.scheduled_date.strftime('0 %Y-%m-%d'))
             return bill.scheduled_date.strftime('0 %Y-%m-%d') \
                 + Bill.a2order(bill.billno)
 
         # Bills with no last_action_date come last.
         if not bill.last_action_date:
-            if verbose:
-                print(bill.billno, "has no scheduled date:",
-                      '9 ' + Bill.a2order(bill.billno))
             return '9 ' + Bill.a2order(bill.billno)
 
         # There's definitely a last_action_date.
@@ -373,19 +380,11 @@ class Bill(db.Model):
         # so later dates return an earlier key.
         # It's hard to reverse a datetime, but it's easy with Unix time.
         lastaction = bill.last_action_date
-        if verbose:
-            print(bill.billno, ":")
         if not lastaction or (bill.scheduled_date and
                               bill.scheduled_date > lastaction):
             lastaction = bill.scheduled_date
-            if verbose:
-                print("  lastaction is more recent than scheduled")
         # Need to reverse the date, so later dates return an
         # earlier key. This will start with a digit other than 0.
-        if verbose:
-            print('    2 %010d' % (2000000000 -
-                                   time.mktime(lastaction.timetuple()))
-                  + Bill.a2order(bill.billno))
         return '2 %010d' % (2000000000 -
                             time.mktime(lastaction.timetuple())) \
             + Bill.a2order(bill.billno)

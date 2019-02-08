@@ -276,28 +276,10 @@ def allbills():
        whether or not they're in our database or any user is tracking them.
        New bills the user hasn't seen before are listed first.
     '''
+
     # Do the slow part first, before any database accesses:
     allbills = nmlegisbill.all_bills()
     # This is an OrderedDict, { billno: [title, url] }
-
-    # Would like to get the number of users following each bill.
-    # Maybe
-    # https://stackoverflow.com/questions/29592559/sqlalchemy-filtering-count-in-many-to-many-relationship-query
-    # order Documents by the number of related Tokens:
-    # db.session.query(
-    #     Document,
-    #     func.count(DocTokens.c.token_id).label('total')
-    # ).join(DocTokens).group_by(Document).order_by('total DESC')
-    #
-    # Also, https://docs.sqlalchemy.org/en/latest/orm/basic_relationships.html
-    # https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-viii-followers
-
-    '''
-    db.session.query(
-        Bill,
-        func.count(userbills.c.token_id).label('total')
-    ).join(userbills).group_by(Bill).order_by('total DESC')
-    '''
 
     timestr = "1" + str(datetime.now()) + '\n'
     bills_seen = []
@@ -333,6 +315,7 @@ def allbills():
     timestr += "4" + str(datetime.now()) + '\n'
 
     return render_template('allbills.html', user=user,
+                           num_tracking_fcn=Bill.num_tracking_billno,
                            newbills=newbills, oldbills=oldbills)
 
 

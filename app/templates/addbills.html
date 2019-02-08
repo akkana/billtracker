@@ -35,7 +35,7 @@ You're currently tracking:
 
     <tr class="{{ loop.cycle('odd', 'even') }}">
       <td>{{ bill.billno }}
-      <td><a href="{{ bill.bill_url() }}">{{ bill.title }}</a>
+      <td><a href="{{ bill.bill_url() }}" target="_blank">{{ bill.title }}</a>
       <td><input type="checkbox" name='{{bill.billno}}'">
 
   {% endfor %}
