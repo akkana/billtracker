@@ -85,6 +85,15 @@ class User(UserMixin, db.Model):
         db.session.add(self)
         db.session.commit()
 
+    def tracking(self, billno):
+        '''Convenience routine to help with laying out the allbills page
+        '''
+        # Ideally, have this called just once for the whole allbills page.
+        if not hasattr(self, 'trackedbills') or not self.trackedbills:
+            print("Setting up self.trackedbills")
+            self.trackedbills = [ b.billno for b in self.bills ]
+        return (billno in self.trackedbills)
+
     def send_confirmation_mail(self):
         authcode = ''
         for i in range(5):

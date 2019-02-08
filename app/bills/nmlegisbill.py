@@ -142,7 +142,6 @@ def parse_bill_page(billno, year=None, cache_locally=True):
 
        Does *not* save the fetched bill back to the database.
     '''
-
     billdic = { 'billno': billno }
     (billdic['chamber'], billdic['billtype'],
      billdic['number'], billdic['year']) = billno_to_parts(billno, year)
@@ -300,30 +299,30 @@ def most_recent_action(billdic):
 
 def all_bills():
     '''Return an OrderedDict of all bills, billno: [title, url]
+       From https://www.nmlegis.gov/Legislation/Legislation_List?Session=57
     '''
     baseurl = 'https://www.nmlegis.gov/Legislation/'
+    # XXX need to map year to session. 2019 is 57.
     url = baseurl + 'Legislation_List?Session=57'
-    r = requests.get(url)
-    soup = BeautifulSoup(r.text, 'lxml')
-    # with open('/home/akkana/src/billtracker/resources/Legislation_List?Session=57') as fp:
-    #     t = fp.read()
-    #     soup = BeautifulSoup(t, 'lxml')
 
-    footable = soup.find('table', class_='footable')
+    # re-fetch once an hour:
+    soup = soup_from_cache_or_net(url, cachesecs=60*60)
+
+    footable = soup.find('table', id='MainContent_gridViewLegislation')
     if not footable:
-        print("Can't read the all-bills list", file=sys.stderr)
+        print("Can't read the all-bills list: no footable", file=sys.stderr)
         return None
 
     allbills = OrderedDict()
     billno_pat = re.compile('MainContent_gridViewLegislation_linkBillID.*')
     title_pat = re.compile('MainContent_gridViewLegislation_lblTitle.*')
     for tr in footable.findAll('tr'):
-        billno = tr.find('a', id=billno_pat)
-        title = tr.find('span', id=title_pat)
-        if billno and title:
+        billno_a = tr.find('a', id=billno_pat)
+        title_a = tr.find('span', id=title_pat)
+        if billno_a and title_a:
             # Remove spaces and stars:
-            allbills[billno.text.replace(' ', '').replace('*', '')] \
-                = [ title.text, baseurl + billno['href'] ]
+            allbills[billno_a.text.replace(' ', '').replace('*', '')] \
+                = [ title_a.text, baseurl + billno_a['href'] ]
 
     return allbills
 
@@ -367,6 +366,10 @@ def contents_url_for_parts(chamber, billtype, number, year):
     # If these go away, could use the ftp equivalent:
     # ftp://www.nmlegis.gov/resolutions/senate
     # Only re-fetch these twice a day at most:
+
+    # XXX This checks at least the cache every time.
+    # It shouldn't!
+
     soup = soup_from_cache_or_net(url, cachesecs=12*60*60)
     if chambertype not in Link_lists:
         Link_lists[chambertype] = {}

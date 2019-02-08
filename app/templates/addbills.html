@@ -21,14 +21,15 @@
 
 {% if user is defined and user.bills is defined and user.bills|length > 0 %}
 
-<form method="POST" action="/unfollow">
+<form method="POST" action="/track_untrack">
+<input type="hidden" id="returnpage" name="returnpage" value="addbills">
 
 <p>
-You're currently following:
+You're currently tracking:
 <br>
 
 <table class="bill_minilist">
-  <tr><th>Bill <th>Title <th>Unfollow
+  <tr><th>Bill <th>Title <th>Untrack
 
   {% for bill in current_user.bills_by_number() %}
 
@@ -39,14 +40,14 @@ You're currently following:
 
   {% endfor %}
 
-<tr><td><td><td><input type="submit" value="Unfollow Bills">
+<tr><td><td><td><input type="submit" value="Untrack Bills">
 
 </table>
 
 </form>
 
 {% else %}
-You're not following any bills yet.
+You're not tracking any bills yet.
 
 {% endif %}
 

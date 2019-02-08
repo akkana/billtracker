@@ -2,43 +2,100 @@
 
 {% block content %}
 
-<h1>All Bills</h1>
+<form method="POST" action="/track_untrack">
+<input type="hidden" id="returnpage" name="returnpage" value="allbills">
 
-{% if newlines is defined and newlines|length > 0 %}
+<h1>All Bills That Have Been Filed</h1>
+
+{% if newbills is defined and newbills|length > 0 %}
+
+{% if user %}
   <h2>Recently Filed Bills</h2>
-
   <p>
   These are the bills since the last time you checked this page.
   <br />
   (Warning: that means that if you leave this page and come back,
   or reload the page, these bills will no longer be there!
   So check them now.)
+{% endif %}
 
-  <ul>
+<table>
+ <thead>
+  {% if user %}
+    <tr><th><th><th>
+    <th colspan=2><input type="submit" value="Track and Untrack Bills">
 
-  {% for line in newlines %}
-    <li><a href="{{ line[2] }}" target="_blank">{{ line[0] }}: {{ line[1] }}</a>
-        &bull; (<a href="{{ line[3] }}" target="_blank">text of the bill</a>)
+    <tr><th>Bill <th>Title <th>Bill text
+    <th>Track <th>Untrack
+  {% endif %}
+ </thead>
+
+ <tbody>
+  {% for bill_line in newbills %}
+    <tr>
+      <td>{{ bill_line[0] }}
+      <td><a href="{{ bill_line[2] }}" target="_blank">{{ bill_line[1] }}</a>
+      <td><a href="{{ bill_line[3] }}" target="_blank">bill text</a>
+      {% if user %}
+        {% if user.tracking(bill_line[0]) %}
+          <td>
+          <td><input type="checkbox" class="untrack" name="u_{{ bill_line[0] }}">
+        {% else %}
+          <td><input type="checkbox" class="track" name="f_{{ bill_line[0] }}">
+          <td>
+        {% endif %}
+      {% else %}
+          <td>&nbsp; <td>&nbsp;
+      {% endif %}
   {% endfor %}
 
-  </ul>
+ </tbody>
+</table>
 
 {% else %}
   <p>
   Nothing new since you last looked.
-{% endif %}
 
 <h2>Older</h2>
+{% endif %}
 
-{% if oldlines is defined and oldlines|length > 0 %}
-  <ul>
+{% if oldbills is defined and oldbills|length > 0 %}
+<table>
+ <thead>
+  {% if user %}
+    <tr><th><th><th>
+    <th colspan=2><input type="submit" value="Track and Untrack Bills">
 
-  {% for line in oldlines %}
-    <li><a href="{{ line[2] }}" target="_blank">{{ line[0] }}: {{ line[1] }}</a>
-        &bull; (<a href="{{ line[3] }}" target="_blank">text of the bill</a>)
+    <tr><th>Bill <th>Title <th>Bill text&nbsp; &nbsp; &nbsp; &nbsp;
+    <th>Track <th>Untrack
+  {% endif %}
+ </thead>
+
+ <tbody>
+  {% for bill_line in oldbills %}
+    <tr>
+      <td>{{ bill_line[0] }}
+      <td><a href="{{ bill_line[2] }}" target="_blank">{{ bill_line[1] }}</a>
+      <td><a href="{{ bill_line[3] }}" target="_blank">bill text</a>
+      {% if user %}
+        {% if user.tracking(bill_line[0]) %}
+          <td>
+          <td><input type="checkbox" class="untrack" name="u_{{ bill_line[0] }}">
+        {% else %}
+          <td><input type="checkbox" class="track" name="f_{{ bill_line[0] }}">
+          <td>
+        {% endif %}
+      {% else %}
+          <td>&nbsp; <td>&nbsp;
+      {% endif %}
   {% endfor %}
 
-  </ul>
+  {% if user %}
+    <tr><th><th><th>
+    <th colspan=2><input type="submit" value="Track and Untrack Bills">
+  {% endif %}
+
+</table>
 
 {% endif %}
 

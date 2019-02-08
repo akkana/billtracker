@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 import dateutil.parser
 import json
 import requests
-import collections
+# from collections import OrderedDict
 import random
 import multiprocessing
 import posixpath
@@ -119,17 +119,41 @@ def links():
     return render_template('links.html', title='Links for NM Bill Tracking')
 
 
+def make_new_bill(billno):
+    '''Create a new Bill object, not previously in the database,
+       by fetching and parsing its page.
+    '''
+    b = nmlegisbill.parse_bill_page(billno,
+                                    year=datetime.now().year,
+                                    cache_locally=True)
+
+    if b:
+        bill = Bill()
+        bill.set_from_parsed_page(b)
+
+        try:
+            db.session.add(bill)
+        except:
+            flash("Couldn't add %s to the database" % billno)
+            print("Couldn't add %s to the database" % billno,
+                  file=sys.stderr)
+    else:
+        bill = None
+        flash("Couldn't fetch information for %s" % billno)
+
+    return bill
+
+
 @app.route('/addbills', methods=['GET', 'POST'])
 @login_required
 def addbills():
+    '''Despite the name, this is for either tracking or untracking.
+    '''
     user = User.query.filter_by(username=current_user.username).first()
     form = AddBillsForm()
 
     if form.validate_on_submit():
         billno = form.billno.data
-        # do stuff with valid form
-        # then redirect to "end" the form
-        # return redirect(url_for('addbills'))
         bill = Bill.query.filter_by(billno=billno).first()
         if bill:
             # But is the user already following it?
@@ -137,24 +161,7 @@ def addbills():
                 flash("You're already following " + billno)
                 return redirect(url_for('addbills'))
         else:
-            # It's a bill not in the database yet: fetch it.
-            b = nmlegisbill.parse_bill_page(billno,
-                                            year=datetime.now().year,
-                                            cache_locally=True)
-
-            if b:
-                bill = Bill()
-                bill.set_from_parsed_page(b)
-
-                try:
-                    db.session.add(bill)
-                except:
-                    flash("Couldn't add %s to the database" % billno)
-                    print("Couldn't add %s to the database" % billno,
-                          file=sys.stderr)
-            else:
-                bill = None
-                flash("Couldn't fetch information for %s" % billno)
+            bill = make_new_bill(billno)
 
         # Either way, bill should be set to a Bill object now.
         # Add it to the current user:
@@ -178,9 +185,12 @@ def addbills():
 # WTForms apparently doesn't have any way to allow adding checkboxes
 # in a loop next to each entry; so this is an old-school form.
 #
-@app.route('/unfollow', methods=['GET', 'POST'])
+@app.route('/track_untrack', methods=['GET', 'POST'])
 @login_required
-def unfollow():
+def track_untrack():
+    '''Called when the user marks bills for tracking or untracking
+       via checkboxes, from either the addbills or allbills page.
+    '''
     if request.method == 'POST' or request.method == 'GET':
         # request contains form (for POST), args (for GET),
         # and values (combined); the first two are ImmutableMultiDict,
@@ -189,61 +199,141 @@ def unfollow():
         # either ImmutableMultiDict or CombinedMultiDict;
         # to_dict() is the only way I've found of accessing the contents.
 
-        unfollow = []
+        track = []
+        untrack = []
+
         values = request.values.to_dict()
+        print("track_untrack: values:", values)
+
+        if 'returnpage' in values:
+            returnpage = values['returnpage']
+        else:
+            returnpage = 'addbills'
+
         for billno in values:
             if values[billno] == 'on':
-                if billno[0] not in 'SHJ':
-                    continue
-                unfollow.append(billno)
-        if unfollow:
-            user = User.query.filter_by(username=current_user.username).first()
-            newbills = []
-            for bill in user.bills:
-                if bill.billno not in unfollow:
-                    newbills.append(bill)
-            user.bills = newbills
+                # Untrack buttons be u_BILLNO or just BILLNO;
+                # track buttons will be f_BILLNO.
+                if billno.startswith('f_'):
+                    track.append(billno[2:])
+                elif billno.startswith('u_'):
+                    untrack.append(billno[2:])
+                else:
+                    untrack.append(billno)
+
+        if not track and not untrack:
+            return redirect(url_for(returnpage))
+
+        user = User.query.filter_by(username=current_user.username).first()
+        currently_tracked = [ b.billno for b in user.bills ]
+        will_untrack = []
+        not_tracking = []
+        will_track = []
+        already_tracking = []
+        for billno in untrack:
+            if billno in currently_tracked:
+                will_untrack.append(billno)
+            else:
+                not_tracking.append(billno)
+        for billno in track:
+            if billno in currently_tracked:
+                already_tracking.append(billno)
+            else:
+                will_track.append(billno)
+
+        if already_tracking:
+            flash("Already tracking %s" % ', '.append(already_tracking))
+
+        if not_tracking:
+            flash("Can't untrack %s; you weren't tracking them"
+                  % ', '.join(not_tracking))
+
+        if will_untrack:
+            for b in user.bills:
+                if b.billno in will_untrack:
+                    user.bills.remove(b)
+            flash("You are no longer tracking %s" % ', '.join(will_untrack))
+
+        # The hard (and slow) part: make new bills as needed.
+        # Can't really do this asynchronously (unless it's with AJAX)
+        # since the user is waiting..
+        if will_track:
+            for billno in will_track:
+                bill = make_new_bill(billno)
+                user.bills.append(bill)
+            flash("You are now tracking %s" % ', '.join(will_track))
+
+        if will_track or will_untrack:
             db.session.add(user)
             db.session.commit()
 
-            flash("Unfollowed " + ','.join(unfollow))
-
-    return redirect(url_for('addbills'))
+    return redirect(url_for(returnpage))
 
 
 @app.route('/allbills')
-@login_required
 def allbills():
     '''Show all bills that have been filed, with titles and links,
        whether or not they're in our database or any user is tracking them.
        New bills the user hasn't seen before are listed first.
     '''
-    user = User.query.filter_by(username=current_user.username).first()
-    if user.bills_seen:
-        bills_seen = user.bills_seen.split(',')
-    else:
-        bills_seen = []
-
+    # Do the slow part first, before any database accesses:
     allbills = nmlegisbill.all_bills()
-    # This is an OrderedDic, billno: title
+    # This is an OrderedDict, { billno: [title, url] }
 
-    newlines = []
-    oldlines = []
+    # Would like to get the number of users following each bill.
+    # Maybe
+    # https://stackoverflow.com/questions/29592559/sqlalchemy-filtering-count-in-many-to-many-relationship-query
+    # order Documents by the number of related Tokens:
+    # db.session.query(
+    #     Document,
+    #     func.count(DocTokens.c.token_id).label('total')
+    # ).join(DocTokens).group_by(Document).order_by('total DESC')
+    #
+    # Also, https://docs.sqlalchemy.org/en/latest/orm/basic_relationships.html
+    # https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-viii-followers
+
+    '''
+    db.session.query(
+        Bill,
+        func.count(userbills.c.token_id).label('total')
+    ).join(userbills).group_by(Bill).order_by('total DESC')
+    '''
+
+    timestr = "1" + str(datetime.now()) + '\n'
+    bills_seen = []
+    if current_user and not current_user.is_anonymous:
+        user = User.query.filter_by(username=current_user.username).first()
+
+        if user.bills_seen:
+            bills_seen = user.bills_seen.split(',')
+    else:
+        user = None
+    timestr += "2" + str(datetime.now()) + '\n'
+
+    newbills = []
+    oldbills = []
+    if not allbills:
+        flash("Problem fetching the bills list")
+        allbills = []
     for billno in allbills:
         args = [billno, allbills[billno][0], allbills[billno][1],
                 nmlegisbill.contents_url_for_billno(billno)]
         if billno not in bills_seen:
-            newlines.append(args)
+            newbills.append(args)
         else:
-            oldlines.append(args)
+            oldbills.append(args)
+
+    timestr += "3" + str(datetime.now()) + '\n'
 
     # Update user
-    user.bills_seen = ','.join(allbills.keys())
-    db.session.add(user)
-    db.session.commit()
+    if user:
+        user.bills_seen = ','.join(allbills.keys())
+        db.session.add(user)
+        db.session.commit()
+    timestr += "4" + str(datetime.now()) + '\n'
 
-    return render_template('allbills.html',
-                           newlines=newlines, oldlines=oldlines)
+    return render_template('allbills.html', user=user,
+                           newbills=newbills, oldbills=oldbills)
 
 
 @app.route("/config")
@@ -429,11 +519,8 @@ def refresh_one_bill():
 
     bill = Bill.query.filter_by(billno=billno).first()
     if not bill:
-        bill = Bill()
+        bill = make_new_bill(billno)
 
-    bill.set_from_parsed_page(b)
-    print("Updated", bill)
-    db.session.add(bill)
     db.session.commit()
 
     return "OK Updated %s" % billno
