@@ -19,7 +19,7 @@
   So check them now.)
 {% endif %}
 
-<table>
+<table class="bill_minilist">
  <thead>
   {% if user %}
     <tr><th><th><th>
@@ -32,7 +32,7 @@
 
  <tbody>
   {% for bill_line in newbills %}
-    <tr>
+    <tr class="{{ loop.cycle('odd', 'even') }}">
       <td>{{ bill_line[0] }}
       <td><a href="{{ bill_line[2] }}" target="_blank">{{ bill_line[1] }}</a>
       <td><a href="{{ bill_line[3] }}" target="_blank">bill text</a>
@@ -60,20 +60,20 @@
 {% endif %}
 
 {% if oldbills is defined and oldbills|length > 0 %}
-<table>
+<table class="bill_minilist">
  <thead>
   {% if user %}
     <tr><th><th><th>
     <th colspan=2><input type="submit" value="Track and Untrack Bills">
 
-    <tr><th>Bill <th>Title <th>Bill text&nbsp; &nbsp; &nbsp; &nbsp;
+    <tr><th>Bill <th>Title <th>Bill text
     <th>Track <th>Untrack
   {% endif %}
  </thead>
 
  <tbody>
   {% for bill_line in oldbills %}
-    <tr>
+    <tr class="{{ loop.cycle('odd', 'even') }}">
       <td>{{ bill_line[0] }}
       <td><a href="{{ bill_line[2] }}" target="_blank">{{ bill_line[1] }}</a>
       <td><a href="{{ bill_line[3] }}" target="_blank">bill text</a>
