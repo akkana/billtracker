@@ -76,7 +76,7 @@
     <tr class="{{ loop.cycle('odd', 'even') }}">
       <td>{{ bill_line[0] }}
       <td><a href="{{ bill_line[2] }}" target="_blank">{{ bill_line[1] }}</a>
-      <td><a href="{{ bill_line[3] }}" target="_blank">bill text</a>
+      <td><a href="{{ bill_line[3] }}" target="_blank">{{ bill_line[0] }} text</a>
       {% if user %}
         {% if user.tracking(bill_line[0]) %}
           <td>
