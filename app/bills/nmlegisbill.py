@@ -16,6 +16,7 @@ import posixpath
 from collections import OrderedDict
 from bs4 import BeautifulSoup
 import xlrd
+import traceback
 
 url_mapper = URLmapper('https://www.nmlegis.gov',
     '%s/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s')
@@ -331,6 +332,28 @@ def all_bills():
 # each of whose contents are a dictionary of int billno: url.
 Link_lists = {}
 
+def populate_link_lists(url, chambertype, cachetime):
+    soup = soup_from_cache_or_net(url, cachesecs=cachetime)
+    if chambertype not in Link_lists:
+        Link_lists[chambertype] = {}
+
+    for a in soup.findAll('a'):
+        href = a.get('href')
+        if not href.endswith('.HTML'):
+            continue
+        if not href.startswith('/Sessions/'):
+            continue
+        href = url_mapper.to_abs_link(href, url)
+
+        base, ext = os.path.splitext(os.path.basename(href))
+        # base is now something like HJM005
+        match = re.search('([A-Z]*)([0-9]*)', base)
+        if match:
+            billandtype = match.group(1)
+            num = match.group(2)
+
+        Link_lists[chambertype][int(num)] = href
+
 def contents_url_for_parts(chamber, billtype, number, year):
     '''A link to a page with a bill's contents in HTML.
        This alas cannot be inferred from the billno,
@@ -343,6 +366,8 @@ def contents_url_for_parts(chamber, billtype, number, year):
     try:
         return Link_lists[chambertype][billnumint]
     except:    # most likely KeyError, but why not catch everything?
+        print("Nope, %s%s%s is not in Link_lists" % (chamber, billtype,
+                                                     number))
         pass
 
     # We don't have it cached. Re-fetch the relevant index.
@@ -368,34 +393,26 @@ def contents_url_for_parts(chamber, billtype, number, year):
     # Only re-fetch these twice a day at most:
 
     # XXX This checks at least the cache every time.
-    # It shouldn't!
+    # It would be nice to find a way around that.
+    # Probably need to keep the info in the database.
 
-    soup = soup_from_cache_or_net(url, cachesecs=12*60*60)
-    if chambertype not in Link_lists:
-        Link_lists[chambertype] = {}
+    populate_link_lists(url, chambertype, 12*60*60)
 
-    for a in soup.findAll('a'):
-        href = a.get('href')
-        if not href.endswith('.HTML'):
-            continue
-        if not href.startswith('/Sessions/'):
-            continue
-        href = url_mapper.to_abs_link(href, url)
-
-        base, ext = os.path.splitext(os.path.basename(href))
-        # base is now something like HJM005
-        match = re.search('([A-Z]*)([0-9]*)', base)
-        if match:
-            billandtype = match.group(1)
-            num = match.group(2)
-
-        Link_lists[chambertype][int(num)] = href
-
-    # Hope we have it now!
+    # Hope we have it now! But we might not, if it's a bill that's so new
+    # that the cache was too old.
     try:
         return Link_lists[chambertype][billnumint]
     except:
         pass
+
+    # If it wasn't in Link_lists, the cache is probably too old. Re-fetch.
+    print("Re-fetching the link lists for", url)
+    populate_link_lists(url, chambertype, 5*60)
+    try:
+        return Link_lists[chambertype][billnumint]
+    except:
+        print("Couldn't get bill text even after re-fetching from the web!")
+        print(traceback.format_exc())
     return ''
 
 def contents_url_for_billno(billno):

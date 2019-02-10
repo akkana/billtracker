@@ -547,7 +547,8 @@ class Bill(db.Model):
             outstr += "Last action: %s\n" % \
                 self.last_action_date.strftime('%m/%d/%Y')
         # Bills don't have action dates on signing:
-        elif not self.statustext.startswith('Signed'):
+        elif not self.statustext or not self.statustext.startswith('Signed'):
+            print(self.billno, "NO STATUSTEXT!")
             outstr += "No action yet.\n"
 
         if self.location:
