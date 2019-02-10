@@ -35,6 +35,7 @@
       {% endif %}
       <a href="{{ url_for('index') }}">Home</a> &bull;
       <a href="{{ url_for('addbills') }}">Track more bills</a> &bull;
+      <a href="{{ url_for('popular') }}">Popular bills</a> &bull;
       <a href="{{ url_for('allbills') }}">All bills</a> &bull;
       {% if current_user.is_anonymous %}
         <a href="{{ url_for('login') }}">Login</a>
@@ -43,6 +44,7 @@
       {% endif %} &bull;
       <a href="{{ url_for('user_settings') }}">Settings</a> &bull;
       <a href="{{ url_for('links') }}">Links</a> &bull;
+      <a href="{{ url_for('help') }}">Help</a> &bull;
       <a href="{{ url_for('about') }}">About</a>
     </div>
 

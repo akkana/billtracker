@@ -114,6 +114,11 @@ def about():
     return render_template('about.html', title='About NMBillTracker')
 
 
+@app.route('/help')
+def help():
+    return render_template('help.html', title='Help for the NMBillTracker')
+
+
 @app.route('/links')
 def links():
     return render_template('links.html', title='Links for NM Bill Tracking')
@@ -270,6 +275,35 @@ def track_untrack():
     return redirect(url_for(returnpage))
 
 
+@app.route('/popular')
+@login_required
+def popular():
+    '''Show all bills in the database, with how many people are tracking them.
+       This requires login, only because it seems rude to show information
+       about our users to someone who can't be bothered to register.
+    '''
+    bills = Bill.query.all()
+    # allbills.html expects a list of
+    # [ [billno, title, link, fulltext_link, num_tracking ] ]
+    bill_list = []
+    for bill in bills:
+        num_tracking = bill.num_tracking()
+        if num_tracking:
+            bill_list.append( [ bill.billno, bill.title,
+                                bill.bill_url(), bill.contentslink,
+                                num_tracking ] )
+
+    # Now sort by num_tracking, column 4:
+    bill_list.sort(reverse=True, key=lambda l: l[4])
+    bill_lists = [ { 'thelist': bill_list,
+                     'header': "",
+                     'alt': "Nobody seems to be tracking anything" } ]
+
+    return render_template('allbills.html', user=current_user,
+                           title="Bills People are Tracking",
+                           returnpage="popular",
+                           bill_lists=bill_lists)
+
 @app.route('/allbills')
 def allbills():
     '''Show all bills that have been filed, with titles and links,
@@ -281,7 +315,6 @@ def allbills():
     allbills = nmlegisbill.all_bills()
     # This is an OrderedDict, { billno: [title, url] }
 
-    timestr = "1" + str(datetime.now()) + '\n'
     bills_seen = []
     if current_user and not current_user.is_anonymous:
         user = User.query.filter_by(username=current_user.username).first()
@@ -290,33 +323,45 @@ def allbills():
             bills_seen = user.bills_seen.split(',')
     else:
         user = None
-    timestr += "2" + str(datetime.now()) + '\n'
 
     newbills = []
     oldbills = []
     if not allbills:
         flash("Problem fetching the bills list")
         allbills = []
+    # allbills.html expects a list of
+    # [ [billno, title, link, fulltext_link, num_tracking ] ]
     for billno in allbills:
-        args = [billno, allbills[billno][0], allbills[billno][1],
-                nmlegisbill.contents_url_for_billno(billno)]
-        if billno not in bills_seen:
+        args = [ billno, allbills[billno][0], allbills[billno][1],
+                 nmlegisbill.contents_url_for_billno(billno),
+                 Bill.num_tracking_billno(billno) ]
+        if user and billno not in bills_seen:
             newbills.append(args)
         else:
             oldbills.append(args)
-
-    timestr += "3" + str(datetime.now()) + '\n'
 
     # Update user
     if user:
         user.bills_seen = ','.join(allbills.keys())
         db.session.add(user)
         db.session.commit()
-    timestr += "4" + str(datetime.now()) + '\n'
 
+    bill_lists = [ { 'thelist': newbills,
+                     'header': """<h2>Recently Filed Bills:</h2>
+<p>
+These are the bills since the last time you checked this page.
+<br />
+(Warning: that means that if you leave this page and come back,
+or reload the page, these bills will no longer be there!
+So check them now.)""",
+                     'alt': "Nothing new since you last looked."
+                   },
+                   { 'thelist': oldbills,
+                     'header': "<h2>Older bills</h2>",
+                     'alt': ""
+                   } ]
     return render_template('allbills.html', user=user,
-                           num_tracking_fcn=Bill.num_tracking_billno,
-                           newbills=newbills, oldbills=oldbills)
+                           bill_lists=bill_lists)
 
 
 @app.route("/config")

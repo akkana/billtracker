@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>NM Bill Tracker Help</h1>
+
+<p>
+For now, just a few tips on things that might not be obvious:
+
+<h3>Track More Bills</h3>
+<p>
+This page lets you add a bill to your tracking list by designation,
+e.g. HB51. It also shows you the bills you're currently tracking
+
+<h3>Popular Bills</h3>
+<p>
+This gives you an idea of which bills other people are tracking.
+It's a good way to notice bills you might care about that you
+might not otherwise have noticed.
+
+<h3>All Bills</h3>
+<p>
+The All Bills page will show you all the bills that have been filed
+during this legislative session. It is slow to load because there are
+so many bills and it needs to keep the information current.
+<p>
+The BillTracker keeps track of which bills it
+has already showed you; new ones you haven't seen are listed first.
+It's a great way of keeping track of newly filed bills to see if
+you care about them.
+<p>
+It also includes checkboxes: you can mark bills you want to add to
+or subtract from your tracking list, then click on <i>Track/Untrack Bills</i>.
+<p>
+All Bills is one of the few pages that don't require that you log in first.
+But of course, if you aren't logged in, the BillTracker can't tell
+which bills you've already seen, so it won't show you new vs. old
+bills, and you can't add or remove bills from your list.
+
+<h3>Settings</h3>
+<p>
+You can change your password or email address here.
+Email addresses must be confirmed: you will get an email from the BillTracker
+with a confirmation code. Without a confirmed email address, you
+can still use the BillTracker website.
+<p>
+If you no longer want to receive email alerts you can clear your
+email address.
+
+<h3>Links on Bills</h3>
+<p>
+Most links on the BillTracker to a bill, committee or legislator
+will open in a new tab, so your BillTracker page is still available.
+
+<h3>Links Page</h3>
+<p>
+The Links page has links I've found useful for navigating the
+legislative session. For instance, for committees that don't list
+their schedules on the committee's page, you can find a list of
+<i>all</i> committee calendars, as well as the House and Senate
+calendars, on the Links page.
+<p>
+Many of the links are to the League of Women Voters of New Mexico.
+The BillTracker is run by the LWVNM webmaster and was originally
+intended to be a LWVNM project; it was split off as a separate project
+primarily because of technical limitations on the LWVNM's web host.
+
+<h2>Other Questions?</h2>
+<p>
+If there's something you find confusing in the BillTracker that you
+think should be documented here,
+<a href="http://shallowsky.com/mailme.html">contact Akkana</a>.
+
+
+{% endblock %}

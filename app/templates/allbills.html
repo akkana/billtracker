@@ -2,43 +2,35 @@
 
 {% block content %}
 
+{% if not title %}
+{% set title = "All Bills That Have Been Filed" %}
+{% endif %}
+
+<h1>{{ title }}</h1>
+
+{% if not returnpage %}
+{% set returnpage = "allbills" %}
+{% endif %}
+
 <form method="POST" action="/track_untrack">
-<input type="hidden" id="returnpage" name="returnpage" value="allbills">
-
-<h1>All Bills That Have Been Filed</h1>
-
-{% set bill_lists = [
-  { 'thelist': newbills,
-    'header': """Recently Filed Bills:
-  <p>
-  These are the bills since the last time you checked this page.
-  <br />
-  (Warning: that means that if you leave this page and come back,
-  or reload the page, these bills will no longer be there!
-  So check them now.)""",
-    'alt': "Nothing new since you last looked."
-  },
-  { 'thelist': oldbills,
-    'header': "Older bills:",
-    'alt': ""
-  }
-]
-%}
+<input type="hidden" id="returnpage" name="returnpage" value="{{ returnpage }}">
 
 {% for bill_list in bill_lists %}
-{% if bill_list['thelist'] is defined and bill_list['thelist']|length > 0 %}
+{% if bill_list['thelist'] and bill_list['thelist']|length > 0 %}
 
-<h3>{{ bill_list['header'] | safe }}</h3>
+{{ bill_list['header'] | safe }}
 
 <table class="bill_minilist">
  <thead>
-  {% if user %}
     <tr><th><th><th>
-    <th colspan=2><input type="submit" value="Track / Untrack">
+    {% if user %}
+      <th colspan=2><input type="submit" value="Track / Untrack">
+    {% endif %}
 
     <tr><th>Bill <th>Title <th>Bill text
-    <th>Track <th>Untrack  <th>Users
-  {% endif %}
+    {% if user %}
+      <th>Track <th>Untrack  <th>Users
+    {% endif %}
  </thead>
 
  <tbody>
@@ -55,13 +47,13 @@
           <td><input type="checkbox" class="track" name="f_{{ bill_line[0] }}">
           <td>
         {% endif %}
-      {% else %}
-          <td> <td>
+
+        <td>{% if bill_line[4] is defined and bill_line[4] %}
+              {{ bill_line[4] }}
+            {% else %}
+              &nbsp;
+            {% endif %}
       {% endif %}
-
-      {% set num_tracking = num_tracking_fcn(bill_line[0]) %}
-      <td>{% if num_tracking %} {{ num_tracking }} {% else %} &nbsp; {% endif %}
-
   {% endfor %}
 
   {% if user %}
