@@ -166,7 +166,12 @@ def addbills():
                 flash("You're already following " + billno)
                 return redirect(url_for('addbills'))
         else:
-            bill = make_new_bill(billno)
+            try:
+                bill = make_new_bill(billno)
+            except RuntimeError as e:
+                flash(str(e))
+                return render_template('addbills.html', title='Add More Bills',
+                                       form=form, user=user)
 
         # Either way, bill should be set to a Bill object now.
         # Add it to the current user:
