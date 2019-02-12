@@ -2,11 +2,11 @@ from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 
-from app import app, db
-from app.forms import LoginForm, RegistrationForm, AddBillsForm, \
+from billtracker import billtracker, db
+from billtracker.forms import LoginForm, RegistrationForm, AddBillsForm, \
     UserSettingsForm, PasswordResetForm
-from app.models import User, Bill, Legislator, Committee
-from app.bills import nmlegisbill, billutils
+from billtracker.models import User, Bill, Legislator, Committee
+from billtracker.bills import nmlegisbill, billutils
 from .emails import daily_user_email, send_email
 from config import ADMINS
 
@@ -30,8 +30,8 @@ import sys, os
 users_updating = {}
 
 
-@app.route('/')
-@app.route('/index')
+@billtracker.route('/')
+@billtracker.route('/index')
 @login_required
 def index():
     # Make sure any AJAX updates start from scratch:
@@ -43,7 +43,7 @@ def index():
     return render_template('index.html', title='Home')
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@billtracker.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
@@ -61,7 +61,7 @@ def login():
     return render_template('login.html', title='Sign In', form=form)
 
 
-@app.route('/logout')
+@billtracker.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('index'))
@@ -70,7 +70,7 @@ def logout():
 # The mega tutorial called this /register,
 # but flask seems to have a problem calling anything /register.
 # As long as it's named something else, this works.
-@app.route('/newaccount', methods=['GET', 'POST'])
+@billtracker.route('/newaccount', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
@@ -96,7 +96,7 @@ def register():
     return render_template('register.html', title='Register', form=form)
 
 
-@app.route('/confirm_email/<auth>')
+@billtracker.route('/confirm_email/<auth>')
 def confirm_email(auth):
     user = User.query.filter_by(auth_code=auth).first()
     if not user:
@@ -109,17 +109,17 @@ def confirm_email(auth):
     return redirect(url_for('login'))
 
 
-@app.route('/about')
+@billtracker.route('/about')
 def about():
     return render_template('about.html', title='About NMBillTracker')
 
 
-@app.route('/help')
+@billtracker.route('/help')
 def help():
     return render_template('help.html', title='Help for the NMBillTracker')
 
 
-@app.route('/links')
+@billtracker.route('/links')
 def links():
     return render_template('links.html', title='Links for NM Bill Tracking')
 
@@ -149,7 +149,7 @@ def make_new_bill(billno):
     return bill
 
 
-@app.route('/addbills', methods=['GET', 'POST'])
+@billtracker.route('/addbills', methods=['GET', 'POST'])
 @login_required
 def addbills():
     '''Despite the name, this is for either tracking or untracking.
@@ -195,7 +195,7 @@ def addbills():
 # WTForms apparently doesn't have any way to allow adding checkboxes
 # in a loop next to each entry; so this is an old-school form.
 #
-@app.route('/track_untrack', methods=['GET', 'POST'])
+@billtracker.route('/track_untrack', methods=['GET', 'POST'])
 @login_required
 def track_untrack():
     '''Called when the user marks bills for tracking or untracking
@@ -280,7 +280,7 @@ def track_untrack():
     return redirect(url_for(returnpage))
 
 
-@app.route('/popular')
+@billtracker.route('/popular')
 @login_required
 def popular():
     '''Show all bills in the database, with how many people are tracking them.
@@ -309,7 +309,7 @@ def popular():
                            returnpage="popular",
                            bill_lists=bill_lists)
 
-@app.route('/allbills')
+@billtracker.route('/allbills')
 def allbills():
     '''Show all bills that have been filed, with titles and links,
        whether or not they're in our database or any user is tracking them.
@@ -369,7 +369,7 @@ So check them now.)""",
                            bill_lists=bill_lists)
 
 
-@app.route("/config")
+@billtracker.route("/config")
 @login_required
 def config():
     if current_user.email not in ADMINS:
@@ -379,7 +379,7 @@ def config():
     return render_template('config.html', users=User.query.all())
 
 
-@app.route("/settings", methods=['GET', 'POST'])
+@billtracker.route("/settings", methods=['GET', 'POST'])
 def user_settings():
     form = UserSettingsForm(obj=current_user)
 
@@ -414,7 +414,7 @@ def user_settings():
     return render_template('settings.html', form=form)
 
 
-@app.route("/password_reset", methods=['GET', 'POST'])
+@billtracker.route("/password_reset", methods=['GET', 'POST'])
 def password_reset():
     form = PasswordResetForm()
 
@@ -457,7 +457,7 @@ def password_reset():
 # API calls, not meant to be visited directly by users:
 #
 
-@app.route("/api/all_daily_emails/<key>")
+@billtracker.route("/api/all_daily_emails/<key>")
 def all_daily_emails(key):
     '''Send out daily emails to all users with an email address registered.
        A cron job will visit this URL once a day.
@@ -486,7 +486,7 @@ def all_daily_emails(key):
     return "OK\n"
 
 
-@app.route('/api/mailto/<username>/<key>')
+@billtracker.route('/api/mailto/<username>/<key>')
 def mailto(username, key):
     if key != app.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
@@ -535,7 +535,7 @@ def mailto(username, key):
 # requests.post('%s/api/refresh_one_bill' % baseurl,
 #               { "BILLNO": billno, "KEY": key }).text
 #
-@app.route("/api/refresh_one_bill", methods=['POST'])
+@billtracker.route("/api/refresh_one_bill", methods=['POST'])
 def refresh_one_bill():
     '''Long-running query: fetch the page for a bill and update it in the db.
        Send the billno as BILLNO and the app key as KEY in POST data.
@@ -559,7 +559,7 @@ def refresh_one_bill():
     return "OK Updated %s" % billno
 
 
-@app.route("/api/bills_by_update_date")
+@billtracker.route("/api/bills_by_update_date")
 def bills_by_update_date():
     '''Return a list of bills sorted by how recently they've been updated,
        oldest first. No key required.
@@ -582,7 +582,7 @@ def bills_by_update_date():
 #               "URL": "ftp://www.nmlegis.gov/Amendments_In_Context",
 #               "KEY"='...' }
 # requests.post(posturl, xyzdata).text
-@app.route("/api/refresh_legisdata", methods=['POST'])
+@billtracker.route("/api/refresh_legisdata", methods=['POST'])
 def refresh_legisdata():
     '''Fetch a file from the legislative website in a separate thread,
        which will eventually update a specific field in the bills database.
@@ -641,7 +641,7 @@ def refresh_legisdata():
     return "OK Updated " + ','.join(changes)
 
 
-@app.route("/api/refresh_legislators", methods=['POST'])
+@billtracker.route("/api/refresh_legislators", methods=['POST'])
 def refresh_legislators():
     '''POST data is only for specifying KEY.
     '''
@@ -652,7 +652,7 @@ def refresh_legislators():
     Legislator.refresh_legislators_list()
 
 
-@app.route("/api/all_committees")
+@billtracker.route("/api/all_committees")
 def list_committees():
     '''List all committee codes in the db, in no particular order.
        No key required.
@@ -660,7 +660,7 @@ def list_committees():
     return ','.join([ c.code for c in Committee.query.all() ])
 
 
-@app.route("/api/refresh_committee", methods=['POST'])
+@billtracker.route("/api/refresh_committee", methods=['POST'])
 def refresh_committee():
     '''Long-running API: update a committee from its website.
        POST data includes COMCODE and KEY.

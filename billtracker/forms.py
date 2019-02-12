@@ -7,7 +7,7 @@ except:
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import ValidationError, DataRequired, Email, \
     EqualTo, Optional
-from app.models import User
+from billtracker.models import User
 
 
 class LoginForm(FlaskForm):

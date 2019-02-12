@@ -1,8 +1,8 @@
-from app import db, login
+from billtracker import db, login
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from app.bills import nmlegisbill
-from app.emails import send_email
+from billtracker.bills import nmlegisbill
+from billtracker.emails import send_email
 
 from datetime import datetime, timedelta
 import dateutil.parser

@@ -1,6 +1,6 @@
-from app import app, db
-from app.models import User, Bill
+from billtracker import billtracker, db
+from billtracker.models import User, Bill
 
-@app.shell_context_processor
+@billtracker.shell_context_processor
 def make_shell_context():
     return {'db': db, 'User': User, 'Bill': Bill}
