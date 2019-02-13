@@ -12,7 +12,7 @@ def str2bool(s):
 class Config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY') or 's945v7490wcn4w47w8n9cp'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'sqlite:///' + os.path.join(basedir, 'app.db')
+        'sqlite:///' + os.path.join(basedir, 'billtracker.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # To watch queries:
