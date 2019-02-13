@@ -99,8 +99,8 @@ def soup_from_cache_or_net(baseurl, cachefile=None, cachesecs=2*60*60):
     # Use cached pages so as not to hit the server so often.
     if os.path.exists(cachefile):
         filestat = os.stat(cachefile)
-        if (time.time() - filestat.st_mtime) < cachesecs:
-            print("Already cached:", baseurl, file=sys.stderr)
+        if (time.time() - filestat.st_mtime) < cachesecs or cachesecs < 0:
+            print("Already cached:", baseurl, '->', cachefile, file=sys.stderr)
             baseurl = cachefile
 
     if ':' in baseurl:
@@ -130,7 +130,7 @@ def soup_from_cache_or_net(baseurl, cachefile=None, cachesecs=2*60*60):
 
     return soup
 
-def parse_bill_page(billno, year=None, cache_locally=True):
+def parse_bill_page(billno, year=None, cache_locally=True, cachesecs=2*60*60):
     '''Download and parse a bill's page on nmlegis.org.
        Return a dictionary containing:
        chamber, billtype, number, year, title, sponsor, sponsorlink,
@@ -143,6 +143,8 @@ def parse_bill_page(billno, year=None, cache_locally=True):
 
        Does *not* save the fetched bill back to the database.
     '''
+    print('cachedir:', cachedir)
+
     billdic = { 'billno': billno }
     (billdic['chamber'], billdic['billtype'],
      billdic['number'], billdic['year']) = billno_to_parts(billno, year)
@@ -156,8 +158,9 @@ def parse_bill_page(billno, year=None, cache_locally=True):
     if cache_locally:
         cachefile = os.path.join(cachedir,
                                  '20%s-%s.html' % (billdic['year'], billno))
+        print("cachefile:", cachefile)
         soup = soup_from_cache_or_net(baseurl, cachefile=cachefile,
-                                      cachesecs=2*60*60)
+                                      cachesecs=cachesecs)
     else:
         r = requests.get(baseurl)
         soup = BeautifulSoup(r.text, 'lxml')
