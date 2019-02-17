@@ -467,22 +467,22 @@ class Bill(db.Model):
                 # If the bill is scheduled in the future, bold it:
                 if future:
                     outstr += ' <b>SCHEDULED: %s</b>' \
-                        % self.scheduled_date.strftime('%m/%d/%Y')
+                        % self.scheduled_date.strftime('%a %m/%d/%Y')
 
                 # if it's not considered future but still today,
                 # highlight that:
                 elif sched_date == today:
                     outstr += ' Was scheduled today, %s' \
-                        % self.scheduled_date.strftime('%m/%d/%Y')
+                        % self.scheduled_date.strftime('%a %m/%d/%Y')
 
                 # otherwise show the most recent of scheduled or last_action
                 elif (self.last_action_date
                       and self.last_action_date > self.scheduled_date):
                     outstr += ' Last action: %s' % \
-                        self.last_action_date.strftime('%m/%d/%Y')
+                        self.last_action_date.strftime('%a %m/%d/%Y')
                 else:
                     outstr += ' (Last scheduled: %s)' \
-                        % sched_date.strftime('%m/%d/%Y')
+                        % sched_date.strftime('%a %m/%d/%Y')
 
                 # If it's on the House or Senate floor, highlight that:
                 if self.location == 'House' or self.location == 'Senate':
@@ -494,7 +494,7 @@ class Bill(db.Model):
 
         if self.last_action_date:
             outstr += " Last action: %s<br />" % \
-                self.last_action_date.strftime('%m/%d/%Y')
+                self.last_action_date.strftime('%a %m/%d/%Y')
 
         # Bills don't have action dates on signing:
         elif not self.statustext.startswith('Signed'):
@@ -545,7 +545,7 @@ class Bill(db.Model):
 
         if self.last_action_date:
             outstr += "Last action: %s\n" % \
-                self.last_action_date.strftime('%m/%d/%Y')
+                self.last_action_date.strftime('%a %m/%d/%Y')
         # Bills don't have action dates on signing:
         elif not self.statustext or not self.statustext.startswith('Signed'):
             print(self.billno, "NO STATUSTEXT!")
@@ -571,22 +571,22 @@ class Bill(db.Model):
                 # If the bill is scheduled in the future, bold it:
                 if future:
                     outstr += ' SCHEDULED: %s' \
-                        % self.scheduled_date.strftime('%m/%d/%Y')
+                        % self.scheduled_date.strftime('%a %m/%d/%Y')
 
                 # if it's not considered future but still today,
                 # highlight that:
                 elif sched_date == today:
                     outstr += ' Was scheduled today, %s' \
-                        % self.scheduled_date.strftime('%m/%d/%Y')
+                        % self.scheduled_date.strftime('%a %m/%d/%Y')
 
                 # otherwise show the most recent of scheduled or last_action
                 elif (self.last_action_date
                       and self.last_action_date > self.scheduled_date):
                     outstr += ' Last action: %s' % \
-                        self.last_action_date.strftime('%m/%d/%Y')
+                        self.last_action_date.strftime('%a %m/%d/%Y')
                 else:
                     outstr += ' (Last scheduled: %s)' \
-                        % sched_date.strftime('%m/%d/%Y')
+                        % sched_date.strftime('%a %m/%d/%Y')
 
             # If it's on the House or Senate floor, highlight that:
             if self.location == 'House' or self.location == 'Senate':
