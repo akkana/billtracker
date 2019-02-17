@@ -462,7 +462,7 @@ def all_daily_emails(key):
     '''Send out daily emails to all users with an email address registered.
        A cron job will visit this URL once a day.
     '''
-    if key != app.config["SECRET_KEY"]:
+    if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
     for user in User.query.all():
@@ -488,7 +488,7 @@ def all_daily_emails(key):
 
 @billtracker.route('/api/mailto/<username>/<key>')
 def mailto(username, key):
-    if key != app.config["SECRET_KEY"]:
+    if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
     user = User.query.filter_by(username=username).first()
@@ -541,7 +541,7 @@ def refresh_one_bill():
        Send the billno as BILLNO and the app key as KEY in POST data.
     '''
     key = request.values.get('KEY')
-    if key != app.config["SECRET_KEY"]:
+    if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
     billno = request.values.get('BILLNO')
 
@@ -592,7 +592,7 @@ def refresh_legisdata():
          KEY is the app key.
     '''
     key = request.values.get('KEY')
-    if key != app.config["SECRET_KEY"]:
+    if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
     url = request.values.get('URL')
@@ -646,7 +646,7 @@ def refresh_legislators():
     '''POST data is only for specifying KEY.
     '''
     key = request.values.get('KEY')
-    if key != app.config["SECRET_KEY"]:
+    if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
     Legislator.refresh_legislators_list()
@@ -666,7 +666,7 @@ def refresh_committee():
        POST data includes COMCODE and KEY.
     '''
     key = request.values.get('KEY')
-    if key != app.config["SECRET_KEY"]:
+    if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
     comcode = request.values.get('COMCODE')
