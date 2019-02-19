@@ -11,6 +11,7 @@
 import os
 import requests
 
+
 #############################################################
 # CONFIGURATION: YOU MUST EDIT THESE or use environment vars.
 #############################################################
@@ -19,6 +20,7 @@ KEY = os.environ.get('SECRET_KEY') or 'MY_SECRET_KEY'
 
 # Set the base URL for your billtracker installation:
 BASEURL = os.environ.get('BILLTRACKER_HOME') or 'https://yourdomain'
+
 
 #############################################################
 # Optional configuration: use the defaults, or change them.
@@ -32,6 +34,7 @@ legislator_hours = [ ]    # Should happen automatically when needed
 FIR_hours = [ 2, 13 ]
 LESC_hours = [ 3, 15 ]
 amend_hours = [ 4, 16 ]
+db_backup_hours = [ 1, 13 ]
 
 # Committees are really the important things to refresh:
 # they're the only way to find out when bills are scheduled,
@@ -52,6 +55,7 @@ bill_update_percent = 20
 # End configuration, no need to edit anything below this.
 #############################################################
 
+
 from datetime import datetime
 
 def main():
@@ -64,6 +68,11 @@ def main():
         BASEURL = BASEURL[:-1]
 
     responses = {}
+
+    if now.hour in db_backup_hours:
+        posturl = '%s/api/db_backup' % (BASEURL)
+        postdata = { "KEY": KEY }
+        res = requests.post(posturl, postdata)
 
     if now.hour in committee_hours:
         coms = requests.get('%s/api/all_committees' % (BASEURL)).text

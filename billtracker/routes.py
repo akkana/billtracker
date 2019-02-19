@@ -19,6 +19,7 @@ import random
 import multiprocessing
 import posixpath
 import traceback
+import shutil
 import sys, os
 
 
@@ -687,3 +688,39 @@ def refresh_committee():
     db.session.commit()
 
     return "OK Updated committee %s" % comcode
+
+
+@billtracker.route("/api/db_backup", methods=['POST'])
+def db_backup():
+    '''Make a backup copy of the database.
+       POST data is only for KEY.
+    '''
+    db_uri = billtracker.config['SQLALCHEMY_DATABASE_URI']
+    print("db URI:", db_uri)
+    if not db_uri.startswith('sqlite://'):
+        return "FAIL db URI doesn't start with sqlite://"
+
+    db_orig = db_uri[9:]
+
+    key = request.values.get('KEY')
+    if key != billtracker.config["SECRET_KEY"]:
+        return "FAIL Bad key\n"
+
+    backupdir = os.path.join(nmlegisbill.cachedir, "db")
+
+    if not os.path.exists(backupdir):
+        try:
+            os.mkdir(backupdir)
+        except Exception as e:
+            return "FAIL Couldn't create %s: %s" % (backupdir, str(e))
+
+    if not os.path.exists(backupdir):
+        return "FAIL Couldn't create %s" % (backupdir)
+
+    now = datetime.now()
+    db_new = os.path.join(backupdir,
+                          now.strftime('billtracker.db-%Y-%m-%d_%H:%M'))
+
+    shutil.copyfile(db_orig, db_new)
+
+    return "OK copied from '%s' to '%s'" % (db_orig, db_new)
