@@ -2,6 +2,13 @@
 
 {% block content %}
 
+{% if not current_user.email_confirmed() %}
+<p class="error">
+Warning: Your email hasn't been confirmed yet.
+Go to <a href="/settings">Settings</a> to request another confirmation message.
+</p>
+{% endif %}
+
 <h1>Bills {{ current_user.username }} is tracking:</h1>
 <p>
 {% if current_user.last_check is not defined or not current_user.last_check %}

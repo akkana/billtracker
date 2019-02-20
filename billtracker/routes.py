@@ -381,36 +381,43 @@ def config():
 
 
 @billtracker.route("/settings", methods=['GET', 'POST'])
+@login_required
 def user_settings():
     form = UserSettingsForm(obj=current_user)
 
     if form.validate_on_submit():
         newpasswd = form.password.data
+        newpasswd2 = form.password2.data
         email = form.email.data
         updated = []
 
-        if newpasswd:
+        if newpasswd and newpasswd2 and newpasswd == newpasswd2:
             current_user.set_password(newpasswd)
             updated.append("password")
 
         if email:
             # Make sure the new email address is unique:
+            # This is duplicating a check that already happened in forms.py.
             u = User.query.filter_by(email=email).first()
             if u and u != current_user:
                 flash("Sorry, that email address is not available")
                 return render_template('settingshtml', form=form)
 
-            current_user.email = email
-            updated.append("email")
+            if email != current_user.email:
+                current_user.email = email
+                updated.append("email")
 
         if updated:
             db.session.add(current_user)
             db.session.commit()
             flash("Updated " + ' and '.join(updated))
-            if "email" in updated:
-                print("Sending confirmation mail, I hope")
-                current_user.send_confirmation_mail()
-                flash("Sent confirmation mail")
+
+        if ((updated and "email" in updated) or
+            (not current_user.email_confirmed())):
+            print("Sending confirmation mail to %s, I hope"
+                  % current_user.email)
+            current_user.send_confirmation_mail()
+            flash("Sent confirmation mail")
 
     return render_template('settings.html', form=form)
 
@@ -505,7 +512,7 @@ def mailto(username, key):
     except Exception as e:
         print("Error, couldn't send email to %s" % username, file=sys.stderr)
         print(e, file=sys.stderr)
-        print(traceback.format_exc())
+        print(traceback.format_exc(), file=sys.stderr)
         return "FAIL couldn't send email to %s" % username
 
     # Update the user's last_check time and commit it to the database:
@@ -621,7 +628,6 @@ def refresh_legisdata():
             continue
 
         base, ext = os.path.splitext(filename)
-        print("base", base)
 
         # filenames are e.g. HB0032.PDF. Remove zeros.
         billno = base.replace('0', '')

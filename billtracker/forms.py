@@ -1,3 +1,4 @@
+from flask_login import current_user
 
 try:
     from flask_wtf import FlaskForm
@@ -20,9 +21,10 @@ class LoginForm(FlaskForm):
 class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     email = StringField('Email', validators=[Optional(), Email()])
-    password = PasswordField('Password', validators=[DataRequired()])
-    password2 = PasswordField(
-        'Repeat Password', validators=[DataRequired(), EqualTo('password')])
+    password = PasswordField('Password', autocomplete="off",
+                             validators=[DataRequired()])
+    password2 = PasswordField('Repeat Password',
+                              validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Register')
 
     def validate_username(self, username):
@@ -58,7 +60,7 @@ class UserSettingsForm(FlaskForm):
 
     def validate_email(self, email):
         user = User.query.filter_by(email=email.data).first()
-        if user is not None:
+        if user is not None and user.username != current_user.username:
             raise ValidationError('That email address is already in use.')
 
 class PasswordResetForm(FlaskForm):

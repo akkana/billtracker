@@ -60,7 +60,7 @@ li:nth-child(odd) { background: lightblue; }</style>
 tr.odd td  { background: #fff; }
 tr.even td { background: #cfd; }
 
-div.error { color: red; }
+.error { color: red; }
 
 table.bordered, table.bordered td { border: 1px solid black; }
 table.bordered td { padding: .3em; }
