@@ -560,8 +560,11 @@ def refresh_one_bill():
 
     bill = Bill.query.filter_by(billno=billno).first()
     if not bill:
-        bill = make_new_bill(billno)
+        bill = Bill()
+    bill.set_from_parsed_page(b)
 
+    # db.sesstion.add(bill)
+    print("Refreshed %s from parsed page; committing" % billno)
     db.session.commit()
 
     return "OK Updated %s" % billno

@@ -143,8 +143,6 @@ def parse_bill_page(billno, year=None, cache_locally=True, cachesecs=2*60*60):
 
        Does *not* save the fetched bill back to the database.
     '''
-    print('cachedir:', cachedir)
-
     billdic = { 'billno': billno }
     (billdic['chamber'], billdic['billtype'],
      billdic['number'], billdic['year']) = billno_to_parts(billno, year)
@@ -158,7 +156,7 @@ def parse_bill_page(billno, year=None, cache_locally=True, cachesecs=2*60*60):
     if cache_locally:
         cachefile = os.path.join(cachedir,
                                  '20%s-%s.html' % (billdic['year'], billno))
-        print("cachefile:", cachefile)
+        print("parse from cachefile:", cachefile)
         soup = soup_from_cache_or_net(baseurl, cachefile=cachefile,
                                       cachesecs=cachesecs)
     else:
