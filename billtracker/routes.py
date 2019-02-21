@@ -506,7 +506,7 @@ def mailto(username, key):
     if not user.email:
         return "FAIL %s doesn't have an email address registered.\n" % username
 
-    print("Attempting to send email to", user.username)
+    print("Sending email to", user.username)
     try:
         daily_user_email(user)
     except Exception as e:
