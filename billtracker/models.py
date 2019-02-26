@@ -449,8 +449,12 @@ class Bill(db.Model):
         if self.location:
             comm = Committee.query.filter_by(code=self.location).first()
             if comm:
-                outstr += 'Location: <a href="%s" target="_blank">%s</a>' % \
-                    (comm.get_link(), comm.name)
+                if comm.name == 'House' or comm.name == 'Senate':
+                    outstr += '<b class="highlight">Location: <a href="%s" target="_blank">%s Floor</a></b>' % \
+                        (comm.get_link(), comm.name)
+                else:
+                    outstr += 'Location: <a href="%s" target="_blank">%s</a>' % \
+                        (comm.get_link(), comm.name)
 
             else:        # A location that has no committee entry
                 outstr += 'Location: %s<br />' % self.location
@@ -483,10 +487,6 @@ class Bill(db.Model):
                 else:
                     outstr += ' (Last scheduled: %s)' \
                         % sched_date.strftime('%a %m/%d/%Y')
-
-                # If it's on the House or Senate floor, highlight that:
-                if self.location == 'House' or self.location == 'Senate':
-                    outstr += ' <b>%s Floor</b>' % self.location
                 outstr += '<br />'
 
         else:            # No location set

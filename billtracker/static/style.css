@@ -62,6 +62,8 @@ tr.even td { background: #cfd; }
 
 .error { color: red; }
 
+.highlight { background: yellow; }
+
 table.bordered, table.bordered td { border: 1px solid black; }
 table.bordered td { padding: .3em; }
 
