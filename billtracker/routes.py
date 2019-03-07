@@ -456,119 +456,6 @@ def password_reset():
 #
 
 
-# TEMPORARY, clean out duplicates
-@billtracker.route('/api/cleandups/<key>')
-def clean_db(key):
-    if key != billtracker.config["SECRET_KEY"]:
-        return "FAIL Bad key\n"
-
-    # A list of all bills that have duplicates
-    masterbills = []
-    bill_ids_seen = set()
-
-    bills = Bill.query.all()
-    for bill in bills:
-        # Already seen because it was a dup of something else?
-        if bill.id in bill_ids_seen:
-            continue
-
-        bill_ids_seen.add(bill.id)
-
-        bills_with_this_no = Bill.query.filter_by(billno=bill.billno).all()
-        if len(bills_with_this_no) == 1:
-            continue
-
-        # There are multiple bills with this billno.
-        print(len(bills_with_this_no), "bills called", bill.billno)
-
-        # User lists tracking each of the duplicate bills:
-        userlists = []
-        numusers = []
-
-        mostusers = 0
-        maxindex = None
-        for i, dupbill in enumerate(bills_with_this_no):
-            bill_ids_seen.add(dupbill.id)
-            tracking = dupbill.users_tracking()
-            howmany = len(tracking)
-            userlists.append(tracking)
-            numusers.append(howmany)
-            if howmany > mostusers:
-                mostusers = howmany
-                maxindex = i
-
-        # Now bills_with_this_no is a list of Bill objects.
-        # userlists is a list of lists of User objects tracking each bill.
-        # numusers is a list of lists of how many users are tracking each bill.
-        # maxindex is the index in all three lists of the bill that's
-        # tracked by the most users; we'll make that the real bill
-        # and remove the rest.
-        if maxindex == None:
-            print("  No users are tracking %s!" % bill.billno)
-
-        # print("  Master bill, id %d, tracked by %s" % (bills_with_this_no[maxindex].id, ', '.join([u.username for u in userlists[maxindex]])))
-        # print("  Duplicates:")
-        # for i, b in enumerate(bills_with_this_no):
-        #     if i == maxindex:
-        #         continue
-        #     if userlists[i]:
-        #         print("    id %d tracked by %s" % (bills_with_this_no[i].id,
-        #                                            ', '.join([u.username for u in userlists[i]])))
-        #     else:
-        #         print("    id %d, no users" % bills_with_this_no[i].id)
-
-        # Now it's time to actually fix the problem.
-        masterbills.append(bill)
-
-    if not masterbills:
-        print("No duplicate bills in database, whew")
-        return "OK"
-
-    print("masterbills:", masterbills)
-
-    # Now make a separate loop, so we're not changing the list of all bills
-    # while looping over the list of all bills.
-    for masterbill in masterbills:
-        print("%s, master is id %d" % (masterbill.billno, masterbill.id))
-
-        bills_with_this_no = Bill.query.filter_by(billno=masterbill.billno).all()
-        print("  %d bills with this no: %s" % (len(bills_with_this_no),
-                                       [b.id for b in bills_with_this_no]))
-
-        for i, b in enumerate(bills_with_this_no):
-            if b.id == masterbill.id:
-                continue
-            users = b.users_tracking()
-            if users:
-                print("  Moving id %d's users over to id %d: %s"
-                      % (bills_with_this_no[i].id,
-                         bills_with_this_no[maxindex].id,
-                         [u.username for u in users]))
-                for u in users:
-                    if b not in u.bills:
-                        print("Eek, id %d thinks %s is tracking but %s doesn't think so" % (b.id, u.username))
-                        continue
-                    if masterbill not in u.bills:
-                        u.bills.append(masterbill)
-                        print("    moved %s" % u.username)
-                    else:
-                        print("    %s was already tracking %d" % (u.username,
-                                                                masterbill.id))
-                    u.bills.remove(b)
-                    db.session.add(u)
-            else:
-                print("  id %d had no users" % b.id)
-
-            print("  Deleting bill id %d" % b.id)
-            db.session.delete(b)
-
-        db.session.add(masterbill)
-
-    if masterbills:
-        db.session.commit()
-    return "OK"
-
-
 @billtracker.route("/api/all_daily_emails/<key>")
 def all_daily_emails(key):
     '''Send out daily emails to all users with an email address registered.
@@ -838,3 +725,143 @@ def db_backup():
     shutil.copyfile(db_orig, db_new)
 
     return "OK copied from '%s' to '%s'" % (db_orig, db_new)
+
+
+def find_dups():
+    '''Return a list of all bills that have duplicate entries in the db:
+       multiple bills for the same billno.
+       Return only the master bill for each billno.
+    '''
+
+    # A list of all bills that have duplicates
+    masterbills = []
+    bill_ids_seen = set()
+
+    bills = Bill.query.all()
+    for bill in bills:
+        # Already seen because it was a dup of something else?
+        if bill.id in bill_ids_seen:
+            continue
+
+        bill_ids_seen.add(bill.id)
+
+        bills_with_this_no = Bill.query.filter_by(billno=bill.billno).all()
+        if len(bills_with_this_no) == 1:
+            continue
+
+        # There are multiple bills with this billno.
+        print(len(bills_with_this_no), "bills called", bill.billno)
+
+        # User lists tracking each of the duplicate bills:
+        userlists = []
+        numusers = []
+
+        mostusers = 0
+        maxindex = None
+        for i, dupbill in enumerate(bills_with_this_no):
+            bill_ids_seen.add(dupbill.id)
+            tracking = dupbill.users_tracking()
+            howmany = len(tracking)
+            userlists.append(tracking)
+            numusers.append(howmany)
+            if howmany > mostusers:
+                mostusers = howmany
+                maxindex = i
+
+        # Now bills_with_this_no is a list of Bill objects.
+        # userlists is a list of lists of User objects tracking each bill.
+        # numusers is a list of lists of how many users are tracking each bill.
+        # maxindex is the index in all three lists of the bill that's
+        # tracked by the most users; we'll make that the real bill
+        # and remove the rest.
+        if maxindex == None:
+            print("  No users are tracking %s!" % bill.billno)
+
+        # print("  Master bill, id %d, tracked by %s" % (bills_with_this_no[maxindex].id, ', '.join([u.username for u in userlists[maxindex]])))
+        # print("  Duplicates:")
+        # for i, b in enumerate(bills_with_this_no):
+        #     if i == maxindex:
+        #         continue
+        #     if userlists[i]:
+        #         print("    id %d tracked by %s" % (bills_with_this_no[i].id,
+        #                                            ', '.join([u.username for u in userlists[i]])))
+        #     else:
+        #         print("    id %d, no users" % bills_with_this_no[i].id)
+
+        # Now it's time to actually fix the problem.
+        masterbills.append(bill)
+
+        return masterbills
+
+
+@billtracker.route('/api/showdups/<key>')
+def show_dups(key):
+    if key != billtracker.config["SECRET_KEY"]:
+        return "FAIL Bad key\n"
+
+    masterbills = find_dups()
+
+    if not masterbills:
+        print("No duplicate bills in database, whew")
+        return "OK"
+
+    print("masterbills:", masterbills)
+
+    return "OK %s" % ','.join([ b.billno for b in masterbills ])
+
+
+# TEMPORARY, clean out duplicates
+@billtracker.route('/api/cleandups/<key>')
+def clean_dups(key):
+    if key != billtracker.config["SECRET_KEY"]:
+        return "FAIL Bad key\n"
+
+    masterbills = find_dups()
+
+    if not masterbills:
+        print("No duplicate bills in database, whew")
+        return "OK"
+
+    print("masterbills:", masterbills)
+
+    # Now make a separate loop, so we're not changing the list of all bills
+    # while looping over the list of all bills.
+    for masterbill in masterbills:
+        print("%s, master is id %d" % (masterbill.billno, masterbill.id))
+
+        bills_with_this_no = Bill.query.filter_by(billno=masterbill.billno).all()
+        print("  %d bills with this no: %s" % (len(bills_with_this_no),
+                                       [b.id for b in bills_with_this_no]))
+
+        for i, b in enumerate(bills_with_this_no):
+            if b.id == masterbill.id:
+                continue
+            users = b.users_tracking()
+            if users:
+                print("  Moving id %d's users over to id %d: %s"
+                      % (bills_with_this_no[i].id,
+                         bills_with_this_no[maxindex].id,
+                         [u.username for u in users]))
+                for u in users:
+                    if b not in u.bills:
+                        print("Eek, id %d thinks %s is tracking but %s doesn't think so" % (b.id, u.username))
+                        continue
+                    if masterbill not in u.bills:
+                        u.bills.append(masterbill)
+                        print("    moved %s" % u.username)
+                    else:
+                        print("    %s was already tracking %d" % (u.username,
+                                                                masterbill.id))
+                    u.bills.remove(b)
+                    db.session.add(u)
+            else:
+                print("  id %d had no users" % b.id)
+
+            print("  Deleting bill id %d" % b.id)
+            db.session.delete(b)
+
+        db.session.add(masterbill)
+
+    if masterbills:
+        db.session.commit()
+    return "OK"
