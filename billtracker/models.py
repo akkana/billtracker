@@ -327,6 +327,14 @@ class Bill(db.Model):
         return db.session.query(userbills).filter_by(bill_id=self.id).count()
 
 
+    def users_tracking(self):
+        userlist = []
+        tracking = db.session.query(userbills).filter_by(bill_id=self.id).all()
+        for u in tracking:
+            userlist.append(User.query.filter_by(id=u.user_id).first())
+        return userlist
+
+
     def scheduled_in_future(self):
         '''Is a bill scheduled for a future *date*?
            If the current time is 19:00 or later, we'll consider
