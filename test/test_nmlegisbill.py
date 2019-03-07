@@ -62,5 +62,30 @@ class TestNMlegisbill(unittest.TestCase):
                            'contentslink': 'https://www.nmlegis.gov/Sessions/19%20Regular/bills/house/HB0073.html'
                          })
 
+        # Another bill, to make sure bills with no curloclink work:
+        bill = nmlegisbill.parse_bill_page('SB11', year=2019, cachesecs=-1)
+        bill['mod_date'] = None
+        bill['update_date'] = None
+        self.assertEqual(bill,
+                         {'FIRlink': None,
+                          'LESClink': None,
+                          'amendlink': None,
+                          'billno': 'SB11',
+                          'billtype': 'B',
+                          'chamber': 'S',
+                          'contentslink': 'https://www.nmlegis.gov/Sessions/19%20Regular/bills/senate/SB0011.html',
+                          'curloc': 'Chaptered',
+                          'last_action_date': None,
+                          'mod_date': None,
+                          'update_date': None,
+                          'number': '11',
+                          'sponsor': 'Carlos R. Cisneros',
+                          'sponsorlink': 'https://www.nmlegis.gov/Members/Legislator?SponCode=SCISN',
+                          'statusHTML': '<span class="list-group-item" '
+                          'id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_10"><b>Signed '
+                          'by Governor - Chapter 44 - Feb. 28</b></span>',
+                          'statustext': 'Signed by Governor - Chapter 44 - Feb. 28',
+                          'title': 'GROSS RECEIPTS FOR NONPROFIT ORGANIZATIONS',
+                          'year': '19'})
 
 

@@ -207,10 +207,7 @@ def parse_bill_page(billno, year=None, cache_locally=True, cachesecs=2*60*60):
     # and they don't stay in that state for long.
 
     # Bills seem to have a text of "Chaptered", with no href,
-    # once they're signed:
-    elif curloc_text == 'Chaptered':
-        billdic['curloc'] = 'Chaptered'
-
+    # once they're signed. There are probably other special vals too.
     else:
         print("No curloc_href; curloc_text is '%s'" % curloc_text)
         billdic['curloc'] = curloc_text
