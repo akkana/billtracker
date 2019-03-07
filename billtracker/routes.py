@@ -478,7 +478,7 @@ def clean_db(key):
         if len(bills_with_this_no) == 1:
             continue
 
-        # We have multiple bills with this billno.
+        # There are multiple bills with this billno.
         print(len(bills_with_this_no), "bills called", bill.billno)
 
         # User lists tracking each of the duplicate bills:
@@ -504,8 +504,7 @@ def clean_db(key):
         # tracked by the most users; we'll make that the real bill
         # and remove the rest.
         if maxindex == None:
-            print("  No users are tracking any of these!")
-            continue
+            print("  No users are tracking %s!" % bill.billno)
 
         # print("  Master bill, id %d, tracked by %s" % (bills_with_this_no[maxindex].id, ', '.join([u.username for u in userlists[maxindex]])))
         # print("  Duplicates:")
@@ -519,7 +518,11 @@ def clean_db(key):
         #         print("    id %d, no users" % bills_with_this_no[i].id)
 
         # Now it's time to actually fix the problem.
-        masterbills.append(bills_with_this_no[maxindex])
+        masterbills.append(bill)
+
+    if not masterbills:
+        print("No duplicate bills in database, whew")
+        return "OK"
 
     print("masterbills:", masterbills)
 
@@ -536,25 +539,25 @@ def clean_db(key):
             if b.id == masterbill.id:
                 continue
             users = b.users_tracking()
-            if not users:
+            if users:
+                print("  Moving id %d's users over to id %d: %s"
+                      % (bills_with_this_no[i].id,
+                         bills_with_this_no[maxindex].id,
+                         [u.username for u in users]))
+                for u in users:
+                    if b not in u.bills:
+                        print("Eek, id %d thinks %s is tracking but %s doesn't think so" % (b.id, u.username))
+                        continue
+                    if masterbill not in u.bills:
+                        u.bills.append(masterbill)
+                        print("    moved %s" % u.username)
+                    else:
+                        print("    %s was already tracking %d" % (u.username,
+                                                                masterbill.id))
+                    u.bills.remove(b)
+                    db.session.add(u)
+            else:
                 print("  id %d had no users" % b.id)
-                continue
-            print("  Moving id %d's users over to id %d: %s"
-                  % (bills_with_this_no[i].id,
-                     bills_with_this_no[maxindex].id,
-                     [u.username for u in users]))
-            for u in users:
-                if b not in u.bills:
-                    print("Eek, id %d thinks %s is tracking but %s doesn't think so" % (b.id, u.username))
-                    continue
-                if masterbill not in u.bills:
-                    u.bills.append(masterbill)
-                    print("    moved %s" % u.username)
-                else:
-                    print("    %s was already tracking %d" % (u.username,
-                                                              masterbill.id))
-                u.bills.remove(b)
-                db.session.add(u)
 
             print("  Deleting bill id %d" % b.id)
             db.session.delete(b)
