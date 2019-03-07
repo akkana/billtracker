@@ -270,7 +270,11 @@ def track_untrack():
         # since the user is waiting..
         if will_track:
             for billno in will_track:
-                bill = make_new_bill(billno)
+                bill = Bill.query.filter_by(billno=billno).first()
+                if not bill:
+                    print("Eek! Needed to make a new bill for", billno,
+                          "in track_untrack")
+                    bill = make_new_bill(billno)
                 user.bills.append(bill)
             flash("You are now tracking %s" % ', '.join(will_track))
 
@@ -550,12 +554,14 @@ def refresh_one_bill():
     '''
     key = request.values.get('KEY')
     if key != billtracker.config["SECRET_KEY"]:
+        print("FAIL refresh_one_bill: bad key %s" % key)
         return "FAIL Bad key\n"
     billno = request.values.get('BILLNO')
 
     now = datetime.now()
     b = nmlegisbill.parse_bill_page(billno, year=now.year, cache_locally=True)
     if not b:
+        print("FAIL refresh_one_bill: Couldn't fetch %s bill page" % billno)
         return "FAIL Couldn't fetch %s bill page" % billno
 
     bill = Bill.query.filter_by(billno=billno).first()
@@ -595,8 +601,9 @@ def bills_by_update_date():
 # requests.post(posturl, xyzdata).text
 @billtracker.route("/api/refresh_legisdata", methods=['POST'])
 def refresh_legisdata():
-    '''Fetch a file from the legislative website in a separate thread,
+    '''Fetch a specific file from the legislative website in a separate thread,
        which will eventually update a specific field in the bills database.
+       This is used for refreshing things like FIR, LESC, amendment links.
        POST data required:
          TARGET is the field to be changed (e.g. FIRlink);
          URL is the ftp index for that link, e.g. ftp://www.nmlegis.gov/firs/
@@ -634,15 +641,13 @@ def refresh_legisdata():
 
         # filenames are e.g. HB0032.PDF. Remove zeros.
         billno = base.replace('0', '')
-        print("billno", billno)
         bill = Bill.query.filter_by(billno=billno).first()
         if bill:
-            print("bill", bill)
             setattr(bill, target, posixpath.join(url, filename))
             db.session.add(bill)
             changes.append(billno)
-        else:
-            print("%s isn't in the database" % billno)
+        # else:
+        #     print("%s isn't in the database" % billno)
 
     if not changes:
         return "OK but no bills updated"
