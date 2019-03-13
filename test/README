@@ -7,3 +7,4 @@ python3 -m unittest
 You can run single tests like this:
 
 python3 -m unittest test.test_billtracker
+python3 -m unittest test.test_billtracker.TestBillTracker.test_bills

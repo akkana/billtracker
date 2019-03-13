@@ -13,12 +13,17 @@ from config import Config, basedir
 TEST_DB = 'test.db'
 
 
-class UserModelCase(unittest.TestCase):
+class TestBillTracker(unittest.TestCase):
     # setUp() will be called for every test_*() function in the class.
     def setUp(self):
+        self.key = 'TESTING_NOT_SO_SECRET_KEY'
+
         billtracker.config['TESTING'] = True
-        billtracker.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + \
-            os.path.join(basedir, TEST_DB)
+        billtracker.config['SECRET_KEY'] = self.key
+
+        self.dbname = os.path.join(basedir, TEST_DB)
+        billtracker.config['SQLALCHEMY_DATABASE_URI'] = \
+            'sqlite:///' + self.dbname
 
         self.app = billtracker.test_client()
 
@@ -29,6 +34,8 @@ class UserModelCase(unittest.TestCase):
     def tearDown(self):
         db.session.remove()
         db.drop_all()
+        print("Removing", self.dbname)
+        os.unlink(self.dbname)
 
 
     def test_password_hashing(self):
@@ -40,26 +47,27 @@ class UserModelCase(unittest.TestCase):
 
 
     def test_bills(self):
-        print("Testing top-level page ...")
+        # Check that the home page loads.
+        # This has nothing to do with bills, but calling setUp/tearDown
+        # just for this would be a waste of cycles
         response = self.app.get('/', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
 
-        print("Testing adding a bill ...")
+        # Add a new bill, using the already cached page
         response = self.app.post("/api/refresh_one_bill",
-                                 data={ 'BILLNO': 'HB73',
-                                        'KEY': os.getenv('SECRET_KEY') } )
+                                 data={ 'BILLNO': 'HB73', 'KEY': self.key } )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_data(as_text=True), 'OK Updated HB73')
 
-        print("Testing bills_by_update_date ...")
+        # Test that bills_by_update_date now shows the bill
         response = self.app.get("/api/bills_by_update_date")
         self.assertEqual(response.get_data(as_text=True), 'HB73')
 
-        print("Testing whether there is one bill in the database ...")
+        # Testing whether there is exactly one bill in the database now
         allbills = Bill.query.all()
         self.assertEqual(len(allbills), 1)
 
-        print("Testing whether the bill is in the database ...")
+        # Test whether the bill just added is in the database ...")
         bill = Bill.query.filter_by(billno="HB73").first()
         self.assertEqual(bill.billno, "HB73")
         self.assertEqual(bill.title, 'EXEMPT NM FROM DAYLIGHT SAVINGS TIME')

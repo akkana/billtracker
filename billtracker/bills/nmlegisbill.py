@@ -209,7 +209,6 @@ def parse_bill_page(billno, year=None, cache_locally=True, cachesecs=2*60*60):
     # Bills seem to have a text of "Chaptered", with no href,
     # once they're signed. There are probably other special vals too.
     else:
-        print("No curloc_href; curloc_text is '%s'" % curloc_text)
         billdic['curloc'] = curloc_text
 
     contents_a = soup.find("a",
