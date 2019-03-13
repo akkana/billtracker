@@ -1,0 +1,9 @@
+Run all tests with:
+
+python3 -m unittest
+
+(from the top level, i.e. one level above this test directory).
+
+You can run single tests like this:
+
+python3 -m unittest test.test_billtracker
