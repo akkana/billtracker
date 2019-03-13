@@ -323,14 +323,19 @@ def allbills():
     newbills = []
     oldbills = []
     if not allbills:
-        flash("Problem fetching the bills list")
+        flash("Problem fetching the list of all bills")
         allbills = []
     # allbills.html expects a list of
     # [ [billno, title, link, fulltext_link, num_tracking ] ]
     for billno in allbills:
+        contentsurls = nmlegisbill.contents_url_for_billno(billno)
+        if contentsurls:
+            contents = contentsurls[0]
+        else:
+            contents = ''
         args = [ billno, allbills[billno][0], allbills[billno][1],
-                 nmlegisbill.contents_url_for_billno(billno),
-                 Bill.num_tracking_billno(billno) ]
+                 contents, Bill.num_tracking_billno(billno) ]
+
         if user and billno not in bills_seen:
             newbills.append(args)
         else:
@@ -556,7 +561,7 @@ def refresh_one_bill():
         bill = Bill()
     bill.set_from_parsed_page(b)
 
-    # db.sesstion.add(bill)
+    db.session.add(bill)
     print("Refreshed %s from parsed page; committing" % billno)
     db.session.commit()
 

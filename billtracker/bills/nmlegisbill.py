@@ -350,13 +350,26 @@ def populate_link_lists(url, chambertype, cachetime):
             billandtype = match.group(1)
             num = match.group(2)
 
-        Link_lists[chambertype][int(num)] = href
+        num = int(num)
+
+        # The bill contents directory may have several amendments
+        # as well as the original text. E.g. it might have
+        # HB0001.HTML, HB0001AF1.HTML and HB0001FC1.HTML.
+        # Currently these are sorted so that the base text
+        # comes first, so we don't have to sort while inserting.
+        if num in Link_lists[chambertype]:
+            Link_lists[chambertype][num].append(href)
+        else:
+            Link_lists[chambertype][num] = [href]
 
 def contents_url_for_parts(chamber, billtype, number, year):
     '''A link to a page with a bill's contents in HTML.
        This alas cannot be inferred from the billno,
        because there is an unpredictable number of zeroes
        inserted in the middle: HR001, HM011, HM0111.
+       Returns a list of content URLs, with the first element
+       of the list being the contents and the others being amendments
+       that are stored in the same directory.
     '''
     chambertype = chamber + billtype    # e.g. HJR
     billnumint = int(number)
@@ -416,6 +429,7 @@ def contents_url_for_parts(chamber, billtype, number, year):
 def contents_url_for_billno(billno):
     '''A link to a page with a bill's contents in HTML,
        for bills not yet in the database.
+       Returns a list of contents and amendments.
     '''
     (chamber, billtype, number, year) = billno_to_parts(billno)
     return contents_url_for_parts(chamber, billtype, number, year)

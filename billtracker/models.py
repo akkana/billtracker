@@ -399,18 +399,22 @@ class Bill(db.Model):
 
 
     def set_from_parsed_page(self, b):
+        # For location, there's a name change,
+        # and if the committee changes, also clear scheduled_date.
+        # Do that first, to ensure we don't set scheduled_date and
+        # then later clear it.
+        if 'curloc' in b:
+            self.location = b['curloc']
+            self.scheduled_date = None
+
         for k in b:
-            # For location, there's a name change,
-            # and if the committee changes, also clear scheduled_date.
             if k == 'curloc':
-                if self.location != b['curloc']:
-                    self.location = b['curloc']
-                    self.scheduled_date = None
+                continue
 
             # Mysteriously, the converse of setattr is __getattribute__;
-            # Bill has no setattr() even though the python 3.7.2 docs say
-            # there should be. (Maybe that means it's an old-style class?)
-            elif self.__getattribute__(k) != b[k]:
+            # Bill has no setattr() though the python 3.7.2 docs say there
+            # should be. (Maybe that means db.Model is an old-style class?)
+            if self.__getattribute__(k) != b[k]:
                 setattr(self, k, b[k])
 
         self.update_date = datetime.now()
@@ -442,8 +446,8 @@ class Bill(db.Model):
         return False
 
 
-    # Jinja templates can't import; they need methods that are part
-    # of the model.
+    # Jinja templates can't import nmlegisbill;
+    # they need a method that's part of the model.
     def bill_url(self):
         return nmlegisbill.bill_url(self.billno)
 
