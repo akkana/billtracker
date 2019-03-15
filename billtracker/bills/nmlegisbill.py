@@ -225,6 +225,13 @@ def parse_bill_page(billno, year=None, cache_locally=True, cachesecs=2*60*60):
         billdic["amendlink"] = url_mapper.to_abs_link(amendbutton.get('href'),
                                                       baseurl)
 
+    # Bills have an obscure but useful actiontext code, e.g.
+    # HPREF [2] HCPAC/HJC-HCPAC [3] DNP-CS/DP-HJC [4] DP [5] PASSED/H (40-29) [8] SPAC/SJC-SPAC [17] DP-SJC [22] DP/a [23] FAILED/S (18-24).
+    # which could be decoded to show the bill's entire history.
+    # Capture that as the last line of the actiontext.
+    # XXX Eventually, make it a separate item in the database.
+    actioncode = soup.find(id='MainContent_tabContainerLegislation_tabPanelActions_formViewActionText_lblActionText').text
+
     # The all-important part: what was the most recent action?
     actiontable = soup.find("table",
       id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions")
@@ -259,7 +266,7 @@ def parse_bill_page(billno, year=None, cache_locally=True, cachesecs=2*60*60):
         actiontext = re.sub('(Calendar Day: ../../....)', '\\1\n    ',
                             actiontext)
         actiontext = re.sub('\n\n*', '\n', actiontext)
-        billdic["statustext"] = actiontext.strip()
+        billdic["statustext"] = actiontext.strip() + '\n' + actioncode.strip()
 
     # The bill's page has other useful info, like votes, analysis etc.
     # but unfortunately that's all filled in later with JS and Ajax so
@@ -273,6 +280,203 @@ def parse_bill_page(billno, year=None, cache_locally=True, cachesecs=2*60*60):
     billdic['mod_date'] = None
 
     return billdic
+
+
+def action_code_iter(actioncode):
+    '''Iterate over an action code, like
+       HPREF [2] HCPAC/HJC-HCPAC [3] DNP-CS/DP-HJC [4] DP [5] PASSED/H (40-29) [8] SPAC/SJC-SPAC [17] DP-SJC [22] DP/a [23] FAILED/S (18-24).
+       Yield each (action, leg_day) one by one.
+       If an action (e.g. the first one) doesn't start with [leg_day],
+       return 0 for that day.
+    '''
+    idx = 0    # position so far
+    actioncode = actioncode.lstrip()
+    while actioncode:
+        if actioncode.startswith('['):
+            actioncode = actioncode[1:]
+            closebracket = actioncode.find(']')
+            if closebracket < 0:
+                # print("Syntax error, no closebracket")
+                # Syntax error, yield everything left in the string.
+                leg_day = 0
+                action = actioncode
+                actioncode = None
+                yield action, leg_day
+                continue
+            # Whew, there is a closebracket
+            leg_day = actioncode[:closebracket].strip()
+            actioncode = actioncode[closebracket+1:].lstrip()
+        else:
+            leg_day = 0
+        # Now we either have leg_day or not. Find the first action.
+        nextbracket = actioncode.find('[')
+        if nextbracket >= 0:
+            action = actioncode[:nextbracket].rstrip()
+            actioncode = actioncode[nextbracket:]
+            yield action, leg_day
+            continue
+        # No next bracket, this is the last action.
+        action = actioncode
+        actioncode = ''
+        yield action, leg_day
+
+abbreviations = {
+   '*': 'Emergency clause',
+   'API.': 'Action postponed indefinitely',
+   'CC': 'Conference committee (Senate and House fail to agree)',
+   'CS': 'Committee substitute',
+   # 'CS/H 18': 'Committee substitute for House Bill 18.',
+   'DEAD': 'Bill Has Died',
+   'DNP nt adptd': 'Do Not Pass committee report NOT adopted',
+   'DNP': 'Do Not Pass committee report adopted',
+   'DP/a': 'Do Pass, as amended, committee report adopted.',
+   'DP': 'Do Pass committee report adopted.',
+   'E&E': 'The final authoritative version of a bill passed by both houses of the legislature',
+   'FAILED/H': 'Failed passage in House',
+   'FAILED/S': 'Failed passage in Senate',
+   'FL/': 'Floor substitute',
+   'fl/a': 'Floor amendment adopted. (fl/aaa - three floor amendments adopted.)',
+   'germane': 'Bills which fall within the purview of a 30-day session.',
+   'h/fld cncr': 'House has failed to concur in Senate amendments on a House bill. The House then sends a message requesting the Senate to recede from its amendments.',
+   'HCAL': 'House Calendar',
+   'HCAT': 'House Temporary Calendar',
+   'HCNR': 'House Concurrence Calendar',
+   'HCW': 'Committee of the Whole',
+   'HINT': 'House Intro',
+   'HPREF': 'House Pre-file',
+   'HPSC': 'Printing & Supplies',
+   'HTBL': 'House Table',
+   'HXPSC': 'House Printing & Supplies Committee',
+   'HXRC': 'HOUSE RULES & ORDER OF BUSINESS',
+   'HZLM': 'In Limbo (House)',
+   'm/rcnsr adptd': 'Motion to reconsider previous action adopted.',
+   'OCER': 'Certificate',
+   'PASSED/H': 'Passed House',
+   'PASSED/S': 'Passed Senate',
+   'PASS': 'Passed',
+   'PCA': 'Constitutional Amendment',
+   'CA': 'Constitutional Amendment',
+   'PCH': 'Chaptered',
+   'PKVT': 'Pocket Veto',
+   'PSGN': 'Signed',
+   'PVET': 'Vetoed',
+   'QSUB': 'Substituted',
+   'rcld frm/h': 'Bill recalled from the House for further consideration by the Senate',
+   'rcld frm/s': 'Bill recalled from the Senate for further consideration by the House.',
+   's/cncrd': 'Senate has concurred in House amendments on a Senate bill',
+   's/fld recede': 'Senate refuses to recede from its amendments',
+   'SCAL': 'Senate Calendar',
+   'SCC': 'Committees’ Committee',
+   'SCNR': 'Senate Concurrence Calendar',
+   # 'SCS/H 18': 'Senate committee substitute for House Bill 18. (CS, preceded by the initial of the opposite house, indicates a substitute for a bill made by the other house. The listing, however, will continue under the original bill entry.)',
+   'SCs': 'Senate Committee Substitute',
+   'SCW': 'Committee of the Whole',
+   # 'SGND(C.A.2).': 'Constitutional amendment and its number.',
+   # 'SGND(Mar.4)Ch.9.': 'Signed by the Governor, date and chapter number.',
+   'SGND': 'Signed by one or both houses (does not require Governor’s signature)',
+   'SINT': 'Senate Intro',
+   'SPREF': 'Senate Pre-file',
+   'STBL': 'Senate Table',
+   'SZLM': 'In Limbo (Senate)',
+   'T': 'On the Speaker’s table by rule (temporary calendar)',
+   'tbld': 'Tabled temporarily by motion.',
+   'TBLD INDEF.': 'Tabled indefinitely.',
+   'VETO(Mar.7).': 'Vetoed by the Governor and date.',
+   'w/drn': 'Withdrawn from committee or daily calendar for subsequent action.',
+   'w/o rec': 'WITHOUT RECOMMENDATION committee report adopted.',
+}
+
+committeecodes = {
+   'HAFC': 'Appropriations & Finance',
+   'HAGC': 'House Agriculture & Water Resources Committee',
+   'HAWC': 'Agriculture, Water & Wildlife',
+   'HBEC': 'Business & Employment',
+   'HBIC': 'House Business & Industry Committee',
+   'HCEDC': 'COMMERCE & ECONOMIC DEVELOPMENT COMMITTEE',
+   'HCPAC': 'House Consumer & Public Affairs Committee',
+   'HE&EC': 'Enrolling & Engrossing',
+   'HEC': 'Education',
+   'HEEC': 'House Enrolling & Engrossing Committee',
+   'HEENC': 'Energy, Environment & Natural Resources',
+   'HENRC': 'House Energy & Natural Resources Committee',
+   'HGEIC': 'Government, Elections & Indian Affairs',
+   'HGUAC': 'House Government & Urban Affairs',
+   'HHC': 'Health',
+   'HHGAC': 'House Health & Government Affairs Committee',
+   'HHGIC': 'House Health, Government & Indian Affairs Committee',
+   'HHHC': 'HOUSE HEALTH & HUMAN SERVICES',
+   'HJC': 'Judiciary',
+   'HLC': 'House Labor & Human Resources Committee',
+   'HLEDC': 'HOUSE LABOR & ECONOMIC DEVELOPMENT',
+   'HLELC': 'HOUSE LOCAL GOVERNMENT, ELECTIONS, LAND GRANTS & CULTURAL AFFAIRS',
+   'HLLC': 'LOCAL GOVERNMENT, LAND GRANTS & CULTURAL AFFAIRS',
+   'HLVMC': 'LABOR, VETERANS\' AND MILITARY AFFAIRS COMMITTEE',
+   'HRC': 'Rules & Order of Business',
+   'HRPAC': 'Regulatory & Public Affairs',
+   'HSCAC': 'Safety & Civil Affairs',
+   'HSEIC': 'STATE GOVERNMENT, ELECTIONS & INDIAN AFFAIRS COMMITTEE',
+   'HSIVC': 'HOUSE STATE GOVERNMENT, INDIAN & VETERANS\' AFFAIRS',
+   'HTC': 'House Transportation Committee',
+   'HTPWC': 'Transportation & Public Works',
+   'HTRC': 'House Taxation & Revenue Committee',
+   'HVEC': 'House Voters & Elections Committee',
+   'HWMC': 'Ways & Means',
+   'SCONC': 'Conservation',
+   'SCORC': 'Corporations & Transportation',
+   'SEC': 'Education',
+   'SFC': 'Finance',
+   'SGC': 'Senate Select Gaming Committee',
+   'SIAC': 'Indian & Cultural Affairs',
+   'SJC': 'Judiciary',
+   'SPAC': 'Public Affairs',
+   'SRC': 'Rules',
+   'SWMC': 'Senate Ways & Means Committee',
+}
+
+
+def decode_full_history(actioncode):
+    '''Decode a bill's full history according to the code specified in
+       https://www.nmlegis.gov/Legislation/Action_Abbreviations
+       Return a text string, with newlines separating the actions.
+    '''
+    # The history code is one long line, like
+    # HPREF [2] HCPAC/HJC-HCPAC [3] DNP-CS/DP-HJC [4] DP [5] PASSED/H (40-29) [8] SPAC/SJC-SPAC [17] DP-SJC [22] DP/a [23] FAILED/S (18-24).
+    # Most actions start with [legislative day] but the first may not.
+    out_lines = ["DAY ACTION"]
+    for action, legday in action_code_iter(actioncode):
+        out_lines.append(decode_history(action, legday))
+    return '\n'.join(out_lines)
+
+
+def decode_history(action, legday):
+    '''Decode a single history day according to the code specified in
+       https://www.nmlegis.gov/Legislation/Action_Abbreviations
+       For instance, 'HCPAC/HJC-HCPAC' -> 'Moved to HCPAC, ref HJC-HCPAC'
+       'DNP-CS/DP-HJC' -> XXXXXX
+       Return the decoded text string.
+    '''
+    # Committee changes are listed as NEWCOMM/COMM{,-COMM}
+    # where the comms after the slash may be the old committee,
+    # the new committee or some other committee entirely.
+    # The abbreviations page doesn't explain.
+    # However, slashes can also mean other things, e.g.
+    #   CS/H 18, DP/a, FAILED/H or S, FL/, fl/aaa, h/fld cncr,
+    #   m/rcnsr adptd, rcld frm/h, s/cncrd, s/fld, SCS/H 18, w/drn, w/o rec
+    # It seems like committee movements will always have at least three
+    # alphabetic characters on either side of the slash.
+    match = re.search('([a-zA-Z]{3,})/([-a-zA-Z]{3,})', action)
+    if match:
+        # if match.start() != 0 or match.end() != len(action):
+        #     print("Warning: XXX)
+        return ('%4s: Sent to %s, ref %s'
+                % (legday, match.group(1), match.group(2)))
+
+    # It's not a committee assignment; decode what we can.
+    for code in abbreviations.keys():
+        if code in action:
+            action = action.replace(code, abbreviations[code])
+    return('%4s: %s' % (legday, action))
+
 
 def most_recent_action(billdic):
     '''Return a date, plus text and HTML, for the most recent action

@@ -54,7 +54,10 @@ class TestNMlegisbill(unittest.TestCase):
                            'sponsorlink': 'https://www.nmlegis.gov/Members/Legislator?SponCode=HGONZ',
                            'curloc': 'HJC',
                            'statusHTML': '<span class="list-group-item" id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_2">Legislative Day: 3<br/>Calendar Day: 01/29/2019<br><strong>HSEIC: Reported by committee with Do Pass recommendation with amendment(s)</strong></span>',
-                           'statustext': 'Legislative Day: 3\n    Calendar Day: 01/29/2019\n    HSEIC: Reported by committee with Do Pass recommendation with amendment(s)',
+                           'statustext': '''Legislative Day: 3
+    Calendar Day: 01/29/2019
+    HSEIC: Reported by committee with Do Pass recommendation with amendment(s)
+HPREF [2] HSEIC/HJC-HSEIC [3] DP/a-HJC''',
                            'last_action_date': datetime.datetime(2019, 1, 29, 0, 0),
                            'FIRlink': None,
                            'LESClink': None,
@@ -84,7 +87,9 @@ class TestNMlegisbill(unittest.TestCase):
                           'statusHTML': '<span class="list-group-item" '
                           'id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_10"><b>Signed '
                           'by Governor - Chapter 44 - Feb. 28</b></span>',
-                          'statustext': 'Signed by Governor - Chapter 44 - Feb. 28',
+                          'statustext':
+                              '''Signed by Governor - Chapter 44 - Feb. 28
+SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [8] DP - fl/a- PASSED/H (64-0) [14] s/cncrd [15] SGND BY GOV (Feb. 28) Ch. 44.''',
                           'title': 'GROSS RECEIPTS FOR NONPROFIT ORGANIZATIONS',
                           'year': '19'})
 

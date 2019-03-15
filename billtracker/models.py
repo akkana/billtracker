@@ -516,7 +516,33 @@ class Bill(db.Model):
         if self.statustext:
             # statusHTML is full of crap this year, so prefer statustext
             # even in HTML output until/unless I find a way around that.
-            outstr += 'Status: %s<br />\n' % self.statustext
+
+            # But first, pull the action code out of statustext
+            # to be dealt with separately.
+            if '\n' in self.statustext:
+                lines = self.statustext.split('\n')
+                # Is it really an action code? Or just the last line
+                # of normal actiontext?
+                actioncode = lines[-1]
+                if '[' in actioncode:
+                    statustext = ', '.join(lines[:-1])
+                else:
+                    statustext = ', '.join(lines)
+                    actioncode = ''
+            else:
+                statustext = self.statustext.strip()
+                actioncode = ''
+
+            if statustext:
+                outstr += 'Status: %s<br />\n' % statustext
+            if actioncode:
+                outstr += '<a href="https://www.nmlegis.gov/Legislation/' \
+                          'Action_Abbreviations">Full history</a>: ' \
+                          '<span class="historycode" title="%s">%s</span>' \
+                          '<br />\n' \
+                              % (nmlegisbill.decode_full_history(actioncode),
+                                 actioncode)
+
         elif self.statusHTML:
             outstr += 'Status: %s<br />\n' % self.statusHTML
 

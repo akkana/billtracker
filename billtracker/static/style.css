@@ -41,6 +41,8 @@ table#banner {
   #bannermiddle { background-image: none; }
 }
 
+span.historycode { color: grey; }
+
 /*
  * Body content:
  */
