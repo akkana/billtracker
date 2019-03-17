@@ -25,32 +25,51 @@ BASEURL = os.environ.get('BILLTRACKER_HOME') or 'https://yourdomain'
 #############################################################
 # Optional configuration: use the defaults, or change them.
 
+# Is the legislature currently in session?
+# Only send daily emails if it is.
+in_session = True
+
 # Log file
 LOGFILE = '/var/log/billtracker-update.log'
 
 # Times for various services:
-email_hours = [ 21 ]
-legislator_hours = [ ]    # Should happen automatically when needed
-FIR_hours = [ 2, 13 ]
-LESC_hours = [ 3, 15 ]
-amend_hours = [ 4, 16 ]
-db_backup_hours = [ 1, 13 ]
+if in_session:
+    email_hours = [ 21 ]
+    legislator_hours = [ ]    # Should happen automatically when needed
+    FIR_hours = [ 2, 13 ]
+    LESC_hours = [ 3, 15 ]
+    amend_hours = [ 4, 16 ]
+    db_backup_hours = [ 1, 13 ]
 
-# Committees are really the important things to refresh:
-# they're the only way to find out when bills are scheduled,
-# and their schedules are updated randomly and sometimes frequently.
-committee_hours = [ 5, 11, 17, 23 ]
+    # Committees are really the important things to refresh:
+    # they're the only way to find out when bills are scheduled,
+    # and their schedules are updated randomly and sometimes frequently.
+    committee_hours = [ 5, 11, 17, 23 ]
 
-# Bill updating is a bit more complicated since there are so many bills
-# and we want to avoid flooding the legislative website.
-# But we don't want to wait too long; a lot can happen in 4 hours.
-# So bill_update_percent is the percent of bills to update each hour.
-# The billtracker will update that percent of bills sorted by
-# how long it's been since the last update.
-# Still, no need to keep refreshing throughout the night.
-# bill_hours = list(range(6, 24))
-bill_hours = [ 0, 3, 6, 9, 12, 15, 18, 21 ]
-bill_update_percent = 20
+    # Bill updating is a bit more complicated since there are so many bills
+    # and we want to avoid flooding the legislative website.
+    # But we don't want to wait too long; a lot can happen in 4 hours.
+    # So bill_update_percent is the percent of bills to update each hour.
+    # The billtracker will update that percent of bills sorted by
+    # how long it's been since the last update.
+    # Still, no need to keep refreshing throughout the night.
+    # bill_hours = list(range(6, 24))
+    bill_hours = [ 0, 3, 6, 9, 12, 15, 18, 21 ]
+    bill_update_percent = 20
+
+else:
+    # When out of session, only update bills and back up the db once a day,
+    # and don't update the other tables at all.
+    email_hours = [ ]
+    legislator_hours = [ ]    # Should happen automatically when needed
+    FIR_hours = [ ]
+    LESC_hours = [ ]
+    amend_hours = [ ]
+    db_backup_hours = [ 5 ]
+    committee_hours = [ ]
+
+    bill_hours = [ 0, 2, 4 ]
+    bill_update_percent = 34
 
 # End configuration, no need to edit anything below this.
 #############################################################
