@@ -146,6 +146,10 @@ https://nmbilltracker.com/confirm_email/%s
         return sorted(self.bills, key=Bill.last_action_key)
 
 
+    def bills_by_status(self):
+        return sorted(self.bills, key=Bill.status_key)
+
+
     def show_bill_table(self, bill_list, inline=False):
         '''Return an HTML string showing status for a list of bills
            as HTML table rows.
@@ -279,78 +283,29 @@ class Bill(db.Model):
     def __repr__(self):
         return 'Bill %s' % (self.billno)
 
-    #
-    # How to sort by billno.
-    # Sorting in python 3 is so unintuitive, this "key" business
-    # instead of a straightforward cmp function. Oh, well.
-    # See the User class for examples of how to use these keys.
-    #
     @staticmethod
-    def a2order(text):
+    def natural_key(billno):
+        '''Natural key, digits considered as numbers, for sorting text.
+           Return a string but with the number turned into a
+           leading-zeros 5-digit string.
         '''
-        Sort in sensible order with digits considered numerically (SB33 < SB123)
-        http://nedbatchelder.com/blog/200712/human_sorting.html
-        '''
-        if text.isdigit():
-            return int(text)
-        # Put Senate bills first
-        if text and text[0] == 'S':
-            return 'A' + text
-        return text
+        # return [ Bill.a2order(c) for c in re.split('(\d+)', text) ]
+        for i, c in enumerate(billno):
+            if c.isdigit():
+                return '%s%05d' % (billno[:i], int(billno[i:]))
+
+        # No digits, which shouldn't happen
+        return billno
 
     @staticmethod
-    def natural_key(text):
-        '''Natural key, digits considered as numbers, for sorting text.
-        '''
-        return [ Bill.a2order(c) for c in re.split('(\d+)', text) ]
+    def a2order(billno):
+        return Bill.natural_key(billno)
 
     @staticmethod
     def bill_natural_key(bill):
         '''Natural key, digits considered as numbers, for sorting Bills.
         '''
-        return [ Bill.a2order(c) for c in re.split('(\d+)', bill.billno) ]
-
-
-    @staticmethod
-    def num_tracking_billno(billno):
-        b = Bill.query.filter_by(billno=billno).first()
-        if not b:
-            return 0
-        return b.num_tracking()
-
-
-    def num_tracking(self):
-        '''How many users are following this bill?
-        '''
-        # select COUNT(*) from userbills where bill_id=self.id;
-        # How to query a Table rather than a Model:
-        return db.session.query(userbills).filter_by(bill_id=self.id).count()
-
-
-    def users_tracking(self):
-        userlist = []
-        tracking = db.session.query(userbills).filter_by(bill_id=self.id).all()
-        for u in tracking:
-            userlist.append(User.query.filter_by(id=u.user_id).first())
-        return userlist
-
-
-    def scheduled_in_future(self):
-        '''Is a bill scheduled for a future *date*?
-           If the current time is 19:00 or later, we'll consider
-           a scheduled date of today to be in the past; if it's
-           earlier than that, it's in the future.
-           (Figuring not many committees meet later than 6pm.)
-        '''
-        now = datetime.now()
-        nowdate = datetime.date(now)
-        if now.hour >= 19:
-            nowdate += timedelta(days=1)
-
-        if self.scheduled_date:
-            scheddate = datetime.date(self.scheduled_date)
-            if scheddate >= nowdate:
-                return True
+        return Bill.natural_key(bill.billno)
 
 
     @staticmethod
@@ -396,6 +351,75 @@ class Bill(db.Model):
         return '2 %010d' % (2000000000 -
                             time.mktime(lastaction.timetuple())) \
             + Bill.a2order(bill.billno)
+
+
+    @staticmethod
+    def status_key(bill):
+        '''Sort bills by their location/status,
+           with chaptered (signed) bills first, then passed bills,
+           then bills on the Senate or House floors, then everything else.
+        '''
+        if bill.location == 'Chaptered':
+            return '10' + Bill.bill_natural_key(bill)
+
+        if bill.location == 'Signed':
+            return '15' + Bill.bill_natural_key(bill)
+
+        if bill.location == 'Passed':
+            return '20' + Bill.bill_natural_key(bill)
+
+        if bill.location == 'Senate':
+            return '30' + Bill.bill_natural_key(bill)
+
+        if bill.location == 'House':
+            return '40' + Bill.bill_natural_key(bill)
+
+        if bill.location == 'Died':
+            return '50' + Bill.bill_natural_key(bill)
+
+        return '60' + Bill.last_action_key(bill)
+
+
+    @staticmethod
+    def num_tracking_billno(billno):
+        b = Bill.query.filter_by(billno=billno).first()
+        if not b:
+            return 0
+        return b.num_tracking()
+
+
+    def num_tracking(self):
+        '''How many users are following this bill?
+        '''
+        # select COUNT(*) from userbills where bill_id=self.id;
+        # How to query a Table rather than a Model:
+        return db.session.query(userbills).filter_by(bill_id=self.id).count()
+
+
+    def users_tracking(self):
+        userlist = []
+        tracking = db.session.query(userbills).filter_by(bill_id=self.id).all()
+        for u in tracking:
+            userlist.append(User.query.filter_by(id=u.user_id).first())
+        return userlist
+
+
+    def scheduled_in_future(self):
+        '''Is a bill scheduled for a future *date*?
+           If the current time is 19:00 or later, we'll consider
+           a scheduled date of today to be in the past; if it's
+           earlier than that, it's in the future.
+           (Figuring not many committees meet later than 6pm.)
+        '''
+        now = datetime.now()
+        nowdate = datetime.date(now)
+        if now.hour >= 19:
+            nowdate += timedelta(days=1)
+
+        if self.scheduled_date:
+            scheddate = datetime.date(self.scheduled_date)
+            if scheddate >= nowdate:
+                return True
 
 
     def set_from_parsed_page(self, b):

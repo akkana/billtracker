@@ -29,7 +29,8 @@ def daily_user_email(recipient):
         return
 
     # Get the sorted list of bills
-    bills = recipient.bills_by_action_date()
+    # bills = recipient.bills_by_action_date()
+    bills = recipient.bills_by_status()
 
     send_email("NM Bill Tracker Daily Update",
                "noreply@nmbilltracker.com", [ recipient.email ],

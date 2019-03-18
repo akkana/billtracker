@@ -4,12 +4,15 @@ This is the last daily email from the New Mexico Bill Tracker for this session.
 
 The Bill Tracker will remain open and will continue tracking bills.
 If you want to check whether bills are signed, you can still check
-your bill list online, but I'm guessing most people won't want
-continued daily emails.
+your bill list online.
+
+Meanwhile, your bill list is now sorted by status,
+giving you an easy way to see which bills have been signed,
+which ones passed and are waiting for a signature, etc.
 
 For next year's 30-day session, the Bill Tracker will begin tracking
-bills once prefiling begins and bills start appearing on the legislative site,
-and daily emails will begin when the session starts.
+bills once pre-filing begins and bills start appearing on the
+legislative site, and daily emails will begin when the session starts.
 
 If you have any suggestions for improvements you'd like to see next year,
 please let me know.
