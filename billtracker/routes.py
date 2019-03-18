@@ -27,7 +27,19 @@ import sys, os
 @billtracker.route('/index')
 @login_required
 def index():
-    return render_template('index.html', title='Home')
+    return render_template('index.html', title='Home', sortby='status')
+
+
+@billtracker.route('/statusbills')
+@login_required
+def statusbills():
+    return render_template('index.html', title='Home', sortby='status')
+
+
+@billtracker.route('/activebills')
+@login_required
+def activebills():
+    return render_template('index.html', title='Home', sortby='action_date')
 
 
 @billtracker.route('/login', methods=['GET', 'POST'])

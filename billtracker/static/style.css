@@ -41,6 +41,13 @@ table#banner {
   #bannermiddle { background-image: none; }
 }
 
+.rightalign { float: right; margin: 0 1em; }
+.rightalign span { background: #eef; border: 3px outset white; padding: 3px; border-radius: 2px; }
+.rightalign span.active { border: 3px inset white; }
+.rightalign span.selectable:hover { background: white; }
+.rightalign span.selectable a:hover { background: white; }
+.rightalign a { text-decoration: none; color: inherit; }
+
 span.historycode { color: grey; }
 
 /*
