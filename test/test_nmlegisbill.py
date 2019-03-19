@@ -20,8 +20,6 @@ from billtracker.bills import nmlegisbill, billutils
 
 import datetime
 
-url_mapper = billutils.LocalURLmapper('https://www.nmlegis.gov')
-
 class TestNMlegisbill(unittest.TestCase):
 
     def setUp(self):
@@ -32,7 +30,7 @@ class TestNMlegisbill(unittest.TestCase):
         pass
 
 
-    def test(self):
+    def test_parse_bills(self):
 
         # To see large diffs, set this:
         self.maxDiff = None

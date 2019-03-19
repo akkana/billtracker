@@ -46,7 +46,11 @@ class TestBillTracker(unittest.TestCase):
         self.assertTrue(u.check_password('testpassword'))
 
 
-    def test_bills(self):
+    def test_bills_and_users(self):
+        '''Test adding new users and bills to the database.'''
+        # Users and bills depend on each other, so they pretty much
+        # need to be combined in the same test.
+
         # Check that the home page loads.
         # This has nothing to do with bills, but calling setUp/tearDown
         # just for this would be a waste of cycles
@@ -71,6 +75,48 @@ class TestBillTracker(unittest.TestCase):
         bill = Bill.query.filter_by(billno="HB73").first()
         self.assertEqual(bill.billno, "HB73")
         self.assertEqual(bill.title, 'EXEMPT NM FROM DAYLIGHT SAVINGS TIME')
+
+        # This is needed to test WTForms to test any POSTs:
+        billtracker.config['WTF_CSRF_ENABLED'] = False
+
+        # Create a user.
+        response = self.app.post("/newaccount",
+                                 data={ 'username': 'testuser',
+                                        'email': 'testuser@example.com',
+                                        'password': 'password',
+                                        'password2': 'password',
+                                        'submit': 'Register' })
+        self.assertEqual(response.status_code, 302)
+        allusers = User.query.all()
+        self.assertEqual(len(allusers), 1)
+        user = User.query.filter_by(username='testuser').first()
+        self.assertEqual(user.email, 'testuser@example.com')
+
+        # Try addbills without being logged in:
+        response = self.app.post('/addbills',
+                                 data={ 'billno': 'HB73',
+                                        'submit': 'Track a Bill'})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers['location'],
+                         'http://localhost/login?next=%2Faddbills')
+
+        # Now try logging in, if I can figure out how.
+        with self.app as c:
+            with c.session_transaction() as sess:
+                sess['user_id'] = int(user.get_id())
+                # http://pythonhosted.org/Flask-Login/#fresh-logins
+                sess['_fresh'] = True
+
+        # Now try addbills again as a logged-in user:
+        response = self.app.post('/addbills',
+                                 data={ 'billno': 'HB73',
+                                        'submit': 'Track a Bill'})
+        self.assertEqual(response.status_code, 200)
+
+        # Need to re-query the user to get the updated bill list:
+        user = User.query.filter_by(username='testuser').first()
+        self.assertEqual(len(user.bills), 1)
+        self.assertEqual(user.bills[0].billno, 'HB73')
 
 
 if __name__ == '__main__':

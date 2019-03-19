@@ -90,7 +90,6 @@ class User(UserMixin, db.Model):
         '''
         # Ideally, have this called just once for the whole allbills page.
         if not hasattr(self, 'trackedbills') or not self.trackedbills:
-            print("Setting up self.trackedbills")
             self.trackedbills = [ b.billno for b in self.bills ]
         return (billno in self.trackedbills)
 

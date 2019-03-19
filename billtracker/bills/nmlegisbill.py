@@ -78,6 +78,13 @@ def bill_url(billno):
 
 cachedir = 'cache'
 
+def url_to_cache_filename(billurl):
+    return billurl.replace('https://www.nmlegis.gov/', '') \
+                  .replace('/Legislation', '') \
+                  .replace('/', '_') \
+                  .replace('?', '_') \
+                  .replace('&', '_')
+
 def soup_from_cache_or_net(baseurl, cachefile=None, cachesecs=2*60*60):
     '''baseurl is a full URL including https://www.nmlegis.gov/
        or a full URL including that part.
@@ -93,8 +100,7 @@ def soup_from_cache_or_net(baseurl, cachefile=None, cachesecs=2*60*60):
             print("Couldn't create cache dir", cachedir, "-- not caching")
 
     if not cachefile:
-        cachefile = baseurl.replace('https://www.nmlegis.gov/', '').replace('/Legislation', '').replace('/', '_').replace('?', '_').replace('&', '_')
-        cachefile = '%s/%s' % (cachedir, cachefile)
+        cachefile = '%s/%s' % (cachedir, url_to_cache_filename(baseurl))
 
     # Use cached pages so as not to hit the server so often.
     if os.path.exists(cachefile):

@@ -73,6 +73,7 @@ def logout():
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
+
     form = RegistrationForm()
     if form.validate_on_submit():
         user = User(username=form.username.data, email=form.email.data)
@@ -156,6 +157,8 @@ def addbills():
     user = User.query.filter_by(username=current_user.username).first()
     form = AddBillsForm()
 
+    values = request.values.to_dict()
+
     if form.validate_on_submit():
         billno = form.billno.data
         bill = Bill.query.filter_by(billno=billno).first()
@@ -212,7 +215,6 @@ def track_untrack():
         untrack = []
 
         values = request.values.to_dict()
-        print("track_untrack: values:", values)
 
         if 'returnpage' in values:
             returnpage = values['returnpage']
