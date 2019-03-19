@@ -80,9 +80,9 @@ class TestBillTracker(unittest.TestCase):
         billtracker.config['WTF_CSRF_ENABLED'] = False
 
         # Create a user.
+        # Don't set email address, or it will try to send a confirmation mail.
         response = self.app.post("/newaccount",
                                  data={ 'username': 'testuser',
-                                        'email': 'testuser@example.com',
                                         'password': 'password',
                                         'password2': 'password',
                                         'submit': 'Register' })
@@ -90,7 +90,7 @@ class TestBillTracker(unittest.TestCase):
         allusers = User.query.all()
         self.assertEqual(len(allusers), 1)
         user = User.query.filter_by(username='testuser').first()
-        self.assertEqual(user.email, 'testuser@example.com')
+        self.assertEqual(user.username, 'testuser')
 
         # Try addbills without being logged in:
         response = self.app.post('/addbills',
