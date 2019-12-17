@@ -8,6 +8,9 @@ a:hover, a:active { background: #eef; }
 /* So annoying how default styles make td and th so different! */
 td, th { text-align: left; margin: 0; border: 0; padding: 1; }
 
+/* But for the calendar, we actually want that right alignment */
+table.calendar th { text-align: right; padding-right: 1em; }
+
 /*
  * The top banner:
  */
