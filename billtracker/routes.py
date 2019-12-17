@@ -124,12 +124,14 @@ def links():
     return render_template('links.html', title='Links for NM Bill Tracking')
 
 
-def make_new_bill(billno):
+def make_new_bill(billno, leg_year=None):
     '''Create a new Bill object, not previously in the database,
        by fetching and parsing its page.
     '''
-    b = nmlegisbill.parse_bill_page(billno,
-                                    year=datetime.now().year,
+    if not leg_year:
+        leg_year = billutils.current_leg_year()
+
+    b = nmlegisbill.parse_bill_page(billno, leg_year,
                                     cache_locally=True)
 
     if b:
@@ -221,10 +223,15 @@ def track_untrack():
         else:
             returnpage = 'addbills'
 
+        if 'leg_year' in values:
+            leg_year = values['leg_year']
+        else:
+            leg_year = billutils.current_leg_year()
+
         for billno in values:
             if values[billno] == 'on':
-                # Untrack buttons be u_BILLNO or just BILLNO;
-                # track buttons will be f_BILLNO.
+                # Untrack buttons may be u_BILLNO.YEAR or just BILLNO.YEAR;
+                # track buttons will be f_BILLNO.YEAR.
                 if billno.startswith('f_'):
                     track.append(billno[2:])
                 elif billno.startswith('u_'):
@@ -274,7 +281,7 @@ def track_untrack():
                 if not bill:
                     print("Eek! Needed to make a new bill for", billno,
                           "in track_untrack")
-                    bill = make_new_bill(billno)
+                    bill = make_new_bill(billno, leg_year)
                 user.bills.append(bill)
             flash("You are now tracking %s" % ', '.join(will_track))
 
@@ -285,18 +292,28 @@ def track_untrack():
     return redirect(url_for(returnpage))
 
 
+# XXX Tried to allow specifying year (preferably optionally), but keep getting
+# werkzeug.routing.BuildError: Could not build url for endpoint 'popular'. Did you forget to specify values ['year']?
+# when visiting http://127.0.0.1:5000/popular/2020.
+# @billtracker.route('/popular/<year>')
+
 @billtracker.route('/popular')
 @login_required
 def popular():
-    '''Show all bills in the database, with how many people are tracking them.
+    '''Show all bills in the database for a given year,
+       and how many people are tracking each one.
        This requires login, only because it seems rude to show information
        about our users to someone who can't be bothered to register.
     '''
+    year = billutils.current_leg_year()
+    yearstr = billutils.year_to_2digit(year)
     bills = Bill.query.all()
     # allbills.html expects a list of
     # [ [billno, title, link, fulltext_link, num_tracking ] ]
     bill_list = []
     for bill in bills:
+        if bill.year != yearstr:
+            continue
         num_tracking = bill.num_tracking()
         if num_tracking:
             bill_list.append( [ bill.billno, bill.title,
@@ -309,20 +326,26 @@ def popular():
                      'header': "",
                      'alt': "Nobody seems to be tracking anything" } ]
 
+    verb = 'are' if year >= billutils.current_leg_year() else 'were'
+
     return render_template('allbills.html', user=current_user,
-                           title="Bills People are Tracking",
+                           title="%s Bills People %s Tracking" % (year, verb),
+                           leg_year=year,
                            returnpage="popular",
                            bill_lists=bill_lists)
+
 
 @billtracker.route('/allbills')
 def allbills():
     '''Show all bills that have been filed, with titles and links,
        whether or not they're in our database or any user is tracking them.
        New bills the user hasn't seen before are listed first.
+       By default, though, only show the current session.
     '''
+    leg_year = billutils.current_leg_year()
 
     # Do the slow part first, before any database accesses:
-    allbills = nmlegisbill.all_bills()
+    allbills = nmlegisbill.all_bills(leg_year)
     # This is an OrderedDict, { billno: [title, url] }
 
     bills_seen = []
@@ -339,6 +362,7 @@ def allbills():
     if not allbills:
         flash("Problem fetching the list of all bills")
         allbills = []
+
     # allbills.html expects a list of
     # [ [billno, title, link, fulltext_link, num_tracking ] ]
     for billno in allbills:
@@ -348,7 +372,7 @@ def allbills():
         else:
             contents = ''
         args = [ billno, allbills[billno][0], allbills[billno][1],
-                 contents, Bill.num_tracking_billno(billno) ]
+                 contents, Bill.num_tracking_billno(billno, leg_year) ]
 
         if user and billno not in bills_seen:
             newbills.append(args)
@@ -375,7 +399,11 @@ So check them now.)""",
                      'header': "<h2>Older bills</h2>",
                      'alt': ""
                    } ]
+
     return render_template('allbills.html', user=user,
+                           title="NM Bill Tracker: All %d Bills" \
+                                 % billutils.current_leg_year(),
+                           leg_year=leg_year,
                            bill_lists=bill_lists)
 
 
@@ -551,12 +579,12 @@ def mailto(username, key):
 #
 # Test with:
 # requests.post('%s/api/refresh_one_bill' % baseurl,
-#               { "BILLNO": billno, "KEY": key }).text
+#               { "BILLNO": billno, "YEAR": year, "KEY": key }).text
 #
 @billtracker.route("/api/refresh_one_bill", methods=['POST'])
 def refresh_one_bill():
     '''Long-running query: fetch the page for a bill and update it in the db.
-       Send the billno as BILLNO and the app key as KEY in POST data.
+       Send BILLNO, YEAR and the app KEY in POST data.
     '''
     key = request.values.get('KEY')
     if key != billtracker.config["SECRET_KEY"]:
@@ -564,8 +592,11 @@ def refresh_one_bill():
         return "FAIL Bad key\n"
     billno = request.values.get('BILLNO')
 
-    now = datetime.now()
-    b = nmlegisbill.parse_bill_page(billno, year=now.year, cache_locally=True)
+    year = request.values.get('YEAR')
+    if not year:
+        year = datetime.now().year
+
+    b = nmlegisbill.parse_bill_page(billno, year, cache_locally=True)
     if not b:
         print("FAIL refresh_one_bill: Couldn't fetch %s bill page" % billno)
         return "FAIL Couldn't fetch %s bill page" % billno

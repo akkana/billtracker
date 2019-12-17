@@ -2,11 +2,11 @@
 
 {% block content %}
 
-{% if not title %}
-{% set title = "All Bills That Have Been Filed" %}
-{% endif %}
-
+{% if title %}
 <h1>{{ title }}</h1>
+{% else %}
+<h1>NM BillTracker: All Bills</h1>
+{% endif %}
 
 {% if not returnpage %}
 {% set returnpage = "allbills" %}
@@ -14,6 +14,7 @@
 
 <form method="POST" action="/track_untrack">
 <input type="hidden" id="returnpage" name="returnpage" value="{{ returnpage }}">
+<input type="hidden" id="leg_year" name="legyear" value="{{ leg_year }}">
 
 {% for bill_list in bill_lists %}
 {% if bill_list['thelist'] and bill_list['thelist']|length > 0 %}
@@ -40,7 +41,7 @@
       <td><a href="{{ bill_line[2] }}" target="_blank">{{ bill_line[1] }}</a>
       <td><a href="{{ bill_line[3] }}" target="_blank">{{ bill_line[0] }} text</a>
       {% if user %}
-        {% if user.tracking(bill_line[0]) %}
+        {% if user.tracking(bill_line[0], leg_year) %}
           <td>
           <td><input type="checkbox" class="untrack" name="u_{{ bill_line[0] }}">
         {% else %}
@@ -71,10 +72,12 @@
 
 {% endfor %}
 
+{% if not returnpage %}
 <p>
 Source: This comes from the
 <a href="https://www.nmlegis.gov/Legislation/Legislation_List?Session=57">New
 Mexico Legislature's Legislation Listing</a>.
+{% endif %}
 
 {% endblock %}
 

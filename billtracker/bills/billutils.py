@@ -12,8 +12,22 @@ if sys.version[:1] == '2':
 else:
     from urllib.parse import urlparse
 
+
+def current_leg_year():
+    '''Return the current LEGISLATIVE year as an integer (2019, not 19).
+       Starting in November, figure nobody's paying attention to the
+       previous session and is looking toward the session that starts
+       in January.
+    '''
+    now = datetime.datetime.now()
+    if now.month >= 11:
+        return now.year + 1
+    return now.year
+
+
 def year_to_2digit(year):
-    '''Translate a year in various formats to a 2-digit string.
+    '''Translate a year in various formats to the 2-digit string
+       used on nmlegis, e.g. '19' rather than '2019' or 2019 or 19.
     '''
 
     if type(year) is int:
@@ -21,16 +35,19 @@ def year_to_2digit(year):
             year -= 2000
         return '%02d' % year
 
-    elif type(year) is str:
+    if type(year) is str:
         if len(year) > 2:
             return year[-2:]
 
     # Use this year if not defined or in an unknown format.
-    return '%02d' % (datetime.datetime.now().year - 2000)
+    return '%02d' % (current_leg_year() - 2000)
+
 
 def billno_to_parts(billno, year=None):
-    if not year:
-        year = datetime.datetime.now().year
+    '''Split a bill number into its parts: chamber, billtype, number, year.
+       Return chamber, billtype, number, year as strings
+       suitable for an nmlegis URL.
+    '''
     year = year_to_2digit(year)
 
     # billno is chamber, bill type, digits, e.g. HJM4. Parse that:
@@ -39,6 +56,11 @@ def billno_to_parts(billno, year=None):
         raise RuntimeError("I don't understand bill name '%s'" % billno)
     chamber, billtype, number = match.groups()
     return chamber, billtype, number, year
+
+#
+# XXX These URL Mappers are flaky and may not be needed any more
+# now that the unit tests use mocking. They should probably be removed.
+#
 
 # For offline debugging without hitting the real nmlegis site too often,
 # URL handling goes through this class, which can be set to debug mode.

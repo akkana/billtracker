@@ -1,7 +1,7 @@
 from billtracker import db, login
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from billtracker.bills import nmlegisbill
+from billtracker.bills import nmlegisbill, billutils
 from billtracker.emails import send_email
 
 from datetime import datetime, timedelta
@@ -85,12 +85,17 @@ class User(UserMixin, db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def tracking(self, billno):
+    def tracking(self, billno, leg_year=None):
         '''Convenience routine to help with laying out the allbills page
         '''
+        if not leg_year:
+            leg_year = billutils.current_leg_year()
+        yearstr = billutils.year_to_2digit(leg_year)
+
         # Ideally, have this called just once for the whole allbills page.
         if not hasattr(self, 'trackedbills') or not self.trackedbills:
-            self.trackedbills = [ b.billno for b in self.bills ]
+            self.trackedbills = [ b.billno for b in self.bills
+                                  if b.year == yearstr]
         return (billno in self.trackedbills)
 
     def send_confirmation_mail(self):
@@ -137,16 +142,40 @@ https://nmbilltracker.com/confirm_email/%s
         return ''
 
 
-    def bills_by_number(self):
-        return sorted(self.bills, key=Bill.bill_natural_key)
+    # All user bills*() functions can take an optional year.
+    # If not specified, will return only bills for the current
+    # legislative year. If negative, will return bills from all years.
+    def bills_by_year(self, year=None):
+        # XXX There has got to be a clever way to do this from the db,
+        # but userbills only has user_id and bill_id.
+        # thebills = db.session.query(userbills).filter_by(user_id=self.id, ).count()
+
+        if not year:
+            year = billutils.current_leg_year()
+
+        elif year < 0:
+            return self.bills
+
+        yearstr = billutils.year_to_2digit(year)
+
+        bill_list = []
+        for bill in self.bills:
+            if bill.year == yearstr:
+                bill_list.append(bill)
+
+        return bill_list
 
 
-    def bills_by_action_date(self):
-        return sorted(self.bills, key=Bill.last_action_key)
+    def bills_by_number(self, year=None):
+        return sorted(self.bills_by_year(year), key=Bill.bill_natural_key)
 
 
-    def bills_by_status(self):
-        return sorted(self.bills, key=Bill.status_key)
+    def bills_by_action_date(self, year=None):
+        return sorted(self.bills_by_year(year), key=Bill.last_action_key)
+
+
+    def bills_by_status(self, year=None):
+        return sorted(self.bills_by_year(year), key=Bill.status_key)
 
 
     def show_bill_table(self, bill_list, inline=False):
@@ -236,7 +265,7 @@ class Bill(db.Model):
     # Number, e.g. 83 for SB83, in string form
     number = db.Column(db.String(10))
 
-    # Year (default to current)
+    # Year, a 2-digit string, '19', not '2019' or 2019
     year = db.Column(db.String(4))
 
     # Bill title
@@ -274,7 +303,7 @@ class Bill(db.Model):
     # Is the bill scheduled to come up for debate?
     scheduled_date = db.Column(db.DateTime)
 
-    # We'll seldom need to know uses for a bill, so no need to
+    # We'll seldom need to know users for a bill, so no need to
     # include it as a line here.
     # user = db.relationship('User', secondary=userbills, lazy='subquery',
     #                         backref=db.backref('bills', lazy=True))
@@ -380,8 +409,10 @@ class Bill(db.Model):
 
 
     @staticmethod
-    def num_tracking_billno(billno):
-        b = Bill.query.filter_by(billno=billno).first()
+    def num_tracking_billno(billno, leg_year):
+        yearstr = billutils.year_to_2digit(leg_year)
+
+        b = Bill.query.filter_by(billno=billno, year=yearstr).first()
         if not b:
             return 0
         return b.num_tracking()

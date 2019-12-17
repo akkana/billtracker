@@ -2,8 +2,8 @@
 
 from __future__ import print_function
 
-from .billutils import URLmapper, year_to_2digit, billno_to_parts, \
-      ftp_get, ftp_index
+from .billutils import current_leg_year, year_to_2digit, billno_to_parts, \
+      URLmapper, ftp_get, ftp_index
 
 # Scrape bill data from bill pages from nmlegis.org.
 
@@ -136,7 +136,7 @@ def soup_from_cache_or_net(baseurl, cachefile=None, cachesecs=2*60*60):
 
     return soup
 
-def parse_bill_page(billno, year=None, cache_locally=True, cachesecs=2*60*60):
+def parse_bill_page(billno, year, cache_locally=True, cachesecs=2*60*60):
     '''Download and parse a bill's page on nmlegis.org.
        Return a dictionary containing:
        chamber, billtype, number, year, title, sponsor, sponsorlink,
@@ -153,16 +153,18 @@ def parse_bill_page(billno, year=None, cache_locally=True, cachesecs=2*60*60):
     (billdic['chamber'], billdic['billtype'],
      billdic['number'], billdic['year']) = billno_to_parts(billno, year)
 
-    # XXX number and year here are bogus
-    baseurl = url_mapper.bill_url(billdic['chamber'],
-                                  billdic['billtype'],
-                                  billdic['number'],
-                                  billdic['year'])
+    baseurl = 'https://www.nmlegis.gov/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s' \
+        % (billdic['chamber'], billdic['billtype'],
+           billdic['number'], billdic['year'])
+
+    # baseurl = url_mapper.bill_url(billdic['chamber'],
+    #                               billdic['billtype'],
+    #                               billdic['number'],
+    #                               billdic['year'])
 
     if cache_locally:
         cachefile = os.path.join(cachedir,
                                  '20%s-%s.html' % (billdic['year'], billno))
-        print("parse from cachefile:", cachefile)
         soup = soup_from_cache_or_net(baseurl, cachefile=cachefile,
                                       cachesecs=cachesecs)
     else:
@@ -180,7 +182,6 @@ def parse_bill_page(billno, year=None, cache_locally=True, cachesecs=2*60*60):
         # If we cached, remove the cache file.
         if cache_locally and cachefile:
             os.unlink(cachefile)
-        print("parse_bill_page: No such bill %s" % billno)
         return None
 
     sponsor_a = soup.find("a",
@@ -506,13 +507,17 @@ def most_recent_action(billdic):
     billdic['last_action_date'] = last_action_date
     return last_action_date, str(lastaction), lastaction.text
 
-def all_bills():
+def all_bills(leg_year=None):
     '''Return an OrderedDict of all bills, billno: [title, url]
        From https://www.nmlegis.gov/Legislation/Legislation_List?Session=57
     '''
     baseurl = 'https://www.nmlegis.gov/Legislation/'
-    # XXX need to map year to session. 2019 is 57.
-    url = baseurl + 'Legislation_List?Session=57'
+
+    # Map year to session. 2019 is 57.
+    if not leg_year:
+        leg_year = current_leg_year()
+    session = leg_year - 1962
+    url = baseurl + 'Legislation_List?Session=%2d' % session
 
     # re-fetch once an hour:
     soup = soup_from_cache_or_net(url, cachesecs=60*60)

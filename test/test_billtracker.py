@@ -4,6 +4,8 @@ import sys, os
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 import unittest
+from unittest import mock
+import re
 
 from billtracker import billtracker, db
 from billtracker.models import User, Bill
@@ -11,6 +13,30 @@ from config import Config, basedir
 
 
 TEST_DB = 'test.db'
+
+# This method will be used by the mock to replace requests.get
+def mocked_requests_get(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, text, status_code):
+            self.text = text
+            self.status_code = status_code
+
+    print("******** mocked response, args =", args)
+    realurl = args[0]
+    m = re.match('https?://www.nmlegis.gov/Legislation/Legislation\?chamber=(.)&legtype=(.)&legno=(\d+)&year=(\d\d)', realurl)
+    if m:
+        chamber, legtype, billno, year = m.groups()
+        filename = 'test/cache/20%s-%s%s%s.html' % (year, chamber,
+                                                    legtype, billno)
+        if os.path.exists(filename):
+            with open(filename) as fp:
+                print("filename", filename)
+                return MockResponse(fp.read(), 200)
+        print("Cache filename", filename, "doesn't exist")
+    else:
+        print("URL '%s' didn't match pattern" % realurl)
+
+    return MockResponse(None, 404)
 
 
 class TestBillTracker(unittest.TestCase):
@@ -46,7 +72,8 @@ class TestBillTracker(unittest.TestCase):
         self.assertTrue(u.check_password('testpassword'))
 
 
-    def test_bills_and_users(self):
+    @mock.patch('requests.get', side_effect=mocked_requests_get)
+    def test_bills_and_users(self, mock_get):
         '''Test adding new users and bills to the database.'''
         # Users and bills depend on each other, so they pretty much
         # need to be combined in the same test.
@@ -59,7 +86,8 @@ class TestBillTracker(unittest.TestCase):
 
         # Add a new bill, using the already cached page
         response = self.app.post("/api/refresh_one_bill",
-                                 data={ 'BILLNO': 'HB73', 'KEY': self.key } )
+                                 data={ 'BILLNO': 'HB73', 'KEY': self.key,
+                                        'YEAR': '2019'} )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_data(as_text=True), 'OK Updated HB73')
 
@@ -100,7 +128,7 @@ class TestBillTracker(unittest.TestCase):
         self.assertEqual(response.headers['location'],
                          'http://localhost/login?next=%2Faddbills')
 
-        # Now try logging in, if I can figure out how.
+        # Now try logging in:
         with self.app as c:
             with c.session_transaction() as sess:
                 sess['user_id'] = int(user.get_id())
