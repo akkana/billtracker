@@ -1,23 +1,22 @@
-The 2019 Session is Over
+The 2020 Legislative Session is About to Begin!
 
-This is the last daily email from the New Mexico Bill Tracker for this session.
+You're receiving this email because you were registered with the
+New Mexico Bill Tracker for the 2019 legislative session.
 
-The Bill Tracker will remain open and will continue tracking bills.
-If you want to check whether bills are signed, you can still check
-your bill list online.
+The 2020 session begins on January 21, 2020. Legislators started
+pre-filing bills on December 17, so the Bill Tracker is now up and
+ready for action, showing 2020 bills rather than 2019:
 
-Meanwhile, your bill list is now sorted by status,
-giving you an easy way to see which bills have been signed,
-which ones passed and are waiting for a signature, etc.
+    http://nmbilltracker.com/
 
-For next year's 30-day session, the Bill Tracker will begin tracking
-bills once pre-filing begins and bills start appearing on the
-legislative site, and daily emails will begin when the session starts.
+Once the session begins (Jan 21), the Bill Tracker will start sending
+daily summaries of the bills you're tracking. If you don't want
+the daily emails, you can go to your Settings page and delete your
+email address.
 
-If you have any suggestions for improvements you'd like to see next year,
-please let me know.
-
-Thanks for using the Bill Tracker. I hope it's been useful.
+Thanks for using the Bill Tracker; I hope it's useful.
+Please let me know if you see any problems, particularly if you
+see any pages where it's still showing 2019 bills instead of 2020.
 
     ...Akkana
 
@@ -29,8 +28,9 @@ Thanks for using the Bill Tracker. I hope it's been useful.
 {% endfor %}
 
 -----------------------------------------------------------
-This is the daily email from The New Mexico Bill Tracker,
-https://nmbilltracker.com/
-If you have a problem with these emails or want to stop receiving them,
-contact Akkana (akkana@shallowsky.com).
+This is the daily (once the session starts) email from
+the New Mexico Bill Tracker,
+    https://nmbilltracker.com/
+If you have a problem with these emails,
+contact Akkana (akkana@nmbilltracker.com).
 
