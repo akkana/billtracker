@@ -92,11 +92,10 @@ class User(UserMixin, db.Model):
             leg_year = billutils.current_leg_year()
         yearstr = billutils.year_to_2digit(leg_year)
 
-        # Ideally, have this called just once for the whole allbills page.
-        if not hasattr(self, 'trackedbills') or not self.trackedbills:
-            self.trackedbills = [ b.billno for b in self.bills
-                                  if b.year == yearstr]
-        return (billno in self.trackedbills)
+        bill = Bill.query.filter_by(billno=billno, year=yearstr).first()
+        if not bill:
+            return False
+        return (bill in self.bills)
 
     def send_confirmation_mail(self):
         authcode = ''
@@ -153,7 +152,7 @@ https://nmbilltracker.com/confirm_email/%s
         if not year:
             year = billutils.current_leg_year()
 
-        elif year < 0:
+        elif type(year) is int and year < 0:
             return self.bills
 
         yearstr = billutils.year_to_2digit(year)
@@ -309,7 +308,7 @@ class Bill(db.Model):
     #                         backref=db.backref('bills', lazy=True))
 
     def __repr__(self):
-        return 'Bill %s' % (self.billno)
+        return 'Bill %s %s' % (self.billno, self.year)
 
     @staticmethod
     def natural_key(billno):
@@ -565,7 +564,6 @@ class Bill(db.Model):
         # Bills don't have action dates on signing:
         elif not self.statustext or not self.statustext.startswith('Signed'):
             outstr += " No action yet.<br />"
-            print(self.billno, "statustext:", self.statustext)
 
         if self.statustext:
             # statusHTML is full of crap this year, so prefer statustext

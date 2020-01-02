@@ -50,6 +50,7 @@ the same form after submitting.
 - review the migration file to make sure it looks right
 - flask db upgrade
 
+
 ## Migrations: adding/dropping tables in sqlite3
 
 sqlite3 doesn't have any support for dropping tables.
@@ -62,6 +63,7 @@ you need to edit it to use batch operations instead:
 None of the flask db tutorials I've seen mentioned this
 even though most of them use sqlite.
 
+
 ## Fixing a migration problem
 
 I made a migration, did flask db migrate but not flask db upgrade,
@@ -72,3 +74,15 @@ flask db stamp head
 # Restart apache:
 
 apachectl -k graceful
+
+
+## Debugging with the Interactive Flask Shell
+
+% export FLASK_APP=run_billtracker.py
+% flask shell
+>>> from billtracker.models import User
+>>> u = User.query.filter_by(username='mary').first()
+>>> u.bills
+[Bill SB101 19, Bill HB55 20, ...]
+>>> [b for b in u.bills if b.year == '20']
+[Bill HB55 20, Bill SM9 20, Bill HB94 20, Bill SB17 20, Bill SB20 20]

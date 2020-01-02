@@ -228,6 +228,8 @@ def track_untrack():
         else:
             leg_year = billutils.current_leg_year()
 
+        yearstr = billutils.year_to_2digit(leg_year)
+
         for billno in values:
             if values[billno] == 'on':
                 # Untrack buttons may be u_BILLNO.YEAR or just BILLNO.YEAR;
@@ -243,18 +245,17 @@ def track_untrack():
             return redirect(url_for(returnpage))
 
         user = User.query.filter_by(username=current_user.username).first()
-        currently_tracked = [ b.billno for b in user.bills ]
         will_untrack = []
         not_tracking = []
         will_track = []
         already_tracking = []
         for billno in untrack:
-            if billno in currently_tracked:
+            if user.tracking(billno, yearstr):
                 will_untrack.append(billno)
             else:
                 not_tracking.append(billno)
         for billno in track:
-            if billno in currently_tracked:
+            if user.tracking(billno, yearstr):
                 already_tracking.append(billno)
             else:
                 will_track.append(billno)
@@ -267,7 +268,7 @@ def track_untrack():
                   % ', '.join(not_tracking))
 
         if will_untrack:
-            for b in user.bills:
+            for b in user.bills_by_year(yearstr):
                 if b.billno in will_untrack:
                     user.bills.remove(b)
             flash("You are no longer tracking %s" % ', '.join(will_untrack))
@@ -277,9 +278,9 @@ def track_untrack():
         # since the user is waiting..
         if will_track:
             for billno in will_track:
-                bill = Bill.query.filter_by(billno=billno).first()
+                bill = Bill.query.filter_by(billno=billno, year=yearstr).first()
                 if not bill:
-                    print("Eek! Needed to make a new bill for", billno,
+                    print("Needed to make a new bill for", billno, yearstr,
                           "in track_untrack")
                     bill = make_new_bill(billno, leg_year)
                 user.bills.append(bill)
