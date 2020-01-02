@@ -260,7 +260,7 @@ def track_untrack():
                 will_track.append(billno)
 
         if already_tracking:
-            flash("Already tracking %s" % ', '.append(already_tracking))
+            flash("Already tracking %s" % ', '.join(already_tracking))
 
         if not_tracking:
             flash("Can't untrack %s; you weren't tracking them"
