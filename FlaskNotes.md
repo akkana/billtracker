@@ -86,3 +86,5 @@ apachectl -k graceful
 [Bill SB101 19, Bill HB55 20, ...]
 >>> [b for b in u.bills if b.year == '20']
 [Bill HB55 20, Bill SM9 20, Bill HB94 20, Bill SB17 20, Bill SB20 20]
+>>> b =  Bill.query.filter_by(billno='HB55', year='20').first()
+>>> b.users_tracking()
