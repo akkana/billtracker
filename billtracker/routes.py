@@ -389,7 +389,7 @@ def allbills():
     bill_lists = [ { 'thelist': newbills,
                      'header': """<h2>Recently Filed Bills:</h2>
 <p>
-These are the new or changed bills since the last time you checked this page.
+These are the bills filed since the last time you checked this page.
 <br />
 (Warning: that means that if you leave this page and come back,
 or reload the page, these bills will no longer be there!
