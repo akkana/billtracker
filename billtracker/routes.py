@@ -127,6 +127,7 @@ def links():
 def make_new_bill(billno, leg_year=None):
     '''Create a new Bill object, not previously in the database,
        by fetching and parsing its page.
+       Don't actually add it to the database, just return the Bill object.
     '''
     if not leg_year:
         leg_year = billutils.current_leg_year()
@@ -137,13 +138,6 @@ def make_new_bill(billno, leg_year=None):
     if b:
         bill = Bill()
         bill.set_from_parsed_page(b)
-
-        try:
-            db.session.add(bill)
-        except:
-            flash("Couldn't add %s to the database" % billno)
-            print("Couldn't add %s to the database" % billno,
-                  file=sys.stderr)
     else:
         bill = None
         flash("Couldn't fetch information for %s" % billno)
@@ -172,10 +166,16 @@ def addbills():
         else:
             try:
                 bill = make_new_bill(billno)
+                db.session.add(bill)
+
             except RuntimeError as e:
                 flash(str(e))
                 return render_template('addbills.html', title='Add More Bills',
                                        form=form, user=user)
+            except Exception as e:
+                flash("Couldn't add %s to the database: %s" % (billno, str(e)))
+                print("Couldn't add %s to the database: %s" % (billno, str(e)),
+                      file=sys.stderr)
 
         # Either way, bill should be set to a Bill object now.
         # Add it to the current user:
@@ -205,6 +205,7 @@ def track_untrack():
     '''Called when the user marks bills for tracking or untracking
        via checkboxes, from either the addbills or allbills page.
     '''
+    print("track_untrack()")
     if request.method == 'POST' or request.method == 'GET':
         # request contains form (for POST), args (for GET),
         # and values (combined); the first two are ImmutableMultiDict,
@@ -241,21 +242,28 @@ def track_untrack():
                 else:
                     untrack.append(billno)
 
+        print("track:", track)
+        print("untrack:", untrack)
+
         if not track and not untrack:
             return redirect(url_for(returnpage))
 
-        user = User.query.filter_by(username=current_user.username).first()
+        # Was querying the user here. Why? current_user is already set.
+        # It's better not to do any database queries until we can batch
+        # them all together.
+        # user = User.query.filter_by(username=current_user.username).first()
+
         will_untrack = []
         not_tracking = []
         will_track = []
         already_tracking = []
         for billno in untrack:
-            if user.tracking(billno, yearstr):
+            if current_user.tracking(billno, yearstr):
                 will_untrack.append(billno)
             else:
                 not_tracking.append(billno)
         for billno in track:
-            if user.tracking(billno, yearstr):
+            if current_user.tracking(billno, yearstr):
                 already_tracking.append(billno)
             else:
                 will_track.append(billno)
@@ -268,26 +276,57 @@ def track_untrack():
                   % ', '.join(not_tracking))
 
         if will_untrack:
-            for b in user.bills_by_year(yearstr):
+            for b in current_user.bills_by_year(yearstr):
                 if b.billno in will_untrack:
-                    user.bills.remove(b)
+                    current_user.bills.remove(b)
             flash("You are no longer tracking %s" % ', '.join(will_untrack))
 
         # The hard (and slow) part: make new bills as needed.
         # Can't really do this asynchronously (unless it's with AJAX)
-        # since the user is waiting..
+        # since the user is waiting.
+        # However, querying Bill.query.filter_by apparently holds
+        # the database locked open, keeping anyone else from writing it
+        # while make_new_bill fetches info.
+
         if will_track:
+            # Figure out which bills will need to be fetched:
+            # Bills the user wants to track that don't exist yet in the db:
+            new_billnos = []
+            # Bills that the user will start tracking:
+            bills_to_track = []
             for billno in will_track:
-                bill = Bill.query.filter_by(billno=billno, year=yearstr).first()
-                if not bill:
-                    print("Needed to make a new bill for", billno, yearstr,
-                          "in track_untrack")
-                    bill = make_new_bill(billno, leg_year)
-                user.bills.append(bill)
+                b = db.session.query(Bill).filter(Bill.billno == billno).first()
+                if b:
+                    bills_to_track.append(b)
+                else:
+                    new_billnos.append(billno)
+
+            # The session is open because of having done read queries.
+            # Want to close it so it won't stay locked during the next part.
+            # Does commit() close it? Not clear.
+            db.session.commit()
+
+            # Now, do the slow part: fetch the bills that need to be fetched.
+            new_bills = []
+            for billno in new_billnos:
+                print("Needed to make a new bill for", billno, yearstr,
+                      "in track_untrack")
+                bill = make_new_bill(billno, leg_year)
+                new_bills.append(bill)
             flash("You are now tracking %s" % ', '.join(will_track))
 
+            # Now add all the bills to track to the user's list
+            # (hitting the database):
+            for bill in bills_to_track:
+                current_user.bills.append(bill)
+            for bill in new_bills:
+                print("Adding new bill", bill, "to the db")
+                db.session.add(bill)
+                current_user.bills.append(bill)
+
         if will_track or will_untrack:
-            db.session.add(user)
+            # We changed something. Finish up and commit.
+            db.session.add(current_user)
             db.session.commit()
 
     return redirect(url_for(returnpage))
