@@ -20,6 +20,7 @@ import multiprocessing
 import posixpath
 import traceback
 import shutil
+import subprocess
 import sys, os
 
 
@@ -781,40 +782,55 @@ def refresh_committee():
     return "OK Updated committee %s" % comcode
 
 
-@billtracker.route("/api/db_backup", methods=['POST'])
+@billtracker.route("/api/db_backup", methods=['GET', 'POST'])
 def db_backup():
     '''Make a backup copy of the database.
        POST data is only for KEY.
     '''
+
+    values = request.values.to_dict()
+    print("request values:", values)
+    try:
+        key = values['KEY']
+        if key != billtracker.config["SECRET_KEY"]:
+            return "FAIL Bad key\n"
+    except KeyError:
+        return "FAIL No key"
+
     db_uri = billtracker.config['SQLALCHEMY_DATABASE_URI']
     print("db URI:", db_uri)
-    if not db_uri.startswith('sqlite://'):
-        return "FAIL db URI doesn't start with sqlite://"
+
+    now = datetime.now()
+    backupdir = os.path.join(nmlegisbill.cachedir, "db")
 
     db_orig = db_uri[9:]
-
-    key = request.values.get('KEY')
-    if key != billtracker.config["SECRET_KEY"]:
-        return "FAIL Bad key\n"
-
-    backupdir = os.path.join(nmlegisbill.cachedir, "db")
 
     if not os.path.exists(backupdir):
         try:
             os.mkdir(backupdir)
         except Exception as e:
-            return "FAIL Couldn't create %s: %s" % (backupdir, str(e))
+            return "FAIL Couldn't create backupdir %s: %s" % (backupdir, str(e))
 
     if not os.path.exists(backupdir):
-        return "FAIL Couldn't create %s" % (backupdir)
+        return "FAIL No backupdir %s" % (backupdir)
 
-    now = datetime.now()
-    db_new = os.path.join(backupdir,
-                          now.strftime('billtracker.db-%Y-%m-%d_%H:%M'))
+    if db_uri.startswith('sqlite://'):
+        db_new = os.path.join(backupdir,
+                              now.strftime('billtracker-%Y-%m-%d_%H:%M.db'))
+        shutil.copyfile(db_orig, db_new)
 
-    shutil.copyfile(db_orig, db_new)
+    elif db_uri.startswith('postgresql://'):
+        db_new = os.path.join(backupdir,
+            now.strftime('billtracker-%Y-%m-%d_%H:%M.psql'))
+        # pg_dump dbname > dbname-backup.pg
+        with open(db_new, 'w') as fp:
+            subprocess.call(["pg_dump", "nmbilltracker"], stdout=fp)
+            print("Backed up to", db_new)
 
-    return "OK copied from '%s' to '%s'" % (db_orig, db_new)
+    else:
+        return "FAIL db URI doesn't start with sqlite:// or postgresql://"
+
+    return "OK Backed up database to '%s'" % (db_new)
 
 
 def find_dups():

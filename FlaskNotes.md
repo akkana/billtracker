@@ -81,6 +81,7 @@ apachectl -k graceful
 % export FLASK_APP=run_billtracker.py
 % flask shell
 >>> from billtracker.models import User
+>>> allusers = User.query.all()
 >>> u = User.query.filter_by(username='mary').first()
 >>> u.bills
 [Bill SB101 19, Bill HB55 20, ...]

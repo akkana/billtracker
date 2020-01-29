@@ -36,7 +36,7 @@ COMMITTEEPAGE_REFRESH = timedelta(hours=6)
 
 
 class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
@@ -241,7 +241,7 @@ def get_committee(comcode):
 
 
 class Bill(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
     # Bill designation, e.g. SB172
     billno = db.Column(db.String(20))
@@ -731,7 +731,7 @@ committee_members = db.Table('committee_members',
 # ftp://www.nmlegis.gov/Legislator%20Information/LegislatorsCommaDelimitedforMerging.txt
 #
 class Legislator(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
     sponcode = db.Column(db.String(9))
 
@@ -790,7 +790,7 @@ class Committee(db.Model):
     '''A Committee object may be a committee, or another bill destination
        such as House Floor, Governor's Desk or Dead.
     '''
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
     code = db.Column(db.String(8))
 
