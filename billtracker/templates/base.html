@@ -48,6 +48,12 @@
       <a href="{{ url_for('about') }}">About</a>
     </div>
 
+    <!-- Put system messages and alerts here,
+         with class either system-alert (red) or system-message (green).
+    <p class="system-alert">
+    </p>
+    -->
+
     {% with messages = get_flashed_messages() %}
     {% if messages %}
       <div class="error">

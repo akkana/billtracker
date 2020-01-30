@@ -12,11 +12,11 @@ def str2bool(s):
 class Config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY') or 's945v7490wcn4w47w8n9cp'
 
-    # I'm not clear on why there have to be three slashes here
-    # in addition to the slash basedir starts with, but there do.
+    # Default to using a sqlite database named "billtracker.db".
+    # To use something else, change it in the run script, e.g.
+    # os.environ["SQLALCHEMY_DATABASE_URI"] = "postgresql:///dbname"
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'postgresql:///nmbilltracker'
-    #    'sqlite:///' + os.path.join(basedir, 'billtracker.db')
+        'sqlite:///' + os.path.join(basedir, 'billtracker.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # To watch queries:

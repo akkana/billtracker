@@ -73,6 +73,8 @@ tr.odd td  { background: #fff; }
 tr.even td { background: #cfd; }
 
 .error { color: red; }
+.system-alert { color: red; }
+.system-message { color: green; }
 
 .highlight { background: yellow; }
 
