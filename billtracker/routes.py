@@ -553,7 +553,9 @@ def appinfo(key):
         return "FAIL Bad key\n"
 
     infostr = "BillTracker"
-    infostr += '\nDatabase: ' + str(db.session.get_bind())
+    infostr = "<br>\nSQLALCHEMY_DATABASE_URI: " + billtracker.config["SQLALCHEMY_DATABASE_URI"]
+    infostr += '<br>\nDatabase: ' + str(db.session.get_bind())
+
 
     return "OK\n" + infostr
 
