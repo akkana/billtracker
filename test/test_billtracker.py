@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+#
+# NOTE: The tests use sqlite as the database,
+# which may not be what the production app uses.
+#
+
 import sys, os
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 

@@ -544,6 +544,20 @@ def password_reset():
 #
 
 
+@billtracker.route("/api/appinfo/<key>")
+def appinfo(key):
+    '''Send out daily emails to all users with an email address registered.
+       A cron job will visit this URL once a day.
+    '''
+    if key != billtracker.config["SECRET_KEY"]:
+        return "FAIL Bad key\n"
+
+    infostr = "BillTracker"
+    infostr += '\nDatabase: ' + str(db.session.get_bind())
+
+    return "OK\n" + infostr
+
+
 @billtracker.route("/api/all_daily_emails/<key>")
 def all_daily_emails(key):
     '''Send out daily emails to all users with an email address registered.
