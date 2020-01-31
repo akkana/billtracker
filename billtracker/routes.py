@@ -552,12 +552,14 @@ def appinfo(key):
     if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
-    infostr = "BillTracker"
-    infostr = "<br>\nSQLALCHEMY_DATABASE_URI: " + billtracker.config["SQLALCHEMY_DATABASE_URI"]
+    infostr = "<br>\nBillTracker at " + str(datetime.now())
+
+    infostr += "<p>\nSQLALCHEMY_DATABASE_URI: " \
+        + billtracker.config["SQLALCHEMY_DATABASE_URI"]
     infostr += '<br>\nDatabase: ' + str(db.session.get_bind())
 
 
-    return "OK\n" + infostr
+    return "OK " + infostr
 
 
 @billtracker.route("/api/all_daily_emails/<key>")
@@ -672,11 +674,15 @@ def refresh_one_bill():
 
 @billtracker.route("/api/bills_by_update_date")
 def bills_by_update_date():
-    '''Return a list of bills sorted by how recently they've been updated,
-       oldest first. No key required.
+    '''Return a list of bills in the current legislative year,
+       sorted by how recently they've been updated, oldest first.
+       No key required.
     '''
-    bill_list = Bill.query.order_by(Bill.update_date).all()
-    return ','.join([ bill.billno for bill in bill_list ])
+    yearstr = billutils.year_to_2digit(billutils.current_leg_year())
+
+    bill_list = Bill.query.filter_by(year=yearstr) \
+                          .order_by(Bill.update_date).all()
+    return ','.join([ bill.billno for bill in bill_list])
 
 
 # Update LESC, FIR, amendments

@@ -171,7 +171,6 @@ def parse_bill_page(billno, year, cache_locally=True, cachesecs=2*60*60):
         r = requests.get(baseurl)
         soup = BeautifulSoup(r.text, 'lxml')
 
-
     # If something failed -- for instance, if we got an empty file
     # or an error page -- then the title span won't be there.
     # Detect that:
@@ -179,6 +178,7 @@ def parse_bill_page(billno, year, cache_locally=True, cachesecs=2*60*60):
         billdic['title'] = soup.find("span",
             id="MainContent_formViewLegislation_lblTitle").text
     except AttributeError:
+        print("Couldn't find title span")
         # If we cached, remove the cache file.
         if cache_locally and cachefile:
             os.unlink(cachefile)
