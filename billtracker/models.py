@@ -404,6 +404,12 @@ class Bill(db.Model):
         if bill.location == 'Died':
             return '50' + Bill.bill_natural_key(bill)
 
+        # Bills ruled not germane in a 30-day session have "Not Printed"
+        # in their status. They should be listed last since they won't
+        # be considered.
+        if 'Not Printed' in bill.statustext:
+            return '99' + Bill.bill_natural_key(bill)
+
         return '60' + Bill.last_action_key(bill)
 
 
