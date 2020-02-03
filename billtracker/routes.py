@@ -77,6 +77,14 @@ def register():
 
     form = RegistrationForm()
     if form.validate_on_submit():
+        # Flask's unique=True doesn't work for optional (nullable) fields.
+        # So we have to check for uniqueness manually here.
+        if form.email.data:
+            same_email = User.query.filter_by(email=form.email.data)
+            if same_email:
+                flash("Sorry, that email address is already taken")
+                return redirect(url_for("register"))
+
         user = User(username=form.username.data, email=form.email.data)
         user.set_password(form.password.data)
 
@@ -546,8 +554,7 @@ def password_reset():
 
 @billtracker.route("/api/appinfo/<key>")
 def appinfo(key):
-    '''Send out daily emails to all users with an email address registered.
-       A cron job will visit this URL once a day.
+    '''Display info about the app and the database.
     '''
     if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
