@@ -38,7 +38,7 @@ COMMITTEEPAGE_REFRESH = timedelta(hours=6)
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(64), index=True, unique=True)
-    email = db.Column(db.String(120), index=True, nullable=True)
+    email = db.Column(db.String(120), nullable=True)
     password_hash = db.Column(db.String(128))
 
     # For authenticating users by email on password changes, etc.
