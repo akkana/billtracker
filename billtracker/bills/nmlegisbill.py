@@ -565,6 +565,15 @@ def populate_link_lists(url, chambertype, cachetime):
             billandtype = match.group(1)
             num = match.group(2)
 
+        # Memorials (e.g. HM) and Joint Memorials (HJM) are in the same
+        # directory and shouldn't be mistaken for each other.
+        # populate_link_lists is called separately for memorials
+        # and joint memorials; this is slightly inefficient
+        # but at least the files are cached, not re-downloaded.
+        # So here, skip links that aren't of the requested chambertype.
+        if billandtype != chambertype:
+            continue
+
         num = int(num)
 
         # The bill contents directory may have several amendments
@@ -584,7 +593,9 @@ def contents_url_for_parts(chamber, billtype, number, year):
        inserted in the middle: HR001, HM011, HM0111.
        Returns a list of content URLs, with the first element
        of the list being the contents and the others being amendments
-       that are stored in the same directory.
+       that are stored in the same directory, which should start with
+       the same string as the bill's contents;
+       e.g. SJM001.HTML and SJM001RU1.HTML, SM001ES1.HTML
     '''
     chambertype = chamber + billtype    # e.g. HJR
     billnumint = int(number)
