@@ -926,7 +926,7 @@ def find_dups():
         # Now it's time to actually fix the problem.
         masterbills.append(bill)
 
-        return masterbills
+    return masterbills
 
 
 @billtracker.route('/api/showdups/<key>')
@@ -945,7 +945,8 @@ def show_dups(key):
     return "OK %s" % ','.join([ b.billno for b in masterbills ])
 
 
-# TEMPORARY, clean out duplicates
+# Clean out duplicates.
+# This shouldn't be needed, but somehow, duplicates appear.
 @billtracker.route('/api/cleandups/<key>')
 def clean_dups(key):
     if key != billtracker.config["SECRET_KEY"]:
@@ -975,7 +976,7 @@ def clean_dups(key):
             if users:
                 print("  Moving id %d's users over to id %d: %s"
                       % (bills_with_this_no[i].id,
-                         bills_with_this_no[maxindex].id,
+                         masterbill.id,
                          [u.username for u in users]))
                 for u in users:
                     if b not in u.bills:
