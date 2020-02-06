@@ -29,7 +29,6 @@ def year_to_2digit(year):
     '''Translate a year in various formats to the 2-digit string
        used on nmlegis, e.g. '19' rather than '2019' or 2019 or 19.
     '''
-
     if type(year) is int:
         if year > 2000:
             year -= 2000
@@ -38,6 +37,9 @@ def year_to_2digit(year):
     if type(year) is str:
         if len(year) > 2:
             return year[-2:]
+        if len(year) == 1:
+            return '0' + year
+        return year
 
     # Use this year if not defined or in an unknown format.
     return '%02d' % (current_leg_year() - 2000)

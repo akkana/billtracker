@@ -679,13 +679,16 @@ def refresh_one_bill():
     return "OK Updated %s" % billno
 
 
-@billtracker.route("/api/bills_by_update_date")
+@billtracker.route("/api/bills_by_update_date", methods=['GET'])
 def bills_by_update_date():
     '''Return a list of bills in the current legislative year,
        sorted by how recently they've been updated, oldest first.
        No key required.
     '''
-    yearstr = billutils.year_to_2digit(billutils.current_leg_year())
+    year = request.values.get('year')
+    if not year:
+        year = billutils.current_leg_year()
+    yearstr = billutils.year_to_2digit(year)
 
     bill_list = Bill.query.filter_by(year=yearstr) \
                           .order_by(Bill.update_date).all()

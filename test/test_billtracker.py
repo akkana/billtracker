@@ -97,17 +97,44 @@ class TestBillTracker(unittest.TestCase):
         self.assertEqual(response.get_data(as_text=True), 'OK Updated HB73')
 
         # Test that bills_by_update_date now shows the bill
-        response = self.app.get("/api/bills_by_update_date")
+        response = self.app.get("/api/bills_by_update_date",
+                                data={ 'year': '19' })
+        print("****** response:", response.get_data(as_text=True))
         self.assertEqual(response.get_data(as_text=True), 'HB73')
 
         # Testing whether there is exactly one bill in the database now
         allbills = Bill.query.all()
         self.assertEqual(len(allbills), 1)
 
-        # Test whether the bill just added is in the database ...")
+        # Test whether the bill just added is in the database
         bill = Bill.query.filter_by(billno="HB73").first()
         self.assertEqual(bill.billno, "HB73")
         self.assertEqual(bill.title, 'EXEMPT NM FROM DAYLIGHT SAVINGS TIME')
+
+        # Add a bill that has mostly null fields
+        bill = Bill()
+        billdata = {
+            'billno': 'HB100',
+            'chamber': 'H',
+            'billtype': 'B',
+            'number': '100',
+            'year': '19',
+            'title': 'BILL WITH NULL STUFF',
+            'sponsor': None,
+            'sponsorlink': None,
+            'contentslink': None,
+            'amendlink': None,
+            'last_action_date': None,
+            'statusHTML': None,
+            'statustext': None,
+            'FIRlink': None,
+            'LESClink': None,
+            'update_date': None,
+            'mod_date': None
+        }
+        bill.set_from_parsed_page(billdata)
+        db.session.add(bill)
+        db.session.commit()
 
         # This is needed to test WTForms to test any POSTs:
         billtracker.config['WTF_CSRF_ENABLED'] = False
@@ -145,11 +172,19 @@ class TestBillTracker(unittest.TestCase):
                                  data={ 'billno': 'HB73',
                                         'submit': 'Track a Bill'})
         self.assertEqual(response.status_code, 200)
+        response = self.app.post('/addbills',
+                                 data={ 'billno': 'HB100',
+                                        'submit': 'Track a Bill'})
+        self.assertEqual(response.status_code, 200)
 
         # Need to re-query the user to get the updated bill list:
         user = User.query.filter_by(username='testuser').first()
-        self.assertEqual(len(user.bills), 1)
+        self.assertEqual(len(user.bills), 2)
         self.assertEqual(user.bills[0].billno, 'HB73')
+
+        # Now test some pages
+        response = self.app.get("/index")
+        self.assertEqual(response.status_code, 200)
 
 
 if __name__ == '__main__':
