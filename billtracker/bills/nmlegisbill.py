@@ -70,8 +70,9 @@ def check_analysis(billno):
     return firlink, lesclink, amendlink
 
 
-def bill_url(billno):
-    chamber, billtype, number, year = billno_to_parts(billno, year=None)
+def bill_url(billno, billyear):
+    chamber, billtype, number, year = billno_to_parts(billno,
+                                          year=year_to_2digit(billyear))
 
     return 'https://www.nmlegis.gov/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s' % (chamber, billtype, number, year)
 

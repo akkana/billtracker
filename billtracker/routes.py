@@ -25,10 +25,16 @@ import sys, os
 
 
 @billtracker.route('/')
-@billtracker.route('/index')
+@billtracker.route('/index', methods=['GET'])
 @login_required
 def index():
-    return render_template('index.html', title='Home', sortby='status')
+    values = request.values.to_dict()
+    if "year" in values:
+        year = values['year']
+    else:
+        year = billutils.current_leg_year()
+    return render_template('index.html', title='Home', sortby='status',
+                           year=year)
 
 
 @billtracker.route('/statusbills')

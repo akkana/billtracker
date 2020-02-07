@@ -508,7 +508,7 @@ class Bill(db.Model):
     # Jinja templates can't import nmlegisbill;
     # they need a method that's part of the model.
     def bill_url(self):
-        return nmlegisbill.bill_url(self.billno)
+        return nmlegisbill.bill_url(self.billno, self.year)
 
 
     def show_html(self):

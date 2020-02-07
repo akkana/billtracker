@@ -179,12 +179,16 @@ class TestBillTracker(unittest.TestCase):
 
         # Need to re-query the user to get the updated bill list:
         user = User.query.filter_by(username='testuser').first()
+
         self.assertEqual(len(user.bills), 2)
         self.assertEqual(user.bills[0].billno, 'HB73')
 
         # Now test some pages
-        response = self.app.get("/index")
+        response = self.app.get("/index?year=2019")
         self.assertEqual(response.status_code, 200)
+        pageHTML = response.get_data(as_text=True)
+        self.assertTrue('HB73' in pageHTML)
+        self.assertTrue('HB100' in pageHTML)
 
 
 if __name__ == '__main__':
