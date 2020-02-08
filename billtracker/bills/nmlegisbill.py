@@ -233,6 +233,22 @@ def parse_bill_page(billno, year, cache_locally=True, cachesecs=2*60*60):
         billdic["amendlink"] = url_mapper.to_abs_link(amendbutton.get('href'),
                                                       baseurl)
 
+    # The amendments link in the button is just the "Amendments_In_Context" PDF.
+    # But if that's not there, there may be other types of amendments,
+    # like committee substitutions.
+    if "amendlink" not in billdic or not billdic["amendlink"]:
+        cspat = re.compile("MainContent_dataListLegislationCommitteeSubstitutes_linkSubstitute.*")
+        cslink = soup.find("a", id=cspat)
+        if cslink:
+            billdic['amendlink'] = url_mapper.to_abs_link(cslink.get('href'),
+                                                          baseurl)
+            # Usually this is a PDF but there's a .html
+            # in the same directory. See if there is:
+            if billdic['amendlink'].endswith('.pdf'):
+                html_cs = re.sub('.pdf', '.html', billdic['amendlink'])
+                if requests.head(html_cs).status_code == 200:
+                    billdic['amendlink'] = html_cs
+
     # Bills have an obscure but useful actiontext code, e.g.
     # HPREF [2] HCPAC/HJC-HCPAC [3] DNP-CS/DP-HJC [4] DP [5] PASSED/H (40-29) [8] SPAC/SJC-SPAC [17] DP-SJC [22] DP/a [23] FAILED/S (18-24).
     # which could be decoded to show the bill's entire history.
@@ -278,8 +294,9 @@ def parse_bill_page(billno, year, cache_locally=True, cachesecs=2*60*60):
 
     # The bill's page has other useful info, like votes, analysis etc.
     # but unfortunately that's all filled in later with JS and Ajax so
-    # it's invisible to us. But we can make a guess at FIR and LESC links:
-    billdic['FIRlink'], billdic['LESClink'], billdic['amendlink'] \
+    # it's invisible to us. But we can make a guess at FIR and LESC links.
+    # Ignore the amendlink passed back, since we set that earlier.
+    billdic['FIRlink'], billdic['LESClink'], otheramend \
         = check_analysis(billno)
     # print("Checked analysis:", billdic['FIRlink'], billdic['LESClink'],
     #       billdic['amendlink'], file=sys.stderr)
