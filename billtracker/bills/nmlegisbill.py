@@ -564,6 +564,21 @@ def all_bills(leg_year=None):
 Link_lists = {}
 
 def populate_link_lists(url, chambertype, cachetime):
+
+    # XXX Currently, the link lists are only used for /allbills,
+    # where the various links aren't already known,
+    # and then only when there are bills that haven't been
+    # seen before in the link_lists.
+    # It might be worth considering keeping link lists around
+    # for use in other functions like bill_url_from_parts;
+    # but in this case, it would be important to store the
+    # time the link lists were fetched, to expire them properly,
+    # since late in the session additional links like FIR reports
+    # and committee substitutions might appear more often than
+    # new bills.
+    print("populate_link_lists(", url, chambertype, ")",
+          file=sys.stderr)
+
     soup = soup_from_cache_or_net(url, cachesecs=cachetime)
     if chambertype not in Link_lists:
         Link_lists[chambertype] = {}
