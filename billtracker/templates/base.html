@@ -31,21 +31,24 @@
     <p>
     <div class="toolbar">
       {% if current_user and not current_user.is_anonymous %}
-        <b>{{ current_user.username }}:</b> &nbsp;
+        <b>{{ current_user.username }}:</b>
+      {% else %}
+        <i>(not logged in)</i>
       {% endif %}
+         &nbsp;
       <a href="{{ url_for('index') }}">Home</a> &bull;
-      <a href="{{ url_for('addbills') }}">Track more bills</a> &bull;
+      <a href="{{ url_for('allbills') }}">All/New bills</a> &bull;
       <a href="{{ url_for('popular') }}">Popular bills</a> &bull;
-      <a href="{{ url_for('allbills') }}">All bills</a> &bull;
+      <a href="{{ url_for('addbills') }}">Track bill #</a> &bull;
+      <a href="{{ url_for('links') }}">Links</a> &bull;
+      <a href="{{ url_for('user_settings') }}">Settings</a> &bull;
+      <a href="{{ url_for('help') }}">Help</a> &bull;
+      <a href="{{ url_for('about') }}">About</a> &bull;
       {% if current_user.is_anonymous %}
         <a href="{{ url_for('login') }}">Login</a>
       {% else %}
         <a href="{{ url_for('logout') }}">Logout</a>
-      {% endif %} &bull;
-      <a href="{{ url_for('user_settings') }}">Settings</a> &bull;
-      <a href="{{ url_for('links') }}">Links</a> &bull;
-      <a href="{{ url_for('help') }}">Help</a> &bull;
-      <a href="{{ url_for('about') }}">About</a>
+      {% endif %}
     </div>
 
     <!-- Put system messages and alerts here,
