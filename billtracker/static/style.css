@@ -65,6 +65,20 @@ table.bill_minilist th, table.bill_minilist td { padding: .25em; }
 
 td.rightalign { text-align: right; }
 
+table.definitions { border-collapse: collapse; }
+
+table.definitions th,  table.definitions td {
+  border: 2px solid #ccc;
+  vertical-align: top;   /* valign never works, sigh */
+  padding: .2em;
+}
+
+table.definitions th {
+  font-family: fixed; white-space: pre; font-weight: normal;
+}
+
+table.ddddefinitions tr { border: 1px solid black; }
+
 /*
 li:nth-child(odd) { background: lightblue; }</style>
  */
