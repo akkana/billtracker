@@ -386,31 +386,40 @@ class Bill(db.Model):
            with chaptered (signed) bills first, then passed bills,
            then bills on the Senate or House floors, then everything else.
         '''
-        if bill.location == 'Chaptered':
-            return '10' + Bill.bill_natural_key(bill)
-
-        if bill.location == 'Signed':
-            return '15' + Bill.bill_natural_key(bill)
-
-        if bill.location == 'Passed':
+        # Bills on the Senate or House floors come first.
+        if bill.location == 'Senate':
             return '20' + Bill.bill_natural_key(bill)
 
-        if bill.location == 'Senate':
+        if bill.location == 'House':
             return '30' + Bill.bill_natural_key(bill)
 
-        if bill.location == 'House':
-            return '40' + Bill.bill_natural_key(bill)
+        # Bills that are passed still need some advocacy.
+        if bill.location == 'Passed':
+            return '60' + Bill.bill_natural_key(bill)
+
+        # Bills that are already signed don't need further action
+        # so they should come later.
+        if bill.location == 'Signed':
+            return '80' + Bill.bill_natural_key(bill)
+
+        if bill.location == 'Chaptered':
+            return '85' + Bill.bill_natural_key(bill)
+
+        # Bills to list near the end: dead or not germane.
+        # No point in further advocacy.
 
         if bill.location == 'Died':
-            return '50' + Bill.bill_natural_key(bill)
+            return '95' + Bill.bill_natural_key(bill)
 
-        # Bills ruled not germane in a 30-day session have "Not Printed"
-        # in their status. They should be listed last since they won't
-        # be considered.
+        # Bills ruled not germane in a 30-day session still have a committee
+        # (HXRC, at least in 2020) as location; but they have "Not Printed"
+        # in their status.
         if bill.statustext and 'Not Printed' in bill.statustext:
             return '99' + Bill.bill_natural_key(bill)
 
-        return '60' + Bill.last_action_key(bill)
+        # All other bills are presumably in committee somewhere.
+        # Put them after the House and Senate floors but before anything else.
+        return '40' + Bill.last_action_key(bill)
 
 
     @staticmethod
