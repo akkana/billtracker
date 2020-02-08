@@ -59,7 +59,7 @@ HPREF [2] HSEIC/HJC-HSEIC [3] DP/a-HJC''',
                            'last_action_date': datetime.datetime(2019, 1, 29, 0, 0),
                            'FIRlink': None,
                            'LESClink': None,
-                           'amendlink': None,
+                           'amendlink': 'https://www.nmlegis.gov/Sessions/19%20Regular/Amendments_In_Context/HB0073.pdf',
                            'contentslink': 'https://www.nmlegis.gov/Sessions/19%20Regular/bills/house/HB0073.html'
                          })
 
@@ -70,7 +70,7 @@ HPREF [2] HSEIC/HJC-HSEIC [3] DP/a-HJC''',
         self.assertEqual(bill,
                          {'FIRlink': None,
                           'LESClink': None,
-                          'amendlink': None,
+                          'amendlink': 'https://www.nmlegis.gov/Sessions/19%20Regular/Amendments_In_Context/SB0011.pdf',
                           'billno': 'SB11',
                           'billtype': 'B',
                           'chamber': 'S',
