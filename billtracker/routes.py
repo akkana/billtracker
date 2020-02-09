@@ -10,7 +10,7 @@ from billtracker.bills import nmlegisbill, billutils
 from .emails import daily_user_email, send_email
 from config import ADMINS
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import dateutil.parser
 import json
 import requests
@@ -571,6 +571,35 @@ def appinfo(key):
         + billtracker.config["SQLALCHEMY_DATABASE_URI"]
     infostr += '<br>\nDatabase: ' + str(db.session.get_bind())
 
+    allusers = User.query.all()
+    infostr += "<p>\n%d users registered." % len(allusers)
+
+    # How active are the users?
+    now = datetime.now(timezone.utc)
+    curyear2d = billutils.year_to_2digit(billutils.current_leg_year())
+    checked_in_last_day = 0
+    never_checked = 0
+    has_current_year_bills = 0
+    totbills = 0
+    spacer = '&nbsp;&nbsp;&nbsp;&nbsp;'
+    for user in allusers:
+        if not user.last_check:
+            never_checked += 1
+        elif now - user.last_check < timedelta(days=1):
+            checked_in_last_day += 1
+        totbills += len(user.bills)
+        for bill in user.bills:
+            if bill.year == curyear2d:
+                has_current_year_bills += 1
+                break
+
+    infostr += "<br>\n%swith bills from this year: %d" % (spacer,
+                                                      has_current_year_bills)
+    infostr += "<br>\n%schecked in past day: %d" % (spacer,
+                                                    checked_in_last_day)
+    infostr += "<br>\n%snever checked: %d" % (spacer, never_checked)
+
+    infostr += "<br>\nAverage bills per user: %d" % (totbills / len(allusers))
 
     return "OK " + infostr
 
