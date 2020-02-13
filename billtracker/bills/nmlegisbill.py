@@ -137,6 +137,8 @@ def soup_from_cache_or_net(baseurl, cachefile=None, cachesecs=2*60*60):
 
     return soup
 
+scheduled_for_pat = re.compile("Scheduled for.*on ([0-9/]*)")
+
 def parse_bill_page(billno, year, cache_locally=True, cachesecs=2*60*60):
     '''Download and parse a bill's page on nmlegis.org.
        Return a dictionary containing:
@@ -206,6 +208,21 @@ def parse_bill_page(billno, year, cache_locally=True, cachesecs=2*60*60):
                 billdic['curloc'] = 'House'
             else:
                 billdic['curloc'] = 'Senate'
+
+        # In 2020, they've started adding "Scheduled for" to the
+        # curloc text if the bill is scheduled.
+        # Sometimes that's the only clue to scheduling, so look for it.
+        scheduled_for = scheduled_for_pat.match(curloc_text)
+        if scheduled_for:
+            schedstr = scheduled_for.group(1)
+            print(billdic['billno'], "is scheduled for", schedstr,
+                  file=sys.stderr)
+            try:
+                billdic['scheduled_date'] = dateutil.parser.parse(schedstr)
+                print("Scheduled for", billdic['scheduled_date'])
+            except:
+                print("Couldn't parse scheduled date", schedstr,
+                      "from '%s'" % curloc_text)
 
     # XXX What's the code for On Governor's Desk? Or Failed, or others?
     # XXX There's also a case where curloc_a is blank and curloc will
@@ -679,10 +696,15 @@ def contents_url_for_parts(chamber, billtype, number, year):
     print("Re-fetching the link lists for", url)
     populate_link_lists(url, chambertype, 5*60)
     try:
-        return Link_lists[chambertype][billnumint]
+        return Link_lists[chambertype+'X'][billnumint]
     except:
-        print("Couldn't get bill text even after re-fetching from the web!")
+        print("Couldn't get bill text even after re-fetching Link_lists!")
         print(traceback.format_exc())
+        if chambertype in Link_lists:
+            print("Link_lists[%s] has:" % chambertype,
+                  Link_lists[chambertype].keys())
+        else:
+            print("Link_lists has", Link_lists.keys(), "but not", chambertype)
     return ''
 
 def contents_url_for_billno(billno):
