@@ -114,8 +114,17 @@ def soup_from_cache_or_net(baseurl, cachefile=None, cachesecs=2*60*60):
         print("Re-fetching: cache has expired on", baseurl, file=sys.stderr)
 
         # billdic['bill_url'] = url_mapper.to_abs_link(baseurl, baseurl)
-        r = requests.get(baseurl)
-        soup = BeautifulSoup(r.text, 'lxml')
+        try:
+            # Use a timeout here.
+            # When testing, it's useful to reduce this timeout a lot.
+            r = requests.get(baseurl, timeout=30)
+            soup = BeautifulSoup(r.text, 'lxml')
+        except Exception as e:
+            print("Couldn't fetch", baseurl, ":", e)
+            soup = None
+
+        if not soup:
+            return None
 
         # Python 3 these days is supposed to use the system default
         # encoding, I thought, but sometimes it doesn't and dies
@@ -544,7 +553,7 @@ def most_recent_action(billdic):
 
 def all_bills(leg_year=None):
     '''Return an OrderedDict of all bills, billno: [title, url]
-       From https://www.nmlegis.gov/Legislation/Legislation_List?Session=57
+       From https://www.nmlegis.gov/Legislation/Legislation_List?Session=NN
     '''
     baseurl = 'https://www.nmlegis.gov/Legislation/'
 
@@ -556,6 +565,9 @@ def all_bills(leg_year=None):
 
     # re-fetch once an hour:
     soup = soup_from_cache_or_net(url, cachesecs=60*60)
+    if not soup:
+        print("Couldn't fetch all bills: network problem")
+        return None
 
     footable = soup.find('table', id='MainContent_gridViewLegislation')
     if not footable:

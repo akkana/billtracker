@@ -12,6 +12,15 @@
 {% set returnpage = "allbills" %}
 {% endif %}
 
+{% if not bill_lists %}
+
+<p>
+There was a problem fetching the bill lists from the legislative website.
+Their server may be overloaded.
+Please try again later.
+
+{% else %}
+
 <form method="POST" action="/track_untrack">
 <input type="hidden" id="returnpage" name="returnpage" value="{{ returnpage }}">
 <input type="hidden" id="leg_year" name="legyear" value="{{ leg_year }}">
@@ -77,6 +86,8 @@
 Source: This comes from the
 <a href="https://www.nmlegis.gov/Legislation/Legislation_List?Session=57">New
 Mexico Legislature's Legislation Listing</a>.
+{% endif %}
+
 {% endif %}
 
 {% endblock %}

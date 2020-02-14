@@ -399,9 +399,13 @@ def allbills():
     '''
     leg_year = billutils.current_leg_year()
 
-    # Do the slow part first, before any database accesses:
-    allbills = nmlegisbill.all_bills(leg_year)
-    # This is an OrderedDict, { billno: [title, url] }
+    # Do the slow part first, before any database accesses.
+    # This can fail, e.g. if nmlegis isn't answering.
+    try:
+        allbills = nmlegisbill.all_bills(leg_year)
+        # This is an OrderedDict, { billno: [title, url] }
+    except:
+        allbills = None
 
     bills_seen = []
     if current_user and not current_user.is_anonymous:
@@ -412,11 +416,17 @@ def allbills():
     else:
         user = None
 
+    if not allbills:
+        flash("Problem fetching the list of all bills."
+              "The legislative website my be overloaded.")
+        return render_template('allbills.html', user=user,
+                      title="NM Bill Tracker: Problem Fetching %d Bills"
+                               % leg_year,
+                               leg_year=leg_year,
+                               bill_lists=None)
+
     newbills = []
     oldbills = []
-    if not allbills:
-        flash("Problem fetching the list of all bills")
-        allbills = []
 
     # allbills.html expects a list of
     # [ [billno, title, link, fulltext_link, num_tracking ] ]
