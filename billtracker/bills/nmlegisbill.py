@@ -708,7 +708,7 @@ def contents_url_for_parts(chamber, billtype, number, year):
     print("Re-fetching the link lists for", url)
     populate_link_lists(url, chambertype, 5*60)
     try:
-        return Link_lists[chambertype+'X'][billnumint]
+        return Link_lists[chambertype][billnumint]
     except:
         print("Couldn't get bill text even after re-fetching Link_lists!")
         print(traceback.format_exc())
