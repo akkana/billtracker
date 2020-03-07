@@ -386,6 +386,10 @@ class Bill(db.Model):
            with chaptered (signed) bills first, then passed bills,
            then bills on the Senate or House floors, then everything else.
         '''
+        # Bills that are tabled should be lower priority than active bills.
+        if bill.statustext and 'tabled' in bill.statustext.lower():
+            return '50' + Bill.bill_natural_key(bill)
+
         # Bills on the Senate or House floors come first.
         if bill.location == 'Senate':
             return '20' + Bill.bill_natural_key(bill)

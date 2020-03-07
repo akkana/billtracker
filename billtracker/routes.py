@@ -88,6 +88,9 @@ def register():
         if form.email.data:
             same_email = User.query.filter_by(email=form.email.data)
             if same_email:
+                print("WARNING: Someone tried to register existing email",
+                      form.email.data,
+                      file=sys.stderr)
                 flash("Sorry, that email address is already taken")
                 return redirect(url_for("register"))
 
@@ -220,7 +223,6 @@ def track_untrack():
     '''Called when the user marks bills for tracking or untracking
        via checkboxes, from either the addbills or allbills page.
     '''
-    print("track_untrack()")
     if request.method == 'POST' or request.method == 'GET':
         # request contains form (for POST), args (for GET),
         # and values (combined); the first two are ImmutableMultiDict,
@@ -257,8 +259,8 @@ def track_untrack():
                 else:
                     untrack.append(billno)
 
-        print("track:", track)
-        print("untrack:", untrack)
+        print("track:", track, file=sys.stderr)
+        print("untrack:", untrack, file=sys.stderr)
 
         if not track and not untrack:
             return redirect(url_for(returnpage))
@@ -325,7 +327,7 @@ def track_untrack():
             new_bills = []
             for billno in new_billnos:
                 print("Needed to make a new bill for", billno, yearstr,
-                      "in track_untrack")
+                      "in track_untrack", file=sys.stderr)
                 bill = make_new_bill(billno, leg_year)
                 new_bills.append(bill)
             flash("You are now tracking %s" % ', '.join(will_track))
@@ -335,7 +337,7 @@ def track_untrack():
             for bill in bills_to_track:
                 current_user.bills.append(bill)
             for bill in new_bills:
-                print("Adding new bill", bill, "to the db")
+                print("Adding new bill", bill, "to the db", file=sys.stderr)
                 db.session.add(bill)
                 current_user.bills.append(bill)
 
@@ -517,7 +519,7 @@ def user_settings():
         if ((updated and "email" in updated) or
             (not current_user.email_confirmed())):
             print("Sending confirmation mail to %s, I hope"
-                  % current_user.email)
+                  % current_user.email, file=sys.stderr)
             current_user.send_confirmation_mail()
             flash("Sent confirmation mail")
 
@@ -546,7 +548,7 @@ def password_reset():
             for i in range(passwdlen):
                 newpasswd += random.choice(charset)
 
-            print("Sending email to", user.email)
+            print("Sending email to", user.email, file=sys.stderr)
             send_email("NM Bill Tracker Password Reset",
                        "noreply@nmbilltracker.com", [ user.email ],
                        render_template("passwd_reset.txt", recipient=username,
@@ -557,7 +559,10 @@ def password_reset():
 
             flash("Mailed a new password to your email address")
         else:
-            flash("Sorry, no user %s with an email address" % username)
+            print("WARNING: unsuccessful attempt to reset password for username",
+                  username, file=sys.stderr)
+            flash("Sorry, no user %s with an email address registered"
+                  % username)
 
     return render_template('passwd_reset.html', title='Password Reset',
                            form=form)
@@ -625,17 +630,17 @@ def all_daily_emails(key):
     for user in User.query.all():
         if not user.email:
             print("%s doesn't have an email address: not sending email"
-                  % user.username)
+                  % user.username, file=sys.stderr)
             continue
 
         if not user.email_confirmed():
             print("%s has an unconfirmed email address: not sending."
-                  % user.username)
+                  % user.username, file=sys.stderr)
             continue
 
         if not user.bills:
             print("%s doesn't have any bills registered: not sending email"
-                  % user.username)
+                  % user.username, file=sys.stderr)
             continue
 
         mailto(user.username, key)
@@ -655,7 +660,7 @@ def mailto(username, key):
     if not user.email:
         return "FAIL %s doesn't have an email address registered.\n" % username
 
-    print("Sending email to", user.username)
+    print("Sending email to", user.username, file=sys.stderr)
     try:
         daily_user_email(user)
     except Exception as e:
@@ -699,7 +704,7 @@ def refresh_one_bill():
     '''
     key = request.values.get('KEY')
     if key != billtracker.config["SECRET_KEY"]:
-        print("FAIL refresh_one_bill: bad key %s" % key)
+        print("FAIL refresh_one_bill: bad key %s" % key, file=sys.stderr)
         return "FAIL Bad key\n"
     billno = request.values.get('BILLNO')
 
@@ -709,7 +714,8 @@ def refresh_one_bill():
 
     b = nmlegisbill.parse_bill_page(billno, year, cache_locally=True)
     if not b:
-        print("FAIL refresh_one_bill: Couldn't fetch %s bill page" % billno)
+        print("FAIL refresh_one_bill: Couldn't fetch %s bill page" % billno,
+              file=sys.stderr)
         return "FAIL Couldn't fetch %s bill page" % billno
 
     bill = Bill.query.filter_by(billno=billno).first()
@@ -718,7 +724,8 @@ def refresh_one_bill():
     bill.set_from_parsed_page(b)
 
     db.session.add(bill)
-    print("Refreshed %s from parsed page; committing" % billno)
+    print("Refreshed %s from parsed page; committing" % billno,
+          file=sys.stderr)
     db.session.commit()
 
     return "OK Updated %s" % billno
@@ -770,14 +777,14 @@ def refresh_legisdata():
 
     url = request.values.get('URL')
     target = request.values.get('TARGET')
-    print("refresh_legisdata %s from %s" % (target, url))
+    print("refresh_legisdata %s from %s" % (target, url), file=sys.stderr)
 
     try:
         index = billutils.ftp_url_index(url)
     except:
         return "FAIL Couldn't fetch %s" % url
 
-    print("Fetched %s" % url)
+    print("Fetched %s" % url, file=sys.stderr)
 
     # Slow part is done. Now it's okay to access the database.
 
@@ -789,7 +796,7 @@ def refresh_legisdata():
         try:
             filename, date, size = l
         except:
-            print("Can't parse ftp line: %s" % l)
+            print("Can't parse ftp line: %s" % l, file=sys.stderr)
             continue
 
         base, ext = os.path.splitext(filename)
@@ -802,7 +809,7 @@ def refresh_legisdata():
             db.session.add(bill)
             changes.append(billno)
         # else:
-        #     print("%s isn't in the database" % billno)
+        #     print("%s isn't in the database" % billno, file=sys.stderr)
 
     if not changes:
         return "OK but no bills updated"
@@ -843,7 +850,7 @@ def refresh_committee():
     if not comcode:
         return "FAIL No COMCODE\n"
 
-    print("Updating committee", comcode, "from the web")
+    print("Updating committee", comcode, "from the web", file=sys.stderr)
     newcom = nmlegisbill.expand_committee(comcode)
     if not newcom:
         return "FAIL Couldn't expand committee %s" % comcode
@@ -866,7 +873,7 @@ def db_backup():
     '''
 
     values = request.values.to_dict()
-    print("request values:", values)
+
     try:
         key = values['KEY']
         if key != billtracker.config["SECRET_KEY"]:
@@ -875,7 +882,7 @@ def db_backup():
         return "FAIL No key"
 
     db_uri = billtracker.config['SQLALCHEMY_DATABASE_URI']
-    print("db URI:", db_uri)
+    print("db URI:", db_uri, file=sys.stderr)
 
     now = datetime.now()
     backupdir = os.path.join(nmlegisbill.cachedir, "db")
@@ -902,7 +909,7 @@ def db_backup():
         # pg_dump dbname > dbname-backup.pg
         with open(db_new, 'w') as fp:
             subprocess.call(["pg_dump", "nmbilltracker"], stdout=fp)
-            print("Backed up to", db_new)
+            print("Backed up to", db_new, file=sys.stderr)
 
     else:
         return "FAIL db URI doesn't start with sqlite:// or postgresql://"
@@ -933,7 +940,8 @@ def find_dups():
             continue
 
         # There are multiple bills with this billno.
-        print(len(bills_with_this_no), "bills called", bill.billno)
+        print(len(bills_with_this_no), "bills called", bill.billno,
+              file=sys.stderr)
 
         # User lists tracking each of the duplicate bills:
         userlists = []
@@ -958,7 +966,7 @@ def find_dups():
         # tracked by the most users; we'll make that the real bill
         # and remove the rest.
         if maxindex == None:
-            print("  No users are tracking %s!" % bill.billno)
+            print("  No users are tracking %s!" % bill.billno, file=sys.stderr)
 
         # print("  Master bill, id %d, tracked by %s" % (bills_with_this_no[maxindex].id, ', '.join([u.username for u in userlists[maxindex]])))
         # print("  Duplicates:")
@@ -988,7 +996,7 @@ def show_dups(key):
         print("No duplicate bills in database, whew")
         return "OK"
 
-    print("masterbills:", masterbills)
+    print("masterbills:", masterbills, file=sys.stderr)
 
     return "OK %s" % ','.join([ b.billno for b in masterbills ])
 
@@ -1006,16 +1014,18 @@ def clean_dups(key):
         print("No duplicate bills in database, whew")
         return "OK"
 
-    print("masterbills:", masterbills)
+    print("masterbills:", masterbills, file=sys.stderr)
 
     # Now make a separate loop, so we're not changing the list of all bills
     # while looping over the list of all bills.
     for masterbill in masterbills:
-        print("%s, master is id %d" % (masterbill.billno, masterbill.id))
+        print("%s, master is id %d" % (masterbill.billno, masterbill.id),
+              file=sys.stderr)
 
         bills_with_this_no = Bill.query.filter_by(billno=masterbill.billno).all()
         print("  %d bills with this no: %s" % (len(bills_with_this_no),
-                                       [b.id for b in bills_with_this_no]))
+                                       [b.id for b in bills_with_this_no]),
+              file=sys.stderr)
 
         for i, b in enumerate(bills_with_this_no):
             if b.id == masterbill.id:
@@ -1025,23 +1035,24 @@ def clean_dups(key):
                 print("  Moving id %d's users over to id %d: %s"
                       % (bills_with_this_no[i].id,
                          masterbill.id,
-                         [u.username for u in users]))
+                         [u.username for u in users]), file=sys.stderr)
                 for u in users:
                     if b not in u.bills:
-                        print("Eek, id %d thinks %s is tracking but %s doesn't think so" % (b.id, u.username))
+                        print("Eek, id %d thinks %s is tracking but %s doesn't think so" % (b.id, u.username), file=sys.stderr)
                         continue
                     if masterbill not in u.bills:
                         u.bills.append(masterbill)
-                        print("    moved %s" % u.username)
+                        print("    moved %s" % u.username, file=sys.stderr)
                     else:
                         print("    %s was already tracking %d" % (u.username,
-                                                                masterbill.id))
+                                                                masterbill.id),
+                              file=sys.stderr)
                     u.bills.remove(b)
                     db.session.add(u)
             else:
-                print("  id %d had no users" % b.id)
+                print("  id %d had no users" % b.i, file=sys.stderr)
 
-            print("  Deleting bill id %d" % b.id)
+            print("  Deleting bill id %d" % b.id, file=sys.stderr)
             db.session.delete(b)
 
         db.session.add(masterbill)
