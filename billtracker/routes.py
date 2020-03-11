@@ -56,7 +56,8 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
-        if user is None or not user.check_password(form.password.data):
+        if user is None or not user.count() \
+           or not user.check_password(form.password.data):
             flash('Invalid username or password')
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
@@ -86,7 +87,7 @@ def register():
         # Flask's unique=True doesn't work for optional (nullable) fields.
         # So we have to check for uniqueness manually here.
         if form.email.data:
-            same_email = User.query.filter_by(email=form.email.data)
+            same_email = User.query.filter_by(email=form.email.data).first()
             if same_email:
                 print("WARNING: Someone tried to register existing email",
                       form.email.data,
@@ -117,7 +118,7 @@ def register():
 @billtracker.route('/confirm_email/<auth>')
 def confirm_email(auth):
     user = User.query.filter_by(auth_code=auth).first()
-    if not user:
+    if user:
         flash("Sorry, I don't know that code. Please contact an administrator.")
         return redirect(url_for('user_settings'))
 
