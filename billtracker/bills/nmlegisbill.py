@@ -614,6 +614,8 @@ def populate_link_lists(url, chambertype, cachetime):
 
     for a in soup.findAll('a'):
         href = a.get('href')
+        if not href:
+            continue
         if not href.endswith('.HTML'):
             continue
         if not href.startswith('/Sessions/'):
