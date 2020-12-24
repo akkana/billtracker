@@ -20,8 +20,8 @@ def current_leg_year():
        in January.
     '''
     now = datetime.datetime.now()
-    if now.month >= 11:
-        return now.year + 1
+    # if now.month >= 11:
+    #     return now.year + 1
     return now.year
 
 
