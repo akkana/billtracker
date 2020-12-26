@@ -35,7 +35,7 @@ class TestNMlegisbill(unittest.TestCase):
         # To see large diffs, set this:
         self.maxDiff = None
 
-        bill = nmlegisbill.parse_bill_page('HB73', year=2019, cachesecs=-1)
+        bill = nmlegisbill.parse_bill_page('HB73', yearcode='19', cachesecs=-1)
         # mod date keeps changing. Don't try to test it.
         bill['mod_date'] = None
         bill['update_date'] = None
@@ -64,7 +64,7 @@ HPREF [2] HSEIC/HJC-HSEIC [3] DP/a-HJC''',
                          })
 
         # Another bill, to make sure bills with no curloclink work:
-        bill = nmlegisbill.parse_bill_page('SB11', year=2019, cachesecs=-1)
+        bill = nmlegisbill.parse_bill_page('SB11', yearcode='19', cachesecs=-1)
         bill['mod_date'] = None
         bill['update_date'] = None
         self.assertEqual(bill,

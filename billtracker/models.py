@@ -1,8 +1,11 @@
 from billtracker import db, login
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import func
+
 from billtracker.bills import nmlegisbill, billutils
 from billtracker.emails import send_email
+from billtracker.bills.nmlegisbill import update_legislative_session_list
 
 from datetime import datetime, timedelta
 import dateutil.parser
@@ -50,8 +53,15 @@ class User(UserMixin, db.Model):
 
     # List of bill IDs the user has seen -- these bills may not even
     # be in the database, but they've been on the "all bills" list
-   # so the user has had a chance to review them.
-    # SQL doesn't have any list types, so just use comma separated.
+    # so the user has had a chance to review them.
+    # Made more complicated by the fact that the lists will be different
+    # for each session.
+    # SQL doesn't have any list types, so this is a comma separated list
+    # of billnumbers for each session, like this:
+    # 19:SB1,SB2,HB33|19s:SB1,HB1|20:...
+    # If there is no colon, it's presumed to be left over from before
+    # it handled multiple sessions, and the existing data will be ignored
+    # so all bills will be new again when first seen.
     # Bill IDs are usually under 6 characters and a session isn't
     # likely to have more than 2500 bills, so 20000 would be a safe length.
     bills_seen = db.Column(db.String())
@@ -85,17 +95,58 @@ class User(UserMixin, db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def tracking(self, billno, leg_year=None):
-        '''Convenience routine to help with laying out the allbills page
-        '''
-        if not leg_year:
-            leg_year = billutils.current_leg_year()
-        yearstr = billutils.year_to_2digit(leg_year)
+    def tracking(self, billno, yearcode=None):
+        """Convenience routine to help with laying out the allbills page
+        """
+        if not yearcode:
+            yearcode = LegSession.current_yearcode()
 
-        bill = Bill.query.filter_by(billno=billno, year=yearstr).first()
+        bill = Bill.query.filter_by(billno=billno, year=yearcode).first()
         if not bill:
             return False
         return (bill in self.bills)
+
+    def get_bills_seen(self, yearcode):
+        if self.bills_seen:
+            sessionlists = self.bills_seen.split('|')
+            for sl in sessionlists:
+                try:
+                    seenyearcode, bills = sl.split(':')
+                    if seenyearcode == yearcode:
+                        return bills.split(',')
+                except ValueError:
+                    pass
+        return []
+
+    def update_bills_seen(self, billno_list, yearcode):
+        """billno_list should be a comma-separated string.
+        """
+        if ':' not in self.bills_seen:
+            self.bills_seen = ""
+
+        if self.bills_seen:
+            new_bills_seen = []
+            sessionlists = self.bills_seen.split('|')
+            for sl in sessionlists:
+                seenyearcode, bills = sl.split(':')
+                if seenyearcode == yearcode:
+                    new_bills_seen.append(yearcode + ":" + billno_list)
+                    billno_list = ""
+                else:
+                    new_bills_seen.append(sl)
+            # Did we append billno_list? Or was it the first time
+            # seeing any bills from this yearcode?
+            if billno_list:
+                new_bills_seen.append(yearcode + ":" + billno_list)
+        else:
+            new_bills_seen = [ yearcode + ":" + billno_list ]
+
+        # Maybe later: Only keep the last three sessions worth
+
+        self.bills_seen = '|'.join(new_bills_seen)
+
+        db.session.add(self)
+        db.session.commit()
 
     def send_confirmation_mail(self):
         authcode = ''
@@ -141,49 +192,49 @@ https://nmbilltracker.com/confirm_email/%s
         return ''
 
 
-    # All user bills*() functions can take an optional year.
+    #
+    # All user bills*() functions can take an optional yearcode..
     # If not specified, will return only bills for the current
-    # legislative year. If negative, will return bills from all years.
-    def bills_by_year(self, year=None):
+    # legislative session. If negative, will return bills from all years.
+    #
+
+    def bills_by_yearcode(self, yearcode=None):
         # XXX There has got to be a clever way to do this from the db,
         # but userbills only has user_id and bill_id.
         # thebills = db.session.query(userbills).filter_by(user_id=self.id, ).count()
 
-        if not year:
-            year = billutils.current_leg_year()
-
-        elif type(year) is int and year < 0:
-            return self.bills
-
-        yearstr = billutils.year_to_2digit(year)
+        if not yearcode:
+            yearcode = LegSession.current_yearcode()
 
         bill_list = []
         for bill in self.bills:
-            if bill.year == yearstr:
+            if bill.year == yearcode:
                 bill_list.append(bill)
 
         return bill_list
 
 
-    def bills_by_number(self, year=None):
-        return sorted(self.bills_by_year(year), key=Bill.bill_natural_key)
+    def bills_by_number(self, yearcode=None):
+        return sorted(self.bills_by_yearcode(yearcode),
+                      key=Bill.bill_natural_key)
 
 
-    def bills_by_action_date(self, year=None):
-        return sorted(self.bills_by_year(year), key=Bill.last_action_key)
+    def bills_by_action_date(self, yearcode=None):
+        return sorted(self.bills_by_yearcode(yearcode),
+                      key=Bill.last_action_key)
 
 
-    def bills_by_status(self, year=None):
-        return sorted(self.bills_by_year(year), key=Bill.status_key)
+    def bills_by_status(self, yearcode=None):
+        return sorted(self.bills_by_yearcode(yearcode), key=Bill.status_key)
 
 
     def show_bill_table(self, bill_list, inline=False):
-        '''Return an HTML string showing status for a list of bills
+        """Return an HTML string showing status for a list of bills
            as HTML table rows.
            Does not inclue the enclosing <table> or <tbody> tags.
            If inline==True, add table row colors as inline CSS
            since email can't use stylesheets.
-        '''
+        """
         # Make the table rows alternate color.
         # This is done through CSS on the website,
         # but through inline styles in email.
@@ -214,11 +265,11 @@ def load_user(id):
 
 # This has to be defined before it's called from bill.update()
 def get_committee(comcode):
-    '''Look up the latest on a commitee and return a Committee object.
+    """Look up the latest on a commitee and return a Committee object.
        Fetch it from the web if it doesn't exist yet or hasn't been
        updated recently, otherwise get it from the database.
        Doesn't commit the db session; the caller should do that.
-    '''
+    """
     comm = Committee.query.filter_by(code=comcode).first()
     now = datetime.now()
     if comm:
@@ -264,7 +315,10 @@ class Bill(db.Model):
     # Number, e.g. 83 for SB83, in string form
     number = db.Column(db.String(10))
 
-    # Year, a 2-digit string, '19', not '2019' or 2019
+    # Year: this is really what the rest of the code calls yearcode,
+    # a 2-digit string ('20') with an optional session modifier
+    # ('20s2' for 2020 Special Session 2).
+    # It might be worth renaming this to yearcode if a migration can do that.
     year = db.Column(db.String(4))
 
     # Bill title
@@ -312,10 +366,10 @@ class Bill(db.Model):
 
     @staticmethod
     def natural_key(billno):
-        '''Natural key, digits considered as numbers, for sorting text.
+        """Natural key, digits considered as numbers, for sorting text.
            Return a string but with the number turned into a
            leading-zeros 5-digit string.
-        '''
+        """
         # return [ Bill.a2order(c) for c in re.split('(\d+)', text) ]
         for i, c in enumerate(billno):
             if c.isdigit():
@@ -330,18 +384,18 @@ class Bill(db.Model):
 
     @staticmethod
     def bill_natural_key(bill):
-        '''Natural key, digits considered as numbers, for sorting Bills.
-        '''
+        """Natural key, digits considered as numbers, for sorting Bills.
+        """
         return Bill.natural_key(bill.billno)
 
 
     @staticmethod
     def last_action_key(bill):
-        '''Sort bills by last action date, most recent first,
+        """Sort bills by last action date, most recent first,
            with a secondary sort on billno.
            But if a bill is scheduled, put it first in the list,
            with bills that have the earliest scheduled dates first.
-        '''
+        """
         # Bills scheduled for a committee meeting soon are the most
         # important and must be listed first.
         # Just checking for a scheduled date isn't enough;
@@ -382,10 +436,10 @@ class Bill(db.Model):
 
     @staticmethod
     def status_key(bill):
-        '''Sort bills by their location/status,
+        """Sort bills by their location/status,
            with chaptered (signed) bills first, then passed bills,
            then bills on the Senate or House floors, then everything else.
-        '''
+        """
         # Bills that are tabled should be lower priority than active bills.
         if bill.statustext and 'tabled' in bill.statustext.lower():
             return '50' + Bill.bill_natural_key(bill)
@@ -427,18 +481,16 @@ class Bill(db.Model):
 
 
     @staticmethod
-    def num_tracking_billno(billno, leg_year):
-        yearstr = billutils.year_to_2digit(leg_year)
-
-        b = Bill.query.filter_by(billno=billno, year=yearstr).first()
+    def num_tracking_billno(billno, yearcode):
+        b = Bill.query.filter_by(billno=billno, year=yearcode).first()
         if not b:
             return 0
         return b.num_tracking()
 
 
     def num_tracking(self):
-        '''How many users are following this bill?
-        '''
+        """How many users are following this bill?
+        """
         # select COUNT(*) from userbills where bill_id=self.id;
         # How to query a Table rather than a Model:
         return db.session.query(userbills).filter_by(bill_id=self.id).count()
@@ -453,12 +505,12 @@ class Bill(db.Model):
 
 
     def scheduled_in_future(self):
-        '''Is a bill scheduled for a future *date*?
+        """Is a bill scheduled for a future *date*?
            If the current time is 19:00 or later, we'll consider
            a scheduled date of today to be in the past; if it's
            earlier than that, it's in the future.
            (Figuring not many committees meet later than 6pm.)
-        '''
+        """
         now = datetime.now()
         nowdate = datetime.date(now)
         if now.hour >= 19:
@@ -493,12 +545,12 @@ class Bill(db.Model):
 
 
     def recent_activity(self, user=None):
-        '''Has the bill changed in the last day or two, or does it
+        """Has the bill changed in the last day or two, or does it
            have impending action like a scheduled committee hearing
            or the House or Senate floor?
            Or has it changed since the user's last check if that's
            longer than a day or two?
-        '''
+        """
         if self.scheduled_date:
             return True
         if self.location == 'House' or self.location == 'Senate':
@@ -525,8 +577,8 @@ class Bill(db.Model):
 
 
     def show_html(self):
-        '''Show a summary of the bill's status.
-        '''
+        """Show a summary of the bill's status.
+        """
         outstr = '<b><a href="%s" target="_blank">%s: %s</a></b><br />' % \
             (self.bill_url(), self.billno, self.title)
 
@@ -647,8 +699,8 @@ class Bill(db.Model):
 
 
     def show_text(self):
-        '''Show a summary of the bill's status in plaintext format.
-        '''
+        """Show a summary of the bill's status in plaintext format.
+        """
         outstr = '%s: %s\n' % (self.billno, self.title)
         outstr += self.bill_url() + '\n'
 
@@ -790,9 +842,9 @@ class Legislator(db.Model):
 
     @staticmethod
     def refresh_legislators_list():
-        '''Long-running, fetches XLS file from website,
+        """Long-running, fetches XLS file from website,
            should not be called in user-facing code.
-        '''
+        """
         for newleg in nmlegisbill.get_legislator_list():
             dbleg = Legislator.query.filter_by(sponcode=newleg['sponcode']).first()
             if (dbleg):
@@ -806,9 +858,9 @@ class Legislator(db.Model):
 
 
 class Committee(db.Model):
-    '''A Committee object may be a committee, or another bill destination
+    """A Committee object may be a committee, or another bill destination
        such as House Floor, Governor's Desk or Dead.
-    '''
+    """
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
     code = db.Column(db.String(8))
@@ -837,9 +889,9 @@ class Committee(db.Model):
 
 
     def update_from_parsed_page(self, newcom):
-        '''Update a committee from the web, assuming the time-consuming
+        """Update a committee from the web, assuming the time-consuming
            web fetch has already been done.
-        '''
+        """
         self.name = newcom['name']
         if 'mtg_time' in newcom:
             self.mtg_time = newcom['mtg_time']
@@ -905,8 +957,8 @@ class Committee(db.Model):
 
 
     def refresh(self):
-        '''Refresh a committee from its web page.
-        '''
+        """Refresh a committee from its web page.
+        """
         return
         print("Updating committee", self.code, "from the web")
         newcom = nmlegisbill.expand_committee(self.code)
@@ -919,3 +971,75 @@ class Committee(db.Model):
                 % self.code
         return 'https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=%s' % self.code
 
+
+class LegSession(db.Model):
+    # The integer session id used by nmlegis.
+    id = db.Column(db.Integer, primary_key=True, unique=True)
+
+    # The yearcode that corresponds to User.year: e.g. "20s2".
+    # No real need to crossreference the objects, though.
+    yearcode = db.Column(db.String(8))
+
+    # Year of the session, as an integer
+    year = db.Column(db.Integer)
+
+    # Typename of the session, e.g. "Regular" or "2nd Special"
+    typename = db.Column(db.String(16))
+
+    def __repr__(self):
+        return "LegSession(id=%d, %04d %s)" % (self.id, self.year,
+                                               self.typename)
+
+    @staticmethod
+    def current_leg_session():
+        """Return the currently running (or most recent) legislative session
+           (which is the session with the highest id).
+        """
+        max_id = db.session.query(func.max(LegSession.id)).scalar()
+        session =  LegSession.query.get(max_id)
+        if not session:
+            LegSession.update_session_list()
+            max_id = db.session.query(func.max(LegSession.id)).scalar()
+            session =  LegSession.query.get(max_id)
+
+        return session
+
+    @staticmethod
+    def current_yearcode():
+        return LegSession.current_leg_session().yearcode
+
+    @staticmethod
+    def by_yearcode(yearcode):
+        return LegSession.query.filter_by(yearcode=yearcode).first()
+
+    @staticmethod
+    def update_session_list():
+        sessionsdict = update_legislative_session_list()
+        # A list of dicts including id, year, typename, yearcode
+
+        for lsess in sessionsdict:
+            # Is it in the database? Then we can stop: sessions
+            # in Legislation_List are listed in reverse chronological,
+            # so if we have this one we have everything after it.
+            if LegSession.query.get(lsess["id"]):
+                break
+
+            newsession = LegSession(id=lsess["id"],
+                                    year = lsess["year"],
+                                    yearcode = lsess["yearcode"],
+                                    typename = lsess["typename"])
+            db.session.add(newsession)
+
+        db.session.commit()
+
+    def sessionname(self):
+        """Return the full session name, e.g. "2020 2nd Special"
+        """
+        return "%4d %s" % (self.year, self.typename)
+
+    def long_url_code(self):
+        """Return the string that goes in the URL for analysis like FIR
+           reports, which use a code like "20 Regular", "20 Special" or
+           "20 Special2" (with space replaced with %20).
+        """
+        return nmlegisbill.yearcode_to_longURLcode(self.year)

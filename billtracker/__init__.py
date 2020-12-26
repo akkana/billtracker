@@ -1,4 +1,5 @@
-from flask import Flask
+from flask import Flask, session
+# from flask.ext.session import Session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -6,6 +7,13 @@ from config import Config
 
 billtracker = Flask(__name__)
 billtracker.config.from_object(Config)
+
+session_type = 'sqlalchemy'
+billtracker.config.from_object(__name__)
+# The Flask session quickstart says to use this line,
+# but doesn't explain what module is supposed to define Session.
+# Fortunately it doesn't seem to be necessary.
+# Session(billtracker)
 
 db = SQLAlchemy(billtracker)
 

@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 
-from .billutils import current_leg_year, year_to_2digit, billno_to_parts, \
+from .billutils import year_to_2digit, billno_to_parts, \
       URLmapper, ftp_get, ftp_index
 
 # Scrape bill data from bill pages from nmlegis.org.
@@ -22,29 +22,52 @@ url_mapper = URLmapper('https://www.nmlegis.gov',
     '%s/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s')
 
 
-def check_analysis(billno):
-    '''See if there are any FIR or LESC analysis links.
+def yearcode_to_longURLcode(yearcode):
+    """Map a short yearcode like "20s2" to a long URL code used for
+       the analysis pages, like "".
+    """
+    # The 2-digit year part
+    year2 = yearcode[:2]
+
+    if yearcode.endswith('s') or yearcode.endswith('s1'):
+        return year2 + '%%20Special'
+
+    if yearcode.endswith('s2'):
+        return year2 + '%%20Special2'
+
+    if yearcode.endswith('s3'):
+        return year2 + '%%20Special3'
+
+    if yearcode.endswith('x'):
+        return year2 + '%%20Extraordinary'
+
+    return year2 + '%%20Regular'
+
+
+def check_analysis(billno, yearcode):
+    """See if there are any FIR or LESC analysis links.
        The bill's webpage won't tell us because those are hidden
        behind Javascript, so just try forming URLs and see if
        anything's there.
-    '''
-    (chamber, billtype, number, year) = billno_to_parts(billno)
+    """
+    (chamber, billtype, number) = billno_to_parts(billno)
+    longcode = yearcode_to_longURLcode(yearcode)
     # number = int(number)
 
     # XXX This urlmapper stuff needs to be redesigned.
     # The to_local_link stuff here is just to keep us from
     # hitting a remote server while running tests.
     firlink = url_mapper.to_local_link(
-        '%s/Sessions/%s%%20Regular/firs/%s%s000%s.PDF' \
-        % (url_mapper.baseurl, year, chamber, billtype, number),
+        '%s/Sessions/%sr/firs/%s%s000%s.PDF' \
+        % (url_mapper.baseurl, longcode, chamber, billtype, number),
         None)
     lesclink = url_mapper.to_local_link(
-        '%s/Sessions/%s%%20Regular/LESCAnalysis/%s%s000%s.PDF' \
-               % (url_mapper.baseurl, year, chamber, billtype, number),
+        '%s/Sessions/%s/LESCAnalysis/%s%s000%s.PDF' \
+               % (url_mapper.baseurl, longcode, chamber, billtype, number),
         None)
     amendlink = url_mapper.to_local_link(
-        '%s/Sessions/%s%%20Regular/Amendments_In_Context/%s%s000%s.PDF' \
-               % (url_mapper.baseurl, year, chamber, billtype, number),
+        '%s/Sessions/%s/Amendments_In_Context/%s%s000%s.PDF' \
+               % (url_mapper.baseurl, longcode, chamber, billtype, number),
         None)
 
     # The legislative website doesn't give errors for missing PDFs;
@@ -70,14 +93,14 @@ def check_analysis(billno):
     return firlink, lesclink, amendlink
 
 
-def bill_url(billno, billyear):
-    chamber, billtype, number, year = billno_to_parts(billno,
-                                          year=year_to_2digit(billyear))
+def bill_url(billno, yearcode):
+    chamber, billtype, number = billno_to_parts(billno)
 
-    return 'https://www.nmlegis.gov/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s' % (chamber, billtype, number, year)
+    return 'https://www.nmlegis.gov/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s' % (chamber, billtype, number, yearcode)
 
 
 cachedir = 'cache'
+
 
 def url_to_cache_filename(billurl):
     return billurl.replace('https://www.nmlegis.gov/', '') \
@@ -86,14 +109,15 @@ def url_to_cache_filename(billurl):
                   .replace('?', '_') \
                   .replace('&', '_')
 
+
 def soup_from_cache_or_net(baseurl, cachefile=None, cachesecs=2*60*60):
-    '''baseurl is a full URL including https://www.nmlegis.gov/
+    """baseurl is a full URL including https://www.nmlegis.gov/
        or a full URL including that part.
        If we have a recent cached version, use it,
        otherwise fetch the file and cache it.
        If the cache file is older than cachesecs, replace it.
        Either way, return a BS soup of the contents.
-    '''
+    """
     if not os.path.exists(cachedir):
         try:
             os.mkdir(cachedir)
@@ -146,13 +170,18 @@ def soup_from_cache_or_net(baseurl, cachefile=None, cachesecs=2*60*60):
 
     return soup
 
+
 scheduled_for_pat = re.compile("Scheduled for.*on ([0-9/]*)")
 
-def parse_bill_page(billno, year, cache_locally=True, cachesecs=2*60*60):
-    '''Download and parse a bill's page on nmlegis.org.
+
+def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
+    """Download and parse a bill's page on nmlegis.org.
+       Yearcode is the session code, like 19 or 20s2.
        Return a dictionary containing:
-       chamber, billtype, number, year, title, sponsor, sponsorlink,
-       location.
+       chamber, billtype, number, year, title,
+       sponsor, sponsorlink, location.
+       The year is really a yearcode, but needs to match the Bill
+       object's set_from_parsed_page so we call it just year.
        Set update_date to now.
 
        If cache_locally, will save downloaded files to local cache.
@@ -160,19 +189,15 @@ def parse_bill_page(billno, year, cache_locally=True, cachesecs=2*60*60):
        than 2 hours old.
 
        Does *not* save the fetched bill back to the database.
-    '''
+    """
     billdic = { 'billno': billno }
-    (billdic['chamber'], billdic['billtype'],
-     billdic['number'], billdic['year']) = billno_to_parts(billno, year)
+    (billdic['chamber'], billdic['billtype'], billdic['number']) \
+        = billno_to_parts(billno)
+    billdic['year'] = yearcode
 
     baseurl = 'https://www.nmlegis.gov/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s' \
         % (billdic['chamber'], billdic['billtype'],
            billdic['number'], billdic['year'])
-
-    # baseurl = url_mapper.bill_url(billdic['chamber'],
-    #                               billdic['billtype'],
-    #                               billdic['number'],
-    #                               billdic['year'])
 
     if cache_locally:
         cachefile = os.path.join(cachedir,
@@ -224,11 +249,8 @@ def parse_bill_page(billno, year, cache_locally=True, cachesecs=2*60*60):
         scheduled_for = scheduled_for_pat.match(curloc_text)
         if scheduled_for:
             schedstr = scheduled_for.group(1)
-            print(billdic['billno'], "is scheduled for", schedstr,
-                  file=sys.stderr)
             try:
                 billdic['scheduled_date'] = dateutil.parser.parse(schedstr)
-                print("Scheduled for", billdic['scheduled_date'])
             except:
                 print("Couldn't parse scheduled date", schedstr,
                       "from '%s'" % curloc_text)
@@ -323,7 +345,7 @@ def parse_bill_page(billno, year, cache_locally=True, cachesecs=2*60*60):
     # it's invisible to us. But we can make a guess at FIR and LESC links.
     # Ignore the amendlink passed back, since we set that earlier.
     billdic['FIRlink'], billdic['LESClink'], otheramend \
-        = check_analysis(billno)
+        = check_analysis(billno, yearcode)
     # print("Checked analysis:", billdic['FIRlink'], billdic['LESClink'],
     #       billdic['amendlink'], file=sys.stderr)
 
@@ -333,13 +355,66 @@ def parse_bill_page(billno, year, cache_locally=True, cachesecs=2*60*60):
     return billdic
 
 
+def update_legislative_session_list():
+    """Read the list of legislative sessions from the legislative website.
+    """
+    # This file can't import the Flask models (circular dependence),
+    # so instead, return a list of dicts, in the order read.
+    leg_sessions = []
+    try:
+        soup = soup_from_cache_or_net(
+            "https://www.nmlegis.gov/Legislation/Legislation_List",
+            cachesecs=60*60*24)
+        sessionselect = soup.find("select", id="MainContent_ddlSessionStart")
+        # The first option listed is the most recent one.
+        # But read all of them, in order to update the cache sessions file.
+        options = sessionselect.findAll("option")
+        for opt in options:
+            # This will be something like:
+            # <option value="60">2020 2nd Special</option>
+            # <option value="57">2019 Regular</option>
+            sessionid = int(opt["value"])
+
+            lsess = { "id": sessionid }
+
+            sessionname = opt.get_text()
+            space = sessionname.find(" ")
+            lsess["year"] = int(sessionname[:space])
+            lsess["typename"] = sessionname[space+1:]
+            if lsess["typename"] == "Regular":
+                typecode = ""
+            elif lsess["typename"] == "1st Special":
+                typecode = "s"
+            elif lsess["typename"] == "2nd Special":
+                typecode = "s2"
+            elif lsess["typename"] == "Extraordinary":
+                typecode = "x"
+            # There hasn't yet been a third special, but it could happen
+            elif lsess["typename"] == "3rd Special":
+                typecode = "s3"
+            year = lsess["year"] - 1900
+            if year >= 100:
+                year -= 100
+            lsess["yearcode"] = "%2d%s" % (year, typecode)
+
+            leg_sessions.append(lsess)
+
+        return leg_sessions
+
+    except:
+        print("**** Eek, couldn't determine the legislative session",
+              file=sys.stderr)
+        print(traceback.format_exc(), file=sys.stderr)
+        return []
+
+
 def action_code_iter(actioncode):
-    '''Iterate over an action code, like
+    """Iterate over an action code, like
        HPREF [2] HCPAC/HJC-HCPAC [3] DNP-CS/DP-HJC [4] DP [5] PASSED/H (40-29) [8] SPAC/SJC-SPAC [17] DP-SJC [22] DP/a [23] FAILED/S (18-24).
        Yield each (action, leg_day) one by one.
        If an action (e.g. the first one) doesn't start with [leg_day],
        return 0 for that day.
-    '''
+    """
     idx = 0    # position so far
     actioncode = actioncode.lstrip()
     while actioncode:
@@ -487,10 +562,10 @@ committeecodes = {
 
 
 def decode_full_history(actioncode):
-    '''Decode a bill's full history according to the code specified in
+    """Decode a bill's full history according to the code specified in
        https://www.nmlegis.gov/Legislation/Action_Abbreviations
        Return a text string, with newlines separating the actions.
-    '''
+    """
     # The history code is one long line, like
     # HPREF [2] HCPAC/HJC-HCPAC [3] DNP-CS/DP-HJC [4] DP [5] PASSED/H (40-29) [8] SPAC/SJC-SPAC [17] DP-SJC [22] DP/a [23] FAILED/S (18-24).
     # Most actions start with [legislative day] but the first may not.
@@ -501,12 +576,12 @@ def decode_full_history(actioncode):
 
 
 def decode_history(action, legday):
-    '''Decode a single history day according to the code specified in
+    """Decode a single history day according to the code specified in
        https://www.nmlegis.gov/Legislation/Action_Abbreviations
        For instance, 'HCPAC/HJC-HCPAC' -> 'Moved to HCPAC, ref HJC-HCPAC'
        'DNP-CS/DP-HJC' -> XXXXXX
        Return the decoded text string.
-    '''
+    """
     # Committee changes are listed as NEWCOMM/COMM{,-COMM}
     # where the comms after the slash may be the old committee,
     # the new committee or some other committee entirely.
@@ -531,9 +606,9 @@ def decode_history(action, legday):
 
 
 def most_recent_action(billdic):
-    '''Return a date, plus text and HTML, for the most recent action
+    """Return a date, plus text and HTML, for the most recent action
        represented in billdic["statusHTML"].
-    '''
+    """
     if not billdic['statusHTML']:
         return None
     soup = BeautifulSoup(billdic["statusHTML"])
@@ -551,17 +626,14 @@ def most_recent_action(billdic):
     billdic['last_action_date'] = last_action_date
     return last_action_date, str(lastaction), lastaction.text
 
-def all_bills(leg_year=None):
-    '''Return an OrderedDict of all bills, billno: [title, url]
+
+def all_bills(sessionid):
+    """Return an OrderedDict of all bills, billno: [title, url]
        From https://www.nmlegis.gov/Legislation/Legislation_List?Session=NN
-    '''
+    """
     baseurl = 'https://www.nmlegis.gov/Legislation/'
 
-    # Map year to session. 2019 is 57.
-    if not leg_year:
-        leg_year = current_leg_year()
-    session = leg_year - 1962
-    url = baseurl + 'Legislation_List?Session=%2d' % session
+    url = baseurl + 'Legislation_List?Session=%2d' % sessionid
 
     # re-fetch once an hour:
     soup = soup_from_cache_or_net(url, cachesecs=60*60)
@@ -587,152 +659,11 @@ def all_bills(leg_year=None):
 
     return allbills
 
-# Link lists from contents_url_for_parts
-# A dictionary with keys of 'SB', 'HB', 'SJR' etc.
-# each of whose contents are a dictionary of int billno: url.
-Link_lists = {}
-
-def populate_link_lists(url, chambertype, cachetime):
-
-    # XXX Currently, the link lists are only used for /allbills,
-    # where the various links aren't already known,
-    # and then only when there are bills that haven't been
-    # seen before in the link_lists.
-    # It might be worth considering keeping link lists around
-    # for use in other functions like bill_url_from_parts;
-    # but in this case, it would be important to store the
-    # time the link lists were fetched, to expire them properly,
-    # since late in the session additional links like FIR reports
-    # and committee substitutions might appear more often than
-    # new bills.
-    print("populate_link_lists(", url, chambertype, ")",
-          file=sys.stderr)
-
-    soup = soup_from_cache_or_net(url, cachesecs=cachetime)
-    if chambertype not in Link_lists:
-        Link_lists[chambertype] = {}
-
-    for a in soup.findAll('a'):
-        href = a.get('href')
-        if not href:
-            continue
-        if not href.endswith('.HTML'):
-            continue
-        if not href.startswith('/Sessions/'):
-            continue
-        href = url_mapper.to_abs_link(href, url)
-
-        base, ext = os.path.splitext(os.path.basename(href))
-        # base is now something like HJM005
-        match = re.search('([A-Z]*)([0-9]*)', base)
-        if match:
-            billandtype = match.group(1)
-            num = match.group(2)
-
-        # Memorials (e.g. HM) and Joint Memorials (HJM) are in the same
-        # directory and shouldn't be mistaken for each other.
-        # populate_link_lists is called separately for memorials
-        # and joint memorials; this is slightly inefficient
-        # but at least the files are cached, not re-downloaded.
-        # So here, skip links that aren't of the requested chambertype.
-        if billandtype != chambertype:
-            continue
-
-        num = int(num)
-
-        # The bill contents directory may have several amendments
-        # as well as the original text. E.g. it might have
-        # HB0001.HTML, HB0001AF1.HTML and HB0001FC1.HTML.
-        # Currently these are sorted so that the base text
-        # comes first, so we don't have to sort while inserting.
-        if num in Link_lists[chambertype]:
-            Link_lists[chambertype][num].append(href)
-        else:
-            Link_lists[chambertype][num] = [href]
-
-def contents_url_for_parts(chamber, billtype, number, year):
-    '''A link to a page with a bill's contents in HTML.
-       This alas cannot be inferred from the billno,
-       because there is an unpredictable number of zeroes
-       inserted in the middle: HR001, HM011, HM0111.
-       Returns a list of content URLs, with the first element
-       of the list being the contents and the others being amendments
-       that are stored in the same directory, which should start with
-       the same string as the bill's contents;
-       e.g. SJM001.HTML and SJM001RU1.HTML, SM001ES1.HTML
-    '''
-    chambertype = chamber + billtype    # e.g. HJR
-    billnumint = int(number)
-
-    try:
-        return Link_lists[chambertype][billnumint]
-    except:    # most likely KeyError, but why not catch everything?
-        print("Nope, %s%s%s is not in Link_lists" % (chamber, billtype,
-                                                     number))
-        pass
-
-    # We don't have it cached. Re-fetch the relevant index.
-
-    if chamber == 'S':
-        chambername = 'senate'
-    else:
-        chambername = 'house'
-
-    if billtype[-1] == 'M':
-        typedir = 'memorials'
-    elif billtype[-1] == 'R':
-        typedir = 'resolutions'
-    else:
-        typedir = 'bills'
-
-    url = 'https://www.nmlegis.gov/Sessions/%s%%20Regular/%s/%s/' % \
-        (year, typedir, chambername)
-
-    # Check the relevant directory listing.
-    # If these go away, could use the ftp equivalent:
-    # ftp://www.nmlegis.gov/resolutions/senate
-    # Only re-fetch these twice a day at most:
-
-    # XXX This checks at least the cache every time.
-    # It would be nice to find a way around that.
-    # Probably need to keep the info in the database.
-
-    populate_link_lists(url, chambertype, 12*60*60)
-
-    # Hope we have it now! But we might not, if it's a bill that's so new
-    # that the cache was too old.
-    try:
-        return Link_lists[chambertype][billnumint]
-    except:
-        pass
-
-    # If it wasn't in Link_lists, the cache is probably too old. Re-fetch.
-    print("Re-fetching the link lists for", url)
-    populate_link_lists(url, chambertype, 5*60)
-    try:
-        return Link_lists[chambertype][billnumint]
-    except:
-        print("Couldn't get bill text even after re-fetching Link_lists!")
-        print(traceback.format_exc())
-        if chambertype in Link_lists:
-            print("Link_lists[%s] has:" % chambertype,
-                  Link_lists[chambertype].keys())
-        else:
-            print("Link_lists has", Link_lists.keys(), "but not", chambertype)
-    return ''
-
-def contents_url_for_billno(billno):
-    '''A link to a page with a bill's contents in HTML,
-       for bills not yet in the database.
-       Returns a list of contents and amendments.
-    '''
-    (chamber, billtype, number, year) = billno_to_parts(billno)
-    return contents_url_for_parts(chamber, billtype, number, year)
 
 def expand_house_or_senate(code, cache_locally=True):
-    '''Return a dictionary, with keys code, name, scheduled_bills.
+    """Return a dictionary, with keys code, name, scheduled_bills.
        Other fields that committees would have will be unset.
-    '''
+    """
     url = 'https://www.nmlegis.gov/Entity/%s/Floor_Calendar' % code
     if cache_locally:
         soup = soup_from_cache_or_net(url, cachesecs=3*60*60)
@@ -749,10 +680,11 @@ def expand_house_or_senate(code, cache_locally=True):
 
     return ret
 
+
 def expand_committee(code, cache_locally=True):
-    '''Return a dictionary, with keys code, name, mtg_time, chair,
+    """Return a dictionary, with keys code, name, mtg_time, chair,
        members, scheduled_bills
-    '''
+    """
 
     if code == 'House' or code == 'Senate':
         return expand_house_or_senate(code, cache_locally)
@@ -850,9 +782,9 @@ def get_sponcodes(url):
 
 
 def get_legislator_list():
-    '''Fetches Legislators.XLS from the legislative website;
+    """Fetches Legislators.XLS from the legislative website;
        returns a list of dictionaries.
-    '''
+    """
     houseurl = 'https://www.nmlegis.gov/Members/Legislator_List?T=R'
     senateurl = 'https://www.nmlegis.gov/Members/Legislator_List?T=S'
     house_sponcodes = get_sponcodes(houseurl)
@@ -910,7 +842,7 @@ def get_legislator_list():
 
     return legislators
 
-'''
+"""
 ftp://www.nmlegis.gov/ has the following directories:
 
 bills, memorials, resolutions
@@ -938,7 +870,7 @@ Probably never needed:
 LFCForms
 capitaloutlays
 other
-'''
+"""
 
 
 #

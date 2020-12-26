@@ -10,6 +10,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 import unittest
 from unittest import mock
+
 import re
 
 from billtracker import billtracker, db
@@ -17,7 +18,7 @@ from billtracker.models import User, Bill
 from config import Config, basedir
 
 
-TEST_DB = 'test.db'
+TEST_DB = 'test/cache/test.db'
 
 # This method will be used by the mock to replace requests.get
 def mocked_requests_get(*args, **kwargs):
@@ -26,7 +27,7 @@ def mocked_requests_get(*args, **kwargs):
             self.text = text
             self.status_code = status_code
 
-    print("******** mocked response, args =", args)
+    # print("******** mocked response, args =", args)
     realurl = args[0]
     m = re.match('https?://www.nmlegis.gov/Legislation/Legislation\?chamber=(.)&legtype=(.)&legno=(\d+)&year=(\d\d)', realurl)
     if m:
@@ -35,11 +36,14 @@ def mocked_requests_get(*args, **kwargs):
                                                     legtype, billno)
         if os.path.exists(filename):
             with open(filename) as fp:
-                print("filename", filename)
                 return MockResponse(fp.read(), 200)
         print("Cache filename", filename, "doesn't exist")
+    elif realurl == "https://www.nmlegis.gov/Legislation/Legislation_List":
+        filename = "test/cache/Legislation_List.html"
+        with open(filename) as fp:
+            return MockResponse(fp.read(), 200)
     else:
-        print("URL '%s' didn't match pattern" % realurl)
+        print("URL '%s' didn't match a pattern" % realurl)
 
     return MockResponse(None, 404)
 
@@ -65,12 +69,10 @@ class TestBillTracker(unittest.TestCase):
     def tearDown(self):
         db.session.remove()
         db.drop_all()
-        print("Removing", self.dbname)
         os.unlink(self.dbname)
 
 
     def test_password_hashing(self):
-        print("Testing password hashing ...")
         u = User(username='testuser')
         u.set_password('testpassword')
         self.assertFalse(u.check_password('notthepassword'))
@@ -85,26 +87,28 @@ class TestBillTracker(unittest.TestCase):
 
         # Check that the home page loads.
         # This has nothing to do with bills, but calling setUp/tearDown
-        # just for this would be a waste of cycles
-        response = self.app.get('/', follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
+        # just for this would be a waste of cycles.
+        # This will redirect to the login page, login().
+        response = self.app.get('/index', follow_redirects=True)
+        self.assertTrue(response.status_code == 200 or
+                        response.status_code == 302)
 
         # Add a new bill, using the already cached page
         response = self.app.post("/api/refresh_one_bill",
                                  data={ 'BILLNO': 'HB73', 'KEY': self.key,
-                                        'YEAR': '2019'} )
-        self.assertEqual(response.status_code, 200)
+                                        'YEARCODE': '19'} )
+        self.assertTrue(response.status_code == 200 or
+                        response.status_code == 302)
         self.assertEqual(response.get_data(as_text=True), 'OK Updated HB73')
+
+        # There should be exactly one bill in the database now
+        allbills = Bill.query.all()
+        self.assertEqual(len(allbills), 1)
 
         # Test that bills_by_update_date now shows the bill
         response = self.app.get("/api/bills_by_update_date",
-                                data={ 'year': '19' })
-        print("****** response:", response.get_data(as_text=True))
+                                data={ 'yearcode': '19' })
         self.assertEqual(response.get_data(as_text=True), 'HB73')
-
-        # Testing whether there is exactly one bill in the database now
-        allbills = Bill.query.all()
-        self.assertEqual(len(allbills), 1)
 
         # Test whether the bill just added is in the database
         bill = Bill.query.filter_by(billno="HB73").first()
@@ -141,12 +145,15 @@ class TestBillTracker(unittest.TestCase):
 
         # Create a user.
         # Don't set email address, or it will try to send a confirmation mail.
+        USERNAME = "testuser"
+        PASSWORD = "testpassword"
         response = self.app.post("/newaccount",
-                                 data={ 'username': 'testuser',
-                                        'password': 'password',
-                                        'password2': 'password',
+                                 data={ 'username': USERNAME,
+                                        'password': PASSWORD,
+                                        'password2': PASSWORD,
                                         'submit': 'Register' })
-        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.status_code == 200 or
+                        response.status_code == 302)
         allusers = User.query.all()
         self.assertEqual(len(allusers), 1)
         user = User.query.filter_by(username='testuser').first()
@@ -154,28 +161,48 @@ class TestBillTracker(unittest.TestCase):
 
         # Try addbills without being logged in:
         response = self.app.post('/addbills',
-                                 data={ 'billno': 'HB73',
-                                        'submit': 'Track a Bill'})
-        self.assertEqual(response.status_code, 302)
+                                 data={ 'billno':   'HB73',
+                                        'yearcode': '19',
+                                        'submit':   'Track a Bill'})
+        self.assertTrue(response.status_code == 200 or
+                        response.status_code == 302)
         self.assertEqual(response.headers['location'],
                          'http://localhost/login?next=%2Faddbills')
 
-        # Now try logging in:
-        with self.app as c:
-            with c.session_transaction() as sess:
-                sess['user_id'] = int(user.get_id())
-                # http://pythonhosted.org/Flask-Login/#fresh-logins
-                sess['_fresh'] = True
+        response = self.app.post('/login', data=dict(
+            username=USERNAME,
+            password=PASSWORD
+        ), follow_redirects=True)
+        self.assertTrue(response.status_code == 200 or
+                        response.status_code == 302)
+        text_response = response.get_data(as_text=True)
+        self.assertTrue("Warning: Your email hasn't been confirmed yet"
+                        in text_response)
+        self.assertTrue("Bills testuser is tracking:"
+                        in text_response)
+        self.assertTrue("This is your first check"
+                        in text_response)
+
+
+
+        # view the index with yearcode 19, to set the yearcode in the session.
+        response = self.app.get("/?yearcode=19")
+        self.assertTrue(response.status_code == 200 or
+                        response.status_code == 302)
 
         # Now try addbills again as a logged-in user:
         response = self.app.post('/addbills',
                                  data={ 'billno': 'HB73',
+                                        'yearcode': '19',
                                         'submit': 'Track a Bill'})
-        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.status_code == 200 or
+                        response.status_code == 302)
         response = self.app.post('/addbills',
                                  data={ 'billno': 'HB100',
+                                        'yearcode': '19',
                                         'submit': 'Track a Bill'})
-        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.status_code == 200 or
+                        response.status_code == 302)
 
         # Need to re-query the user to get the updated bill list:
         user = User.query.filter_by(username='testuser').first()
@@ -183,9 +210,10 @@ class TestBillTracker(unittest.TestCase):
         self.assertEqual(len(user.bills), 2)
         self.assertEqual(user.bills[0].billno, 'HB73')
 
-        # Now test some pages
-        response = self.app.get("/index?year=2019")
-        self.assertEqual(response.status_code, 200)
+        # Now test the index page again
+        response = self.app.get('/', follow_redirects=True)
+        self.assertTrue(response.status_code == 200 or
+                        response.status_code == 302)
         pageHTML = response.get_data(as_text=True)
         self.assertTrue('HB73' in pageHTML)
         self.assertTrue('HB100' in pageHTML)

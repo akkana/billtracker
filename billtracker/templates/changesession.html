@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Choose a Legislative Session:</h1>
+
+<table>
+ <tbody>
+
+{% for ls in sessionlist %}
+
+  <tr class="{{ loop.cycle('odd', 'even') }}">
+
+    <td><a href="/?yearcode={{ ls[1] }}">{{ ls[2] }}</a>
+
+{% endfor %}
+
+</tbody>
+</table>
+
+{% endblock %}

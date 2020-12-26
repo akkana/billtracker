@@ -49,6 +49,9 @@
       {% else %}
         <a href="{{ url_for('logout') }}">Logout</a>
       {% endif %}
+      <br />
+      <b>{{ session["sessionname"] }} Session</b>
+      (<a href="/changesession">change session</a>)
     </div>
 
     <!-- Put system messages and alerts here,

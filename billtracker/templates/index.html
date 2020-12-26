@@ -32,9 +32,9 @@ You last checked at {{ current_user.last_check.strftime('%H:%M %m/%d/%Y') }}.
 
 <table id="bills" class="bill_list">
 {% if sortby == 'status' %}
-{{ current_user.show_bill_table(current_user.bills_by_status(year)) | safe }}
+{{ current_user.show_bill_table(current_user.bills_by_status(session["yearcode"])) | safe }}
 {% else %}
-{{ current_user.show_bill_table(current_user.bills_by_action_date(year)) | safe }}
+{{ current_user.show_bill_table(current_user.bills_by_action_date(session["yearcode"])) | safe }}
 {% endif %}
 </tbody>
 </table>
