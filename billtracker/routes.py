@@ -35,6 +35,15 @@ def set_session_by_request_values(values):
             LegSession.by_yearcode(session["yearcode"]).sessionname()
     elif "sessionname" not in session:
         leg_session = LegSession.current_leg_session()
+        if not leg_session:
+            print("Eek! No LegSessions defined. Fetching them...",
+                  file=sys.stderr)
+            LegSession.update_session_list()
+            leg_session = LegSession.current_leg_session()
+            if not leg_session:
+                print("Double-eek! Couldn't fetch leg sessions",
+                      file=sys.stderr)
+                return
         session["yearcode"] = leg_session.yearcode
         session["sessionname"] = leg_session.sessionname()
 
@@ -766,18 +775,18 @@ def refresh_one_bill():
     return "OK Updated %s" % billno
 
 
-@billtracker.route("/api/refresh_bill_list", methods=['POST'])
-def refresh_bill_list():
-    """Check the list of all bills to see if there's anything new
-       that needs to be in the database. Should be called periodically,
-       like once every half-hour or hour depending on how often the
-       legislative website is expected to change.
-       Long-running query, shouldn't be called from a user session.
+@billtracker.route("/api/refresh_session_list", methods=['POST'])
+def refresh_session_list():
+    """Fetch Legislation_List (the same file that's used for allbills)
+       and check the menu of sessions to see if there's a new one.
     """
     key = request.values.get('KEY')
     if key != billtracker.config["SECRET_KEY"]:
         print("FAIL refresh_one_bill: bad key %s" % key, file=sys.stderr)
         return "FAIL Bad key\n"
+
+    LegSession.update_session_list()
+    return "OK Refreshed list of legislative sessions"
 
 
 @billtracker.route("/api/bills_by_update_date", methods=['GET'])

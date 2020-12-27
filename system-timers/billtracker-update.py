@@ -134,6 +134,11 @@ def main():
         responses['amend'] = requests.post(posturl, postdata)
 
     if now.hour in bill_hours:
+        print("Refreshing the list of sessions")
+        responses["sessions"] = requests.post("%s/api/refresh_session_list" \
+                                              % BASEURL,
+                                              data={ 'KEY': KEY })
+
         print("Updating some bills")
         billstr = requests.get('%s/api/bills_by_update_date' % (BASEURL)).text
         updated_bills = []

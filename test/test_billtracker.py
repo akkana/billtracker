@@ -39,7 +39,7 @@ def mocked_requests_get(*args, **kwargs):
                 return MockResponse(fp.read(), 200)
         print("Cache filename", filename, "doesn't exist")
     elif realurl == "https://www.nmlegis.gov/Legislation/Legislation_List":
-        filename = "test/cache/Legislation_List.html"
+        filename = "test/cache/Legislation_List"
         with open(filename) as fp:
             return MockResponse(fp.read(), 200)
     else:
@@ -139,6 +139,11 @@ class TestBillTracker(unittest.TestCase):
         bill.set_from_parsed_page(billdata)
         db.session.add(bill)
         db.session.commit()
+
+        # Fetch the list of legislative sessions
+        response = self.app.post("/api/refresh_session_list",
+                                 data={ 'KEY': self.key })
+        self.assertTrue(response.get_data(as_text=True).startswith('OK'))
 
         # This is needed to test WTForms to test any POSTs:
         billtracker.config['WTF_CSRF_ENABLED'] = False

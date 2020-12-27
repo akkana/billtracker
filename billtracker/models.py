@@ -996,13 +996,7 @@ class LegSession(db.Model):
            (which is the session with the highest id).
         """
         max_id = db.session.query(func.max(LegSession.id)).scalar()
-        session =  LegSession.query.get(max_id)
-        if not session:
-            LegSession.update_session_list()
-            max_id = db.session.query(func.max(LegSession.id)).scalar()
-            session =  LegSession.query.get(max_id)
-
-        return session
+        return LegSession.query.get(max_id)
 
     @staticmethod
     def current_yearcode():
@@ -1014,8 +1008,14 @@ class LegSession(db.Model):
 
     @staticmethod
     def update_session_list():
+        """Long running query that fetches the (possibly cached)
+           Legislation_List (same file used for allbills) and adds
+           any new sessions that might have appeared.
+           Called from /api/refresh_session_list.
+        """
         sessionsdict = update_legislative_session_list()
         # A list of dicts including id, year, typename, yearcode
+        # frmo nnmlegisbill.
 
         for lsess in sessionsdict:
             # Is it in the database? Then we can stop: sessions
