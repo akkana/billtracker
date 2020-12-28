@@ -86,6 +86,13 @@ li:nth-child(odd) { background: lightblue; }</style>
 tr.odd td  { background: #fff; }
 tr.even td { background: #cfd; }
 
+.newsbanner {
+    color: #050;
+    text-align: center; width: 95%;
+    padding: .4em; margin: .5em auto;
+    border: 1px outset black; border-radius: 5px;
+}
+
 .error { color: red; }
 .system-alert { color: red; }
 .system-message { color: green; }
