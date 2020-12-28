@@ -995,8 +995,11 @@ class LegSession(db.Model):
         """Return the currently running (or most recent) legislative session
            (which is the session with the highest id).
         """
-        max_id = db.session.query(func.max(LegSession.id)).scalar()
-        return LegSession.query.get(max_id)
+        try:
+            max_id = db.session.query(func.max(LegSession.id)).scalar()
+            return LegSession.query.get(max_id)
+        except:
+            return None
 
     @staticmethod
     def current_yearcode():

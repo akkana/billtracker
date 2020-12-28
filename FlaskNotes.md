@@ -45,11 +45,27 @@ the same form after submitting.
 
 # Database Upgrade and Downgrade Workflow
 
+On the development machine:
 - Update models.db
 - flask db migrate
 - review the migration file to make sure it looks right
 - flask db upgrade
 
+On the live server, flask db upgrade needs something extra.
+Try this (from the directory where run_billtracker.py is):
+export FLASK_APP=run_billtracker.py
+export DATABASE_URL=postgresql:///nmbilltracker
+followed by: flask db upgrade
+
+Sometimes the database gets confused about where it is, and wants to
+do upgrades it's already done (which of course will fail).
+You can get the current version with:
+  flask db current
+and set it with:
+  flask db stamp f34de039b188
+
+The db version is the 12-digit code, NOT including any description you
+might have added to the filename.
 
 ## Migrations: adding/dropping tables in sqlite3
 
