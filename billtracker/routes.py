@@ -25,11 +25,11 @@ import subprocess
 import sys, os
 
 
-def set_session_by_request_values(values):
+def set_session_by_request_values(values=None):
     """Set the session's yearcode and sessionname according to
        values passed into a requested page.
     """
-    if "yearcode" in values:
+    if values and "yearcode" in values:
         session["yearcode"] = values["yearcode"]
         session["sessionname"] = \
             LegSession.by_yearcode(session["yearcode"]).sessionname()
@@ -390,6 +390,7 @@ def popular():
        This requires login, only because it seems rude to show information
        about our users to someone who can't be bothered to register.
     """
+    set_session_by_request_values()
     yearcode = session["yearcode"]
     leg_session = LegSession.by_yearcode(session["yearcode"])
     bills = Bill.query.all()
@@ -427,23 +428,31 @@ def allbills():
        (Bills are only added to the database once someone tracks them.)
        New bills the user hasn't seen before are listed first.
     """
-    yearcode = session["yearcode"]
+    set_session_by_request_values()
     leg_session = LegSession.by_yearcode(session["yearcode"])
+    yearcode = session["yearcode"]
+    if "sessionname" in session:
+        sessionname = session["sessionname"]
+    else:
+        sessionbane = leg_session.sessionname()
+        session["sessionname"] = sessionname
 
     # Do the slow part first, before any database accesses.
     # This can fail, e.g. if nmlegis isn't answering.
     try:
-        allbills = nmlegisbill.all_bills(leg_session.id)
+        allbills = nmlegisbill.all_bills(leg_session.id, yearcode, sessionname)
         # This is an OrderedDict, { billno: [title, url] }
-    except:
+    except Exception as e:
+        print("Problem fetching all_bills", file=sys.stderr)
+        print(traceback.format_exc(), file=sys.stderr)
         allbills = None
 
     if not allbills:
         flash("Problem fetching the list of all bills."
               "The legislative website my be overloaded.")
-        return render_template('allbills.html', user=user,
-                      title="NM Bill Tracker: Problem Fetching %d Bills"
-                               % leg_session.sessionname(),
+        return render_template('allbills.html',
+                      title="NM Bill Tracker: Problem Fetching %s Bills"
+                               % sessionname,
                                bill_lists=None)
 
     if current_user and not current_user.is_anonymous:
@@ -495,7 +504,7 @@ So check them now.)""",
 
     return render_template('allbills.html', user=user,
                        title="NM Bill Tracker: All Bills in the %s Session" \
-                                 % session["sessionname"],
+                                 % sessionname,
                            bill_lists=bill_lists)
 
 

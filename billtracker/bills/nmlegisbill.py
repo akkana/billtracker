@@ -110,6 +110,12 @@ def url_to_cache_filename(billurl):
                   .replace('&', '_')
 
 
+def soup_from_cache(cachefile):
+    with open(cachefile, encoding="utf-8") as fp:
+        # billdic['bill_url'] = baseurl
+        return BeautifulSoup(fp, 'lxml')
+
+
 def soup_from_cache_or_net(baseurl, cachefile=None, cachesecs=2*60*60):
     """baseurl is a full URL including https://www.nmlegis.gov/
        or a full URL including that part.
@@ -127,46 +133,47 @@ def soup_from_cache_or_net(baseurl, cachefile=None, cachesecs=2*60*60):
     if not cachefile:
         cachefile = '%s/%s' % (cachedir, url_to_cache_filename(baseurl))
 
-    # Use cached pages so as not to hit the server so often.
-    if os.path.exists(cachefile):
+    # Use cached pages when possible, so as not to hit the server so often.
+    cachefile_exists = os.path.exists(cachefile)
+    if cachefile_exists:
         filestat = os.stat(cachefile)
         if (time.time() - filestat.st_mtime) < cachesecs or cachesecs < 0:
             print("Already cached:", baseurl, '->', cachefile, file=sys.stderr)
             baseurl = cachefile
 
-    if ':' in baseurl:
-        print("Re-fetching: cache has expired on", baseurl, file=sys.stderr)
+    # If there was a recent enough cache fil, return it.
+    if ':' not in baseurl:
+        return soup_from_cache(baseurl)
 
-        # billdic['bill_url'] = url_mapper.to_abs_link(baseurl, baseurl)
-        try:
-            # Use a timeout here.
-            # When testing, it's useful to reduce this timeout a lot.
-            r = requests.get(baseurl, timeout=30)
-            soup = BeautifulSoup(r.text, 'lxml')
-        except Exception as e:
-            print("Couldn't fetch", baseurl, ":", e)
-            soup = None
+    # No cache that's recent enough; fetch from the net.
+    print("Re-fetching: cache has expired on", baseurl, file=sys.stderr)
 
-        if not soup:
-            return None
+    # billdic['bill_url'] = url_mapper.to_abs_link(baseurl, baseurl)
+    try:
+        # Use a timeout here.
+        # When testing, it's useful to reduce this timeout a lot.
+        r = requests.get(baseurl, timeout=30)
+        soup = BeautifulSoup(r.text, 'lxml')
+    except Exception as e:
+        print("*** NETWORK ERROR Couldn't fetch", baseurl, ":", e,
+              file=sys.stderr)
+        # But if there's a cache file, use it
+        if cachefile_exists:
+            return soup_from_cache(baseurl)
+        return None
 
-        # Python 3 these days is supposed to use the system default
-        # encoding, I thought, but sometimes it doesn't and dies
-        # trying to write to the cache file unless you specify
-        # an encoding explicitly:
+    # Successfully fetched the file from the network and parsed it.
+    # Assuming soup is non-null, save it to cache.
+    # Python 3 these days is supposed to use the system default
+    # encoding, I thought, but sometimes it doesn't, and instead dies
+    # trying to write to the cache file unless you specify
+    # an encoding explicitly:
+    if soup and r.text:
         with open(cachefile, "w", encoding="utf-8") as cachefp:
             # r.text is str and shouldn't need decoding
             cachefp.write(r.text)
             # cachefp.write(r.text.decode())
             print("Cached locally as %s" % cachefile, file=sys.stderr)
-
-    else:
-        with open(baseurl, encoding="utf-8") as fp:
-            # billdic['bill_url'] = baseurl
-            soup = BeautifulSoup(fp, 'lxml')
-
-        # This probably ought to be folded into the url mapper somehow.
-        # baseurl = "http://www.nmlegis.gov/Legislation/Legislation"
 
     return soup
 
@@ -627,21 +634,75 @@ def most_recent_action(billdic):
     return last_action_date, str(lastaction), lastaction.text
 
 
-def all_bills(sessionid):
+#
+# All Bills for a session: parsed from the Legislation_List page
+# plus the hill directories, then kept in an in-memory structure
+# with an easily readable cache file as backup,
+# since typically this info is needed for all bills at once when
+# a user hits the All Bills page.
+#
+
+gAllBills = {}   # keys are yearcode
+                 # values are OrderedDict of billno: ('TITLE', url)
+
+gBillText = {}   # keys are yearcode
+                 # values are OrderedDict of billno: SOMETHING
+
+gAllBillsCacheTime = 60*60    # seconds between re-checks of nmlegis
+
+
+def all_bills(sessionid, yearcode, sessionname):
     """Return an OrderedDict of all bills, billno: [title, url]
        From https://www.nmlegis.gov/Legislation/Legislation_List?Session=NN
-    """
-    baseurl = 'https://www.nmlegis.gov/Legislation/'
+       sessionid a numeric ID used by nmlegis; yearcode is a string e.g. 20s2.
+       Mostly this comes from cached files, but periodically those
+       cached files will be updated from the Legislation_List URL.
 
+       Returns an OrderedDict of billno: ('TITLE', url)
+    """
+    all_bills_cachefile = '%s/all_bills_%s.txt' % (cachedir, yearcode)
+    try:
+        filestat = os.stat(all_bills_cachefile)
+        if (time.time() - filestat.st_mtime) <= gAllBillsCacheTime:
+            # Cache file is recent enough. Read from there.
+            if yearcode in gAllBills:
+                print("Bills are still in memory", file=sys.stderr)
+                return gAllBills[yearcode]
+            print("Reading allbills %s from cache" % yearcode, file=sys.stderr)
+            allbills = {}
+            with open(all_bills_cachefile) as fp:
+                for line in fp:
+                    try:
+                        billno, title, url = line.strip().split('|')
+                        allbills[billno] = [title, url]
+                    except:
+                        print("Bad line in all_bills cache file:", line,
+                              file=sys.stderr)
+                        continue
+            gAllBills[yearcode] = allbills
+            return allbills
+
+    except Exception as e:
+        # cache file doesn't exist yet
+        print("allbills cache file for %s didn't exist" % yearcode, e,
+              file=sys.stderr)
+
+    # The cache file was either not there or not recent enough.
+    # Populate it.
+    print("Refreshing all bills %s from the net" % yearcode, file=sys.stderr)
+
+    baseurl = 'https://www.nmlegis.gov/Legislation/'
     url = baseurl + 'Legislation_List?Session=%2d' % sessionid
 
-    # re-fetch once an hour:
-    soup = soup_from_cache_or_net(url, cachesecs=60*60)
+    # re-fetch if needed. Pass a cache time that's a little less than
+    # the one we're using for the all_bills cachefile
+    soup = soup_from_cache_or_net(url, cachesecs=gAllBillsCacheTime-60)
     if not soup:
         print("Couldn't fetch all bills: network problem")
         return None
 
     footable = soup.find('table', id='MainContent_gridViewLegislation')
+    # footable is nmlegis' term for this bill table
     if not footable:
         print("Can't read the all-bills list: no footable", file=sys.stderr)
         return None
@@ -657,7 +718,17 @@ def all_bills(sessionid):
             allbills[billno_a.text.replace(' ', '').replace('*', '')] \
                 = [ title_a.text, baseurl + billno_a['href'] ]
 
-    return allbills
+    gAllBills[yearcode] = allbills
+
+    # Write the new list back to the cachefile
+    with open(all_bills_cachefile, "w") as outfp:
+        for billno in allbills:
+            print("%s|%s|%s" % (billno, *allbills[billno]), file=outfp)
+
+    # XXX TODO: update the list of bill text links here
+
+    # Now gAllBills[yearcode] is populated, one way or the other
+    return gAllBills[yearcode]
 
 
 def expand_house_or_senate(code, cache_locally=True):

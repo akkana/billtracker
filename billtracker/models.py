@@ -1016,6 +1016,7 @@ class LegSession(db.Model):
            any new sessions that might have appeared.
            Called from /api/refresh_session_list.
         """
+        # Update the session list from nmlegisbill
         sessionsdict = update_legislative_session_list()
         # A list of dicts including id, year, typename, yearcode
         # frmo nnmlegisbill.
