@@ -642,13 +642,10 @@ def most_recent_action(billdic):
 # a user hits the All Bills page.
 #
 
-gAllBills = {}   # keys are yearcode
-                 # values are OrderedDict of billno: ('TITLE', url)
+g_all_bills = {}  # keys are yearcode
+                  # values: OrderedDict of billno: ('TITLE', billurl, texturl)
 
-gBillText = {}   # keys are yearcode
-                 # values are OrderedDict of billno: SOMETHING
-
-gAllBillsCacheTime = 60*60    # seconds between re-checks of nmlegis
+g_all_billsCacheTime = 60*60    # seconds between re-checks of nmlegis
 
 
 def all_bills(sessionid, yearcode, sessionname):
@@ -658,29 +655,27 @@ def all_bills(sessionid, yearcode, sessionname):
        Mostly this comes from cached files, but periodically those
        cached files will be updated from the Legislation_List URL.
 
-       Returns an OrderedDict of billno: ('TITLE', url)
+       Returns an OrderedDict of billno: ('TITLE', billurl, texturl)
     """
     all_bills_cachefile = '%s/all_bills_%s.txt' % (cachedir, yearcode)
     try:
         filestat = os.stat(all_bills_cachefile)
-        if (time.time() - filestat.st_mtime) <= gAllBillsCacheTime:
+        if (time.time() - filestat.st_mtime) <= g_all_billsCacheTime:
             # Cache file is recent enough. Read from there.
-            if yearcode in gAllBills:
-                print("Bills are still in memory", file=sys.stderr)
-                return gAllBills[yearcode]
-            print("Reading allbills %s from cache" % yearcode, file=sys.stderr)
-            allbills = {}
+            if yearcode in g_all_bills:
+                return g_all_bills[yearcode]
+            g_all_bills[yearcode] = {}
             with open(all_bills_cachefile) as fp:
                 for line in fp:
                     try:
-                        billno, title, url = line.strip().split('|')
-                        allbills[billno] = [title, url]
+                        billno, title, url, billtext = line.strip().split('|')
+                        g_all_bills[yearcode][billno] = [title, url, billtext]
                     except:
                         print("Bad line in all_bills cache file:", line,
                               file=sys.stderr)
                         continue
-            gAllBills[yearcode] = allbills
-            return allbills
+
+            return g_all_bills[yearcode]
 
     except Exception as e:
         # cache file doesn't exist yet
@@ -691,12 +686,12 @@ def all_bills(sessionid, yearcode, sessionname):
     # Populate it.
     print("Refreshing all bills %s from the net" % yearcode, file=sys.stderr)
 
-    baseurl = 'https://www.nmlegis.gov/Legislation/'
-    url = baseurl + 'Legislation_List?Session=%2d' % sessionid
+    baseurl = 'https://www.nmlegis.gov/Legislation'
+    url = baseurl + '/Legislation_List?Session=%2d' % sessionid
 
     # re-fetch if needed. Pass a cache time that's a little less than
     # the one we're using for the all_bills cachefile
-    soup = soup_from_cache_or_net(url, cachesecs=gAllBillsCacheTime-60)
+    soup = soup_from_cache_or_net(url, cachesecs=g_all_billsCacheTime-60)
     if not soup:
         print("Couldn't fetch all bills: network problem")
         return None
@@ -707,28 +702,76 @@ def all_bills(sessionid, yearcode, sessionname):
         print("Can't read the all-bills list: no footable", file=sys.stderr)
         return None
 
-    allbills = OrderedDict()
     billno_pat = re.compile('MainContent_gridViewLegislation_linkBillID.*')
     title_pat = re.compile('MainContent_gridViewLegislation_lblTitle.*')
+    g_all_bills[yearcode] = OrderedDict()
     for tr in footable.findAll('tr'):
         billno_a = tr.find('a', id=billno_pat)
         title_a = tr.find('span', id=title_pat)
         if billno_a and title_a:
-            # Remove spaces and stars:
-            allbills[billno_a.text.replace(' ', '').replace('*', '')] \
-                = [ title_a.text, baseurl + billno_a['href'] ]
+            # Text under the link might be something like "HB  1"
+            # or might have stars, so remove spaces and stars:
+            billno_url = billno_a.text.replace(' ', '').replace('*', '')
+            g_all_bills[yearcode][billno_url] \
+                = [ title_a.text, baseurl + billno_a['href'], "" ]
 
-    gAllBills[yearcode] = allbills
+    # Whenever the list of all bills is updated, it's a good time to
+    # update the full bill text links so there are links for any new bills.
+    # Rather than parse every bill page (like we do for followed bills),
+    # use the index of the directories where bill links are stored.
+    # A typical URL:
+    # https://www.nmlegis.gov/Sessions/20%20Special2/bills/senate/SB0001.HTML
+    if len(yearcode) == 2:
+        sessionlong = "Regular"
+    elif yearcode.endswith("s"):
+        sessionlong = "Special"
+    elif yearcode.endswith("s2"):
+        sessionlong = "Special2"
+    elif yearcode.endswith("x"):
+        sessionlong = "Extraordinary"
+    # XXX also in that dir: 11Redistricting, DIY_Redistricting,
+    # InterimCommittees ... be ready to update this if clause.
+    baseurl = "https://www.nmlegis.gov/Sessions/%s%%20%s/" \
+        % (yearcode[:2], sessionlong)
+    # Under this are directories for house and senate
+    for billtype in ("bills", "memorials"):
+        for chamber in ("house", "senate"):
+            url = "%s/%s/%s" % (baseurl, billtype, chamber)
+            # Under this are names like SB0001.HTML.
+            # But the number of zeroes is inconsistent and unpredictable,
+            # so get a listing.
+            soup = soup_from_cache_or_net(url, cachesecs=g_all_billsCacheTime)
 
-    # Write the new list back to the cachefile
+            for a in soup.findAll('a'):
+                href = a.get('href')
+                if not href:
+                    continue
+                if not href.endswith('.HTML'):
+                    continue
+                # href should be something like SB0001.HTML or SB0002CT1.HTML
+                # If there are letters between the number and the dot,
+                # it's probably an amendment.
+                # For the purpose of allbills, exclude them.
+                try:
+                    match = re.search('([SH]J*[BM])0*([1-9][0-9]*)\.HTML', href)
+                    billno = match.group(1) + match.group(2)
+                    # Weirdly, the web server gives absolute paths as links.
+                    # So either need to prepend the server domain,
+                    # or else use url + basename(href).
+                    g_all_bills[yearcode][billno][2] = \
+                        "https://www.nmlegis.gov/%s" % (href)
+                except:
+                    print("href", href, "didn't match")
+                    pass
+
+    # Write the new list back to the bill cachefile
     with open(all_bills_cachefile, "w") as outfp:
-        for billno in allbills:
-            print("%s|%s|%s" % (billno, *allbills[billno]), file=outfp)
+        for billno in g_all_bills[yearcode]:
+            print("%s|%s|%s|%s" % (billno, *g_all_bills[yearcode][billno]),
+                  file=outfp)
 
-    # XXX TODO: update the list of bill text links here
-
-    # Now gAllBills[yearcode] is populated, one way or the other
-    return gAllBills[yearcode]
+    # Now g_all_bills[yearcode] is populated, one way or the other
+    return g_all_bills[yearcode]
 
 
 def expand_house_or_senate(code, cache_locally=True):

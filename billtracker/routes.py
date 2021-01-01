@@ -473,7 +473,7 @@ def allbills():
             contents = bill.contentslink
             num_tracking = bill.num_tracking()
         else:
-            contents = ''
+            contents = allbills[billno][2]
             num_tracking = 0
         args = [ billno, allbills[billno][0], allbills[billno][1],
                  contents, num_tracking ]
