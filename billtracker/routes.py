@@ -806,11 +806,11 @@ def bills_by_update_date():
     """
     yearcode = request.values.get('yearcode')
     if not yearcode:
-        year = LegSession.current_yearcode()
+        yearcode = LegSession.current_yearcode()
 
     bill_list = Bill.query.filter_by(year=yearcode) \
                           .order_by(Bill.update_date).all()
-    return ','.join([ bill.billno for bill in bill_list])
+    return ','.join([ bill.billno for bill in bill_list ])
 
 
 # Update LESC, FIR, amendments

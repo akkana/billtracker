@@ -41,7 +41,7 @@ def billno_to_parts(billno):
     # billno is chamber, bill type, digits, e.g. HJM4. Parse that:
     match = re.match('([HS])([A-Z]+) *([0-9]+)', billno)
     if not match:
-        raise RuntimeError("I don't understand bill name '%s'" % billno)
+        raise RuntimeError("I don't understand bill number '%s'" % billno)
     chamber, billtype, number = match.groups()
     return chamber, billtype, number
 
