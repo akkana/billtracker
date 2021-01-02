@@ -38,6 +38,16 @@ systemctl --no-pager list-timers
 In case you ever need to disable it:
 systemctl disable billtracker-update.timer
 
+Check status and when it will next be triggered:
+systemctl status billtracker-update.timer
+
+See output from the service:
+journalctl -u billtracker-update.service
+... but on my system, that only gives output since 9am today,
+so you can't get any overnight info. How annoying!
+But it also goes into /var/log/syslog, so you can:
+grep billtracker-update.py /var/log/syslog
+
 
 
 #  Crontab:

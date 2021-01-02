@@ -143,7 +143,9 @@ def main():
         billstr = requests.get('%s/api/bills_by_update_date' % (BASEURL)).text
         updated_bills = []
         failed_updates = []
-        if not billstr.startswith("FAIL"):
+        if not billstr:
+            print("No bills to update")
+        elif not billstr.startswith("FAIL"):
             allbills = billstr.split(',')
             num2update = len(allbills) * bill_update_percent // 100
             if num2update == 0 and allbills:
