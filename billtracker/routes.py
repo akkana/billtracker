@@ -492,9 +492,8 @@ def allbills():
 <p>
 These are the bills filed since the last time you checked this page.
 <br />
-(Warning: that means that if you leave this page and come back,
-or reload the page, these bills will no longer be there!
-So check them now.)""",
+(Warning: that means that if you leave this page and load it again later,
+or reload the page, these bills will no longer be listed as new.)""",
                      'alt': "Nothing new since you last looked."
                    },
                    { 'thelist': oldbills,
