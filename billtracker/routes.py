@@ -383,23 +383,19 @@ def track_untrack():
 # @billtracker.route('/popular/<yearcode>')
 
 @billtracker.route('/popular')
-@login_required
 def popular():
     """Show all bills in the database for a given yearcode,
        and how many people are tracking each one.
-       This requires login, only because it seems rude to show information
-       about our users to someone who can't be bothered to register.
     """
     set_session_by_request_values()
     yearcode = session["yearcode"]
     leg_session = LegSession.by_yearcode(session["yearcode"])
-    bills = Bill.query.all()
+    bills = Bill.query.filter_by(year=yearcode).all()
+
     # allbills.html expects a list of
     # [ [billno, title, link, fulltext_link, num_tracking ] ]
     bill_list = []
     for bill in bills:
-        if bill.year != yearcode:
-            continue
         num_tracking = bill.num_tracking()
         if num_tracking:
             bill_list.append( [ bill.billno, bill.title,
@@ -790,7 +786,8 @@ def refresh_session_list():
     """
     key = request.values.get('KEY')
     if key != billtracker.config["SECRET_KEY"]:
-        print("FAIL refresh_one_bill: bad key %s" % key, file=sys.stderr)
+        print("FAIL refresh_session_list: bad key %s" % key, file=sys.stderr)
+        print(billtracker.config["SECRET_KEY"])
         return "FAIL Bad key\n"
 
     LegSession.update_session_list()

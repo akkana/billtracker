@@ -30,28 +30,43 @@
 
     <p>
     <div class="toolbar">
+    <div class="toolbuttons">
       {% if current_user and not current_user.is_anonymous %}
         <b>{{ current_user.username }}:</b>
       {% else %}
         <i>(not logged in)</i>
       {% endif %}
          &nbsp;
-      <a href="{{ url_for('index') }}">Home</a> &bull;
-      <a href="{{ url_for('allbills') }}">All/New bills</a> &bull;
-      <a href="{{ url_for('popular') }}">Popular bills</a> &bull;
-      <a href="{{ url_for('addbills') }}">Track bill #</a> &bull;
-      <a href="{{ url_for('links') }}">Links</a> &bull;
-      <a href="{{ url_for('user_settings') }}">Settings</a> &bull;
-      <a href="{{ url_for('help') }}">Help</a> &bull;
-      <a href="{{ url_for('about') }}">About</a> &bull;
-      {% if current_user.is_anonymous %}
-        <a href="{{ url_for('login') }}">Login</a>
+      <a href="{{ url_for('index') }}">Home</a>
+      <a href="{{ url_for('allbills') }}">All/New bills</a>
+      <a href="{{ url_for('popular') }}">Popular bills</a>
+      {% if current_user and not current_user.is_anonymous %}
+          <a href="{{ url_for('addbills') }}">Track bill #</a>
+          <a href="{{ url_for('user_settings') }}">Settings</a>
       {% else %}
-        <a href="{{ url_for('logout') }}">Logout</a>
+          <span class="greyed">Track Bill #</span>
+          <span class="greyed">Settings</span>
       {% endif %}
-      <br />
+
+      <a href="{{ url_for('links') }}">Links</a>
+      <a href="{{ url_for('help') }}">Help</a>
+      <a href="{{ url_for('about') }}">About</a>
+
+      {% if current_user.is_anonymous %}
+          <a href="{{ url_for('login') }}">Login</a>
+      {% else %}
+          <a href="{{ url_for('logout') }}">Logout</a>
+      {% endif %}
+    </div>
+
+    {% if session["sessionname"] %}
       <b>{{ session["sessionname"] }} Session</b>
-      (<a href="/changesession">change session</a>)
+      {% if current_user and not current_user.is_anonymous %}
+        (<a href="/changesession">change session</a>)
+      {% endif %}
+    {% else %}
+      &nbsp;
+    {% endif %}
     </div>
 
     <!-- Put system messages and alerts here,

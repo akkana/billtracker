@@ -53,7 +53,7 @@ Please try again later.
       {% else %}
       <td>&nbsp;
       {% endif %}
-      {% if user %}
+      {% if user and not user.is_anonymous %}
         {% if user.tracking(bill_line[0], session["yearcode"]) %}
           <td>
           <td><input type="checkbox" class="untrack" name="u_{{ bill_line[0] }}">
@@ -61,13 +61,15 @@ Please try again later.
           <td><input type="checkbox" class="track" name="f_{{ bill_line[0] }}">
           <td>
         {% endif %}
+      {% else %}
+          <td>&nbsp; <td>&nbsp;
+      {% endif %}
 
         <td>{% if bill_line[4] is defined and bill_line[4] %}
               {{ bill_line[4] }}
             {% else %}
               &nbsp;
             {% endif %}
-      {% endif %}
   {% endfor %}
 
   {% if user %}

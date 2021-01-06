@@ -33,10 +33,35 @@ table#banner {
     width:150px; height=150;
 }
 
+/* The toolbar at the top */
+
 .toolbar { text-align: center; width: 90%; background: #ffe;
            padding: .4em; margin: 0 auto; border: 2px outset #eee;
            border-radius: 10px;
+           line-height: 2em;
          }
+
+.toolbuttons a, toolbuttons a:visited {
+    color: white;
+    background: #855;
+    border: 3px outset white;
+    border-radius: 8px;
+    text-decoration: none;
+    padding: 3px;
+    font-family: Arial, Helvetica, sans-serif; font-weight: bold;
+}
+
+.toolbuttons a:hover {
+    background: #a77;
+}
+
+.toolbar span.greyed {
+    color: #b99;
+    background:  #ddc;
+    border: 1px #000;
+    padding: 5px;
+    font-family: Arial, Helvetica, sans-serif; font-weight: bold;
+}
 
 /* Dispense with the silly space-wasting banner images on small screens. */
 @media (max-width: 799px) {
