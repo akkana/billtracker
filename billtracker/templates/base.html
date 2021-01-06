@@ -9,7 +9,8 @@
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/billtracker.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/burgermenu.css') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
   </head>
   <body>
@@ -28,36 +29,45 @@
           <img src="/static/img/scroll-pen.png">
     </table>
 
-    <p>
-    <div class="toolbar">
-    <div class="toolbuttons">
+    <header class="menuheader">
+      <input class="menu-btn" type="checkbox" id="menu-btn" />
+      <label class="menu-icon" for="menu-btn">
+        <span class="navicon"></span>
+      </label>
+
+      <ul class="mainmenu">
+
+        <li><span class=username>
+          {% if current_user and not current_user.is_anonymous %}
+            <b>{{ current_user.username }}:</b>
+          {% else %}
+            <i>(not logged in)</i>
+          {% endif %}
+        </span></li><li>
+
+      <li><a href="{{ url_for('index') }}">Home</a></li>
+      <li><a href="{{ url_for('allbills') }}">All/New bills</a></li>
+      <li><a href="{{ url_for('popular') }}">Popular bills</a></li>
       {% if current_user and not current_user.is_anonymous %}
-        <b>{{ current_user.username }}:</b>
+          <li><a href="{{ url_for('addbills') }}">Track bill #</a></li>
+          <li><a href="{{ url_for('user_settings') }}">Settings</a></li>
       {% else %}
-        <i>(not logged in)</i>
-      {% endif %}
-         &nbsp;
-      <a href="{{ url_for('index') }}">Home</a>
-      <a href="{{ url_for('allbills') }}">All/New bills</a>
-      <a href="{{ url_for('popular') }}">Popular bills</a>
-      {% if current_user and not current_user.is_anonymous %}
-          <a href="{{ url_for('addbills') }}">Track bill #</a>
-          <a href="{{ url_for('user_settings') }}">Settings</a>
-      {% else %}
-          <span class="greyed">Track Bill #</span>
-          <span class="greyed">Settings</span>
+          <li><span class="greyed">Track Bill #</span></li>
+          <li><span class="greyed">Settings</span></li>
       {% endif %}
 
-      <a href="{{ url_for('links') }}">Links</a>
-      <a href="{{ url_for('help') }}">Help</a>
-      <a href="{{ url_for('about') }}">About</a>
+      <li><a href="{{ url_for('links') }}">Links</a></li>
+      <li><a href="{{ url_for('help') }}">Help</a></li>
+      <li><a href="{{ url_for('about') }}">About</a></li>
 
+      <li>
       {% if current_user.is_anonymous %}
           <a href="{{ url_for('login') }}">Login</a>
       {% else %}
           <a href="{{ url_for('logout') }}">Logout</a>
       {% endif %}
-    </div>
+      </li>
+    </ul>
 
     {% if session["sessionname"] %}
       <b>{{ session["sessionname"] }} Session</b>
@@ -67,7 +77,7 @@
     {% else %}
       &nbsp;
     {% endif %}
-    </div>
+    </header>
 
     <!-- Put system messages and alerts here,
          with class "newsbanner", and optionally also

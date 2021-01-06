@@ -33,34 +33,12 @@ table#banner {
     width:150px; height=150;
 }
 
-/* The toolbar at the top */
+/* ******** The toolbar with menu buttons inside */
 
-.toolbar { text-align: center; width: 90%; background: #ffe;
-           padding: .4em; margin: 0 auto; border: 2px outset #eee;
-           border-radius: 10px;
-           line-height: 2em;
-         }
-
-.toolbuttons a, toolbuttons a:visited {
-    color: white;
-    background: #877;
-    border: 3px outset white;
-    border-radius: 8px;
-    text-decoration: none;
-    padding: 3px 5px;
-    font-family: Arial, Helvetica, sans-serif; font-weight: bold;
-}
-
-.toolbuttons a:hover {
-    background: #a77;
-}
-
-.toolbar span.greyed {
-    color: #b99;
-    background:  #ddc;
-    border: 1px #000;
-    padding: 5px;
-    font-family: Arial, Helvetica, sans-serif; font-weight: bold;
+.menuheader {
+    width: 98%; background: #ffe;
+    padding: .4em; margin: 0; border: 2px outset #eee;
+    border-radius: 10px;
 }
 
 /* Dispense with the silly space-wasting banner images on small screens. */
@@ -70,7 +48,8 @@ table#banner {
 }
 
 .rightalign { float: right; margin: 0 1em; }
-.rightalign span { background: #eef; border: 3px outset white; padding: 3px; border-radius: 2px; }
+.rightalign span { background: #eef; border: 3px outset white;
+                   padding: 3px; border-radius: 2px; }
 .rightalign span.active { border: 3px inset white; }
 .rightalign span.selectable:hover { background: white; }
 .rightalign span.selectable a:hover { background: white; }
@@ -113,8 +92,7 @@ tr.even td { background: #cfd; }
 
 .newsbanner {
     color: #050;
-    text-align: center; width: 95%;
-    padding: .4em; margin: .5em auto;
+    padding: .4em;
     border: 1px outset black; border-radius: 5px;
 }
 
@@ -127,7 +105,3 @@ tr.even td { background: #cfd; }
 table.bordered, table.bordered td { border: 1px solid black; }
 table.bordered td { padding: .3em; }
 
-
-/* Some things are shown only with Javascript, so are initially made invisible.
- */
-.scriptonly { display: none; }

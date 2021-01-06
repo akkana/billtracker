@@ -1,0 +1,175 @@
+/* https://codepen.io/mutedblues/pen/MmPNPG */
+
+/* menu header */
+
+#menuheader {
+  background-color: #ffe;
+  box-shadow: 1px 1px 4px 0 rgba(0,0,0,.1);
+  width: 100%;
+  z-index: 3;
+}
+
+ul.mainmenu {
+    padding: 5px;
+    margin: 0;
+    list-style: none;
+    overflow: hidden;
+}
+
+.mainmenu li a, .mainmenu li a.visited {
+    display: block;
+    text-decoration: none;
+    text-decoration: none;
+    padding: 3px 5px;
+    margin: 0px 3px;
+    font-family: Arial, Helvetica, sans-serif; font-weight: bold;
+}
+
+/* Since CSS makes it basically impossible to center,
+ * try to line up the sessionheader with the username above it.
+ * The username has margin 6px, plus 5px from the ul.mainmenu.
+ */
+.sessionheader { margin: 2px 11px; }
+
+.mainmenu span.username {
+    display: block;
+    font-weight: bold;
+    margin: 6px 8px;
+}
+
+.mainmenu span.greyed {
+    margin: 0px 5px;
+    padding:  3px 5px;
+    font-family: Arial, Helvetica, sans-serif; font-weight: bold;
+}
+
+.menuheader .logo {
+  display: block;
+  float: left;
+  font-size: 2em;
+  padding: 10px 20px;
+  text-decoration: none;
+}
+
+/* Settings that are dependent on screen size.
+ * 48em = 768px
+ */
+
+/* Only for larger screens */
+@media (min-width: 50em) {
+    .mainmenu li {
+        float: left;
+    }
+    .menu-icon, .menu-btn {
+        display: none;
+    }
+    .mainmenu li a, .mainmenu li a.visited {
+        color: white;
+        background: #877;
+        border: 3px outset black;
+        border-radius: 8px;
+    }
+
+    .mainmenu li a:hover, .menuheader .menu-btn:hover {
+        background: #a77;
+    }
+
+    .mainmenu span.greyed {
+        display: block;
+        color: #b99;
+        background:  #ddc;
+        border: 3px solid #ddc;;
+        border-radius: 8px;
+    }
+}
+
+/* Only for smaller screens, like phones */
+@media (max-width: 50em) {
+    .newsbanner {
+        margin: 3px;
+        padding: 2px;
+        border: 0;
+    }
+
+    .menuheader { text-align: right; width: auto; }
+
+    /* The ul that holds all the menu buttons */
+    .menuheader .mainmenu {
+        clear: both;
+        max-height: 0;
+        transition: max-height .2s ease-out;
+    }
+
+    .mainmenu span.greyed {
+        display: inline;
+        color: grey;
+    }
+
+    /* menu icon */
+    .menuheader .menu-icon {
+        cursor: pointer;
+        display: inline-block;
+        float: right;
+        padding: 6px 6px;
+        position: relative;
+        user-select: none;
+    }
+
+    .menuheader .menu-icon .navicon {
+        background: #333;
+        display: block;
+        height: 2px;
+        position: relative;
+        transition: background .2s ease-out;
+        width: 18px;
+    }
+
+    .menuheader .menu-icon .navicon:before,
+    .menuheader .menu-icon .navicon:after {
+        background: #333;
+        content: '';
+        display: block;
+        height: 100%;
+        position: absolute;
+        transition: all .2s ease-out;
+        width: 100%;
+    }
+
+    .menuheader .menu-icon .navicon:before {
+        top: 5px;
+    }
+
+    .menuheader .menu-icon .navicon:after {
+        top: -5px;
+    }
+
+    /* mainmenu btn */
+    .menuheader .menu-btn {
+        display: none;
+    }
+
+    .menuheader .menu-btn:checked ~ .mainmenu {
+        max-height: 240px;
+    }
+
+    .menuheader .menu-btn:checked ~ .menu-icon .navicon {
+        background: transparent;
+    }
+
+    .menuheader .menu-btn:checked ~ .menu-icon .navicon:before {
+        transform: rotate(-45deg);
+    }
+
+    .menuheader .menu-btn:checked ~ .menu-icon .navicon:after {
+        transform: rotate(45deg);
+    }
+
+    .menuheader .menu-btn:checked ~ .menu-icon:not(.steps) .navicon:before,
+    .menuheader .menu-btn:checked ~ .menu-icon:not(.steps) .navicon:after {
+        top: 0;
+    }
+
+    ul.mainmenu { margin: 0; }
+
+} /* stuff for smaller screens */
+
