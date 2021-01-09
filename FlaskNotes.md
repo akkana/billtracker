@@ -105,3 +105,30 @@ apachectl -k graceful
 [Bill HB55 20, Bill SM9 20, Bill HB94 20, Bill SB17 20, Bill SB20 20]
 >>> b =  Bill.query.filter_by(billno='HB55', year='20').first()
 >>> b.users_tracking()
+
+### Debugging on the Production WSGI Server
+
+Your wsgi script probably has a bunch of lines like
+```
+sys.path.insert(0, '/var/www/nmbilltracker/billtracker')
+```
+and
+```
+os.environ["DATABASE_URL"] = "postgresql:///nmbilltracker"
+```
+
+Make a copy of it, then add to the end the stuff you need for
+testing in the debug environment:
+```
+from billtracker import billtracker, db
+from billtracker.models import User, Bill
+
+@billtracker.shell_context_processor
+def make_shell_context():
+    return {'db': db, 'User': User, 'Bill': Bill}
+```
+
+Then you can run
+```
+flask shell
+```
