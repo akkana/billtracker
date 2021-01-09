@@ -220,6 +220,7 @@ def addbills():
             except RuntimeError as e:
                 flash(str(e))
                 return render_template('addbills.html', title='Add More Bills',
+                                       yearcode=session["yearcode"],
                                        form=form, user=user)
             except Exception as e:
                 flash("Couldn't add %s to the database: %s" % (billno, str(e)))
@@ -242,6 +243,7 @@ def addbills():
         bill = None
 
     return render_template('addbills.html', title='Add More Bills',
+                           yearcode=session["yearcode"],
                            form=form, user=user)
 
 
