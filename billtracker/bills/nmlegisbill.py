@@ -684,7 +684,7 @@ def all_bills(sessionid, yearcode, sessionname):
 
     # The cache file was either not there or not recent enough.
     # Populate it.
-    print("Refreshing all bills %s from the net" % yearcode, file=sys.stderr)
+    print("Refreshing all bills in %s from the net" % yearcode, file=sys.stderr)
 
     baseurl = 'https://www.nmlegis.gov/Legislation'
     url = baseurl + '/Legislation_List?Session=%2d' % sessionid
@@ -713,7 +713,7 @@ def all_bills(sessionid, yearcode, sessionname):
             # or might have stars, so remove spaces and stars:
             billno_url = billno_a.text.replace(' ', '').replace('*', '')
             g_all_bills[yearcode][billno_url] \
-                = [ title_a.text, baseurl + billno_a['href'], "" ]
+                = [ title_a.text, baseurl + "/" + billno_a['href'], "" ]
 
     # Whenever the list of all bills is updated, it's a good time to
     # update the full bill text links so there are links for any new bills.
@@ -748,7 +748,12 @@ def all_bills(sessionid, yearcode, sessionname):
                     continue
                 if not href.endswith('.HTML'):
                     continue
-                # href should be something like SB0001.HTML or SB0002CT1.HTML
+                print("href", href)
+                # href is typically something like
+                # /Sessions/21%20Regular/bills/house/HB0059.HTML
+                # Remove any initial slash:
+                while href.startswith("/"):
+                    href = href[1:]
                 # If there are letters between the number and the dot,
                 # it's probably an amendment.
                 # For the purpose of allbills, exclude them.
