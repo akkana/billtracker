@@ -23,7 +23,7 @@ Please try again later.
 
 <form method="POST" action="/track_untrack">
 <input type="hidden" id="returnpage" name="returnpage" value="{{ returnpage }}">
-<input type="hidden" id="leg_year" name="legyear" value="{{ session['yearcode'] }}">
+<input type="hidden" id="yearcode" name="legyear" value="{{ session['yearcode'] }}">
 
 {% for bill_list in bill_lists %}
 {% if bill_list['thelist'] and bill_list['thelist']|length > 0 %}

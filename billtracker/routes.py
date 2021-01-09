@@ -341,9 +341,6 @@ def track_untrack():
             for billno in will_track:
                 b = Bill.query.filter_by(billno=billno,
                                          year=session["yearcode"]).first()
-                # b = db.session.query(Bill).filter(
-                #     Bill.billno == billno,
-                #     year=session["yearcode"]).first()
                 if b:
                     bills_to_track.append(b)
                 else:
@@ -413,6 +410,7 @@ def popular():
     return render_template('allbills.html', user=current_user,
                            title="Bills People %s Tracking" % verb,
                            returnpage="popular",
+                           yearcode=yearcode,
                            bill_lists=bill_lists)
 
 
@@ -500,6 +498,7 @@ or reload the page, these bills will no longer be listed as new.)""",
     return render_template('allbills.html', user=user,
                        title="NM Bill Tracker: All Bills in the %s Session" \
                                  % sessionname,
+                           yearcode=yearcode,
                            bill_lists=bill_lists)
 
 
@@ -985,7 +984,7 @@ def find_dups():
        Return only the master bill for each billno.
     """
 
-    # A list of all bills that have duplicates
+    # A list of all bills that have duplicates, same billno and year.
     masterbills = []
     bill_ids_seen = set()
 
@@ -997,12 +996,13 @@ def find_dups():
 
         bill_ids_seen.add(bill.id)
 
-        bills_with_this_no = Bill.query.filter_by(billno=bill.billno).all()
+        bills_with_this_no = Bill.query.filter_by(billno=bill.billno,
+                                                  year=bill.year).all()
         if len(bills_with_this_no) == 1:
             continue
 
         # There are multiple bills with this billno.
-        print(len(bills_with_this_no), "bills called", bill.billno,
+        print(len(bills_with_this_no), "bills called", bill.billno, bill.year,
               file=sys.stderr)
 
         # User lists tracking each of the duplicate bills:
@@ -1052,15 +1052,15 @@ def show_dups(key):
     if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
-    masterbills = find_dups()
+    dupbills = find_dups()
 
-    if not masterbills:
+    if not dupbills:
         print("No duplicate bills in database, whew")
         return "OK"
 
-    print("masterbills:", masterbills, file=sys.stderr)
+    print("duplicate bills:", dupbills, file=sys.stderr)
 
-    return "OK %s" % ','.join([ b.billno for b in masterbills ])
+    return "OK %s" % ','.join([ str(b) for b in dupbills ])
 
 
 # Clean out duplicates.
