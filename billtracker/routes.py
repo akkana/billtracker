@@ -205,6 +205,8 @@ def addbills():
 
     if form.validate_on_submit():
         billno = form.billno.data
+        # Remove any spaces, e.g. "HB 22" should become "HB22"
+        billno = billno.replace(" ", "")
         bill = Bill.query.filter_by(billno=billno,
                                     year=session["yearcode"]).first()
         if bill:
