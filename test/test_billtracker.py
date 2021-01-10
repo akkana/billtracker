@@ -65,19 +65,16 @@ class TestBillTracker(unittest.TestCase):
         db.drop_all()
         db.create_all()
 
-
     def tearDown(self):
         db.session.remove()
         db.drop_all()
         os.unlink(self.dbname)
-
 
     def test_password_hashing(self):
         u = User(username='testuser')
         u.set_password('testpassword')
         self.assertFalse(u.check_password('notthepassword'))
         self.assertTrue(u.check_password('testpassword'))
-
 
     @mock.patch('requests.get', side_effect=mocked_requests_get)
     def test_bills_and_users(self, mock_get):
@@ -188,8 +185,6 @@ class TestBillTracker(unittest.TestCase):
         self.assertTrue("This is your first check"
                         in text_response)
 
-
-
         # view the index with yearcode 19, to set the yearcode in the session.
         response = self.app.get("/?yearcode=19")
         self.assertTrue(response.status_code == 200 or
@@ -199,21 +194,23 @@ class TestBillTracker(unittest.TestCase):
         response = self.app.post('/addbills',
                                  data={ 'billno': 'HB73',
                                         'yearcode': '19',
-                                        'submit': 'Track a Bill'})
-        self.assertTrue(response.status_code == 200 or
-                        response.status_code == 302)
-        response = self.app.post('/addbills',
-                                 data={ 'billno': 'HB100',
-                                        'yearcode': '19',
-                                        'submit': 'Track a Bill'})
+                                        'submit': 'Track a Bill' })
         self.assertTrue(response.status_code == 200 or
                         response.status_code == 302)
 
-        # Need to re-query the user to get the updated bill list:
+        response = self.app.post('/addbills',
+                                 data={ 'billno': 'HB100',
+                                        'yearcode': '19',
+                                        'submit': 'Track a Bill' })
+        self.assertTrue(response.status_code == 200 or
+                        response.status_code == 302)
+
+        # Need to re-query the user to get the updated bill list (why??):
         user = User.query.filter_by(username='testuser').first()
 
         self.assertEqual(len(user.bills), 2)
         self.assertEqual(user.bills[0].billno, 'HB73')
+        self.assertEqual(user.bills[1].billno, 'HB100')
 
         # Now test the index page again
         response = self.app.get('/', follow_redirects=True)
@@ -222,6 +219,45 @@ class TestBillTracker(unittest.TestCase):
         pageHTML = response.get_data(as_text=True)
         self.assertTrue('HB73' in pageHTML)
         self.assertTrue('HB100' in pageHTML)
+
+        # Make sure untracking works too
+        bill0, bill1 = user.bills
+        user.bills.remove(bill0)
+        user.bills.remove(bill1)
+        db.session.add(user)
+        db.session.commit()
+        user = User.query.filter_by(username='testuser').first()
+        self.assertEqual(len(user.bills), 0)
+
+        # Test various syntaxes the user might use for biilnumbers
+        # in the addbills page.
+        response = self.app.post('/addbills',
+                                 data={ 'billno': " HB100",
+                                        'yearcode': '19',
+                                        'submit': 'Track a Bill' })
+        self.assertTrue(response.status_code == 200 or
+                        response.status_code == 302)
+        self.assertIn("""<span style="color: red;">[Bills should start with""",
+                      response.get_data(as_text=True))
+
+        response = self.app.post('/addbills',
+                                 data={ 'billno': "HB-100",
+                                        'yearcode': '19',
+                                        'submit': 'Track a Bill' })
+        self.assertTrue(response.status_code == 200 or
+                        response.status_code == 302)
+        pageHTML = response.get_data(as_text=True)
+        self.assertIn("""<div class="error">""", pageHTML)
+
+        response = self.app.post('/addbills',
+                                 data={ 'billno': "HB  100 ",
+                                        'yearcode': '19',
+                                        'submit': 'Track a Bill' })
+        self.assertTrue(response.status_code == 200 or
+                        response.status_code == 302)
+        user = User.query.filter_by(username="testuser").first()
+        self.assertEqual(len(user.bills), 1)
+        self.assertEqual(user.bills[0].billno, "HB100")
 
 
 if __name__ == '__main__':

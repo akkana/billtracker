@@ -748,7 +748,6 @@ def all_bills(sessionid, yearcode, sessionname):
                     continue
                 if not href.endswith('.HTML'):
                     continue
-                print("href", href)
                 # href is typically something like
                 # /Sessions/21%20Regular/bills/house/HB0059.HTML
                 # Remove any initial slash:
