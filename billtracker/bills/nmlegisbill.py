@@ -112,7 +112,6 @@ def url_to_cache_filename(billurl):
 
 def soup_from_cache(cachefile):
     with open(cachefile, encoding="utf-8") as fp:
-        # billdic['bill_url'] = baseurl
         return BeautifulSoup(fp, 'lxml')
 
 
@@ -157,9 +156,14 @@ def soup_from_cache_or_net(baseurl, cachefile=None, cachesecs=2*60*60):
     except Exception as e:
         print("*** NETWORK ERROR Couldn't fetch", baseurl, ":", e,
               file=sys.stderr)
-        # But if there's a cache file, use it
-        if cachefile_exists:
-            return soup_from_cache(baseurl)
+        # But if there's a cache file, use it.
+        print("Fetching from older cache instead", cachefile, file=sys.stderr)
+        try:
+            return soup_from_cache(cachefile)
+        except:
+            print("Couldn't return soup from cachefile either", cachefile,
+                  file=sys.stderr)
+
         return None
 
     # Successfully fetched the file from the network and parsed it.
