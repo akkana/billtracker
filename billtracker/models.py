@@ -936,6 +936,9 @@ class Committee(db.Model):
         if 'scheduled_bills' in newcom:
             print("Looping over scheduled bills", newcom['scheduled_bills'])
             for billdate in newcom['scheduled_bills']:
+                # XXX Bill query without yearcode specified.
+                # But maybe that's okay because only current-year bills
+                # will be on the committee's currently scheduled list.
                 b = Bill.query.filter_by(billno=billdate[0]).first()
                 if b:
                     b.location = self.code

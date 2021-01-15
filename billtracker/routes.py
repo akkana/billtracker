@@ -769,7 +769,7 @@ def refresh_one_bill():
               file=sys.stderr)
         return "FAIL Couldn't fetch %s bill page" % billno
 
-    bill = Bill.query.filter_by(billno=billno).first()
+    bill = Bill.query.filter_by(billno=billno, year=yearcode).first()
     if not bill:
         bill = Bill()
     bill.set_from_parsed_page(b)
@@ -777,7 +777,7 @@ def refresh_one_bill():
     db.session.add(bill)
     db.session.commit()
 
-    newbill = Bill.query.filter_by(billno=billno).first()
+    newbill = Bill.query.filter_by(billno=billno, year=yearcode).first()
 
     return "OK Updated %s" % billno
 
@@ -819,11 +819,14 @@ def bills_by_update_date():
 # posturl = '%s/api/refresh_legisdata' % baseurl
 # lescdata = { "TARGET": "LESClink",
 #              "URL": "ftp://www.nmlegis.gov/LESCAnalysis",
+#              "YEARCODE": 19,    # optional
 #              "KEY"='...' }
 # firdata = { "TARGET": "FIRlink", "URL": "ftp://www.nmlegis.gov/firs",
+#             "YEARCODE": 19,    # optional
 #             "KEY"='...' }
 # amenddata = { "TARGET": "amendlink",
 #               "URL": "ftp://www.nmlegis.gov/Amendments_In_Context",
+#               "YEARCODE": 19,    # optional
 #               "KEY"='...' }
 # requests.post(posturl, xyzdata).text
 @billtracker.route("/api/refresh_legisdata", methods=['POST'])
@@ -840,6 +843,10 @@ def refresh_legisdata():
     if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
+    yearcode = request.values.get('YEARCODE')
+    if not yearcode:
+        yearcode = LegSession.current_yearcode()
+
     url = request.values.get('URL')
     target = request.values.get('TARGET')
     print("refresh_legisdata %s from %s" % (target, url), file=sys.stderr)
@@ -854,7 +861,7 @@ def refresh_legisdata():
     # Slow part is done. Now it's okay to access the database.
 
     # Get all bills that might need updating:
-    # bills = Bill.query.filter(Bill.billno.in_(billnos)).all()
+    # bills = Bill.query.filter(Bill.billno.in_(billnos), year=yearcode).all()
 
     changes = []
     for l in index:
@@ -868,7 +875,7 @@ def refresh_legisdata():
 
         # filenames are e.g. HB0032.PDF. Remove zeros.
         billno = base.replace('0', '')
-        bill = Bill.query.filter_by(billno=billno).first()
+        bill = Bill.query.filter_by(billno=billno, year=yearcode).first()
         if bill:
             setattr(bill, target, posixpath.join(url, filename))
             db.session.add(bill)
@@ -1064,7 +1071,8 @@ def show_dups(key):
 
     print("duplicate bills:", dupbills, file=sys.stderr)
 
-    return "OK %s" % ','.join([ str(b) for b in dupbills ])
+    return "OK %s" % ','.join([ "%s (%d users)" % (str(b), b.num_tracking())
+                                for b in dupbills ])
 
 
 # Clean out duplicates.

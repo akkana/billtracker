@@ -107,6 +107,9 @@ def main():
     # Nothing for legislators, they'll be updated if needed
     # when updating committees.
 
+    # Update the various supporting files.
+    # This doesn't pass yearcode, and only refreshes
+    # the current legislative session.
     if now.hour in FIR_hours:
         print("Updating FIRs")
         posturl = '%s/api/refresh_legisdata' % (BASEURL)
