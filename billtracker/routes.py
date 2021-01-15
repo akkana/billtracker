@@ -991,12 +991,13 @@ def db_backup():
 
 def find_dups():
     """Return a list of all bills that have duplicate entries in the db:
-       multiple bills for the same billno.
+       multiple bills for the same billno and year.
+       Return a list of lists of bills.
        Return only the master bill for each billno.
     """
 
     # A list of all bills that have duplicates, same billno and year.
-    masterbills = []
+    dup_bill_lists = []
     bill_ids_seen = set()
 
     bills = Bill.query.all()
@@ -1008,7 +1009,8 @@ def find_dups():
         bill_ids_seen.add(bill.id)
 
         bills_with_this_no = Bill.query.filter_by(billno=bill.billno,
-                                                  year=bill.year).all()
+                                                  year=bill.year) \
+                                       .order_by(Bill.id).all()
         if len(bills_with_this_no) == 1:
             continue
 
@@ -1016,46 +1018,12 @@ def find_dups():
         print(len(bills_with_this_no), "bills called", bill.billno, bill.year,
               file=sys.stderr)
 
-        # User lists tracking each of the duplicate bills:
-        userlists = []
-        numusers = []
+        dup_bill_lists.append(bills_with_this_no)
 
-        mostusers = 0
-        maxindex = None
-        for i, dupbill in enumerate(bills_with_this_no):
+        for dupbill in bills_with_this_no:
             bill_ids_seen.add(dupbill.id)
-            tracking = dupbill.users_tracking()
-            howmany = len(tracking)
-            userlists.append(tracking)
-            numusers.append(howmany)
-            if howmany > mostusers:
-                mostusers = howmany
-                maxindex = i
 
-        # Now bills_with_this_no is a list of Bill objects.
-        # userlists is a list of lists of User objects tracking each bill.
-        # numusers is a list of lists of how many users are tracking each bill.
-        # maxindex is the index in all three lists of the bill that's
-        # tracked by the most users; we'll make that the real bill
-        # and remove the rest.
-        if maxindex == None:
-            print("  No users are tracking %s!" % bill.billno, file=sys.stderr)
-
-        # print("  Master bill, id %d, tracked by %s" % (bills_with_this_no[maxindex].id, ', '.join([u.username for u in userlists[maxindex]])))
-        # print("  Duplicates:")
-        # for i, b in enumerate(bills_with_this_no):
-        #     if i == maxindex:
-        #         continue
-        #     if userlists[i]:
-        #         print("    id %d tracked by %s" % (bills_with_this_no[i].id,
-        #                                            ', '.join([u.username for u in userlists[i]])))
-        #     else:
-        #         print("    id %d, no users" % bills_with_this_no[i].id)
-
-        # Now it's time to actually fix the problem.
-        masterbills.append(bill)
-
-    return masterbills
+    return dup_bill_lists
 
 
 @billtracker.route('/api/showdups/<key>')
@@ -1063,16 +1031,22 @@ def show_dups(key):
     if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
-    dupbills = find_dups()
+    dup_bill_lists = find_dups()
 
-    if not dupbills:
+    if not dup_bill_lists:
         print("No duplicate bills in database, whew")
         return "OK"
 
-    print("duplicate bills:", dupbills, file=sys.stderr)
+    print("duplicate bills:", dup_bill_lists, file=sys.stderr)
 
-    return "OK %s" % ','.join([ "%s (%d users)" % (str(b), b.num_tracking())
-                                for b in dupbills ])
+    retstr = "OK"
+    for dupbills in dup_bill_lists:
+        retstr += "<br>\n%s: " % (str(dupbills[0]))
+        for b in dupbills:
+            retstr += "<br>&nbsp;&nbsp;id %d '%s' (%d tracking) " \
+                % (b.id, b.title, b.num_tracking())
+
+    return retstr
 
 
 # Clean out duplicates.
@@ -1081,6 +1055,8 @@ def show_dups(key):
 def clean_dups(key):
     if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
+
+    return "FAIL Sorry, clean_dups currently disabled as unsafe"
 
     masterbills = find_dups()
 
