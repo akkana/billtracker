@@ -590,7 +590,7 @@ def all_bills(sessionid, yearcode, sessionname):
     all_bills_cachefile = '%s/all_bills_%s.txt' % (cachedir, yearcode)
     try:
         filestat = os.stat(all_bills_cachefile)
-        if (time.time() - filestat.st_mtime) <= billrequests.CACHETIME:
+        if (time.time() - filestat.st_mtime) <= billrequests.CACHESECS:
             # Cache file is recent enough. Read from there.
             if yearcode in g_all_bills:
                 return g_all_bills[yearcode]
@@ -622,7 +622,7 @@ def all_bills(sessionid, yearcode, sessionname):
     # re-fetch if needed. Pass a cache time that's a little less than
     # the one we're using for the all_bills cachefile
     soup = billrequests.soup_from_cache_or_net(
-        url, cachesecs=billrequests.CACHETIME-60)
+        url, cachesecs=billrequests.CACHESECS-60)
     if not soup:
         print("Couldn't fetch all bills: network problem")
         return None
@@ -672,7 +672,7 @@ def all_bills(sessionid, yearcode, sessionname):
             # But the number of zeroes is inconsistent and unpredictable,
             # so get a listing.
             soup = billrequests.soup_from_cache_or_net(
-                url, cachesecs=billrequests.CACHETIME)
+                url, cachesecs=billrequests.CACHESECS)
 
             for a in soup.findAll('a'):
                 href = a.get('href')
