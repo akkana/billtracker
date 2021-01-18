@@ -2,8 +2,8 @@
 
 from __future__ import print_function
 
-from .billutils import year_to_2digit, billno_to_parts, \
-      URLmapper, ftp_get, ftp_index
+from .billutils import year_to_2digit, billno_to_parts, URLmapper
+from . import billrequests
 
 # Scrape bill data from bill pages from nmlegis.org.
 
@@ -11,15 +11,20 @@ import sys, os
 import datetime, dateutil.parser
 import time
 import re
-import requests
 import posixpath
 from collections import OrderedDict
 from bs4 import BeautifulSoup
 import xlrd
 import traceback
 
+
+# XXX The URLmapper stuff should be moved to billrequests.
+# Currently only to_abs_link is used, not to_local_link.
 url_mapper = URLmapper('https://www.nmlegis.gov',
     '%s/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s')
+
+# XXX cachedir should be moved to billrequests.
+cachedir = 'cache'
 
 
 def yearcode_to_longURLcode(yearcode):
@@ -48,11 +53,13 @@ def check_analysis(billno, yearcode):
     """See if there are any FIR or LESC analysis links.
        The bill's webpage won't tell us because those are hidden
        behind Javascript, so just try forming URLs and see if
-       anything's there.
+       anything's there. If something has ever been seen, put a
+       zero-length file in the cache so as not to hit the website so often.
     """
     (chamber, billtype, number) = billno_to_parts(billno)
     longcode = yearcode_to_longURLcode(yearcode)
-    # number = int(number)
+
+    print("=== check_analysis", billno)
 
     # XXX This urlmapper stuff needs to be redesigned.
     # The to_local_link stuff here is just to keep us from
@@ -70,18 +77,26 @@ def check_analysis(billno, yearcode):
                % (url_mapper.baseurl, longcode, chamber, billtype, number),
         None)
 
+    print("AFTER URL MAPPER: Links:")
+    print("  ", firlink)
+    print("  ", lesclink)
+    print("  ", amendlink)
+
     # The legislative website doesn't give errors for missing PDFs;
     # instead, it serves a short HTML page instead of a PDF.
     # (Maybe unclear on how to do a custom 404 page?)
     def check_for_pdf(url):
-        # print("PDF url:", url)
         if not url or ':' not in url:
             return None
-        request = requests.head(url)
-        if request.status_code != 200:
-            # print("Bad status code")
+        try:
+            req = billrequests.head(url)
+            if req.status_code != 200:
+                # print("Bad status code")
+                return None
+        except RuntimeError:  # XXX Should be Exception
+            print("*** Network error checking for PDF", url, file=sys.stdout)
             return None
-        if request.headers['Content-Type'] != 'application/pdf':
+        if req.headers['Content-Type'] != 'application/pdf':
             # print("Bad Content-Type:", request.headers['Content-Type'])
             return None
         return url
@@ -90,6 +105,11 @@ def check_analysis(billno, yearcode):
     lesclink = check_for_pdf(lesclink)
     amendlink = check_for_pdf(amendlink)
 
+    print("AFTER checking for PDFs: Links:")
+    print("  ", firlink)
+    print("  ", lesclink)
+    print("  ", amendlink)
+
     return firlink, lesclink, amendlink
 
 
@@ -97,89 +117,6 @@ def bill_url(billno, yearcode):
     chamber, billtype, number = billno_to_parts(billno)
 
     return 'https://www.nmlegis.gov/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s' % (chamber, billtype, number, yearcode)
-
-
-cachedir = 'cache'
-
-
-def url_to_cache_filename(billurl):
-    return billurl.replace('https://www.nmlegis.gov/', '') \
-                  .replace('/Legislation', '') \
-                  .replace('/', '_') \
-                  .replace('?', '_') \
-                  .replace('&', '_')
-
-
-def soup_from_cache(cachefile):
-    with open(cachefile, encoding="utf-8") as fp:
-        return BeautifulSoup(fp, 'lxml')
-
-
-def soup_from_cache_or_net(baseurl, cachefile=None, cachesecs=2*60*60):
-    """baseurl is a full URL including https://www.nmlegis.gov/
-       or a full URL including that part.
-       If we have a recent cached version, use it,
-       otherwise fetch the file and cache it.
-       If the cache file is older than cachesecs, replace it.
-       Either way, return a BS soup of the contents.
-    """
-    if not os.path.exists(cachedir):
-        try:
-            os.mkdir(cachedir)
-        except:
-            print("Couldn't create cache dir", cachedir, "-- not caching")
-
-    if not cachefile:
-        cachefile = '%s/%s' % (cachedir, url_to_cache_filename(baseurl))
-
-    # Use cached pages when possible, so as not to hit the server so often.
-    cachefile_exists = os.path.exists(cachefile)
-    if cachefile_exists:
-        filestat = os.stat(cachefile)
-        if (time.time() - filestat.st_mtime) < cachesecs or cachesecs < 0:
-            print("Already cached:", baseurl, '->', cachefile, file=sys.stderr)
-            baseurl = cachefile
-
-    # If there was a recent enough cache fil, return it.
-    if ':' not in baseurl:
-        return soup_from_cache(baseurl)
-
-    # No cache that's recent enough; fetch from the net.
-    print("Re-fetching: cache has expired on", baseurl, file=sys.stderr)
-
-    # billdic['bill_url'] = url_mapper.to_abs_link(baseurl, baseurl)
-    try:
-        # Use a timeout here.
-        # When testing, it's useful to reduce this timeout a lot.
-        r = requests.get(baseurl, timeout=30)
-        soup = BeautifulSoup(r.text, 'lxml')
-    except Exception as e:
-        print("*** NETWORK ERROR Couldn't fetch", baseurl, ":", e,
-              file=sys.stderr)
-        # But if there's a cache file, use it.
-        print("Fetching from older cache instead", cachefile, file=sys.stderr)
-        try:
-            return soup_from_cache(cachefile)
-        except:
-            print("Couldn't return soup from cachefile either", cachefile,
-                  file=sys.stderr)
-
-        return None
-
-    # Successfully fetched the file from the network and parsed it.
-    # Assuming soup is non-null, save it to cache.
-    # Python 3 these days is supposed to use the system default
-    # encoding, I thought, but sometimes it doesn't, and instead dies
-    # trying to write to the cache file unless you specify
-    # an encoding explicitly:
-    if soup and r.text:
-        with open(cachefile, "w", encoding="utf-8") as cachefp:
-            # r.text is str and shouldn't need decoding
-            cachefp.write(r.text)
-            # cachefp.write(r.text.decode())
-            print("Cached locally as %s" % cachefile, file=sys.stderr)
-
-    return soup
 
 
 scheduled_for_pat = re.compile("Scheduled for.*on ([0-9/]*)")
@@ -210,14 +147,8 @@ def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
         % (billdic['chamber'], billdic['billtype'],
            billdic['number'], billdic['year'])
 
-    if cache_locally:
-        cachefile = os.path.join(cachedir,
-                                 '20%s-%s.html' % (billdic['year'], billno))
-        soup = soup_from_cache_or_net(baseurl, cachefile=cachefile,
-                                      cachesecs=cachesecs)
-    else:
-        r = requests.get(baseurl)
-        soup = BeautifulSoup(r.text, 'lxml')
+    soup = billrequests.soup_from_cache_or_net(baseurl, billdic,
+                                               cachesecs=cachesecs)
 
     # If something failed -- for instance, if we got an empty file
     # or an error page -- then the title span won't be there.
@@ -227,9 +158,6 @@ def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
             id="MainContent_formViewLegislation_lblTitle").text
     except AttributeError:
         print("Couldn't find title span")
-        # If we cached, remove the cache file.
-        if cache_locally and cachefile:
-            os.unlink(cachefile)
         return None
 
     sponsor_a = soup.find("a",
@@ -305,7 +233,7 @@ def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
             # in the same directory. See if there is:
             if billdic['amendlink'].endswith('.pdf'):
                 html_cs = re.sub('.pdf', '.html', billdic['amendlink'])
-                if requests.head(html_cs).status_code == 200:
+                if billrequests.head(html_cs).status_code == 200:
                     billdic['amendlink'] = html_cs
 
     # Bills have an obscure but useful actiontext code, e.g.
@@ -373,7 +301,7 @@ def update_legislative_session_list():
     # so instead, return a list of dicts, in the order read.
     leg_sessions = []
     try:
-        soup = soup_from_cache_or_net(
+        soup = billrequests.soup_from_cache_or_net(
             "https://www.nmlegis.gov/Legislation/Legislation_List",
             cachesecs=60*60*24)
         sessionselect = soup.find("select", id="MainContent_ddlSessionStart")
@@ -649,8 +577,6 @@ def most_recent_action(billdic):
 g_all_bills = {}  # keys are yearcode
                   # values: OrderedDict of billno: ('TITLE', billurl, texturl)
 
-g_all_billsCacheTime = 60*60    # seconds between re-checks of nmlegis
-
 
 def all_bills(sessionid, yearcode, sessionname):
     """Return an OrderedDict of all bills, billno: [title, url]
@@ -664,7 +590,7 @@ def all_bills(sessionid, yearcode, sessionname):
     all_bills_cachefile = '%s/all_bills_%s.txt' % (cachedir, yearcode)
     try:
         filestat = os.stat(all_bills_cachefile)
-        if (time.time() - filestat.st_mtime) <= g_all_billsCacheTime:
+        if (time.time() - filestat.st_mtime) <= billrequests.CACHETIME:
             # Cache file is recent enough. Read from there.
             if yearcode in g_all_bills:
                 return g_all_bills[yearcode]
@@ -695,7 +621,8 @@ def all_bills(sessionid, yearcode, sessionname):
 
     # re-fetch if needed. Pass a cache time that's a little less than
     # the one we're using for the all_bills cachefile
-    soup = soup_from_cache_or_net(url, cachesecs=g_all_billsCacheTime-60)
+    soup = billrequests.soup_from_cache_or_net(
+        url, cachesecs=billrequests.CACHETIME-60)
     if not soup:
         print("Couldn't fetch all bills: network problem")
         return None
@@ -744,7 +671,8 @@ def all_bills(sessionid, yearcode, sessionname):
             # Under this are names like SB0001.HTML.
             # But the number of zeroes is inconsistent and unpredictable,
             # so get a listing.
-            soup = soup_from_cache_or_net(url, cachesecs=g_all_billsCacheTime)
+            soup = billrequests.soup_from_cache_or_net(
+                url, cachesecs=billrequests.CACHETIME)
 
             for a in soup.findAll('a'):
                 href = a.get('href')
@@ -788,9 +716,9 @@ def expand_house_or_senate(code, cache_locally=True):
     """
     url = 'https://www.nmlegis.gov/Entity/%s/Floor_Calendar' % code
     if cache_locally:
-        soup = soup_from_cache_or_net(url, cachesecs=3*60*60)
+        soup = billrequests.soup_from_cache_or_net(url, cachesecs=3*60*60)
     else:
-        r = requests.get(url)
+        r = billrequests.get(url)
         soup = BeautifulSoup(r.text, 'lxml')
 
     ret = { 'code': code, 'name': code }
@@ -815,9 +743,9 @@ def expand_committee(code, cache_locally=True):
 
     url = 'https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=%s' % code
     if cache_locally:
-        soup = soup_from_cache_or_net(url, cachesecs=2*60*60)
+        soup = billrequests.soup_from_cache_or_net(url, cachesecs=2*60*60)
     else:
-        r = requests.get(url)
+        r = billrequests.get(url)
         soup = BeautifulSoup(r.text, 'lxml')
 
     # The all-important committee code
@@ -891,7 +819,7 @@ def expand_committee(code, cache_locally=True):
 
 
 def get_sponcodes(url):
-    r = requests.get(url)
+    r = billrequests.get(url)
     soup = BeautifulSoup(r.text, 'lxml')
     select = soup.find(id="MainContent_ddlLegislators")
     legs = {}
@@ -915,8 +843,7 @@ def get_legislator_list():
     # url = 'ftp://www.nmlegis.gov/Legislator%20Information/Legislators.XLS'
     cachefile = '%s/%s' % (cachedir, 'Legislators.XLS')
 
-    # Seriously? requests can't handle ftp?
-    ftp_get('www.nmlegis.gov', 'Legislator Information',
+    billrequests.ftp_get('www.nmlegis.gov', 'Legislator Information',
             'RETR Legislators.XLS', outfile=cachefile)
 
     wb = xlrd.open_workbook(cachefile)

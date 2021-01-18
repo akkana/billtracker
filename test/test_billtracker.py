@@ -15,43 +15,24 @@ import re
 
 from billtracker import billtracker, db
 from billtracker.models import User, Bill
+from billtracker.bills import billrequests
 from config import Config, basedir
 
 
 TEST_DB = 'test/cache/test.db'
-
-# This method will be used by the mock to replace requests.get
-def mocked_requests_get(*args, **kwargs):
-    class MockResponse:
-        def __init__(self, text, status_code):
-            self.text = text
-            self.status_code = status_code
-
-    # print("******** mocked response, args =", args)
-    realurl = args[0]
-    m = re.match('https?://www.nmlegis.gov/Legislation/Legislation\?chamber=(.)&legtype=(.)&legno=(\d+)&year=(\d\d)', realurl)
-    if m:
-        chamber, legtype, billno, year = m.groups()
-        filename = 'test/cache/20%s-%s%s%s.html' % (year, chamber,
-                                                    legtype, billno)
-        if os.path.exists(filename):
-            with open(filename) as fp:
-                return MockResponse(fp.read(), 200)
-        print("Cache filename", filename, "doesn't exist")
-    elif realurl == "https://www.nmlegis.gov/Legislation/Legislation_List":
-        filename = "test/cache/Legislation_List"
-        with open(filename) as fp:
-            return MockResponse(fp.read(), 200)
-    else:
-        print("URL '%s' didn't match a pattern" % realurl)
-
-    return MockResponse(None, 404)
 
 
 class TestBillTracker(unittest.TestCase):
     # setUp() will be called for every test_*() function in the class.
     def setUp(self):
         self.key = 'TESTING_NOT_SO_SECRET_KEY'
+
+        # Don't go to the actual nmlegis site
+        billrequests.LOCAL_MODE = True
+        billrequests.CACHEDIR = 'test/cache'
+
+        # Uncomment to get verbose information on cache/net requests:
+        # billrequests.DEBUG = True
 
         billtracker.config['TESTING'] = True
         billtracker.config['SECRET_KEY'] = self.key
@@ -76,9 +57,9 @@ class TestBillTracker(unittest.TestCase):
         self.assertFalse(u.check_password('notthepassword'))
         self.assertTrue(u.check_password('testpassword'))
 
-    @mock.patch('requests.get', side_effect=mocked_requests_get)
-    def test_bills_and_users(self, mock_get):
-        '''Test adding new users and bills to the database.'''
+    def test_bills_and_users(self):
+        """Test adding new users and bills to the database.
+        """
         # Users and bills depend on each other, so they pretty much
         # need to be combined in the same test.
 

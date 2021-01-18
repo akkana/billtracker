@@ -16,26 +16,34 @@ import unittest
 import sys, os
 sys.path.insert(1, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from billtracker.bills import nmlegisbill, billutils
+from billtracker.bills import nmlegisbill, billutils, billrequests
 
 import datetime
 
 class TestNMlegisbill(unittest.TestCase):
 
     def setUp(self):
-        nmlegisbill.cachedir = 'test/cache'
+        # Don't go to the actual nmlegis site
+        billrequests.LOCAL_MODE = True
+        billrequests.CACHEDIR = 'test/cache'
 
+        # Uncomment to get verbose information on cache/net requests:
+        # billrequests.DEBUG = True
+        billrequests.CACHEDIR = 'test/cache'
 
     def tearDown(self):
         pass
-
 
     def test_parse_bills(self):
 
         # To see large diffs, set this:
         self.maxDiff = None
 
-        bill = nmlegisbill.parse_bill_page('HB73', yearcode='19', cachesecs=-1)
+        # Don't go to the actual nmlegis site
+        billrequests.LOCAL_MODE = True
+        billrequests.CACHEDIR = 'test/cache'
+
+        bill = nmlegisbill.parse_bill_page('HB73', yearcode='19')
         # mod date keeps changing. Don't try to test it.
         bill['mod_date'] = None
         bill['update_date'] = None
@@ -64,7 +72,7 @@ HPREF [2] HSEIC/HJC-HSEIC [3] DP/a-HJC''',
                          })
 
         # Another bill, to make sure bills with no curloclink work:
-        bill = nmlegisbill.parse_bill_page('SB11', yearcode='19', cachesecs=-1)
+        bill = nmlegisbill.parse_bill_page('SB11', yearcode='19')
         bill['mod_date'] = None
         bill['update_date'] = None
         self.assertEqual(bill,
