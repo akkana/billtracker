@@ -18,13 +18,10 @@ import xlrd
 import traceback
 
 
-# XXX The URLmapper stuff should be moved to billrequests.
-# Currently only to_abs_link is used, not to_local_link.
+# XXX The URLmapper stuff should be killed, with any functionality
+# that's still needed moved into billrequests.
 url_mapper = URLmapper('https://www.nmlegis.gov',
     '%s/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s')
-
-# XXX cachedir should be moved to billrequests.
-cachedir = 'cache'
 
 
 def yearcode_to_longURLcode(yearcode):
@@ -35,82 +32,18 @@ def yearcode_to_longURLcode(yearcode):
     year2 = yearcode[:2]
 
     if yearcode.endswith('s') or yearcode.endswith('s1'):
-        return year2 + '%%20Special'
+        return year2 + '%20Special'
 
     if yearcode.endswith('s2'):
-        return year2 + '%%20Special2'
+        return year2 + '%20Special2'
 
     if yearcode.endswith('s3'):
-        return year2 + '%%20Special3'
+        return year2 + '%20Special3'
 
     if yearcode.endswith('x'):
-        return year2 + '%%20Extraordinary'
+        return year2 + '%20Extraordinary'
 
-    return year2 + '%%20Regular'
-
-
-def check_analysis(billno, yearcode):
-    """See if there are any FIR or LESC analysis links.
-       The bill's webpage won't tell us because those are hidden
-       behind Javascript, so just try forming URLs and see if
-       anything's there. If something has ever been seen, put a
-       zero-length file in the cache so as not to hit the website so often.
-    """
-    (chamber, billtype, number) = billno_to_parts(billno)
-    longcode = yearcode_to_longURLcode(yearcode)
-
-    print("=== check_analysis", billno)
-
-    # XXX This urlmapper stuff needs to be redesigned.
-    # The to_local_link stuff here is just to keep us from
-    # hitting a remote server while running tests.
-    firlink = url_mapper.to_local_link(
-        '%s/Sessions/%sr/firs/%s%s000%s.PDF' \
-        % (url_mapper.baseurl, longcode, chamber, billtype, number),
-        None)
-    lesclink = url_mapper.to_local_link(
-        '%s/Sessions/%s/LESCAnalysis/%s%s000%s.PDF' \
-               % (url_mapper.baseurl, longcode, chamber, billtype, number),
-        None)
-    amendlink = url_mapper.to_local_link(
-        '%s/Sessions/%s/Amendments_In_Context/%s%s000%s.PDF' \
-               % (url_mapper.baseurl, longcode, chamber, billtype, number),
-        None)
-
-    print("AFTER URL MAPPER: Links:")
-    print("  ", firlink)
-    print("  ", lesclink)
-    print("  ", amendlink)
-
-    # The legislative website doesn't give errors for missing PDFs;
-    # instead, it serves a short HTML page instead of a PDF.
-    # (Maybe unclear on how to do a custom 404 page?)
-    def check_for_pdf(url):
-        if not url or ':' not in url:
-            return None
-        try:
-            req = billrequests.head(url)
-            if req.status_code != 200:
-                # print("Bad status code")
-                return None
-        except RuntimeError:  # XXX Should be Exception
-            print("*** Network error checking for PDF", url, file=sys.stdout)
-            return None
-        if req.headers['Content-Type'] != 'application/pdf':
-            # print("Bad Content-Type:", request.headers['Content-Type'])
-            return None
-        return url
-
-    firlink = check_for_pdf(firlink)
-    lesclink = check_for_pdf(lesclink)
-    amendlink = check_for_pdf(amendlink)
-
-    print("AFTER checking for PDFs: Links:")
-    print("  ", firlink)
-    print("  ", lesclink)
-    print("  ", amendlink)
-
-    return firlink, lesclink, amendlink
+    return year2 + '%20Regular'
 
 
 def bill_url(billno, yearcode):
@@ -223,6 +156,7 @@ def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
     # The amendments link in the button is just the "Amendments_In_Context" PDF.
     # But if that's not there, there may be other types of amendments,
     # like committee substitutions.
+    # This might be supplemented or overwritten later by api/refresh_legisdata.
     if "amendlink" not in billdic or not billdic["amendlink"]:
         cspat = re.compile("MainContent_dataListLegislationCommitteeSubstitutes_linkSubstitute.*")
         cslink = soup.find("a", id=cspat)
@@ -281,12 +215,13 @@ def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
 
     # The bill's page has other useful info, like votes, analysis etc.
     # but unfortunately that's all filled in later with JS and Ajax so
-    # it's invisible to us. But we can make a guess at FIR and LESC links.
-    # Ignore the amendlink passed back, since we set that earlier.
-    billdic['FIRlink'], billdic['LESClink'], otheramend \
-        = check_analysis(billno, yearcode)
-    # print("Checked analysis:", billdic['FIRlink'], billdic['LESClink'],
-    #       billdic['amendlink'], file=sys.stderr)
+    # it's invisible to the billtracker. And it's difficult to check
+    # directly, because FIR/LESC/amendment documents have random numbers
+    # of zeros added to their names.
+    # But /api/refresh_legisdata can fill in that data later
+    # by scanning the document indexes to see what files exist.
+    billdic['FIRlink'] = None
+    billdic['LESClink'] = None
 
     billdic['update_date'] = datetime.datetime.now()
     billdic['mod_date'] = None
@@ -587,7 +522,8 @@ def all_bills(sessionid, yearcode, sessionname):
 
        Returns an OrderedDict of billno: ('TITLE', billurl, texturl)
     """
-    all_bills_cachefile = '%s/all_bills_%s.txt' % (cachedir, yearcode)
+    all_bills_cachefile = '%s/all_bills_%s.txt' % (billrequests.CACHEDIR,
+                                                   yearcode)
     try:
         filestat = os.stat(all_bills_cachefile)
         if (time.time() - filestat.st_mtime) <= billrequests.CACHESECS:
@@ -665,6 +601,11 @@ def all_bills(sessionid, yearcode, sessionname):
     baseurl = "https://www.nmlegis.gov/Sessions/%s%%20%s/" \
         % (yearcode[:2], sessionlong)
     # Under this are directories for house and senate
+
+    # A bill pattern. If there are other letters or a different pattern,
+    # it may be an amendment or some other supporting document.
+    billpat = re.compile("([SH]J*[BM])0*([1-9][0-9]*)\.HTML")
+
     for billtype in ("bills", "memorials"):
         for chamber in ("house", "senate"):
             url = "%s/%s/%s" % (baseurl, billtype, chamber)
@@ -685,11 +626,10 @@ def all_bills(sessionid, yearcode, sessionname):
                 # Remove any initial slash:
                 while href.startswith("/"):
                     href = href[1:]
-                # If there are letters between the number and the dot,
-                # it's probably an amendment.
-                # For the purpose of allbills, exclude them.
+
+                # Is it a plain bill number? Exclude amendments, etc.
                 try:
-                    match = re.search('([SH]J*[BM])0*([1-9][0-9]*)\.HTML', href)
+                    match = billpat.search(href)
                     billno = match.group(1) + match.group(2)
                     # Weirdly, the web server gives absolute paths as links.
                     # So either need to prepend the server domain,
@@ -697,7 +637,7 @@ def all_bills(sessionid, yearcode, sessionname):
                     g_all_bills[yearcode][billno][2] = \
                         "https://www.nmlegis.gov/%s" % (href)
                 except:
-                    print("href", href, "didn't match")
+                    # print("href", href, "didn't match")
                     pass
 
     # Write the new list back to the bill cachefile
@@ -841,7 +781,7 @@ def get_legislator_list():
     senate_sponcodes = get_sponcodes(senateurl)
 
     # url = 'ftp://www.nmlegis.gov/Legislator%20Information/Legislators.XLS'
-    cachefile = '%s/%s' % (cachedir, 'Legislators.XLS')
+    cachefile = '%s/%s' % (billrequests.CACHEDIR, 'Legislators.XLS')
 
     billrequests.ftp_get('www.nmlegis.gov', 'Legislator Information',
             'RETR Legislators.XLS', outfile=cachefile)

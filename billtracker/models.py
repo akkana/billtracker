@@ -926,7 +926,7 @@ class Committee(db.Model):
                     members.append(m)
                 else:
                     print("Even after updating Legislators, couldn't find"
-                          + member, file=sys.stdout)
+                          + member, file=sys.stderr)
 
         self.members = members
 

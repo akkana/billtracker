@@ -7,10 +7,7 @@ import sys
 from ftplib import FTP
 import dateutil
 
-if sys.version[:1] == '2':
-    from urlparse import urlparse
-else:
-    from urllib.parse import urlparse
+from urllib.parse import urlparse
 
 
 def year_to_2digit(year):

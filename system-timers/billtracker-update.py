@@ -114,8 +114,7 @@ def main():
         print("Updating FIRs")
         posturl = '%s/api/refresh_legisdata' % (BASEURL)
         postdata = { "TARGET": "FIRlink",
-                     "KEY": KEY,
-                     "URL": "ftp://www.nmlegis.gov/firs" }
+                     "KEY": KEY }
         print("posturl", posturl)
         print("firdata", postdata)
         responses['FIR'] = requests.post(posturl, postdata)
@@ -124,18 +123,19 @@ def main():
         print("Updating LESCs")
         posturl = '%s/api/refresh_legisdata' % (BASEURL)
         postdata = { "TARGET": "LESClink",
-                     "KEY": KEY,
-                     "URL": "ftp://www.nmlegis.gov/LESCAnalysis" }
+                     "KEY": KEY }
         responses['LESC'] = requests.post(posturl, postdata)
 
     if now.hour in amend_hours:
         print("Updating amendments")
         posturl = '%s/api/refresh_legisdata' % (BASEURL)
         postdata = { "TARGET": "amendlink",
-                     "KEY": KEY,
-                     "URL": "ftp://www.nmlegis.gov/Amendments_In_Context" }
+                     "KEY": KEY }
         responses['amend'] = requests.post(posturl, postdata)
 
+    #
+    # Update the session list, and the least recently updated bills.
+    #
     if now.hour in bill_hours:
         print("Refreshing the list of sessions")
         responses["sessions"] = requests.post("%s/api/refresh_session_list" \

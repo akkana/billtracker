@@ -7,7 +7,7 @@ from billtracker import billtracker, db
 from billtracker.forms import LoginForm, RegistrationForm, AddBillsForm, \
     UserSettingsForm, PasswordResetForm
 from billtracker.models import User, Bill, Legislator, Committee, LegSession
-from billtracker.bills import nmlegisbill, billutils
+from billtracker.bills import nmlegisbill, billutils, billrequests
 from .emails import daily_user_email, send_email
 from config import ADMINS
 
@@ -15,13 +15,13 @@ from datetime import datetime, timedelta, timezone
 import dateutil.parser
 import json
 import requests
-# from collections import OrderedDict
 import random
 import multiprocessing
 import posixpath
 import traceback
 import shutil
 import subprocess
+import re
 import sys, os
 
 
@@ -790,7 +790,7 @@ def refresh_session_list():
     key = request.values.get('KEY')
     if key != billtracker.config["SECRET_KEY"]:
         print("FAIL refresh_session_list: bad key %s" % key, file=sys.stderr)
-        print(billtracker.config["SECRET_KEY"])
+        print(billtracker.config["SECRET_KEY"], file=sys.stderr)
         return "FAIL Bad key\n"
 
     LegSession.update_session_list()
@@ -819,14 +819,14 @@ def bills_by_update_date():
 # posturl = '%s/api/refresh_legisdata' % baseurl
 # lescdata = { "TARGET": "LESClink",
 #              "URL": "ftp://www.nmlegis.gov/LESCAnalysis",
-#              "YEARCODE": 19,    # optional
+#              "YEARCODE": "19",    # optional
 #              "KEY"='...' }
 # firdata = { "TARGET": "FIRlink", "URL": "ftp://www.nmlegis.gov/firs",
-#             "YEARCODE": 19,    # optional
+#             "YEARCODE": "19",    # optional
 #             "KEY"='...' }
 # amenddata = { "TARGET": "amendlink",
 #               "URL": "ftp://www.nmlegis.gov/Amendments_In_Context",
-#               "YEARCODE": 19,    # optional
+#               "YEARCODE": "19",    # optional
 #               "KEY"='...' }
 # requests.post(posturl, xyzdata).text
 @billtracker.route("/api/refresh_legisdata", methods=['POST'])
@@ -847,47 +847,72 @@ def refresh_legisdata():
     if not yearcode:
         yearcode = LegSession.current_yearcode()
 
-    url = request.values.get('URL')
     target = request.values.get('TARGET')
+
+    url = request.values.get('URL')
+    if not url:
+        url = "https://www.nmlegis.gov/Sessions/%s/" \
+            % nmlegisbill.yearcode_to_longURLcode(yearcode)
+        if target == "LESClink":
+            url += "LESCAnalysis"
+        elif target == "FIRlink":
+            url += "firs"
+        elif target == "amendlink":
+            url += "Amendments_In_Context"
+        else:
+            errstr = \
+                "refresh_legisdata: unknown target %s and no URL specified" \
+                % target
+            print(errstr, file=sys.stderr)
+            return "FAIL " + errstr
+
     print("refresh_legisdata %s from %s" % (target, url), file=sys.stderr)
 
     try:
-        index = billutils.ftp_url_index(url)
-    except:
+        # XXX Warning: the ftp stuff hasn't been tested recently.
+        if url.startswith("ftp:"):
+            index = billrequests.ftp_url_index(url)
+        else:
+            index = billrequests.get_http_dirlist(url)
+    except Exception as e:
+        print("Couldn't fetch", url, file=sys.stderr)
+        print(e, file=sys.stderr)
         return "FAIL Couldn't fetch %s" % url
-
-    print("Fetched %s" % url, file=sys.stderr)
 
     # Slow part is done. Now it's okay to access the database.
 
-    # Get all bills that might need updating:
-    # bills = Bill.query.filter(Bill.billno.in_(billnos), year=yearcode).all()
+    # filenames are e.g. HB000032.PDF with a random number of zeros.
+    # Remove all zeros -- but not in the middle of a number, like 103.
+    billno_pat = re.compile("([A-Z]*)(0*)([1-9][0-9]*)")
 
     changes = []
-    for l in index:
+    not_in_db = []
+    # index is a list of dicts
+    for filedic in index:
+        base, ext = os.path.splitext(filedic["name"])
+
         try:
-            filename, date, size = l
+            # Remove those extra zeros
+            match = billno_pat.match(base)
+            billno = match.group(1) + match.group(3)
         except:
-            print("Can't parse ftp line: %s" % l, file=sys.stderr)
-            continue
+            billno = base
+            print("billpat didn't patch, base is", base, file=sys.stderr)
 
-        base, ext = os.path.splitext(filename)
-
-        # filenames are e.g. HB0032.PDF. Remove zeros.
-        billno = base.replace('0', '')
         bill = Bill.query.filter_by(billno=billno, year=yearcode).first()
         if bill:
-            setattr(bill, target, posixpath.join(url, filename))
+            setattr(bill, target, filedic["url"])
             db.session.add(bill)
             changes.append(billno)
-        # else:
-        #     print("%s isn't in the database" % billno, file=sys.stderr)
+        else:
+            not_in_db.append(billno)
 
     if not changes:
         return "OK but no bills updated"
 
     db.session.commit()
-    return "OK Updated " + ','.join(changes)
+    return "OK<br>\nUpdated %s for %s<br>\nNot in database: %s" \
+        % (target, ','.join(changes), ','.join(not_in_db))
 
 
 @billtracker.route("/api/refresh_legislators", methods=['POST'])

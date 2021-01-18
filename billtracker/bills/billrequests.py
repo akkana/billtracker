@@ -23,6 +23,8 @@ from bs4 import BeautifulSoup
 import os, sys
 import time
 
+from urllib.parse import urlparse
+
 
 #
 # Some globals
@@ -260,6 +262,57 @@ def ftp_get(server, dir, filename, outfile):
     ftp.retrbinary('%s' % filename, open(outfile, 'wb').write)
 
     ftp.quit()
+
+
+def get_http_dirlist(url):
+    """Read an ftp dir listing page; return the contents as a list of dics,
+       [ { 'name': 'SB0048SFL1.pdf, 'size': '136 KB',
+           "url": "https://www.nmlegis.gov/Sessions/20%20Regular/firs/HB0004.PDF",
+           'Last Modified': '1/24/19 	1:19:00 PM MST
+         }
+       ]
+       Note that times are datetimes but no timezone is set.
+       Frustratingly, if you view the ftp: URL in a web server it shows
+       timezones, but actually retrieving the listing via ftp drops them.
+    """
+    try:
+        listing = get(url).text
+    except:
+        print("No dir list at", url, file=sys.stderr)
+        return None
+
+    ls = []
+
+    # The listing is inside a <pre>, with lines separated by <br>,
+    # and each line is formatted like this:
+    #  1/25/2020  7:32 PM       133392 <A HREF="/Sessions/20%20Regular/firs/HB0019.PDF">HB0019.PDF</A><br>
+    listing = re.sub(".*<pre>", "", listing, flags=re.IGNORECASE|re.DOTALL)
+    listing = re.sub("</pre>.*", "", listing, flags=re.IGNORECASE|re.DOTALL)
+    lines = listing.split("<br>")
+    hrefpat = re.compile('HREF="([^"]*)">([^<]+)<', flags=re.IGNORECASE)
+    for line in lines:
+        words = line.split()
+        if len(words) != 6:
+            continue
+        try:
+            dic = {}
+            dic["size"] = int(words[3])
+            month, day, year = [int(n) for n in words[0].split("/")]
+            hour, minute = [int(n) for n in words[1].split(":")]
+            if words[2] == "PM":
+                hour += 12
+            dic["Last Modified"] = "%s\t%s %s MST" % tuple(words[0:3])
+            # words[5] looks like:
+            # 'HREF="/Sessions/20%20Regular/firs/HB0001.PDF">HB0001.PDF</A>'
+            match = hrefpat.match(words[5])
+            dic["url"] = "https://www.nmlegis.gov/" + match.group(1)
+            dic["name"] = match.group(2)
+
+            ls.append(dic)
+        except RuntimeError as e:
+            continue
+
+    return ls
 
 
 def ftp_index(server, ftpdir):
