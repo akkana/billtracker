@@ -1,6 +1,6 @@
 
-You requested a password reset for user {{ recipient }}
-on the New Mexico Bill Tracker.
+You requested a password reset for username {{ username }} with
+email address {{ email }} on the New Mexico Bill Tracker.
 
 Your new password is: {{ newpasswd }}
 

@@ -63,5 +63,5 @@ class UserSettingsForm(FlaskForm):
             raise ValidationError('That email address is already in use.')
 
 class PasswordResetForm(FlaskForm):
-    username = StringField('Username or email', validators=[DataRequired()])
+    username = StringField('Email', validators=[DataRequired()])
     submit = SubmitField('Send Password Reset')

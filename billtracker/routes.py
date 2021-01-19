@@ -582,10 +582,8 @@ def password_reset():
     form = PasswordResetForm()
 
     if form.validate_on_submit():
-        username = form.username.data
-        user = User.query.filter_by(username=form.username.data).first()
-        if not user:
-            user = User.query.filter_by(email=form.username.data).first()
+        email = form.username.data
+        user = User.query.filter_by(email=form.username.data).first()
 
         if user and user.email:
             # Generate a new password
@@ -602,7 +600,9 @@ def password_reset():
             print("Sending email to", user.email, file=sys.stderr)
             send_email("NM Bill Tracker Password Reset",
                        "noreply@nmbilltracker.com", [ user.email ],
-                       render_template("passwd_reset.txt", recipient=username,
+                       render_template("passwd_reset.txt",
+                                       username=user.username,
+                                       email=user.email,
                                        newpasswd=newpasswd))
             user.set_password(newpasswd)
             db.session.add(user)
@@ -610,10 +610,9 @@ def password_reset():
 
             flash("Mailed a new password to your email address")
         else:
-            print("WARNING: unsuccessful attempt to reset password for username",
-                  username, file=sys.stderr)
-            flash("Sorry, no user %s with an email address registered"
-                  % username)
+            print("WARNING: unsuccessful attempt to reset password for email",
+                  email, file=sys.stderr)
+            flash("Sorry, no email address %s registered" % email)
 
     return render_template('passwd_reset.html', title='Password Reset',
                            form=form)
@@ -648,10 +647,15 @@ def appinfo(key):
     has_current_year_bills = 0
     totbills = 0
     spacer = '&nbsp;&nbsp;&nbsp;&nbsp;'
+    print("now:", type(now), file=sys.stderr)
     for user in allusers:
+        if user.last_check:
+            print(user, "'s last check:", user.last_check,
+                  type(user.last_check),
+                  file=sys.stderr)
         if not user.last_check:
             never_checked += 1
-        elif now - user.last_check < timedelta(days=1):
+        elif now - user.last_check.astimezone(timezone.utc) < timedelta(days=1):
             checked_in_last_day += 1
         totbills += len(user.bills)
         for bill in user.bills:
