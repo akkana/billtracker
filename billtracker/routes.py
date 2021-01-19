@@ -689,12 +689,21 @@ def all_daily_emails(key):
                   % user.username, file=sys.stderr)
             continue
 
-        if not user.bills:
+        # If the user has never tracked any bills, don't send email.
+        bills = user.bills
+        if not bills:
             print("%s doesn't have any bills registered: not sending email"
                   % user.username, file=sys.stderr)
             continue
 
-        mailto(user.username, key)
+        # Only send emails if the user is tracking at least one bill
+        # in the current session.
+        # current session, don't send email.
+        yearcode = LegSession.current_yearcode()
+        for b in bills:
+            if b.year == yearcode:
+                mailto(user.username, key)
+                break
 
     return "OK\n"
 
