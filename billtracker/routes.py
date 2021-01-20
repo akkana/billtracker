@@ -361,7 +361,11 @@ def track_untrack():
             new_bills = []
             for billno in new_billnos:
                 bill = make_new_bill(billno, session["yearcode"])
-                new_bills.append(bill)
+                if bill:
+                    new_bills.append(bill)
+                else:
+                    print("WARNING: make_new_bill", billno, session["yearcode"],
+                          "returned None!")
             flash("You are now tracking %s" % ', '.join(will_track))
 
             # Now add all the bills to track to the user's list
