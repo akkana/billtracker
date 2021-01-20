@@ -998,7 +998,7 @@ def db_backup():
     print("db URI:", db_uri, file=sys.stderr)
 
     now = datetime.now()
-    backupdir = os.path.join(nmlegisbill.cachedir, "db")
+    backupdir = os.path.join(billrequests.CACHEDIR, "db")
 
     db_orig = db_uri[9:]
 
