@@ -63,6 +63,8 @@ def index():
 def statusbills():
     values = request.values.to_dict()
     set_session_by_request_values(values)
+    yearcode = session["yearcode"]
+    leg_session = LegSession.by_yearcode(session["yearcode"])
 
     return render_template('index.html', title='Home', sortby='status',
                            leg_session=leg_session)
@@ -597,7 +599,8 @@ def password_reset():
             for i in range(passwdlen):
                 newpasswd += random.choice(charset)
 
-            print("Sending email to", user.email, file=sys.stderr)
+            print("Sending password reset email to", user.email,
+                  file=sys.stderr)
             send_email("NM Bill Tracker Password Reset",
                        "noreply@nmbilltracker.com", [ user.email ],
                        render_template("passwd_reset.txt",
