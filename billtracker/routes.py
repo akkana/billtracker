@@ -662,16 +662,15 @@ def appinfo(key):
     has_current_year_bills = 0
     totbills = 0
     spacer = '&nbsp;&nbsp;&nbsp;&nbsp;'
-    print("now:", type(now), file=sys.stderr)
     for user in allusers:
         if user.last_check:
-            print(user, "'s last check:", user.last_check,
-                  type(user.last_check),
-                  file=sys.stderr)
-        if not user.last_check:
+            print(user, "'s last check:", user.last_check, file=sys.stderr)
+            if now - user.last_check.astimezone(timezone.utc) \
+               < timedelta(days=1):
+                checked_in_last_day += 1
+        else:
             never_checked += 1
-        elif now - user.last_check.astimezone(timezone.utc) < timedelta(days=1):
-            checked_in_last_day += 1
+
         totbills += len(user.bills)
         for bill in user.bills:
             if bill.year == yearcode:

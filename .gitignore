@@ -2,3 +2,4 @@ billtracker.db
 btenv
 __pycache__
 *.pyc
+*.db

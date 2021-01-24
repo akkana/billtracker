@@ -13,6 +13,8 @@ class Config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY') or 's945v7490wcn4w47w8n9cp'
 
     # Default to using a sqlite database named "billtracker.db".
+    # Note: if you use autocompletion, that may become annoying
+    # and you might want to rename it.
     # To use something else, change it in the run script, e.g.
     # os.environ["SQLALCHEMY_DATABASE_URI"] = "postgresql:///dbname"
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
