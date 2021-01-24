@@ -671,13 +671,13 @@ class Bill(db.Model):
 
         contents = []
         if self.contentslink:
-            contents.append('<a href="%s" target="_blank">Full text</a>' %
+            contents.append('<a href="%s" target="_blank">Original text</a>' %
                             self.contentslink)
         else:
             print("Bill %s has no contents link" % self.billno)
 
         if self.amendlink:
-            contents.append('<a href="%s" target="_blank">Amendments</a>' %
+            contents.append('<a href="%s" target="_blank">Amended</a>' %
                             self.amendlink)
 
         if self.FIRlink:

@@ -405,9 +405,14 @@ def popular():
     for bill in bills:
         num_tracking = bill.num_tracking()
         if num_tracking:
-            bill_list.append( [ bill.billno, bill.title,
-                                bill.bill_url(), bill.contentslink,
-                                num_tracking ] )
+            if bill.amendlink:
+                bill_list.append( [ bill.billno, bill.title,
+                                    bill.bill_url(), bill.amendlink,
+                                    num_tracking ] )
+            else:
+                bill_list.append( [ bill.billno, bill.title,
+                                    bill.bill_url(), bill.contentslink,
+                                    num_tracking ] )
 
     # Now sort by num_tracking, column 4:
     bill_list.sort(reverse=True, key=lambda l: l[4])
@@ -474,7 +479,10 @@ def allbills():
     for billno in allbills:
         bill = Bill.query.filter_by(billno=billno, year=yearcode).first()
         if bill:
-            contents = bill.contentslink
+            if bill.amendlink:
+                contents = bill.amendlink
+            else:
+                contents = bill.contentslink
             num_tracking = bill.num_tracking()
         else:
             contents = allbills[billno][2]
@@ -768,6 +776,9 @@ def mailto(username, key):
 # requests.post('%s/api/refresh_one_bill' % baseurl,
 #               { "BILLNO": billno, "YEARCODE": yearcode, "KEY": key }).text
 #
+# XXX PROBLEM: they've started putting bill text in filenames like
+# SJR03.html, so now we'll have to look for bill text the same way
+# as in refresh_legisdata.
 @billtracker.route("/api/refresh_one_bill", methods=['POST'])
 def refresh_one_bill():
     """Long-running query: fetch the page for a bill and update it in the db.
