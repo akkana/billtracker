@@ -37,9 +37,11 @@ class RegistrationForm(FlaskForm):
             raise ValidationError('Please use a different email address.')
 
 class AddBillsForm(FlaskForm):
-    billno = StringField('Bill Designation (e.g. SB01)',
+    billno = StringField('Bill Designation (e.g. SB21)',
                           validators=[DataRequired()])
-    submit = SubmitField('Track a Bill')
+    submit = SubmitField('Track Bills')
+    billhelp = "Tip: You can enter multiple bill numbers" \
+        " separated by commas, e.g. SB21, HR17"
 
     def validate_billno(self, billno):
         designation = billno.data

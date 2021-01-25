@@ -7,8 +7,9 @@
 <form action="" method="post">
 {{ form.hidden_tag() }}
 
-{{ form.billno.label }}   {{ form.billno(size=5, autofocus=true) }}
+{{ form.billno.label }}   {{ form.billno(size=15, autofocus=true) }}
 {{ form.submit() }}</p>
+{{ form.billhelp }}
 
 <br>
   {% for error in form.billno.errors %}

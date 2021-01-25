@@ -18,6 +18,8 @@ from billtracker.models import User, Bill
 from billtracker.bills import billrequests
 from config import Config, basedir
 
+import json
+
 
 TEST_DB = 'test/cache/test.db'
 
@@ -152,6 +154,7 @@ class TestBillTracker(unittest.TestCase):
         self.assertEqual(response.headers['location'],
                          'http://localhost/login?next=%2Faddbills')
 
+        # Now log in
         response = self.app.post('/login', data=dict(
             username=USERNAME,
             password=PASSWORD
@@ -210,8 +213,11 @@ class TestBillTracker(unittest.TestCase):
         user = User.query.filter_by(username='testuser').first()
         self.assertEqual(len(user.bills), 0)
 
-        # Test various syntaxes the user might use for biilnumbers
-        # in the addbills page.
+        #
+        # Test edge case syntaxes users might type into the addbills page,
+        # and also make sure incorrect billnumbers aren't added
+        # to the database from parse errors
+        #
         response = self.app.post('/addbills',
                                  data={ 'billno': " HB100",
                                         'yearcode': '19',
@@ -220,6 +226,10 @@ class TestBillTracker(unittest.TestCase):
                         response.status_code == 302)
         self.assertIn("""<span style="color: red;">[Bills should start with""",
                       response.get_data(as_text=True))
+        user = User.query.filter_by(username="testuser").first()
+        self.assertEqual(len(user.bills), 0)
+        allbills = Bill.query.all()
+        self.assertEqual(len(allbills), 2)
 
         response = self.app.post('/addbills',
                                  data={ 'billno': "HB-100",
@@ -229,6 +239,11 @@ class TestBillTracker(unittest.TestCase):
                         response.status_code == 302)
         pageHTML = response.get_data(as_text=True)
         self.assertIn("""<div class="error">""", pageHTML)
+        user = User.query.filter_by(username="testuser").first()
+        self.assertEqual(len(user.bills), 0)
+
+        allbills = Bill.query.all()
+        self.assertEqual(len(allbills), 2)
 
         response = self.app.post('/addbills',
                                  data={ 'billno': "HB  100 ",
@@ -238,7 +253,45 @@ class TestBillTracker(unittest.TestCase):
                         response.status_code == 302)
         user = User.query.filter_by(username="testuser").first()
         self.assertEqual(len(user.bills), 1)
-        self.assertEqual(user.bills[0].billno, "HB100")
+
+        allbills = Bill.query.all()
+        self.assertEqual(len(allbills), 2)
+
+        # Remove all the user's bills, to start over
+        def untrackall():
+            # This function apparently doesn't inherit user
+            # from the containing function.
+            user = User.query.filter_by(username="testuser").first()
+            userbills = user.bills
+            for b in userbills:
+                user.bills.remove(b)
+            user = User.query.filter_by(username="testuser").first()
+            self.assertEqual(len(user.bills), 0)
+
+        untrackall()
+
+        # For a request that includes a string with a comma,
+        # like "hB73, hb  100  ", the comma will be interpreted as
+        # part of JSON, so it needs to be encoded first.
+        userstring = "hb0073, hb  100  , hb-45 "
+        response = self.app.post('/addbills',
+                                 data=json.dumps({ 'billno': userstring,
+                                                   'yearcode': '19',
+                                                   'submit': 'Track a Bill' }),
+                                 content_type='application/json')
+        self.assertTrue(response.status_code == 200 or
+                        response.status_code == 302)
+        user = User.query.filter_by(username="testuser").first()
+
+        self.assertEqual(len(user.bills), 2)
+        userbillnos = [ b.billno for b in user.bills ]
+        self.assertTrue('HB73' in userbillnos)
+        self.assertTrue('HB100' in userbillnos)
+
+        pageHTML = response.get_data(as_text=True)
+        self.assertIn("""<div class="error">""", pageHTML)
+        self.assertIn("&#39;HB-45&#39; doesn&#39;t look like a bill number",
+                      pageHTML)
 
 
 if __name__ == '__main__':

@@ -206,43 +206,71 @@ def addbills():
     set_session_by_request_values(values)
 
     if form.validate_on_submit():
-        billno = form.billno.data
-        # Remove any spaces, e.g. "HB 22" should become "HB22"
-        billno = billno.replace(" ", "")
-        bill = Bill.query.filter_by(billno=billno,
-                                    year=session["yearcode"]).first()
-        if bill:
-            # But is the user already following it?
-            if bill in user.bills:
-                flash("You're already following " + billno)
-                return redirect(url_for('addbills'))
-        else:
-            try:
-                bill = make_new_bill(billno, session["yearcode"])
-                db.session.add(bill)
 
-            except RuntimeError as e:
-                flash(str(e))
-                return render_template('addbills.html', title='Add More Bills',
-                                       yearcode=session["yearcode"],
-                                       form=form, user=user)
-            except Exception as e:
-                flash("Couldn't add %s to the database: %s" % (billno, str(e)))
-                print(traceback.format_exc(), file=sys.stderr)
-                print("Couldn't add %s to the database: %s" % (billno, str(e)),
-                      file=sys.stderr)
+        inputstr = form.billno.data.upper()
 
-        # Either way, bill should be set to a Bill object now.
-        # Add it to the current user:
-        if bill:
-            user.bills.append(bill)
-            db.session.add(user)
-            db.session.commit()
+        # Be tolerant of input: e.g. "HB 1, SR03  ,  SB 222 "
+        billno_strs = inputstr.split(",")
 
-            flash("You're now tracking %s: %s" % (bill.billno, bill.title))
+        bills_followed = []
+        already_followed = []
+        bills_err = []
+        billnopat = re.compile("^[SH]J{0,1}[BMR][0-9]+$")
+        for orig_billno in billno_strs:
+            orig_billno = orig_billno.strip()
+
+            # Remove internal spaces, e.g. "HB 22" should become "HB22"
+            billno = orig_billno.replace(" ", "")
+
+            # Remove leading zeros between letter and number,
+            # e.g. "HB022" becomes "HB22":
+            billno = re.sub(r"([BMR])0*", r"\1", billno)
+
+            bill = Bill.query.filter_by(billno=billno,
+                                        year=session["yearcode"]).first()
+            if bill:
+                # But is the user already following it?
+                if bill in user.bills:
+                    already_followed.append(billno)
+                    continue
+            else:
+                try:
+                    bill = make_new_bill(billno, session["yearcode"])
+                    db.session.add(bill)
+
+                except RuntimeError as e:
+                    print("Error making new bill for '%s':" % billno,
+                          e, file=sys.stderr)
+                    bill = None
+
+                except Exception as e:
+                    print(traceback.format_exc(), file=sys.stderr)
+                    print("Couldn't add %s to the database:" % billno,
+                          str(e), file=sys.stderr)
+                    bill = None
+
+            # Either way, bill should be set to a Bill object now.
+            # Add it to the current user:
+            if bill:
+                user.bills.append(bill)
+                db.session.add(user)
+                db.session.commit()
+                bills_followed.append(billno)
+            else:
+                if not billnopat.match(billno):
+                    flash("'%s' doesn't look like a bill number" % orig_billno)
+                    # Don't append to bills_err, flashing once is enough
 
         # Clear the form field
         form.billno.data = ""
+
+        # Prepare the flash lines
+        if bills_err:
+            flash("Can't find " + ", ".join(bills_err))
+        if already_followed:
+            flash("You were already following " + ", ".join(already_followed))
+        if bills_followed:
+            flash("You are now following " + ", ".join(bills_followed))
     else:
         bill = None
 
