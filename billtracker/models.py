@@ -201,7 +201,7 @@ https://nmbilltracker.com/confirm_email/%s
     def bills_by_yearcode(self, yearcode=None):
         # XXX There has got to be a clever way to do this from the db,
         # but userbills only has user_id and bill_id.
-        # thebills = db.session.query(userbills).filter_by(user_id=self.id, ).count()
+        # thebills = db.session.query(userbills).filter_by(user_id=self.id).count()
 
         if not yearcode:
             yearcode = LegSession.current_yearcode()

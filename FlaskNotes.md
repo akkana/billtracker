@@ -128,7 +128,13 @@ def make_shell_context():
     return {'db': db, 'User': User, 'Bill': Bill}
 ```
 
-Then you can run
+Then you can
+
+```
+export FLASK_APP=[name of script]
+```
+
+and then run
 ```
 flask shell
 ```

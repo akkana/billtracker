@@ -320,6 +320,7 @@ def action_code_iter(actioncode):
         actioncode = ''
         yield action, leg_day
 
+
 abbreviations = {
    '*': 'Emergency clause',
    'API.': 'Action postponed indefinitely',
@@ -692,7 +693,7 @@ def expand_house_or_senate(code, cache_locally=True):
     return ret
 
 
-def expand_committee(code, cache_locally=True):
+def expand_committee(code):
     """Return a dictionary, with keys code, name, mtg_time, chair,
        members, scheduled_bills
     """
@@ -703,19 +704,18 @@ def expand_committee(code, cache_locally=True):
     # XXX Need some other special cases
 
     url = 'https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=%s' % code
-    if cache_locally:
-        soup = billrequests.soup_from_cache_or_net(url, cachesecs=2*60*60)
-    else:
-        r = billrequests.get(url)
-        soup = BeautifulSoup(r.text, 'lxml')
+    soup = billrequests.soup_from_cache_or_net(url, cachesecs=2*60*60)
 
     # The all-important committee code
     ret = { 'code': code }
 
     # Committee name
     namespan = soup.find(id="MainContent_formViewCommitteeInformation_lblCommitteeName")
-    if namespan:
-        ret['name'] = namespan.text
+    if not namespan:
+        print("Committee", code, "seems to be inactive", file=sys.stderr)
+        return
+
+    ret['name'] = namespan.text
 
     # Meeting time/place (free text, not parsed)
     timespan = soup.find(id="MainContent_formViewCommitteeInformation_lblMeetingDate")

@@ -24,6 +24,7 @@ import os, sys
 import time
 
 from urllib.parse import urlparse
+from ftplib import FTP
 
 
 #

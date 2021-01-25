@@ -989,7 +989,52 @@ def list_committees():
     """List all committee codes in the db, in no particular order.
        No key required.
     """
-    return ','.join([ c.code for c in Committee.query.all() ])
+    all_committees = Committee.query.all()
+    if not all_committees:
+        print("No committees were set! Refreshing all of them.",
+              file=sys.stderr)
+        refresh_all_committees()
+
+    all_committees = Committee.query.all()
+    return ','.join([ c.code for c in all_committees ])
+
+
+@billtracker.route("/api/refresh_all_committees/<key>")
+def refresh_all_committees(key):
+    if key != billtracker.config["SECRET_KEY"]:
+        return "FAIL Bad key\n"
+    print("Refreshing all committees", file=sys.stderr)
+
+    refreshed = []
+    inactive = []
+    for code in nmlegisbill.committeecodes:
+        print("Trying ...", code, end="", file=sys.stderr)
+        ret = refresh_one_committee(code)
+        if ret.startswith("FAIL"):
+            inactive.append(code)
+        else:
+            refreshed.append(code)
+        print(ret, file=sys.stderr)
+
+    if refreshed:
+        return "OK\n<br>Refreshed: " + ",".join(refreshed) \
+            + "\n<br>Inactive: " + ",".join(inactive)
+
+
+def refresh_one_committee(comcode):
+    print("Updating committee", comcode, "from the web", file=sys.stderr)
+    newcom = nmlegisbill.expand_committee(comcode)
+    if not newcom:
+        return "FAIL Couldn't expand committee %s" % comcode
+
+    com = Committee.query.filter_by(code=comcode).first()
+    if not com:
+        com = Committee()
+        com.code = comcode
+
+    com.update_from_parsed_page(newcom)
+    db.session.commit()
+    return "OK"
 
 
 @billtracker.route("/api/refresh_committee", methods=['POST'])
@@ -1005,18 +1050,7 @@ def refresh_committee():
     if not comcode:
         return "FAIL No COMCODE\n"
 
-    print("Updating committee", comcode, "from the web", file=sys.stderr)
-    newcom = nmlegisbill.expand_committee(comcode)
-    if not newcom:
-        return "FAIL Couldn't expand committee %s" % comcode
-
-    com = Committee.query.filter_by(code=comcode).first()
-    if not com:
-        com = Committee()
-        com.code = comcode
-
-    com.update_from_parsed_page(newcom)
-    db.session.commit()
+    refresh_one_committee(comcode)
 
     return "OK Updated committee %s" % comcode
 
