@@ -88,7 +88,7 @@ li:nth-child(odd) { background: lightblue; }</style>
  */
 
 tr.odd td  { background: #fff; }
-tr.even td { background: #cfd; }
+tr.even td { background: #dfe; }
 
 .newsbanner {
     color: #050;
