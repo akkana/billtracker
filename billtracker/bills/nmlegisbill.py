@@ -773,7 +773,7 @@ def expand_committee(code):
                         sponcode = match.group(1)
                         members.append(sponcode)
                         if cells[-1].text.strip() == 'Chair':
-                            ret['chair'] = cells[1].text.strip()
+                            ret['chair'] = sponcode
         ret['members'] = members
 
     return ret

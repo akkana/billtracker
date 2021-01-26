@@ -892,11 +892,17 @@ class Committee(db.Model):
         """Update a committee from the web, assuming the time-consuming
            web fetch has already been done.
         """
+        self.code = newcom['code']
         self.name = newcom['name']
         if 'mtg_time' in newcom:
             self.mtg_time = newcom['mtg_time']
         if 'chair' in newcom:
-            self.chair = newcom['chair']
+            chair = Legislator.query \
+                              .filter_by(sponcode=newcom['chair']).first()
+            if chair:
+                self.chair = chair.id
+            else:
+                print("Couldn't get chair of", self.code, file=sys.stderr)
 
         members = []
         newbies = []
@@ -928,6 +934,7 @@ class Committee(db.Model):
                     print("Even after updating Legislators, couldn't find"
                           + member, file=sys.stderr)
 
+        print("Members:", members)
         self.members = members
 
         updated_bills = []
@@ -963,7 +970,8 @@ class Committee(db.Model):
         """Refresh a committee from its web page.
         """
         return
-        print("Updating committee", self.code, "from the web")
+        print("Committee.refresh: Updating committee", self.code,
+              file=sys.stderr)
         newcom = nmlegisbill.expand_committee(self.code)
         self.update_from_parsed_page(newcom)
 

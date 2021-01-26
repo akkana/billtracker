@@ -991,9 +991,9 @@ def list_committees():
     """
     all_committees = Committee.query.all()
     if not all_committees:
-        print("No committees were set! Refreshing all of them.",
+        print("No committees were set! Should refresh all of them.",
               file=sys.stderr)
-        refresh_all_committees()
+        # refresh_all_committees(billtracker.config["SECRET_KEY"])
 
     all_committees = Committee.query.all()
     return ','.join([ c.code for c in all_committees ])
@@ -1005,10 +1005,13 @@ def refresh_all_committees(key):
         return "FAIL Bad key\n"
     print("Refreshing all committees", file=sys.stderr)
 
+    # First update the legislators list:
+    Legislator.refresh_legislators_list()
+
     refreshed = []
     inactive = []
     for code in nmlegisbill.committeecodes:
-        print("Trying ...", code, end="", file=sys.stderr)
+        print("Trying ...", code, file=sys.stderr)
         ret = refresh_one_committee(code)
         if ret.startswith("FAIL"):
             inactive.append(code)
@@ -1022,7 +1025,8 @@ def refresh_all_committees(key):
 
 
 def refresh_one_committee(comcode):
-    print("Updating committee", comcode, "from the web", file=sys.stderr)
+    print("refresh_one_committee: Updating committee", comcode,
+          file=sys.stderr)
     newcom = nmlegisbill.expand_committee(comcode)
     if not newcom:
         return "FAIL Couldn't expand committee %s" % comcode
@@ -1033,8 +1037,11 @@ def refresh_one_committee(comcode):
         com.code = comcode
 
     com.update_from_parsed_page(newcom)
+
+    db.session.add(com)
     db.session.commit()
-    return "OK"
+
+    return "OK Updated committee %s" % comcode
 
 
 @billtracker.route("/api/refresh_committee", methods=['POST'])
@@ -1050,9 +1057,7 @@ def refresh_committee():
     if not comcode:
         return "FAIL No COMCODE\n"
 
-    refresh_one_committee(comcode)
-
-    return "OK Updated committee %s" % comcode
+    return refresh_one_committee(comcode)
 
 
 @billtracker.route("/api/db_backup", methods=['GET', 'POST'])
