@@ -125,13 +125,17 @@ def get(url, params=None, **kwargs):
     if "cachesecs" in kwargs:
         del kwargs["cachesecs"]
     print("NETWORK get", url, file=sys.stderr)
-    response = requests.get(url, params, **kwargs)
-    if response.status_code == 200:
-        with open(cachefile, "w") as cachefp:
-            cachefp.write(response.text)
-    else:
-        print("*** NETWORK ERROR: Tried to re-fetch %s, but status code was %d"
-              % (url, response.status_code), file=sys.stderr)
+    try:
+        response = requests.get(url, params, **kwargs)
+        if response.status_code == 200:
+            with open(cachefile, "w") as cachefp:
+                cachefp.write(response.text)
+        else:
+            print("*** NETWORK ERROR fetching %s: status code was %d"
+                  % (url, response.status_code), file=sys.stderr)
+    except Exception as e:
+        print("*** NETWORK ERROR fetching %s: %s" % (url, str(e)),
+              file=sys.stderr)
 
     return response
 

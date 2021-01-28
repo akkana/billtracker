@@ -934,7 +934,6 @@ class Committee(db.Model):
                     print("Even after updating Legislators, couldn't find"
                           + member, file=sys.stderr)
 
-        print("Members:", members)
         self.members = members
 
         updated_bills = []
