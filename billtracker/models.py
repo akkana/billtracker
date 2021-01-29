@@ -962,7 +962,7 @@ class Committee(db.Model):
         db.session.add(self)
 
         print("Updated bills", ', '.join(updated_bills))
-        print("Skipped bills not in the db, ', '.join(not_updated_bills))
+        print("Skipped bills not in the db", ', '.join(not_updated_bills))
 
 
     def refresh(self):
