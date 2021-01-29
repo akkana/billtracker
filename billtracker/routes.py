@@ -146,12 +146,18 @@ def register():
 
 @billtracker.route('/confirm_email/<auth>')
 def confirm_email(auth):
+    if auth == User.AUTH_CODE_CONFIRMED:
+        flash("Bad auth code: Please contact an administrator")
+        return redirect(url_for('user_settings'))
+
     user = User.query.filter_by(auth_code=auth).first()
-    if user:
+    if not user:
+        print("Couldn't find a user with auth code", auth, file=sys.stderr)
         flash("Sorry, I don't know that code. Please contact an administrator.")
         return redirect(url_for('user_settings'))
 
     # Correct code. Hooray!
+    print("Confirming email address for user", user, file=sys.stderr)
     user.confirm_email()
     flash("Your email address is now confirmed.")
     return redirect(url_for('login'))
