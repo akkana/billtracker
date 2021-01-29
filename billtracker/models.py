@@ -121,7 +121,7 @@ class User(UserMixin, db.Model):
     def update_bills_seen(self, billno_list, yearcode):
         """billno_list should be a comma-separated string.
         """
-        if ':' not in self.bills_seen:
+        if self.bills_seen and ':' not in self.bills_seen:
             self.bills_seen = ""
 
         if self.bills_seen:
@@ -962,7 +962,7 @@ class Committee(db.Model):
         db.session.add(self)
 
         print("Updated bills", ', '.join(updated_bills))
-        print("Skipped bills", ', '.join(not_updated_bills))
+        print("Skipped bills not in the db, ', '.join(not_updated_bills))
 
 
     def refresh(self):
