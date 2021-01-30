@@ -621,7 +621,7 @@ def all_bills(sessionid, yearcode, sessionname):
     # A bill pattern, including the extra zeros that these links often have.
     # If there are other letters or a different pattern,
     # it may be an amendment or some other supporting document.
-    billpat = re.compile("/([SH]J*[BMR])0*([1-9][0-9]*)\.")
+    billpat = re.compile("/([SH][JC]{0,1}[BMR])0*([1-9][0-9]*)\.")
 
     def update_bill_links(listingurl, allbills_index, extension):
         """Given the URL for a place where text links or amendments are,

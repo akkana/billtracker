@@ -221,7 +221,7 @@ def addbills():
         bills_followed = []
         already_followed = []
         bills_err = []
-        billnopat = re.compile("^[SH]J{0,1}[BMR][0-9]+$")
+        billnopat = re.compile("^[SH][JC]{0,1}[BMR][0-9]+$")
         for orig_billno in billno_strs:
             orig_billno = orig_billno.strip()
 
