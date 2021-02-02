@@ -157,7 +157,9 @@ def confirm_email(auth):
         return redirect(url_for('user_settings'))
 
     # Correct code. Hooray!
-    print("Confirming email address for user", user, file=sys.stderr)
+    print("Confirming email address for user %s <%s>" % (user.username,
+                                                         user.email),
+          file=sys.stderr)
     user.confirm_email()
     flash("Your email address is now confirmed.")
     return redirect(url_for('login'))
@@ -617,8 +619,9 @@ def user_settings():
 
         if ((updated and "email" in updated) or
             (not current_user.email_confirmed())):
-            print("Sending confirmation mail to %s, I hope"
-                  % current_user.email, file=sys.stderr)
+            print("Sending confirmation mail to %s <%s>, auth_code %s" \
+                  % (current_user.username, current_user.email,
+                     current_user.auth_code), file=sys.stderr)
             current_user.send_confirmation_mail()
             flash("Sent confirmation mail")
 
