@@ -118,6 +118,8 @@ def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
         # In 2020, they've started adding "Scheduled for" to the
         # curloc text if the bill is scheduled.
         # Sometimes that's the only clue to scheduling, so look for it.
+        # If it's not here, it might get filled in when the committee
+        # gets updated.
         scheduled_for = scheduled_for_pat.match(curloc_text)
         if scheduled_for:
             schedstr = scheduled_for.group(1)

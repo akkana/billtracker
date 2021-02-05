@@ -606,8 +606,12 @@ class Bill(db.Model):
 
                 # If the bill is scheduled in the future, bold it:
                 if future:
-                    outstr += ' <b>SCHEDULED: %s</b>' \
-                        % self.scheduled_date.strftime('%a %m/%d/%Y')
+                    if self.scheduled_date.hour:
+                        outstr += ' <b>SCHEDULED: %s</b>' \
+                            % self.scheduled_date.strftime('%a %m/%d/%Y %H:%M')
+                    else:
+                        outstr += ' <b>SCHEDULED: %s</b>' \
+                            % self.scheduled_date.strftime('%a %m/%d/%Y')
 
                 # if it's not considered future but still today,
                 # highlight that:
@@ -883,15 +887,38 @@ class Committee(db.Model):
                               lazy='subquery',
                               backref=db.backref('legislators', lazy=True))
 
-
     def __repr__(self):
         return 'Committee %s: %s' % (self.code, self.name)
 
+    def get_meeting_time(self):
+        """Try to parse the meeting time from the string mtg_time.
+           Return (hour, min).
+        """
+        try:
+            m = re.match(".*(\d{1,2}):(\d\d) ([ap]\.m\.)", self.mtg_time)
+            hour = int(m.group(1))
+            if m.group(3) == "p.m.":
+                hour += 12
+            minute = int(m.group(2))
+            return hour, minute
+        except:
+            if self.mtg_time:
+                print("Can't parse %s meeting time of '%s'" % (self.code,
+                                                               self.mtg_time),
+                      file=sys.stderr)
+            else:
+                print("%s meeting time is unknown" % self.code,
+                      file=sys.stderr)
 
-    def update_from_parsed_page(self, newcom):
+            return 0, 0
+
+    def update_from_parsed_page(self, newcom, yearcode=None):
         """Update a committee from the web, assuming the time-consuming
            web fetch has already been done.
         """
+        if not yearcode:
+            yearcode = LegSession.current_yearcode()
+
         self.code = newcom['code']
         self.name = newcom['name']
         if 'mtg_time' in newcom:
@@ -922,8 +949,8 @@ class Committee(db.Model):
                 try:
                     Legislator.refresh_legislators_list()
                 except:
-                    print("Couldn't update legislators list")
-                    print(traceback.format_exc())
+                    print("Couldn't update legislators list", file=sys.stderr)
+                    print(traceback.format_exc(), file=sys.stderr)
 
             # Add any newbies:
             for member in newbies:
@@ -940,26 +967,36 @@ class Committee(db.Model):
         not_updated_bills = []
         # Loop over (billno, date) pairs where date is a string, 1/27/2019
         if 'scheduled_bills' in newcom:
-            print("Looping over scheduled bills", newcom['scheduled_bills'])
+            hour, minute = self.get_meeting_time()
+            print("Meeting time:", hour, minute)
+            # print("Looping over scheduled bills", newcom['scheduled_bills'])
             for billdate in newcom['scheduled_bills']:
-                # XXX Bill query without yearcode specified.
-                # But maybe that's okay because only current-year bills
-                # will be on the committee's currently scheduled list.
-                b = Bill.query.filter_by(billno=billdate[0]).first()
+                b = Bill.query.filter_by(billno=billdate[0],
+                                         year=yearcode).first()
                 if b:
                     b.location = self.code
                     if billdate[1]:
-                        b.scheduled_date = dateutil.parser.parse(billdate[1])
+                        try:
+                            sched_date = dateutil.parser.parse(billdate[1])
+                            sched_date = sched_date.replace(hour=hour,
+                                                            minute=minute)
+                            b.scheduled_date = sched_date
+                            print(b, "set sched date to", sched_date)
+                        except Exception as e:
+                            print("Couldn't set sched_date for %s" % b.billno,
+                                  file=sys.stderr)
+                            print(e, file=sys.stderr)
                     # XXX Don't need to add(): that happens automatically
                     # when changing a field in an existing object.
                     db.session.add(b)
-                    updated_bills.append(b.billno)
+                    updated_bills.append(str(b))
                 else:
                     not_updated_bills.append(billdate[0])
 
         self.last_check = datetime.now()
 
         db.session.add(self)
+        db.session.commit()
 
         print("Updated bills", ', '.join(updated_bills))
         print("Skipped bills not in the db", ', '.join(not_updated_bills))
