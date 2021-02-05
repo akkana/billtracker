@@ -213,20 +213,16 @@ https://nmbilltracker.com/confirm_email/%s
 
         return bill_list
 
-
     def bills_by_number(self, yearcode=None):
         return sorted(self.bills_by_yearcode(yearcode),
                       key=Bill.bill_natural_key)
-
 
     def bills_by_action_date(self, yearcode=None):
         return sorted(self.bills_by_yearcode(yearcode),
                       key=Bill.last_action_key)
 
-
     def bills_by_status(self, yearcode=None):
         return sorted(self.bills_by_yearcode(yearcode), key=Bill.status_key)
-
 
     def show_bill_table(self, bill_list, inline=False):
         """Return an HTML string showing status for a list of bills
@@ -406,7 +402,7 @@ class Bill(db.Model):
         # scheduled for today, but by evening, they're less interesting
         if bill.scheduled_in_future():
             # This starts with 0 so it will always come first:
-            return bill.scheduled_date.strftime('0 %Y-%m-%d') \
+            return bill.scheduled_date.strftime('0 %Y-%m-%d %H:%M') \
                 + Bill.a2order(bill.billno)
 
         # Bills with no last_action_date come last.
@@ -443,6 +439,21 @@ class Bill(db.Model):
         # Bills that are tabled should be lower priority than active bills.
         if bill.statustext and 'tabled' in bill.statustext.lower():
             return '50' + Bill.bill_natural_key(bill)
+
+        # Bills that are scheduled go at the top:
+        if bill.scheduled_in_future():
+            datestr = bill.scheduled_date.strftime('0 %Y-%m-%d %H:%M')
+
+            # Bills on the Senate or House floors come first.
+            if bill.location == 'Senate':
+                return datestr + '1' + Bill.bill_natural_key(bill)
+
+            # then House
+            if bill.location == 'House':
+                return datestr + '2' + Bill.bill_natural_key(bill)
+
+            # then Committees
+            return datestr + '3' + Bill.bill_natural_key(bill)
 
         # Bills on the Senate or House floors come first.
         if bill.location == 'Senate':
@@ -968,7 +979,6 @@ class Committee(db.Model):
         # Loop over (billno, date) pairs where date is a string, 1/27/2019
         if 'scheduled_bills' in newcom:
             hour, minute = self.get_meeting_time()
-            print("Meeting time:", hour, minute)
             # print("Looping over scheduled bills", newcom['scheduled_bills'])
             for billdate in newcom['scheduled_bills']:
                 b = Bill.query.filter_by(billno=billdate[0],
