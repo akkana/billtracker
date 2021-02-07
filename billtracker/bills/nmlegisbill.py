@@ -284,6 +284,21 @@ def update_legislative_session_list():
         return []
 
 
+# Locations that are not committees
+special_locations = ( "Senate", "House", "Passed", "Died",
+                      "Chaptered", "Signed", "Not Printed",
+                      "Senate Pre-file", "House Pre-file"
+                    )
+
+def is_special_location(loc):
+    """Is loc a location other than a committee, e.g. "Senate", "Passed"?
+    """
+    for special in special_locations:
+        if loc.startswith(special):
+            return True
+    return False
+
+
 def action_code_iter(actioncode):
     """Iterate over an action code, like
        HPREF [2] HCPAC/HJC-HCPAC [3] DNP-CS/DP-HJC [4] DP [5] PASSED/H (40-29) [8] SPAC/SJC-SPAC [17] DP-SJC [22] DP/a [23] FAILED/S (18-24).
@@ -388,57 +403,6 @@ abbreviations = {
    'VETO(Mar.7).': 'Vetoed by the Governor and date.',
    'w/drn': 'Withdrawn from committee or daily calendar for subsequent action.',
    'w/o rec': 'WITHOUT RECOMMENDATION committee report adopted.',
-}
-
-committeecodes = {
-   'HAFC': 'Appropriations & Finance',
-   'HAGC': 'House Agriculture & Water Resources Committee',
-   'HAWC': 'Agriculture, Water & Wildlife',
-   'HBEC': 'Business & Employment',
-   'HBIC': 'House Business & Industry Committee',
-   'HCEDC': 'COMMERCE & ECONOMIC DEVELOPMENT COMMITTEE',
-   'HCPAC': 'House Consumer & Public Affairs Committee',
-   'HE&EC': 'Enrolling & Engrossing',
-   'HEC': 'Education',
-   'HEEC': 'House Enrolling & Engrossing Committee',
-   'HEENC': 'Energy, Environment & Natural Resources',
-   'HENRC': 'House Energy & Natural Resources Committee',
-   'HGEIC': 'Government, Elections & Indian Affairs',
-   'HGUAC': 'House Government & Urban Affairs',
-   'HHC': 'Health',
-   'HHGAC': 'House Health & Government Affairs Committee',
-   'HHGIC': 'House Health, Government & Indian Affairs Committee',
-   'HHHC': 'HOUSE HEALTH & HUMAN SERVICES',
-   'HJC': 'Judiciary',
-   'HLC': 'House Labor & Human Resources Committee',
-   'HLEDC': 'HOUSE LABOR & ECONOMIC DEVELOPMENT',
-   'HLELC': 'HOUSE LOCAL GOVERNMENT, ELECTIONS, LAND GRANTS & CULTURAL AFFAIRS',
-   'HLLC': 'LOCAL GOVERNMENT, LAND GRANTS & CULTURAL AFFAIRS',
-   'HLVMC': 'LABOR, VETERANS\' AND MILITARY AFFAIRS COMMITTEE',
-   'HRC': 'Rules & Order of Business',
-   'HRPAC': 'Regulatory & Public Affairs',
-   'HSCAC': 'Safety & Civil Affairs',
-   'HSEIC': 'STATE GOVERNMENT, ELECTIONS & INDIAN AFFAIRS COMMITTEE',
-   'HSIVC': 'HOUSE STATE GOVERNMENT, INDIAN & VETERANS\' AFFAIRS',
-   'HTC': 'House Transportation Committee',
-   'HTPWC': 'Transportation & Public Works',
-   'HTRC': 'House Taxation & Revenue Committee',
-   'HVEC': 'House Voters & Elections Committee',
-   'HWMC': 'Ways & Means',
-   'HXRC': 'Rules & Order Of Business',
-   'SCONC': 'Conservation',
-   'SCORC': 'Corporations & Transportation',
-   'SEC': 'Education',
-   'SFC': 'Finance',
-   'SGC': 'Senate Select Gaming Committee',
-   'SHPAC': 'Senate Health & Public Affairs',
-   'SIAC': 'Indian & Cultural Affairs',
-   'SIRC': 'Indian, Rural and Cultural Affairs',
-   'SJC': 'Judiciary',
-   'SPAC': 'Public Affairs',
-   'SRC': 'Rules',
-   'STBTC': 'Tax, Business and Transportation',
-   'SWMC': 'Senate Ways & Means Committee',
 }
 
 

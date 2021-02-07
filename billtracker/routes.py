@@ -1014,12 +1014,26 @@ def refresh_all_committees(key):
         return "FAIL Bad key\n"
     print("Refreshing all committees", file=sys.stderr)
 
+    set_session_by_request_values()
+    yearcode = session["yearcode"]
+
     # First update the legislators list:
     Legislator.refresh_legislators_list()
 
+    # Get the list of all committees that are locations for bills.
+    # There's no pressing need to refresh committees not in that list.
+    # Some bill locations aren't committees, e.g. "chaptered" or "Senate".
+    comm_locs = set()
+    for bill in Bill.query.filter_by(year=yearcode).all():
+        if bill.location and \
+           not nmlegisbill.is_special_location(bill.location):
+            comm_locs.add(bill.location)
+    print("api/refresh_all_committees: will refresh", ' '.join(comm_locs),
+          file=sys.stderr)
+
     refreshed = []
     inactive = []
-    for code in nmlegisbill.committeecodes:
+    for code in comm_locs:
         print("Trying ...", code, file=sys.stderr)
         ret = refresh_one_committee(code)
         if ret.startswith("FAIL"):

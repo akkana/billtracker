@@ -880,6 +880,7 @@ class Committee(db.Model):
 
     code = db.Column(db.String(8))
 
+    # When did we last check this committee?
     last_check = db.Column(db.DateTime, nullable=True)
 
     name = db.Column(db.String(80))
@@ -888,7 +889,7 @@ class Committee(db.Model):
     # e.g. "Monday, Wednesday & Friday- 8:30 a.m. (Room 315)"
     mtg_time = db.Column(db.String(100))
 
-    # When did we last check this committee?
+    # NOTUSED. Could be used to indicate obsolete committees.
     update_date = db.Column(db.DateTime)
 
     # A committee can have only one chair.
