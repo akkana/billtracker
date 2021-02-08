@@ -56,7 +56,7 @@ class TestNMlegisbill(unittest.TestCase):
                            'number': '73',
                            'year': '19',
                            'title': 'EXEMPT NM FROM DAYLIGHT SAVINGS TIME',
-                           'sponsor': 'Roberto "Bobby" J. Gonzales',
+                           'sponsor': 'HGONZ',
                            'sponsorlink': 'https://www.nmlegis.gov/Members/Legislator?SponCode=HGONZ',
                            'curloc': 'HJC',
                            'statusHTML': '<span class="list-group-item" id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_2">Legislative Day: 3<br/>Calendar Day: 01/29/2019<br><strong>HSEIC: Reported by committee with Do Pass recommendation with amendment(s)</strong></span>',
@@ -88,7 +88,7 @@ HPREF [2] HSEIC/HJC-HSEIC [3] DP/a-HJC''',
                           'mod_date': None,
                           'update_date': None,
                           'number': '11',
-                          'sponsor': 'Carlos R. Cisneros',
+                          'sponsor': 'SCISN,SMARR,HCHAN,HROAN',
                           'sponsorlink': 'https://www.nmlegis.gov/Members/Legislator?SponCode=SCISN',
                           'statusHTML': '<span class="list-group-item" '
                           'id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions_lblAction_10"><b>Signed '

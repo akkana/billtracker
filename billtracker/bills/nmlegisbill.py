@@ -53,6 +53,7 @@ def bill_url(billno, yearcode):
 
 
 scheduled_for_pat = re.compile("Scheduled for.*on ([0-9/]*)")
+sponcode_pat = re.compile(".*[&?]SponCode\=([A-Z]+)")
 
 
 def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
@@ -95,9 +96,32 @@ def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
 
     sponsor_a = soup.find("a",
                           id="MainContent_formViewLegislation_linkSponsor")
-    billdic['sponsor'] = sponsor_a.text.strip()
     billdic['sponsorlink'] = url_mapper.to_abs_link(sponsor_a.get('href'),
                                                     baseurl)
+    m = sponcode_pat.match(billdic['sponsorlink'])
+    if (m):
+        billdic['sponsor'] = m.group(1)
+
+        # The rest of the sponsors have link IDs like
+        # MainContent_formViewLegislation_linkSponsor2, etc.
+        # so loop over those until there are no more.
+        i = 2
+        while True:
+            sponsor_a = soup.find(
+                "a", id="MainContent_formViewLegislation_linkSponsor%d" % i)
+            if not sponsor_a:
+                break
+            sponsor_a = sponsor_a.get('href')
+            if not sponsor_a:
+                break
+            m = sponcode_pat.match(sponsor_a)
+            if m:
+                billdic['sponsor'] += "," + m.group(1)
+            i += 1
+
+    else:
+        print("ERROR: No sponcode in", billdic['sponsorlink'], file=sys.stderr)
+        billdic['sponsor'] = sponsor_a.text.strip()
 
     curloc_a  = soup.find("a",
                           id="MainContent_formViewLegislation_linkLocation")

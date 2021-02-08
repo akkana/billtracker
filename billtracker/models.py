@@ -330,10 +330,11 @@ class Bill(db.Model):
     # usually a committee, or "House", "Senate" etc.
     location = db.Column(db.String(10))
 
-    # Bill's sponsor (legislator who introduced it), freetext.
+    # Bill's sponsor codes, comma separated.
     sponsor = db.Column(db.String(20))
 
-    # URL for bill's sponsor
+    # XXX URL for bill's first sponsor.
+    # Not used now, better to generate list of all sponsors from the sponcodes.
     sponsorlink = db.Column(db.String(150))
 
     # URL for the full text of the bill.
@@ -706,11 +707,28 @@ class Bill(db.Model):
         if contents:
             outstr += ' &bull; '.join(contents) + '<br />'
 
-        if self.sponsor and self.sponsorlink:
-            outstr += 'Sponsor: <a href="%s" target="_blank">%s</a><br />' % \
-                (self.sponsorlink, self.sponsor)
+        if self.sponsor:
+            outstr += 'Sponsor: ' + self.get_sponsor_links()
 
         return outstr
+
+
+    def get_sponsor_links(self):
+        """Return HTML for a list of sponsor links, each of which is like
+           "https://www.nmlegis.gov/Members/Legislator?SponCode=HFIGU"
+        """
+        if not self.sponsor:
+            return ""
+
+        sponlinks = []
+        sponcodes = self.sponsor.split(',')
+        for sponcode in sponcodes:
+            leg = Legislator.query.filter_by(sponcode=sponcode).first()
+            if leg:
+                sponlinks.append('<a href="https://www.nmlegis.gov/Members/Legislator?SponCode=%s">%s</a>'
+                                 % (leg.sponcode, leg.lastname))
+
+        return ', '.join(sponlinks)
 
 
     def show_text(self):

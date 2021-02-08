@@ -196,7 +196,6 @@ def make_new_bill(billno, yearcode):
         bill.set_from_parsed_page(b)
     else:
         bill = None
-        flash("Couldn't fetch information for %s" % billno)
 
     return bill
 
@@ -244,7 +243,8 @@ def addbills():
             else:
                 try:
                     bill = make_new_bill(billno, session["yearcode"])
-                    db.session.add(bill)
+                    if bill:
+                        db.session.add(bill)
 
                 except RuntimeError as e:
                     print("Error making new bill for '%s':" % billno,
@@ -268,6 +268,8 @@ def addbills():
                 if not billnopat.match(billno):
                     flash("'%s' doesn't look like a bill number" % orig_billno)
                     # Don't append to bills_err, flashing once is enough
+                else:
+                    flash("Couldn't find bill  %s" % billno)
 
         # Clear the form field
         form.billno.data = ""
