@@ -350,7 +350,7 @@ class Bill(db.Model):
     # Link to amendments PDF, if any
     amendlink = db.Column(db.String(150))
 
-    # Is the bill scheduled to come up for debate?
+    # Is the bill scheduled to come up for debate? A datetime.
     scheduled_date = db.Column(db.DateTime)
 
     # We'll seldom need to know users for a bill, so no need to
@@ -536,15 +536,36 @@ class Bill(db.Model):
 
     def set_from_parsed_page(self, b):
         # For location, there's a name change,
-        # and if the committee changes, also clear scheduled_date.
+        # and if the committee changes, also set scheduled_date
+        # to include the committee's meeting time.
         # Do that first, to ensure we don't set scheduled_date and
-        # then later clear it.
+        # then later overwrite it.
         if 'curloc' in b:
             self.location = b['curloc']
-            self.scheduled_date = None
+
+            # A bill's page only has a date, not a time.
+            # But when committees are updated, they include a time.
+            # Don't overwrite a datetime with just a date,
+            # but do change it if the date has changed.
+            if 'scheduled_date' in b:
+                if self.scheduled_date.year != b['scheduled_date'].year or \
+                   self.scheduled_date.month != b['scheduled_date'].month or \
+                   self.scheduled_date.day != b['scheduled_date'].day:
+                    # Different date, go ahead and change it.
+                    comm = Committee.query.filter_by(comcode).first()
+                    if comm:
+                        h, m = comm.get_meeting_time()
+                        self.scheduled_date = \
+                            b['scheduled_date'].replace(hour=h, minute=m)
+                    else:
+                        self.scheduled_date = b['scheduled_date']
+
+            else:
+                self.scheduled_date = None
 
         for k in b:
-            if k == 'curloc':
+            if k == 'curloc' or k == 'scheduled_date':
+                # Already handled, skip.
                 continue
 
             # Mysteriously, the converse of setattr is __getattribute__;
