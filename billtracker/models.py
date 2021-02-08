@@ -911,6 +911,9 @@ class Legislator(db.Model):
         db.session.commit()
 
 
+meeting_time_pat = re.compile(".*(\d{1,2}):(\d\d) ([ap]\.?m\.?)",
+                              flags=re.IGNORECASE)
+
 class Committee(db.Model):
     """A Committee object may be a committee, or another bill destination
        such as House Floor, Governor's Desk or Dead.
@@ -946,7 +949,7 @@ class Committee(db.Model):
            Return (hour, min).
         """
         try:
-            m = re.match(".*(\d{1,2}):(\d\d) ([ap]\.m\.)", self.mtg_time)
+            m = meeting_time_pat.match(self.mtg_time)
             hour = int(m.group(1))
             if m.group(3) == "p.m.":
                 hour += 12
