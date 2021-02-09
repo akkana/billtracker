@@ -714,6 +714,8 @@ class Bill(db.Model):
         if self.contentslink:
             contents.append('<a href="%s" target="_blank">Original text</a>' %
                             self.contentslink)
+            contents.append('<a href="%s" target="_blank">PDF</a>' %
+                            self.contentslink.replace(".html", ".pdf"))
         else:
             print("Bill %s has no contents link" % self.billno)
 
