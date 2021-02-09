@@ -518,14 +518,14 @@ class Bill(db.Model):
 
     def scheduled_in_future(self):
         """Is a bill scheduled for a future *date*?
-           If the current time is 19:00 or later, we'll consider
+           If the current time is 18:00 or later, we'll consider
            a scheduled date of today to be in the past; if it's
            earlier than that, it's in the future.
            (Figuring not many committees meet later than 6pm.)
         """
         now = datetime.now()
         nowdate = datetime.date(now)
-        if now.hour >= 19:
+        if now.hour >= 18:
             nowdate += timedelta(days=1)
 
         if self.scheduled_date:
@@ -547,7 +547,7 @@ class Bill(db.Model):
             # But when committees are updated, they include a time.
             # Don't overwrite a datetime with just a date,
             # but do change it if the date has changed.
-            if 'scheduled_date' in b:
+            if 'scheduled_date' in b and b['scheduled_date']:
                 if self.scheduled_date.year != b['scheduled_date'].year or \
                    self.scheduled_date.month != b['scheduled_date'].month or \
                    self.scheduled_date.day != b['scheduled_date'].day:
