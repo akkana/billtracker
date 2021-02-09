@@ -548,17 +548,21 @@ class Bill(db.Model):
             # Don't overwrite a datetime with just a date,
             # but do change it if the date has changed.
             if 'scheduled_date' in b and b['scheduled_date']:
-                if self.scheduled_date.year != b['scheduled_date'].year or \
-                   self.scheduled_date.month != b['scheduled_date'].month or \
-                   self.scheduled_date.day != b['scheduled_date'].day:
+                if (not self.scheduled_date
+                    or self.scheduled_date.year != b['scheduled_date'].year
+                    or self.scheduled_date.month != b['scheduled_date'].month
+                    or self.scheduled_date.day != b['scheduled_date'].day):
                     # Different date, go ahead and change it.
                     comm = Committee.query.filter_by(comcode).first()
                     if comm:
                         h, m = comm.get_meeting_time()
+                        # Set to proper time for committee meetings
                         self.scheduled_date = \
                             b['scheduled_date'].replace(hour=h, minute=m)
                     else:
+                        # No committee, take just the date
                         self.scheduled_date = b['scheduled_date']
+                # else self.scheduled_date is already set, don't change it
 
             else:
                 self.scheduled_date = None
