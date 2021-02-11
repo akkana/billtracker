@@ -553,7 +553,7 @@ class Bill(db.Model):
                     or self.scheduled_date.month != b['scheduled_date'].month
                     or self.scheduled_date.day != b['scheduled_date'].day):
                     # Different date, go ahead and change it.
-                    comm = Committee.query.filter_by(comcode).first()
+                    comm = Committee.query.filter_by(code=self.location).first()
                     if comm:
                         h, m = comm.get_meeting_time()
                         # Set to proper time for committee meetings
@@ -1058,7 +1058,7 @@ class Committee(db.Model):
         db.session.commit()
 
         print("Updated bills", ', '.join(updated_bills))
-        print("Skipped bills not in the db", ', '.join(not_updated_bills))
+        print("Skipped bills not in the db:", ', '.join(not_updated_bills))
 
 
     def refresh(self):
