@@ -105,6 +105,8 @@ ul.mainmenu {
         color: grey;
     }
 
+    ul.mainmenu { margin: 0; }
+
     /* menu icon */
     .menuheader .menu-icon {
         cursor: pointer;
@@ -135,41 +137,35 @@ ul.mainmenu {
         width: 100%;
     }
 
-    .menuheader .menu-icon .navicon:before {
-        top: 5px;
-    }
+    /* Remaining rules are CSS magic to display the hamburger icon
+     * when the menu isn't expanded, and an X when it is.
+     */
 
-    .menuheader .menu-icon .navicon:after {
-        top: -5px;
-    }
+    /* Display the hamburger icon: a line, a line above, and a line below. */
+    .menuheader .menu-icon .navicon:before { top: 5px; }
+    .menuheader .menu-icon .navicon:after  { top: -5px; }
 
-    /* mainmenu btn */
     .menuheader .menu-btn {
         display: none;
     }
 
+    /* Display an X (made of rotated lines) when the menu's expanded */
     .menuheader .menu-btn:checked ~ .mainmenu {
         max-height: 240px;
     }
-
     .menuheader .menu-btn:checked ~ .menu-icon .navicon {
         background: transparent;
     }
-
     .menuheader .menu-btn:checked ~ .menu-icon .navicon:before {
         transform: rotate(-45deg);
     }
-
     .menuheader .menu-btn:checked ~ .menu-icon .navicon:after {
         transform: rotate(45deg);
     }
-
     .menuheader .menu-btn:checked ~ .menu-icon:not(.steps) .navicon:before,
     .menuheader .menu-btn:checked ~ .menu-icon:not(.steps) .navicon:after {
         top: 0;
     }
-
-    ul.mainmenu { margin: 0; }
 
 } /* stuff for smaller screens */
 
