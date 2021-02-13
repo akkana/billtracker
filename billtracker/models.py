@@ -701,7 +701,7 @@ class Bill(db.Model):
                 outstr += 'Status: %s<br />\n' % statustext
             if actioncode:
                 outstr += '<a href="https://www.nmlegis.gov/Legislation/' \
-                          'Action_Abbreviations">Full history</a>: ' \
+                          'Action_Abbreviations"  target="_blank">Full history</a>: ' \
                           '<span class="historycode" title="%s">%s</span>' \
                           '<br />\n' \
                               % (nmlegisbill.decode_full_history(actioncode),
@@ -752,7 +752,7 @@ class Bill(db.Model):
         for sponcode in sponcodes:
             leg = Legislator.query.filter_by(sponcode=sponcode).first()
             if leg:
-                sponlinks.append('<a href="https://www.nmlegis.gov/Members/Legislator?SponCode=%s">%s</a>'
+                sponlinks.append('<a href="https://www.nmlegis.gov/Members/Legislator?SponCode=%s" target="_blank">%s</a>'
                                  % (leg.sponcode, leg.lastname))
 
         return ', '.join(sponlinks)
