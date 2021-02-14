@@ -22,6 +22,7 @@ import re
 from bs4 import BeautifulSoup
 import os, sys
 import time
+import dateutil.parser
 
 from urllib.parse import urlparse
 from ftplib import FTP
@@ -349,19 +350,22 @@ def ftp_index(server, ftpdir):
     # 01-28-19  12:58PM               288257 HB0005.PDF
 
     listing = []
+    baseurl = "ftp://%s/%s" % (server, ftpdir)
     for line in listlines:
         if '<DIR>' in line:
             match = re.match('(\d+-\d+-\d+ +\d+:\d+[AP]M) +<DIR> +(.+)', line)
             if match:
-                listing.append([match.group(2),
-                                dateutil.parser.parse(match.group(1)),
-                                None])
+                listing.append({ "name": match.group(2),
+                                 "url": "%s/%s" % (baseurl, match.group(2)),
+                                 "Last Modified": dateutil.parser.parse(match.group(1)),
+                                 "size": int(match.group(2)) })
         else:
             match = re.match('(\d+-\d+-\d+ +\d+:\d+[AP]M) +(\d+) +(.+)', line)
             if match:
-                listing.append([match.group(3),
-                                dateutil.parser.parse(match.group(1)),
-                                int(match.group(2))])
+                listing.append({ "name": match.group(3),
+                                 "url": "%s/%s" % (baseurl, match.group(3)),
+                                 "Last Modified": dateutil.parser.parse(match.group(1)),
+                                 "size": int(match.group(2)) })
     return listing
 
 

@@ -946,6 +946,7 @@ def refresh_legisdata():
     except Exception as e:
         print("Couldn't fetch", url, file=sys.stderr)
         print(e, file=sys.stderr)
+        print(traceback.format_exc(), file=sys.stderr)
         return "FAIL Couldn't fetch %s" % url
 
     # Slow part is done. Now it's okay to access the database.
@@ -956,7 +957,7 @@ def refresh_legisdata():
 
     changes = []
     not_in_db = []
-    # index is a list of dicts
+    # index is a list of dicts with keys name, url, size, Last Modified
     for filedic in index:
         base, ext = os.path.splitext(filedic["name"])
 
