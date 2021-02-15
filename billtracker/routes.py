@@ -1031,6 +1031,10 @@ def refresh_all_committees(key):
         if bill.location and \
            not nmlegisbill.is_special_location(bill.location):
             comm_locs.add(bill.location)
+
+    # House and Senate are special locations: don't skip them.
+    comm_locs.add("House")
+    comm_locs.add("Senate")
     print("api/refresh_all_committees: will refresh", ' '.join(comm_locs),
           file=sys.stderr)
 

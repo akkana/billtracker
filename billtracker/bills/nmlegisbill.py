@@ -693,7 +693,7 @@ def expand_committee(code):
     """
 
     if code == 'House' or code == 'Senate':
-        return expand_house_or_senate(code, cache_locally)
+        return expand_house_or_senate(code)
 
     # XXX Need some other special cases
 
