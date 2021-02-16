@@ -99,4 +99,30 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
                           'title': 'GROSS RECEIPTS FOR NONPROFIT ORGANIZATIONS',
                           'year': '19'})
 
+        hhhc = nmlegisbill.expand_committee("HHHC")
+        self.assertEqual(hhhc, {
+            'chair': 'HARMS',
+            'code': 'HHHC',
+            'members': ['HARMS', 'HFERJ', 'HANDP', 'HARMG',
+                        'HBABR', 'HBASH', 'HLORD', 'HMATT',
+                        'HMORO', 'HTERR', 'HTHOE'],
+            'mtg_time': 'Monday, Wednesday & Friday- 8:30 a.m. (Room 315)',
+            'name': 'House Health & Human Services',
+            'scheduled_bills': [
+                ['HB186', 'Wednesday, February 17, 2021 8:30a.m.'],
+                ['HB203', 'Wednesday, February 17, 2021 8:30a.m.'],
+                ['HB204', 'Wednesday, February 17, 2021 8:30a.m.'],
+                ['HB210', 'Wednesday, February 17, 2021 8:30a.m.'],
+                ['HB215', 'Wednesday, February 17, 2021 8:30a.m.'],
+                ['HB253', 'Wednesday, February 17, 2021 8:30a.m.']]})
+
+        sirc = nmlegisbill.expand_committee("SIRC")
+        self.assertEqual(sirc, {
+            'chair': 'SPINS',
+            'code': 'SIRC',
+            'members': ['SPINS', 'SJARA', 'SGRIG', 'SMCKE', 'SSANJ', 'SSHEN'],
+            'mtg_time': 'Tuesday & Thursday - 9:00 a.m. (Room 303)',
+            'name': 'Senate Indian, Rural & Cultural Affairs',
+            'scheduled_bills': [['SB361', '2/16/2021'],
+                                ['SB332', '2/16/2021']]})
 

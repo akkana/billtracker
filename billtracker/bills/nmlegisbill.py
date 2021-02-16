@@ -17,6 +17,12 @@ from bs4 import BeautifulSoup
 import xlrd
 import traceback
 
+# A bill pattern, allowing for any number of extra leading zeros
+# like the FIR/LESC links randomly add.
+# If there are other letters or a different pattern,
+# it may be an amendment or some other supporting document.
+billno_pat = re.compile("([SH][JC]{0,1}[BMR])(0*)([1-9][0-9]*)")
+
 
 # XXX The URLmapper stuff should be killed, with any functionality
 # that's still needed moved into billrequests.
@@ -569,11 +575,12 @@ def all_bills(sessionid, yearcode, sessionname):
         print("Can't read the all-bills list: no footable", file=sys.stderr)
         return None
 
-    billno_pat = re.compile('MainContent_gridViewLegislation_linkBillID.*')
+    allbills_billno_pat = re.compile(
+        'MainContent_gridViewLegislation_linkBillID.*')
     title_pat = re.compile('MainContent_gridViewLegislation_lblTitle.*')
     g_all_bills[yearcode] = OrderedDict()
     for tr in footable.findAll('tr'):
-        billno_a = tr.find('a', id=billno_pat)
+        billno_a = tr.find('a', id=allbills_billno_pat)
         title_a = tr.find('span', id=title_pat)
         if billno_a and title_a:
             # Text under the link might be something like "HB  1"
@@ -607,11 +614,6 @@ def all_bills(sessionid, yearcode, sessionname):
     baseurl = "https://www.nmlegis.gov/Sessions/%s%%20%s" \
         % (yearcode[:2], sessionlong)
     # Under this are directories for house and senate
-
-    # A bill pattern, including the extra zeros that these links often have.
-    # If there are other letters or a different pattern,
-    # it may be an amendment or some other supporting document.
-    billpat = re.compile("/([SH][JC]{0,1}[BMR])0*([1-9][0-9]*)\.")
 
     def update_bill_links(listingurl, allbills_index, extension):
         """Given the URL for a place where text links or amendments are,
@@ -666,6 +668,8 @@ def all_bills(sessionid, yearcode, sessionname):
     return g_all_bills[yearcode]
 
 
+house_senate_billno_pat = re.compile('.*_linkBillID_[0-9]*')
+
 def expand_house_or_senate(code, cache_locally=True):
     """Return a dictionary, with keys code, name, scheduled_bills.
        Other fields that committees would have will be unset.
@@ -679,13 +683,23 @@ def expand_house_or_senate(code, cache_locally=True):
 
     ret = { 'code': code, 'name': code }
 
-    billno_pat = re.compile('.*_linkBillID_[0-9]*')
     ret['scheduled_bills'] = []
-    for a in soup.findAll('a', id=billno_pat):
+    for a in soup.findAll('a', { "id": house_senate_billno_pat }):
         ret['scheduled_bills'].append([a.text.replace(' ', ''), None])
 
     return ret
 
+
+# Patterns needed for parsing committee pages
+tbl_bills_scheduled = re.compile("MainContent_formViewCommitteeInformation_gridViewScheduledLegislation")
+
+tbl_committee_mtg_dates = re.compile("MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_lblHearingDate_[0-9]*")
+tbl_committee_mtg_times = re.compile("MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_lblHearingTime_[0-9]*")
+tbl_committee_mtg_bills = re.compile("MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_[0-9]+")
+
+billno_cell_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_linkBillID_[0-9]*')
+
+sched_date_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_lblScheduledDate_[0-9]*')
 
 def expand_committee(code):
     """Return a dictionary, with keys code, name, mtg_time, chair,
@@ -694,11 +708,10 @@ def expand_committee(code):
 
     if code == 'House' or code == 'Senate':
         return expand_house_or_senate(code)
-
     # XXX Need some other special cases
 
     url = 'https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=%s' % code
-    soup = billrequests.soup_from_cache_or_net(url, cachesecs=2*60*60)
+    soup = billrequests.soup_from_cache_or_net(url)
 
     # The all-important committee code
     ret = { 'code': code }
@@ -716,36 +729,55 @@ def expand_committee(code):
     if timespan:
         ret['mtg_time'] = timespan.text
 
-    # # Next meeting:
-    # next_mtg = ''
-    # nextmtg_tbl = soup.find('table',
-    #                         id="MainContent_formViewCommitteeInformation")
-    # if nextmtg_tbl:
-    #     mdate = nextmtg_tbl.find('span',
-    #              id="MainContent_formViewCommitteeInformation_lblMeetingDate")
-    #     # Time and place of the next scheduled meeting:
-    #     if mdate:
-    #         next_mtg = mdate.text
-
-    # Loop over bills to be considered:
+    # Find bills to be considered.
     scheduled = []
-    billstbl = soup.find('table',
-                         id="MainContent_formViewCommitteeInformation_gridViewScheduledLegislation")
-    if billstbl:
-        billno_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_linkBillID_[0-9]*')
-        sched_date_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_lblScheduledDate_[0-9]*')
-        for row in billstbl.findAll('tr'):
-            billno = row.find(id=billno_pat)
+
+    # First look for a table listing all upcoming bills and their dates:
+    allsched = soup.find("table", { "id": tbl_bills_scheduled })
+    if allsched:
+        for row in allsched.findAll('tr'):
+            billcell = row.find(id=billno_cell_pat)
             scheduled_date = row.find(id=sched_date_pat)
-            if billno and scheduled_date:
+            if billcell and scheduled_date:
                 # Bills on these pages have extra spaces, like 'HB 101'.
                 # Some of them also start with * for unexplained reasons.
-                scheduled.append([billno.text.replace(' ', '').replace('*', ''),
-                                  scheduled_date.text.strip()])
+                scheduled.append([
+                    billcell.text.replace(' ', '').replace('*', ''),
+                    scheduled_date.text.strip() ])
 
-        ret['scheduled_bills'] = scheduled
-    else:
-        print("No bills table found in", url, file=sys.stderr)
+    # Some committees don't fill out the list of upcoming scheduled bills,
+    # but do list their schedule for specific days, so try that if the
+    # allsched method didn't work.
+    if not scheduled:
+        print("No upcoming bills table found in", url, file=sys.stderr)
+        mtgdates = soup.findAll("span", { "id": tbl_committee_mtg_dates })
+        mtgtimes = soup.findAll("span", { "id": tbl_committee_mtg_times })
+        mtgbills = soup.findAll("table", { "id": tbl_committee_mtg_bills })
+        if len(mtgdates) == len(mtgtimes) and len(mtgdates) == len(mtgbills):
+            for i, mtgtbl in enumerate(mtgbills):
+                for row in mtgtbl.findAll('tr'):
+                    cells = list(row.findAll("td"))
+                    if len(cells) < 5:
+                        continue
+                    billno = cells[1].text.strip() \
+                                          .replace(' ', '').replace('*', '')
+                    if not billno_pat.match(billno):
+                        continue
+                    # date is something like "Wednesday, February 17, 2021"
+                    # time is something like "8: 30 a. m."
+                    # dateutil.parser can handle everything except the
+                    # extraneous space between : and 30.
+                    timestr = ' '.join([mtgdates[i].text,
+                                        mtgtimes[i].text.replace(' ', '')])
+                    print("  %s: appending '%s', '%s'" % (code, billno,
+                                                          timestr))
+                    scheduled.append([billno, timestr])
+        else:
+            print("Unequal dates %d, times %d, bills %d"
+                  % (len(mtgdates), len(mtgtimes), len(mtgbills)),
+                  file=sys.stderr)
+
+    ret['scheduled_bills'] = scheduled
 
     # Now get the list of members:
     members = []

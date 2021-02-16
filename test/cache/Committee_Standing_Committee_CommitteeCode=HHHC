@@ -1,0 +1,568 @@
+
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>
+	Standing Committees - New Mexico Legislature
+</title><link href="/Content/css?v=YHQih9U0P-KIbQEz0msuMOwM6gk3vn9XDlQBauaeC1I1" rel="stylesheet"/>
+<link href="../favicon.ico?v=1" rel="shortcut icon" type="image/x-icon" /></head>
+<body>
+    <form method="post" action="./Standing_Committee?CommitteeCode=HHHC" id="ctl01">
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="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" />
+
+
+<script src="../Scripts/jquery-3.4.1.min.js" type="text/javascript"></script>
+<script src="/bundles/MsAjaxJs?v=c42ygB2U07n37m_Sfa8ZbLGVu4Rr2gsBo7MvUEnJeZ81" type="text/javascript"></script>
+<script src="../Scripts/respond.min.js" type="text/javascript"></script>
+<script src="../Scripts/bootstrap.min.js" type="text/javascript"></script>
+<script src="../Scripts/FooTable/footable.min.js" type="text/javascript"></script>
+<script src="/bundles/WebFormsJs?v=AAyiAYwMfvmwjNSBfIMrBAqfU5exDukMVhrRuZ-PDU01" type="text/javascript"></script>
+<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="F3FBE9B3" />
+<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="Xnmrr/GOCcWAjTo8pn6sXhJypyOBtONrmZxt0GXMI77UaNe6SCe3aK22vZFCEviGGNTlsM0r3iPsmRrhpR4Mijz8oMkUjaBVucNU9bXbaU/WfwLL4BpNRHXW+D5xVC4bKtCzRhIMr6G1IsONL+mxkKC7nMAY95m9HdphvkXR6zD9qO0Lwpu1kuKpExelVOOx3MdKH2mjtV47HdavbHt83/C/FUpAXd0e1iLVFvOJzTc=" />
+        
+        <script>
+            (function (i, s, o, g, r, a, m) {
+                i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date(); a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+            })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+            ga('create', 'UA-70773781-1', 'auto');
+            ga('send', 'pageview');
+        </script>
+
+        <div class="desktop-header hidden-xs" role="banner">
+            <div id="divBanner" style="background-color: transparent !important;">
+                <a id="linkHeader" href="../"><img id="imgHeader" class="center-block img-responsive" src="../Images/banner_logo.jpg" alt="New Mexico Legislature" /></a>
+            </div>
+        </div>
+        <div class="container body-content">
+            <nav class="navbar navbar-default yamm" role="navigation">
+                <!-- Brand and toggle get grouped for better mobile display -->
+                <div class="navbar-header main-navbar-header" role="menubar">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-navigation">
+                        <span class="sr-only">Toggle navigation</span>
+                        <!--
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        -->
+                        Main Menu
+                    </button>
+                </div>
+                <!-- Collect the nav links, forms, and other content for toggling -->
+                <ul class="collapse navbar-collapse nav navbar-nav" id="main-navigation" role="menubar">
+                    <li><a href="/">Home</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Legislators</a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="/Members/Find_My_Legislator">Find my Legislator</a></li>
+                            <li><a href="/Website_Tutorials?Video=FindingLegislators">Find my Legislator – Tutorial</a></li>
+                            <li><a href="/Members/Leadership">Leadership</a></li>
+                            <li><a href="/Members/Legislator_List?T=R">House</a></li>
+                            <li><a href="/Members/Legislator_List?T=S">Senate</a></li>
+                            <li><a href="/Members/Districts">Districts</a></li>
+                            <li><a href="/Members/Political_Composition">Political Composition</a></li>
+                            <li class="divider"></li>
+                            <li><a href="/Redistricting/">Redistricting Information</a></li>
+                            <li><a href="/Members/Former_Legislator_List">Former Legislators</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Legislation</a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="/Legislation/BillFinder/Number">Find Legislation by Number</a></li>
+                            <li><a href="/Legislation/BillFinder/Sponsor">Find Legislation by Sponsor</a></li>
+                            <li><a href="/Search">Find Legislation by Keyword</a></li>
+                            <li><a href="/Legislation/BillFinder/Subject">Find Legislation by Subject</a></li>
+                            <li class="divider"></li>
+                            <li><a href="/Legislation/Bill_Finder">Bill Finder</a></li>
+                            <li><a href="/Legislation/BillFinder/Capital_Outlay">Capital Outlay</a></li>
+                            <li><a href="/Legislation/Legislation_List">Daily Bill Locator</a></li>
+                            <li><a href="/Legislation/Action_Abbreviations">Key to Abbreviations</a></li>
+                            <li class="divider"></li>
+                            <li><a href="/MyRoundhouse/">MyRoundhouse</a></li>
+                            <li><a href="/Website_Tutorials?Video=FindingLegislation">Finding Legislation – Tutorial</a></li>
+                            <li><a href="/Website_Tutorials?Video=MyRoundhouse">How to Track Legislation – Tutorial</a></li>
+                            <li class="divider"></li>
+                            <li><a href="https://nmonesource.com/nmos/en/nav.do" target="_blank">New Mexico Law (Statutes)</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown yamm-fw">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Committees</a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li>
+                                <div class="yamm-content" style="padding-top: 0;">
+
+                                    <div class="row hidden-xs" style="margin-top: 0;">
+                                        <ul class="col-sm-3 list-unstyled">
+                                            <li><p class="yamm-header"><strong>House of Representatives Session Committees</strong></p></li>
+                                        </ul>
+                                        <ul class="col-sm-3 list-unstyled">
+                                            <li><p class="yamm-header"><strong>Senate Session Committees</strong></p></li>
+                                        </ul>
+                                        <ul class="col-sm-6 list-unstyled">
+                                            <li><p class="yamm-header"><strong>Interim Committees</strong></p></li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="row">
+                                        <ul class="col-sm-3 list-unstyled">
+                                            <li><p class="yamm-header hidden-sm hidden-md hidden-lg"><strong>House of Representatives Session Committees</strong></p></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=HAWC">Agriculture & Water Resources</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=HAFC">Appropriations & Finance</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=HCEDC">Commerce & Economic Development</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=HCPAC">Consumer & Public Affairs</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=HEC">Education</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=HENRC">Energy, Environment & Natural Resources</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=HHHC">Health & Human Services</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=HJC">Judiciary</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=HLVMC">Labor, Veterans' & Military Affairs</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=HLLC">Local Government, Land Grants & Cultural Affairs</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=HXRC">Rules & Order Of Business</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=HSEIC">State Government, Elections & Indian Affairs</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=HTRC">Taxation & Revenue</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=HTPWC">Transportation, Public Works & Capital Improvements</a></li>
+                                        </ul>
+                                        <ul class="col-sm-3 list-unstyled">
+                                            <li><p class="yamm-header hidden-sm hidden-md hidden-lg"><strong>Senate Session Committees</strong></p></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=SXCC">Committees' Committee</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=SCONC">Conservation</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=SEC">Education</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=SFC">Finance</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=SHPAC">Health and Public Affairs</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=SIRC">Indian, Rural and Cultural Affairs</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=SJC">Judiciary</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=SRC">Rules</a></li>
+                                            <li><a href="/Committee/Standing_Committee?CommitteeCode=STBTC">Tax, Business and Transportation</a></li>
+                                        </ul>
+                                        <ul class="col-sm-3 list-unstyled">
+                                            <li><p class="yamm-header hidden-sm hidden-md hidden-lg"><strong>Interim Committees</strong></p></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=BHS">Behavioral Health Subcommittee</a></li>
+                                            <li><a href="/Committee/Capitol_Buildings_Planning_Commission">Capitol Buildings Planning Commission</a></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=CSS">Capitol Security Subcommittee</a></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=CCJ">Courts, Corrections & Justice</a></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=CJRS">Criminal Justice Reform Subcommittee</a></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=ERDT">Economic & Rural Development</a></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=IAC">Indian Affairs</a></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=LEC">Interim Legislative Ethics </a></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=IPOC">Investments & Pensions Oversight</a></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=LGC">Land Grant</a></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=ALC">Legislative Council</a></li>
+                                            <li><a href="/Entity/LESC/Default">Legislative Education Study</a></li>
+                                            <li><a href="/Entity/LFC/Default">Legislative Finance</a></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=LHHS">Legislative Health & Human Services</a>
+                                                <ul class="list-unstyled">
+                                                    <li><a href="/Committee/Interim_Committee?CommitteeCode=DISC">Disabilities Concerns Subcommittee</a></li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                        <ul class="col-sm-3 list-unstyled">
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=MVAC">Military & Veterans' Affairs</a></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=MFA">Mortgage Finance Authority Act Oversight</a></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=NMFA">New Mexico Finance Authority Oversight</a></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=PSCO">Public School Capital Outlay Oversight Task Force</a></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=RHMC">Radioactive & Hazardous Materials</a></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=RSTP">Revenue Stabilization & Tax Policy </a></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=STTC">Science, Technology & Telecommunications</a></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=TSROC">Tobacco Settlement Revenue Oversight </a></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=TIRS">Transportation Infrastructure Revenue Subcommittee</a></li>
+                                            <li><a href="/Committee/Interim_Committee?CommitteeCode=WNR">Water & Natural Resources </a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="row" style="margin-top: 10px; margin-bottom: -15px;">
+                                        <ul class="col-sm-6 list-unstyled text-center">
+                                            <li><strong><a href="/Publications/Handbook/House_Standing_Committees_21.pdf" target="_blank">2021 House Standing Committees PDF</a></strong></li>
+                                            <li><strong><a href="/Publications/Handbook/Senate_Standing_Committees_21.pdf" target="_blank">2021 Senate Standing Committees PDF</a></strong></li>
+                                        </ul>
+                                        <ul class="col-sm-6 list-unstyled text-center">
+                                            <li><strong><a href="/Publications/2020_Interim_Committees.pdf">2020 Interim Committees PDF</a></strong></li>
+                                            <li><strong><a href="/Agendas/StateLegislativeCalendar.pdf">2020 Tentative Interim Committee Calendar</a></strong></li>
+                                            <li><strong><a href="/Committee/Default">Archived Committee Information</a></strong></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                        <!--</div>-->
+                    </li>
+                    <li>
+                        <a href="/Publications/">Publications</a>
+                    </li>
+                    <li>
+                        <!--<a href="/Calendar/Whats_Happening">What's Happening</a>-->
+                        <a href="/Calendar/Session">What's Happening</a>
+                    </li>
+                    <li>
+                        <!--<a href="/Webcast/">Webcast</a>-->
+                        <a href="http://sg001-harmony.sliq.net/00293/harmony" target="_blank">Webcast</a>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Quick Links</a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="/Publications/anti_harassment_policy.pdf" target="_blank">Anti-Harassment Policy</a></li>
+                            <li><a href="/Emergency_Notification" target="_blank">Capitol Emergency Notification Signup</a></li>
+                            <li><a href="/Legislation/BillFinder/Capital_Outlay" target="_blank">Capital Outlay</a></li>
+                            <li><a href="/Credits" target="_blank">Credits</a></li>
+                            <li><a href="/Downloads" target="_blank">Downloads</a></li>
+                            <li><a href="/Employment" target="_blank">Employment</a></li>
+                            <li><a href="/Glossary" target="_blank">Glossary of Legislative Terms</a></li>
+                            <li><a href="/Legislation/Action_Abbreviations">Key to Abbreviations</a></li>
+                            <li><a href="/Publications/Legislative_Contracts">Legislative Contracts</a></li>
+                            <li><a href="/Legislative_Library">Library</a></li>
+                            <li><a href="/Publications/Notices" target="_blank">Notices</a></li>
+                            <li><a href="/MyRoundhouse/Default">MyRoundhouse</a></li>
+                            <li><a href="/Other_Websites">Other Websites</a></li>
+                            <li><a href="/Public_Records_Request">Public Records Request</a></li>
+                            <li><a href="/Redistricting/">Redistricting Information</a></li>
+                            <li><a href="/Capitol_Flags">Request a Capitol Flag</a></li>
+                            <li><a href="/Publications/Request_For_Proposals">Request for Proposals</a></li>
+                            <li><a href="/Publications/Session_Dates.pdf" target="_blank">Session Dates</a></li>
+                            <li><a href="/Publications/Social_Calendar">Social Calendar</a></li>
+                            <li><a href="/Visitors">Visit the Capitol</a></li>
+                            <li><a href="/Website_Tutorials">Website Video Tutorials</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="/Publications/Highlights">Highlights</a>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Contact Us</a>
+                        <ul class="dropdown-menu contact-list" role="menu" style="list-style: none; margin-left: 0 !important; padding-left: 0;">
+                            <li>
+                                <a href="/Members/Find_My_Legislator">Find My Legislator</a>
+                            </li>
+                            <li>
+                                <a href="/Staff_Directory?Entity=LCS">Legislative Council Service</a>
+                                <span>505-986-4600</span>
+                                <a href="mailto:lcs@nmlegis.gov">lcs@nmlegis.gov</a>
+                            </li>
+                            <li>
+                                <a href="/Entity/LESC/Default">Legislative Education Study Committee</a>
+                                <span>505-986-4591</span>
+                                <a href="https://goo.gl/maps/W53KByo46jk">325 Don Gaspar, Suite 200<br />Santa Fe, NM 87501</a>
+                                <a href="mailto:lesc@nmlegis.gov">lesc@nmlegis.gov</a>
+                            </li>
+                            <li>
+                                <a href="/Entity/LFC/Default">Legislative Finance Committee</a>
+                                <span>505-986-4550</span>
+                                <a href="https://goo.gl/maps/W53KByo46jk">325 Don Gaspar, Suite 101<br />Santa Fe, NM 87501</a>
+                                <a href="mailto:lfc@nmlegis.gov">lfc@nmlegis.gov</a>
+                            </li>
+                            <li>
+                                <a href="/Entity/House/Default">House of Representatives</a>
+                                <span>505-986-4751</span>
+                                <a href="mailto:house@nmlegis.gov">house@nmlegis.gov</a>
+                            </li>
+                            <li>
+                                <a href="/Entity/Senate/Default">Senate</a>
+                                <span>505-986-4714</span>
+                                <a href="mailto:senate@nmlegis.gov">senate@nmlegis.gov</a>
+                            </li>
+                            <li>
+                                <div style="padding: 3px 20px 3px 20px!important;"><strong>Session Switchboard</strong></div>
+                                <span>505-986-4300</span>
+                                <!--<br />
+                                <span>505-986-4610 (fax)</span>
+                                    -->
+                            </li>
+                            <li>
+                                <a href="/Visitors">Legislative Information and Tours</a>
+                                <span>505-986-4589</span>
+                            </li>
+                            <li>
+                                <a href="/Staff_Directory?Entity=LBS">Legislative Building Services</a>
+                                <span>505-986-4575</span>
+                            </li>
+                            <li>
+                                <!--
+                                <a href="https://goo.gl/1Kmmj3">411 State Capitol, Santa Fe, NM 87501</a>
+                                -->
+                                <a href="https://goo.gl/maps/rdxjh64jABm">The Capitol is located at the corner of <br />Old Santa Fe Trail and Paseo de Peralta<br />in Santa Fe</a>
+                                <span>505-986-4600</span>
+                                <a href="mailto:lcs@nmlegis.gov">lcs@nmlegis.gov</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+            <ol class="breadcrumb">
+                <span id="siteMapBreadcrumbs"><a href="#siteMapBreadcrumbs_SkipLink">Skip Navigation Links</a><span>
+                        <li>
+                            <a id="siteMapBreadcrumbs_lnkPage_0" title="Committees" href="/Committee/Default">Committees</a>
+                        </li>
+                    </span><span> / </span><span>
+                        <li>
+                            <a id="siteMapBreadcrumbs_lnkPage_1" title="Standing Committees" href="/Committee/Standing_Committees">Standing Committees</a>
+                        </li>
+                    </span><span> / </span><span>
+                        <li>
+                            <a id="siteMapBreadcrumbs_lnkPage_2" title="House Standing Committees" href="/Committee/House_Standing">House Standing Committees</a>
+                        </li>
+                    </span><span> / </span><span class="active">
+                        <li>
+                            <a id="siteMapBreadcrumbs_lnkPage_3" title="House Health &amp; Human Services" class="active" href="/Committee/Standing_Committee?CommitteeCode=HHHC">House Health & Human Services</a>
+                        </li>
+                    </span><a id="siteMapBreadcrumbs_SkipLink"></a></span>
+            </ol>
+            <!--<div class="alert alert-danger text-center">We are experiencing technical difficulties with the regular LFC webcast. A YouTube alternative version is available <a target="_blank" href="https://youtu.be/DtE05uOELeA">HERE</a></div>-->
+            
+    <script type="text/javascript">
+        $(function () {
+            $('.footable').footable({
+            });
+        });
+    </script>
+    <!--Reference the SignalR library.
+    <script src="/Scripts/jquery.signalR-2.2.0.js"></script>
+    <script src="/signalr/hubs"></script>
+    <script src="/Scripts/SessionWebcast.js"></script>
+     -->
+    <table cellspacing="0" id="MainContent_formViewCommitteeInformation" width="100%">
+	<tr>
+		<td colspan="2">
+            <div class="panel panel-default full-width">
+                <div class="panel-heading">
+                    <h1 class="panel-title">
+                        <span id="MainContent_formViewCommitteeInformation_lblCommitteeName">House Health & Human Services</span>
+                    </h1>
+                </div>
+                <div class="panel-body">
+                    <a href="https://us02web.zoom.us/j/89853256841" target="_blank">Please click this link for public comment for HHHC</a><br/><br/>
+                    <h5 style="margin-bottom: 10px;">
+                        <span id="MainContent_formViewCommitteeInformation_lblMeetingDate">Monday, Wednesday & Friday- 8:30 a.m. (Room 315)</span>
+                    </h5>
+                    
+
+                    <!--
+                    <div id="messageTable">
+                        <table>
+                            <tbody>
+                                <tr class="loading">
+                                    <td colspan="5">Loading Webcast Information...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    -->
+                    <br />
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title text-center" style="font-weight: bold;">Agenda</h3>
+                        </div>
+                        <div class="panel-body">
+                            <a id="MainContent_formViewCommitteeInformation_linkCommitteeSchedulePDF" href="/Calendar/Session" target="_blank">Click here to view PDF calendars</a>
+                            <br />
+                            
+                            <br />
+                            <div class="alert alert-info">Please note: Only scheduled legislation is listed on this page. Organizational meetings and presentations are not listed.</div>
+                            <div class="alert alert-danger">Please check the <a id="MainContent_formViewCommitteeInformation_linkPDFCalendars" href="/Calendar/Session" target="_blank">PDF calendars</a> for instructions on submitting public comment.</div>
+                            
+                                    <a id="MainContent_formViewCommitteeInformation_repeaterCommittees_linkLocation_0" href="Standing_Committee?CommitteeCode=HHHC"><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_lblLocationDesc_0"><b><font size="5">House Health and Human Services Committee</font></b></span></a><br /><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_lblCommitteeChair_0"><b> DEBORAH ARMSTRONG, CHAIR</b></span>
+                                    <br />
+                                    <br />
+                                    
+                                            <input type="hidden" name="ctl00$MainContent$formViewCommitteeInformation$repeaterCommittees$ctl00$repeaterDates$ctl00$hidLocationDesc" id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_hidLocationDesc_0" value="House Health and Human Services Committee" />
+                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_lblHearingDate_0"><b>Wednesday, February 17, 2021</b></span>
+                                            &nbsp;-&nbsp; <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_lblHearingTime_0"><b> 8: 30 a. m.</b></span>
+                                            &nbsp;-&nbsp; <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_lblRoomNo_0"><b>Room Zoom</b></span>
+                                            <br />
+                                            <br />
+                                            <div>
+			<table cellspacing="0" cellpadding="3" id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0" width="100%">
+				<tr bgcolor="White">
+					<td align="right"><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblPrefix_0"></span>
+                                                        </font></td><td><font color="Black">
+                                                            <a id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_linkBillNumber_0" href="../Legislation/Legislation?chamber=H&amp;legtype=B&amp;legno=186&amp;year=21" target="_blank"><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblEmergency_0"> </span><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblChamber_0">H</span><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblLegType_0">B</span><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblLegNo_0"> 186</span></a></font></td><td align="left" width="15"><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblSuffix_0"></span>
+                                                        </font></td><td><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblTitle_0">REDUCE COUNTY HOSPITAL PROPERTY TAXES</span>
+                                                        </font></td><td><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblSponsor_0"> Rehm</span>
+                                                        </font></td>
+				</tr><tr bgcolor="#EEEEEE">
+					<td align="right"><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblPrefix_1"></span>
+                                                        </font></td><td><font color="Black">
+                                                            <a id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_linkBillNumber_1" href="../Legislation/Legislation?chamber=H&amp;legtype=B&amp;legno=203&amp;year=21" target="_blank"><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblEmergency_1"> </span><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblChamber_1">H</span><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblLegType_1">B</span><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblLegNo_1"> 203</span></a></font></td><td align="left" width="15"><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblSuffix_1"></span>
+                                                        </font></td><td><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblTitle_1">HEALTH SECURITY PLANNING & DESIGN BOARD ACT</span>
+                                                        </font></td><td><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblSponsor_1">D. Armstrong</span>
+                                                        </font></td>
+				</tr><tr bgcolor="White">
+					<td align="right"><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblPrefix_2"></span>
+                                                        </font></td><td><font color="Black">
+                                                            <a id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_linkBillNumber_2" href="../Legislation/Legislation?chamber=H&amp;legtype=B&amp;legno=204&amp;year=21" target="_blank"><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblEmergency_2"> </span><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblChamber_2">H</span><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblLegType_2">B</span><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblLegNo_2"> 204</span></a></font></td><td align="left" width="15"><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblSuffix_2"></span>
+                                                        </font></td><td><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblTitle_2">NOTICE TO COURT IN CERTAIN DOMESTIC AFFAIRS</span>
+                                                        </font></td><td><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblSponsor_2">D. Armstrong</span>
+                                                        </font></td>
+				</tr><tr bgcolor="#EEEEEE">
+					<td align="right"><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblPrefix_3"></span>
+                                                        </font></td><td><font color="Black">
+                                                            <a id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_linkBillNumber_3" href="../Legislation/Legislation?chamber=H&amp;legtype=B&amp;legno=210&amp;year=21" target="_blank"><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblEmergency_3"> </span><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblChamber_3">H</span><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblLegType_3">B</span><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblLegNo_3"> 210</span></a></font></td><td align="left" width="15"><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblSuffix_3"></span>
+                                                        </font></td><td><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblTitle_3">AUDIOLOGY & SPEECH LANGUAGE PATHOLOGY COMPACT</span>
+                                                        </font></td><td><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblSponsor_3"> Barreras</span>
+                                                        </font></td>
+				</tr><tr bgcolor="White">
+					<td align="right"><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblPrefix_4"></span>
+                                                        </font></td><td><font color="Black">
+                                                            <a id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_linkBillNumber_4" href="../Legislation/Legislation?chamber=H&amp;legtype=B&amp;legno=215&amp;year=21" target="_blank"><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblEmergency_4"> </span><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblChamber_4">H</span><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblLegType_4">B</span><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblLegNo_4"> 215</span></a></font></td><td align="left" width="15"><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblSuffix_4"></span>
+                                                        </font></td><td><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblTitle_4">BEHAVIORAL HEALTH SCREENING COVERAGE</span>
+                                                        </font></td><td><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblSponsor_4"> Hochman-Vigil</span>
+                                                        </font></td>
+				</tr><tr bgcolor="#EEEEEE">
+					<td align="right"><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblPrefix_5"></span>
+                                                        </font></td><td><font color="Black">
+                                                            <a id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_linkBillNumber_5" href="../Legislation/Legislation?chamber=H&amp;legtype=B&amp;legno=253&amp;year=21" target="_blank"><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblEmergency_5"> </span><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblChamber_5">H</span><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblLegType_5">B</span><span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblLegNo_5"> 253</span></a></font></td><td align="left" width="15"><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblSuffix_5"></span>
+                                                        </font></td><td><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblTitle_5">DISCLOSURE OF CERTAIN MENTAL HEALTH INFO</span>
+                                                        </font></td><td><font color="Black">
+                                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_0_lblSponsor_5"> Hochman-Vigil</span>
+                                                        </font></td>
+				</tr>
+			</table>
+		</div>
+                                            <br />
+                                            <span id="MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_lblNoteBottom_0">Note: Please submit any amendments or supplemental materials to Dolores.lopez@nmlegis.gov at least 24 hours before the hearing.
+
+To join by Zoom, please create a free Zoom account at https://zoom.us/freesignup/</span>
+                                            <br />
+                                            <br />
+                                            
+                                        
+                                            
+                                        
+                                    
+                                
+                                    
+                                
+
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title text-center" style="font-weight: bold;">Scheduled Legislation</h3></div><div class="panel-body">
+                            <div>
+			<table class="footable" cellspacing="0" cellpadding="3" align="Center" id="MainContent_formViewCommitteeInformation_gridViewScheduledLegislation">
+				<tr>
+					<td colspan="4">No legislation found</td>
+				</tr>
+			</table>
+		</div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title text-center" style="font-weight: bold;">Committee Members</h3></div><div class="panel-body">
+                            <div>
+			<table class="footable" cellspacing="0" cellpadding="3" align="Center" id="MainContent_formViewCommitteeInformation_gridViewCommitteeMembers">
+				<thead>
+					<tr align="left">
+						<th data-breakpoints="xs sm" scope="col"><font color="Black"><a href="javascript:__doPostBack(&#39;ctl00$MainContent$formViewCommitteeInformation$gridViewCommitteeMembers&#39;,&#39;Sort$Title&#39;)"><font color="Black">Title</font></a></font></th><th scope="col"><font color="Black"><a href="javascript:__doPostBack(&#39;ctl00$MainContent$formViewCommitteeInformation$gridViewCommitteeMembers&#39;,&#39;Sort$LName&#39;)"><font color="Black">Name</font></a></font></th><th data-breakpoints="xs sm" scope="col"><font color="Black"><a href="javascript:__doPostBack(&#39;ctl00$MainContent$formViewCommitteeInformation$gridViewCommitteeMembers&#39;,&#39;Sort$District&#39;)"><font color="Black">District</font></a></font></th><th data-breakpoints="xs sm" scope="col"><font color="Black"><a href="javascript:__doPostBack(&#39;ctl00$MainContent$formViewCommitteeInformation$gridViewCommitteeMembers&#39;,&#39;Sort$Party&#39;)"><font color="Black">Party</font></a></font></th><th scope="col"><font color="Black"><a href="javascript:__doPostBack(&#39;ctl00$MainContent$formViewCommitteeInformation$gridViewCommitteeMembers&#39;,&#39;Sort$Full Status&#39;)"><font color="Black">Role</font></a></font></th>
+					</tr>
+				</thead><tbody>
+					<tr bgcolor="White">
+						<td><font color="Black">Representative</font></td><td class="padding-5px"><font color="Black">
+                                            <a id="MainContent_formViewCommitteeInformation_gridViewCommitteeMembers_linkLegislator_0" href="/Members/Legislator?SponCode=HARMS">Deborah A. Armstrong</a>
+                                        </font></td><td><font color="Black">17</font></td><td><font color="Black">D</font></td><td><font color="Black">Chair</font></td>
+					</tr><tr bgcolor="#EEEEEE">
+						<td><font color="Black">Representative</font></td><td class="padding-5px"><font color="Black">
+                                            <a id="MainContent_formViewCommitteeInformation_gridViewCommitteeMembers_linkLegislator_1" href="/Members/Legislator?SponCode=HFERJ">Joanne J. Ferrary</a>
+                                        </font></td><td><font color="Black">37</font></td><td><font color="Black">D</font></td><td><font color="Black">Vice Chair</font></td>
+					</tr><tr bgcolor="White">
+						<td><font color="Black">Representative</font></td><td class="padding-5px"><font color="Black">
+                                            <a id="MainContent_formViewCommitteeInformation_gridViewCommitteeMembers_linkLegislator_2" href="/Members/Legislator?SponCode=HANDP">Phelps Anderson</a>
+                                        </font></td><td><font color="Black">66</font></td><td><font color="Black">DTS</font></td><td><font color="Black">Member</font></td>
+					</tr><tr bgcolor="#EEEEEE">
+						<td><font color="Black">Representative</font></td><td class="padding-5px"><font color="Black">
+                                            <a id="MainContent_formViewCommitteeInformation_gridViewCommitteeMembers_linkLegislator_3" href="/Members/Legislator?SponCode=HARMG">Gail Armstrong</a>
+                                        </font></td><td><font color="Black">49</font></td><td><font color="Black">R</font></td><td><font color="Black">Member</font></td>
+					</tr><tr bgcolor="White">
+						<td><font color="Black">Representative</font></td><td class="padding-5px"><font color="Black">
+                                            <a id="MainContent_formViewCommitteeInformation_gridViewCommitteeMembers_linkLegislator_4" href="/Members/Legislator?SponCode=HBABR">Brittney Barreras</a>
+                                        </font></td><td><font color="Black">12</font></td><td><font color="Black">D</font></td><td><font color="Black">Member</font></td>
+					</tr><tr bgcolor="#EEEEEE">
+						<td><font color="Black">Representative</font></td><td class="padding-5px"><font color="Black">
+                                            <a id="MainContent_formViewCommitteeInformation_gridViewCommitteeMembers_linkLegislator_5" href="/Members/Legislator?SponCode=HBASH">Karen C. Bash</a>
+                                        </font></td><td><font color="Black">68</font></td><td><font color="Black">D</font></td><td><font color="Black">Member</font></td>
+					</tr><tr bgcolor="White">
+						<td><font color="Black">Representative</font></td><td class="padding-5px"><font color="Black">
+                                            <a id="MainContent_formViewCommitteeInformation_gridViewCommitteeMembers_linkLegislator_6" href="/Members/Legislator?SponCode=HLORD">Stefani Lord</a>
+                                        </font></td><td><font color="Black">22</font></td><td><font color="Black">R</font></td><td><font color="Black">Member</font></td>
+					</tr><tr bgcolor="#EEEEEE">
+						<td><font color="Black">Representative</font></td><td class="padding-5px"><font color="Black">
+                                            <a id="MainContent_formViewCommitteeInformation_gridViewCommitteeMembers_linkLegislator_7" href="/Members/Legislator?SponCode=HMATT">Marian Matthews</a>
+                                        </font></td><td><font color="Black">27</font></td><td><font color="Black">D</font></td><td><font color="Black">Member</font></td>
+					</tr><tr bgcolor="White">
+						<td><font color="Black">Representative</font></td><td class="padding-5px"><font color="Black">
+                                            <a id="MainContent_formViewCommitteeInformation_gridViewCommitteeMembers_linkLegislator_8" href="/Members/Legislator?SponCode=HMORO">Roger E. Montoya</a>
+                                        </font></td><td><font color="Black">40</font></td><td><font color="Black">D</font></td><td><font color="Black">Member</font></td>
+					</tr><tr bgcolor="#EEEEEE">
+						<td><font color="Black">Representative</font></td><td class="padding-5px"><font color="Black">
+                                            <a id="MainContent_formViewCommitteeInformation_gridViewCommitteeMembers_linkLegislator_9" href="/Members/Legislator?SponCode=HTERR">Luis M. Terrazas</a>
+                                        </font></td><td><font color="Black">39</font></td><td><font color="Black">R</font></td><td><font color="Black">Member</font></td>
+					</tr><tr bgcolor="White">
+						<td><font color="Black">Representative</font></td><td class="padding-5px"><font color="Black">
+                                            <a id="MainContent_formViewCommitteeInformation_gridViewCommitteeMembers_linkLegislator_10" href="/Members/Legislator?SponCode=HTHOE">Elizabeth "Liz" Thomson</a>
+                                        </font></td><td><font color="Black">24</font></td><td><font color="Black">D</font></td><td><font color="Black">Member</font></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </td>
+	</tr>
+</table>
+    
+    
+    
+    
+    
+
+        </div>
+        <div class="footer noprint" style="margin-top: -20px;">
+            <div class="row" style="margin-left: -5px; margin-right: -5px;">
+                <div class="col-xs-12 col-sm-8">
+                    <div style="display: block;">
+                        <img id="imgSeal" src="../Images/Capitol/seal.png" alt="State Seal" width="50" style="float: left; margin-left: 5px; margin-right: 5px;" />
+                        <div style="font-weight: bold;">
+                            <span>New Mexico Legislature © 2021</span>
+                            <br />
+                            <span>
+                                <a style="font-style: italic;" href="/Visitors" target="_blank">Visit the Capitol</a>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-4">
+                    Email <a href="mailto:legis.webmaster@nmlegis.gov">legis.webmaster@nmlegis.gov</a> if you encounter an issue with the website or have a suggestion to improve it. This email is NOT for use to contact your legislators. Please contact them directly.
+                </div>
+            </div>
+        </div>
+        
+    </form>
+</body>
+
+</html>
