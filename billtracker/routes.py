@@ -754,11 +754,18 @@ def all_daily_emails(key):
             continue
 
         # Only send emails if the user is tracking at least one bill
-        # in the current session.
-        # current session, don't send email.
+        # in the current session that either has a scheduled date
+        # upcoming, or has had an action in the last day.
         yearcode = LegSession.current_yearcode()
+        now = datetime.now()
+        # slightly less than one day, in seconds
+        oneday = 60*60*23.5
         for b in bills:
-            if b.year == yearcode:
+            if b.year != yearcode:
+                continue
+            if (b.last_action_date and
+                (now - b.last_action_date).seconds < oneday) or \
+                b.scheduled_in_future():
                 mailto(user.username, key)
                 break
 
@@ -777,7 +784,7 @@ def mailto(username, key):
     if not user.email:
         return "FAIL %s doesn't have an email address registered.\n" % username
 
-    print("Sending email to", user.username, file=sys.stderr)
+    print("** Sending email to", user.username, file=sys.stderr)
     try:
         daily_user_email(user)
     except Exception as e:
