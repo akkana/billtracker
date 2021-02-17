@@ -23,6 +23,10 @@ import traceback
 # it may be an amendment or some other supporting document.
 billno_pat = re.compile("([SH][JC]{0,1}[BMR])(0*)([1-9][0-9]*)")
 
+# Same thing, but occurring in a file pathname,
+# so it should start with / and end with .
+bill_file_pat = re.compile(".*/([SH][JC]{0,1}[BMR])(0*)([1-9][0-9]*)\.")
+
 
 # XXX The URLmapper stuff should be killed, with any functionality
 # that's still needed moved into billrequests.
@@ -515,7 +519,7 @@ g_all_bills = {}
 
 
 def all_bills(sessionid, yearcode, sessionname):
-    """Return an OrderedDict of all bills, billno: [title, url]
+    """Get an OrderedDict of all bills in the given session.
        From https://www.nmlegis.gov/Legislation/Legislation_List?Session=NN
        sessionid a numeric ID used by nmlegis; yearcode is a string e.g. 20s2.
        Mostly this comes from cached files, but periodically those
@@ -547,6 +551,7 @@ def all_bills(sessionid, yearcode, sessionname):
                               file=sys.stderr)
                         continue
 
+            # XXX But what if the cachefile was only partly populated?
             return g_all_bills[yearcode]
 
     except Exception as e:
@@ -640,14 +645,18 @@ def all_bills(sessionid, yearcode, sessionname):
 
             # Is it a plain bill number? Exclude amendments, etc.
             try:
-                match = billpat.search(href)
-                billno = match.group(1) + match.group(2)
+                match = bill_file_pat.search(href)
+                # group(2) is the extraneous zeros, if any.
+                billno = match.group(1) + match.group(3)
                 # Weirdly, the web server gives absolute paths as links.
                 # So either need to prepend the server domain,
                 # or else use url + basename(href).
                 g_all_bills[yearcode][billno][allbills_index] = \
                     "https://www.nmlegis.gov/%s" % (href)
-            except:
+            except Exception as e:
+                # print("href %s didn't match a bill pat -- skipping" % href,
+                #       file=sys.stderr)
+                # print(e, file=sys.stderr)
                 pass
 
     for billtype in ("bills", "memorials", "resolutions"):
