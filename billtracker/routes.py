@@ -11,7 +11,7 @@ from billtracker.bills import nmlegisbill, billutils, billrequests
 from .emails import daily_user_email, send_email
 from config import ADMINS
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, date
 import dateutil.parser
 import json
 import requests
@@ -735,6 +735,11 @@ def all_daily_emails(key):
     if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
+    # Get the current date. Bills' last action dates are just dates,
+    # with the time set to 00:00:00. We'll consider a bill active if
+    # its date is today or yesterday.
+    today = date.today()
+
     for user in User.query.all():
         if not user.email:
             print("%s doesn't have an email address: not sending email"
@@ -748,8 +753,11 @@ def all_daily_emails(key):
 
         # If the user has never tracked any bills, don't send email.
         bills = user.bills
+        # XXX Would be nice to figure out a query that uses the
+        # database to restrict the bill list to the current session.
+
         if not bills:
-            print("%s doesn't have any bills registered: not sending email"
+            print("%s doesn't have any bills registered: not emailing"
                   % user.username, file=sys.stderr)
             continue
 
@@ -757,17 +765,31 @@ def all_daily_emails(key):
         # in the current session that either has a scheduled date
         # upcoming, or has had an action in the last day.
         yearcode = LegSession.current_yearcode()
-        now = datetime.now()
         # slightly less than one day, in seconds
         oneday = 60*60*23.5
+        sendmail = False
         for b in bills:
             if b.year != yearcode:
                 continue
-            if (b.last_action_date and
-                (now - b.last_action_date).seconds < oneday) or \
-                b.scheduled_in_future():
-                mailto(user.username, key)
+
+            # Bill last action dates are just dates, time is 00:00:00
+            # so timezone is somewhat arbitrary. Use the local one.
+            if b.last_action_date:
+                lastaction = b.last_action_date.date()
+                if today - lastaction <= timedelta(days=1):
+                    sendmail = True
+                    break
+
+            if b.scheduled_in_future():
+                sendmail = True
                 break
+
+        if sendmail:
+            mailto(user.username, key)
+        else:
+            print("*** Not emailing %s (%s): no active bills" % (user.username,
+                                                                 user.email),
+                  file=sys.stderr)
 
     return "OK\n"
 
@@ -784,11 +806,13 @@ def mailto(username, key):
     if not user.email:
         return "FAIL %s doesn't have an email address registered.\n" % username
 
-    print("** Sending email to", user.username, file=sys.stderr)
+    print("** Sending email to %s (%s)" % (user.username, user.email),
+          file=sys.stderr)
     try:
         daily_user_email(user)
     except Exception as e:
-        print("Error, couldn't send email to %s" % username, file=sys.stderr)
+        print("Error, couldn't send email to %s (%s)" % (username, user.email),
+              file=sys.stderr)
         print(e, file=sys.stderr)
         print(traceback.format_exc(), file=sys.stderr)
         return "FAIL couldn't send email to %s" % username

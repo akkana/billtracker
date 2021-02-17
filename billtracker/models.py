@@ -1144,6 +1144,7 @@ class LegSession(db.Model):
 
     def sessionname(self):
         """Return the full session name, e.g. "2020 2nd Special"
+           XXX This should probably move to nmlegisbill.
         """
         return "%4d %s" % (self.year, self.typename)
 
