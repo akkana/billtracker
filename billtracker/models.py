@@ -207,22 +207,13 @@ https://nmbilltracker.com/confirm_email/%s
         if not yearcode:
             yearcode = LegSession.current_yearcode()
 
+        # Here's how to do a join query that also filters by attributes:
         return db.session.query(Bill) \
                          .join(userbills) \
                          .join(User) \
                          .filter(User.id == self.id) \
                          .filter(Bill.year == yearcode) \
                          .all()
-
-        pairs = db.session.query(User, Bill) \
-                   .filter(User.id==self.id) \
-                   .filter(Bill.year==yearcode) \
-                   .all()
-        # This gives a list of (user, bill). Return just the bills.
-        # It would be nice to find a way to make the database do this,
-        # but I haven't found one.
-        return [ b for (a, b) in pairs ]
-
 
     def bills_by_number(self, yearcode=None):
         return sorted(self.bills_by_yearcode(yearcode),
