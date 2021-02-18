@@ -17,7 +17,7 @@ import sys
 
 
 # Many-to-many relationship between users and bills requires
-# (or at least recommends) a relationship table,
+# (or at least recommends) a association table,
 # even if we're only querying one way and only want to list the
 # bills for each user, not the users for each bill.
 # http://flask-sqlalchemy.pocoo.org/2.3/models/
@@ -47,7 +47,12 @@ class User(UserMixin, db.Model):
     # For authenticating users by email on password changes, etc.
     auth_code = db.Column(db.String(20), nullable=True)
 
-    # List of bills the user cares about (many to many)
+    # List of bills the user cares about (many to many).
+    # lazy='subquery' makes user.bills be a list of bills.
+    # lazy='dynamic' makes user.bills be a query, so you can
+    # modify it with further filter_by calls like
+    # self.bills.filter_by(year=yearcode),
+    # but then you have to append .all() whenever you use it.
     bills = db.relationship('Bill', secondary=userbills, lazy='subquery',
                             backref=db.backref('users', lazy=True))
 
@@ -199,19 +204,25 @@ https://nmbilltracker.com/confirm_email/%s
     #
 
     def bills_by_yearcode(self, yearcode=None):
-        # XXX There has got to be a clever way to do this from the db,
-        # but userbills only has user_id and bill_id.
-        # thebills = db.session.query(userbills).filter_by(user_id=self.id).count()
-
         if not yearcode:
             yearcode = LegSession.current_yearcode()
 
-        bill_list = []
-        for bill in self.bills:
-            if bill.year == yearcode:
-                bill_list.append(bill)
+        return db.session.query(Bill) \
+                         .join(userbills) \
+                         .join(User) \
+                         .filter(User.id == self.id) \
+                         .filter(Bill.year == yearcode) \
+                         .all()
 
-        return bill_list
+        pairs = db.session.query(User, Bill) \
+                   .filter(User.id==self.id) \
+                   .filter(Bill.year==yearcode) \
+                   .all()
+        # This gives a list of (user, bill). Return just the bills.
+        # It would be nice to find a way to make the database do this,
+        # but I haven't found one.
+        return [ b for (a, b) in pairs ]
+
 
     def bills_by_number(self, yearcode=None):
         return sorted(self.bills_by_yearcode(yearcode),

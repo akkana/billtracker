@@ -751,27 +751,20 @@ def all_daily_emails(key):
                   % user.username, file=sys.stderr)
             continue
 
-        # If the user has never tracked any bills, don't send email.
-        bills = user.bills
-        # XXX Would be nice to figure out a query that uses the
-        # database to restrict the bill list to the current session.
+        # Get this user's bills for the current yearcode.
+        yearcode = LegSession.current_yearcode()
+
+        bills = user.bills_by_yearcode(yearcode)
 
         if not bills:
-            print("%s doesn't have any bills registered: not emailing"
+            print("%s doesn't have any bills in this session: not emailing"
                   % user.username, file=sys.stderr)
             continue
 
-        # Only send emails if the user is tracking at least one bill
-        # in the current session that either has a scheduled date
-        # upcoming, or has had an action in the last day.
-        yearcode = LegSession.current_yearcode()
         # slightly less than one day, in seconds
         oneday = 60*60*23.5
         sendmail = False
         for b in bills:
-            if b.year != yearcode:
-                continue
-
             # Bill last action dates are just dates, time is 00:00:00
             # so timezone is somewhat arbitrary. Use the local one.
             if b.last_action_date:
@@ -787,8 +780,8 @@ def all_daily_emails(key):
         if sendmail:
             mailto(user.username, key)
         else:
-            print("*** Not emailing %s (%s): no active bills" % (user.username,
-                                                                 user.email),
+            print("Not emailing %s (%s): no active bills" % (user.username,
+                                                             user.email),
                   file=sys.stderr)
 
     return "OK\n"
