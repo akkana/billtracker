@@ -23,6 +23,7 @@ from bs4 import BeautifulSoup
 import os, sys
 import time
 import dateutil.parser
+import traceback
 
 from urllib.parse import urlparse
 from ftplib import FTP
@@ -99,8 +100,9 @@ def get(url, params=None, **kwargs):
         # Cache file doesn't exist, but it's local mode so
         # can't use the net.
         if DEBUG:
-            print("billrequests.get(): LOCAL_MODE, but "
+            print("*** billrequests.get(): LOCAL_MODE, but "
                   "cachefile %s doesn't exist" % cachefile)
+            print("  for URL", url)
         response.status_code = 404
         response.text = None
         return response
@@ -241,18 +243,20 @@ def soup_from_cache_or_net(url, billdic=None, cachesecs=CACHESECS):
     if DEBUG:
         print("=== soup_from_cache_or_net:", url, "billdic", billdic)
 
-    if billdic:
-        cachefile = url_to_cache_filename(url, billdic)
-    else:
-        cachefile = None
+    cachefile = url_to_cache_filename(url, billdic)
 
     response = get(url, cachefile=cachefile, cachesecs=cachesecs)
 
     if response.status_code != 200:
-        print("No soup! Response was", response.status_code)
+        print("No soup! Response was", response.status_code, file=sys.stderr)
+        print("  on cache %s,\n  URL %s" % (cachefile, url), file=sys.stderr)
         return None
 
     soup = BeautifulSoup(response.text, "lxml")
+    if not soup:
+        print("No soup! On cache %s,\n  URL %s" % (cachefile, url),
+              file=sys.stderr)
+
     return soup
 
 

@@ -39,7 +39,7 @@ Please try again later.
 
     <tr><th>Bill <th>Title <th>Bill text
     {% if user %}
-      <th>Track <th>Untrack <th>Followers
+      <th>Track <th>Untrack
     {% endif %}
  </thead>
 
@@ -54,7 +54,7 @@ Please try again later.
       <td>&nbsp;
       {% endif %}
       {% if user and not user.is_anonymous %}
-        {% if user.tracking(bill_line[0], session["yearcode"]) %}
+        {% if bill_line[4] %}
           <td>
           <td><input type="checkbox" class="untrack" name="u_{{ bill_line[0] }}">
         {% else %}
@@ -64,12 +64,6 @@ Please try again later.
       {% else %}
           <td>&nbsp; <td>&nbsp;
       {% endif %}
-
-        <td>{% if bill_line[4] is defined and bill_line[4] %}
-              {{ bill_line[4] }}
-            {% else %}
-              &nbsp;
-            {% endif %}
   {% endfor %}
 
   {% if user %}
@@ -90,7 +84,7 @@ Please try again later.
 {% if not returnpage %}
 <p>
 Source: This comes from the
-<a href="https://www.nmlegis.gov/Legislation/Legislation_List?Session=57">New
+<a href="https://www.nmlegis.gov/Legislation/Legislation_List">New
 Mexico Legislature's Legislation Listing</a>.
 {% endif %}
 

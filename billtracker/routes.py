@@ -487,8 +487,12 @@ def allbills():
     # Do the slow part first, before any database accesses.
     # This can fail, e.g. if nmlegis isn't answering.
     try:
-        allbills = nmlegisbill.all_bills(leg_session.id, yearcode, sessionname)
-        # This is an OrderedDict, { billno: [title, url] }
+        allbills, titleschanged = nmlegisbill.all_bills(
+            leg_session.id, yearcode, sessionname)
+        # allbills is an OrderedDict,
+        #   { billno: [title, url, contentslink, amendlink] }
+        # titleschanged is a dict, { billno: "old title" }
+
     except Exception as e:
         print("Problem fetching all_bills", file=sys.stderr)
         print(traceback.format_exc(), file=sys.stderr)
@@ -505,30 +509,27 @@ def allbills():
     if current_user and not current_user.is_anonymous:
         user = User.query.filter_by(username=current_user.username).first()
         bills_seen = user.get_bills_seen(yearcode)
+        bills_tracking = [ b.billno for b in user.bills if b.year == yearcode]
+            # single query, don't query for each bill
     else:
         user = None
         bills_seen = []
+        bills_tracking = []
 
     newbills = []
     oldbills = []
 
     # allbills.html expects a list of
-    # [ [billno, title, link, fulltext_link, num_tracking ] ]
+    # [ [billno, title, link, fulltext_link, tracked_by_user ] ]
     for billno in allbills:
-        bill = Bill.query.filter_by(billno=billno, year=yearcode).first()
-        if bill:
-            if bill.amendlink:
-                contents = bill.amendlink
-            else:
-                contents = bill.contentslink
-            num_tracking = bill.num_tracking()
-        else:
-            contents = allbills[billno][2]
-            num_tracking = 0
+        # Used to query each bill here. That was nice because we could update
+        # the bill's title and show a column for number of users tracking it;
+        # but these queries turned out to be a huge performance bottleneck,
+        # adding more than a second to page loading.
         args = [ billno, allbills[billno][0], allbills[billno][1],
-                 contents, num_tracking ]
+                 allbills[billno][2], billno in bills_tracking ]
 
-        if user and billno not in bills_seen:
+        if user and (billno not in bills_seen or billno in titleschanged):
             newbills.append(args)
         else:
             oldbills.append(args)
@@ -540,7 +541,7 @@ def allbills():
     bill_lists = [ { 'thelist': newbills,
                      'header': """<h2>Recently Filed Bills:</h2>
 <p>
-These are the bills filed since the last time you checked this page.
+These are the new or changed bills since the last time you checked this page.
 <br />
 (Warning: that means that if you leave this page and load it again later,
 or reload the page, these bills will no longer be listed as new.)""",
@@ -550,6 +551,8 @@ or reload the page, these bills will no longer be listed as new.)""",
                      'header': "<h2>Older bills</h2>",
                      'alt': ""
                    } ]
+
+    db.session.commit()
 
     return render_template('allbills.html', user=user,
                        title="NM Bill Tracker: All Bills in the %s Session" \

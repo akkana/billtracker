@@ -56,19 +56,19 @@ class User(UserMixin, db.Model):
     bills = db.relationship('Bill', secondary=userbills, lazy='subquery',
                             backref=db.backref('users', lazy=True))
 
-    # List of bill IDs the user has seen -- these bills may not even
-    # be in the database, but they've been on the "all bills" list
-    # so the user has had a chance to review them.
-    # Made more complicated by the fact that the lists will be different
-    # for each session.
-    # SQL doesn't have any list types, so this is a comma separated list
-    # of billnumbers for each session, like this:
-    # 19:SB1,SB2,HB33|19s:SB1,HB1|20:...
-    # If there is no colon, it's presumed to be left over from before
-    # it handled multiple sessions, and the existing data will be ignored
-    # so all bills will be new again when first seen.
-    # Bill IDs are usually under 6 characters and a session isn't
-    # likely to have more than 2500 bills, so 20000 would be a safe length.
+    # List of bill IDs the user has seen in the most recent session.
+    # These bills may not even be in the database, but they've been on
+    # the "all bills" list so the user has had a chance to review them.
+    #
+    # The bill list changes with each session, but new/seen bills only
+    # make sense for the latest session -- it's the only session for
+    # which bills are still being added. But there needs to be a way
+    # to detect when a new session has started. So bills_seen is
+    # a string like this, starting with the yearcode::
+    #   21: HB1,HB2,HB3,HB5, ...
+    #
+    # Previously, it stored multiple yearcodes at once, separated by |
+    # so there's some legacy code to eliminate all but the latest yearcode.
     bills_seen = db.Column(db.String())
 
     # Comma-separated list of sponcodes for legislators this user
@@ -82,6 +82,20 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
         return '<User %s (%d)>' % (self.username, self.id)
+
+    @staticmethod
+    def remove_from_bills_seen(bill_list, yearcode):
+        """Remove a bill from the bills_seen of ALL users.
+        """
+        print(self, "has changed! Updating bills_seen for all users",
+              file=sys.stderr)
+
+        # Query all the users who have bills_seen in this yearcode
+        # yearpat = "%%%s%%" % yearcode
+        # Query all users whose bills_seen starts with this yearcode.
+        yearpat = "%s:%%" % (yearcode)
+        for u in User.query.filter(User.bills_seen.like(yearpat)).all():
+            u.remove_from_bills_seen(bill_list, self.year)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -112,46 +126,83 @@ class User(UserMixin, db.Model):
         return (bill in self.bills)
 
     def get_bills_seen(self, yearcode):
-        if self.bills_seen:
-            sessionlists = self.bills_seen.split('|')
-            for sl in sessionlists:
-                try:
-                    seenyearcode, bills = sl.split(':')
-                    if seenyearcode == yearcode:
-                        return bills.split(',')
-                except ValueError:
-                    pass
+        """Which billnos has the user already seen on the allbills page?
+           Return a list of billno strings.
+        """
+        if not self.bills_seen:
+            return []
+
+        # bills_seen isn't | separated any more, but do this
+        # in case of a user who hasn't been updated since they were.
+        sessionlists = self.bills_seen.split('|')
+        for sl in sessionlists:
+            try:
+                seenyearcode, bills = sl.split(':')
+                if seenyearcode == yearcode:
+                    return bills.split(',')
+            except ValueError:
+                pass
+
+        # Probably a parse problem: maybe the yearcode is missing
+        # and it's just a comma separated list of billnos.
+        # Return the last list of bills.
+        if sl and ':' not in sl:
+            print("Trouble parsing bills_seen for", self.username,
+                  file=sys.stderr)
+            return sl.split(',')
+        print("Confused, resetting %s bills_seen", file=sys.stderr)
         return []
+
+    def remove_from_bills_seen(self, billno_list, yearcode):
+        """Remove the given billnos from all users' bills_seen.
+           For instance, if a dummy bill's title changes to a real title,
+           users should see it again.
+        """
+        if not self.bills_seen:
+            return
+        if yearcode not in self.bills_seen:
+            return
+
+        billno_list = self.get_bills_seen(yearcode)
+        if billno not in billno_list:
+            return
+
+        print("Removing %s from %s bills_seen" % (billno, self.username),
+              file=sys.stderr)
+        billno_list.remove(billno)
+        self.update_bills_seen(','.join(billno_list), yearcode)
+        db.session.add(self)
+
+    def add_to_bills_seen(self, bill_list, yearcode):
+        seen = self.get_bills_seen(yearcode)
+        seen += bill_list
+        seen.sort()
+        self.update_bills_seen(','.join(seen), yearcode)
+        db.session.add(self)
 
     def update_bills_seen(self, billno_list, yearcode):
         """billno_list should be a comma-separated string.
         """
-        if self.bills_seen and ':' not in self.bills_seen:
-            self.bills_seen = ""
+        # Don't update with an earlier year than is currently there.
+        # A user shouldn't lose all their bills_seen info just because
+        # they wanted to view all_bills from a previous session.
+        # But if there's nothing from the current session, it's okay
+        # to keep updating an earlier session (useful for unit tests).
+        try:
+            latest_session_seen, curlist = self.bills_seen.split(":")
+            if LegSession.earlier_than(yearcode, latest_session_seen):
+                print("Refusing to update bills_seen for yearcode", yearcode,
+                      file=sys.stderr)
+                return
+        except:
+            # Probably there's no session specified in billno_list.
+            # Accept the update.
+            if self.bills_seen:
+                print("Eek, not sure of the latest session seen for %s: %s..."
+                      % (self.username, self.bills_seen[:5]), file=sys.stderr)
 
-        if self.bills_seen:
-            new_bills_seen = []
-            sessionlists = self.bills_seen.split('|')
-            for sl in sessionlists:
-                seenyearcode, bills = sl.split(':')
-                if seenyearcode == yearcode:
-                    new_bills_seen.append(yearcode + ":" + billno_list)
-                    billno_list = ""
-                else:
-                    new_bills_seen.append(sl)
-            # Did we append billno_list? Or was it the first time
-            # seeing any bills from this yearcode?
-            if billno_list:
-                new_bills_seen.append(yearcode + ":" + billno_list)
-        else:
-            new_bills_seen = [ yearcode + ":" + billno_list ]
-
-        # Maybe later: Only keep the last three sessions worth
-
-        self.bills_seen = '|'.join(new_bills_seen)
-
+        self.bills_seen = "%s:%s" % (yearcode, billno_list)
         db.session.add(self)
-        db.session.commit()
 
     def send_confirmation_mail(self):
         authcode = ''
@@ -394,6 +445,7 @@ class Bill(db.Model):
            with a secondary sort on billno.
            But if a bill is scheduled, put it first in the list,
            with bills that have the earliest scheduled dates first.
+           This is the default sort on the home page.
         """
         # Bills scheduled for a committee meeting soon are the most
         # important and must be listed first.
@@ -515,6 +567,15 @@ class Bill(db.Model):
         tracking = db.session.query(userbills).filter_by(bill_id=self.id).all()
         for u in tracking:
             userlist.append(User.query.filter_by(id=u.user_id).first())
+
+        # Another way to do this (not sure if it's any more efficient):
+        # db.session.query(User) \
+        #     .join(userbills) \
+        #     .join(Bill) \
+        #     .filter(Bill.billno==self.billno) \
+        #     .filter(Bill.year==self.year) \
+        #     .all()
+
         return userlist
 
 
@@ -535,10 +596,25 @@ class Bill(db.Model):
             if scheddate >= nowdate:
                 return True
 
-
     def set_from_parsed_page(self, b):
-        # For location, there's a name change,
-        # and if the committee changes, also set scheduled_date
+        """b is a bill dictionary coming from nmlegisbill.parse_bill_page().
+           Set this Bill's values according to what was on the page.
+        """
+        now = datetime.now()
+
+        # If the name changes, it was probably a dummy bill.
+        # But don't worry about updating bills_seen: that should
+        # be handled from allbills.
+        if self.title and self.title != b['title']:
+            print(self, "title changed to '%s'\n  from '%s'"
+                  % (b['title'], self.title), file=sys.stderr)
+            self.title = b['title']
+
+            # A name change should also update the last action date.
+            b["last_action_date"] = now
+            db.session.add(self)
+
+        # If the committee changes, also set scheduled_date
         # to include the committee's meeting time.
         # Do that first, to ensure we don't set scheduled_date and
         # then later overwrite it.
@@ -580,7 +656,7 @@ class Bill(db.Model):
             if self.__getattribute__(k) != b[k]:
                 setattr(self, k, b[k])
 
-        self.update_date = datetime.now()
+        self.update_date = now
 
 
     def recent_activity(self, user=None):
@@ -1116,6 +1192,14 @@ class LegSession(db.Model):
     @staticmethod
     def by_yearcode(yearcode):
         return LegSession.query.filter_by(yearcode=yearcode).first()
+
+    @staticmethod
+    def earlier_than(yearcode1, yearcode2):
+        """Return True if yearcode1 is strictly earlier than yearcode2.
+        """
+        # With the extensions I know about, legigraphic order is correct.
+        # But this might change, so be wary.
+        return yearcode1 < yearcode2
 
     @staticmethod
     def update_session_list():

@@ -525,42 +525,69 @@ def all_bills(sessionid, yearcode, sessionname):
        Mostly this comes from cached files, but periodically those
        cached files will be updated from the Legislation_List URL.
 
-       Returns an OrderedDict of
+       Returns (allbills, titleschanged)
+       where allbills is an OrderedDict of
            billno: ('TITLE', billurl, contentsurl, amendurl)
+       and titleschanged is a dict { billno: "old title" }
     """
+    # Keep track of bills whose titles change.
+    # They'll need to be treated as new bills.
+    titleschanged = {}
+
+    # Read in the special cachefile no matter what; use it to
+    # decide what the old titles were.
     all_bills_cachefile = '%s/all_bills_%s.txt' % (billrequests.CACHEDIR,
                                                    yearcode)
+
+    if yearcode not in g_all_bills:
+        g_all_bills[yearcode] = OrderedDict()
+        # XXX Does the leg website ever delete bills? If so, revisit this.
+
+    def read_all_bills_cachefile():
+        with open(all_bills_cachefile) as fp:
+            for line in fp:
+                try:
+                    pieces = line.strip().split('|')
+                    if len(pieces) == 4:
+                        pieces.append("")
+                    billno, title, url, billtext, amendlink = pieces
+                    g_all_bills[yearcode][billno] = [title, url,
+                                                     billtext, amendlink]
+                except:
+                    print("Bad line in all_bills cache file:", line,
+                          file=sys.stderr)
+                    continue
+
+        # If the cachefile was only partly populated because some
+        # files were missing at the time it was updated, that case
+        # won't be detected.
+
     try:
         filestat = os.stat(all_bills_cachefile)
         if (time.time() - filestat.st_mtime) <= billrequests.CACHESECS:
-            # Cache file is recent enough. Read from there.
-            if yearcode in g_all_bills:
-                return g_all_bills[yearcode]
-            g_all_bills[yearcode] = {}
-            with open(all_bills_cachefile) as fp:
-                for line in fp:
-                    try:
-                        pieces = line.strip().split('|')
-                        if len(pieces) == 4:
-                            pieces.append("")
-                        billno, title, url, billtext, amendlink = pieces
-                        g_all_bills[yearcode][billno] = [title, url,
-                                                         billtext, amendlink]
-                    except:
-                        print("Bad line in all_bills cache file:", line,
-                              file=sys.stderr)
-                        continue
+            # Cache file is recent enough, no need to re-fetch.
 
-            # XXX But what if the cachefile was only partly populated?
-            return g_all_bills[yearcode]
+            # Is it still in memory?
+            if yearcode in g_all_bills and g_all_bills[yearcode]:
+                return g_all_bills[yearcode], titleschanged
+
+            # Not cached, but recent. Read in the cachefile and return.
+            read_all_bills_cachefile()
+
+            return g_all_bills[yearcode], titleschanged
+
+        else:
+            # The cachefile isn't recent enough, but exists.
+            # Read it to have a record of the old bill titles.
+            read_all_bills_cachefile()
+
 
     except Exception as e:
-        # cache file doesn't exist yet
+        # cache file probably doesn't exist yet
         print("allbills cache file %s didn't exist" % all_bills_cachefile, e,
               file=sys.stderr)
 
-    # The cache file was either not there or not recent enough.
-    # Populate it.
+    # Populate the allbills cache file.
     print("Refreshing the %s bill list" % yearcode, file=sys.stderr)
 
     baseurl = 'https://www.nmlegis.gov/Legislation'
@@ -571,29 +598,43 @@ def all_bills(sessionid, yearcode, sessionname):
     soup = billrequests.soup_from_cache_or_net(
         url, cachesecs=billrequests.CACHESECS-60)
     if not soup:
-        print("Couldn't fetch all bills: network problem")
-        return None
+        print("Couldn't fetch all bills: no soup", file=sys.stderr)
+        return None, None
 
     footable = soup.find('table', id='MainContent_gridViewLegislation')
     # footable is nmlegis' term for this bill table
     if not footable:
         print("Can't read the all-bills list: no footable", file=sys.stderr)
-        return None
+        return None, None
 
     allbills_billno_pat = re.compile(
         'MainContent_gridViewLegislation_linkBillID.*')
     title_pat = re.compile('MainContent_gridViewLegislation_lblTitle.*')
-    g_all_bills[yearcode] = OrderedDict()
+
     for tr in footable.findAll('tr'):
         billno_a = tr.find('a', id=allbills_billno_pat)
         title_a = tr.find('span', id=title_pat)
         if billno_a and title_a:
             # Text under the link might be something like "HB  1"
             # or might have stars, so remove spaces and stars:
-            billno_url = billno_a.text.replace(' ', '').replace('*', '')
+            billno_str = billno_a.text.replace(' ', '').replace('*', '')
+
+            # Check whether it's a changed title.
+            if yearcode in g_all_bills and \
+               billno_str in g_all_bills[yearcode] and \
+               g_all_bills[yearcode][billno_str][0] != title_a.text:
+                # Title has changed!
+                print("%s: title changed to '%s', from '%s'"
+                      % (billno_str, title_a.text,
+                         g_all_bills[yearcode][billno_str][0]),
+                      file=sys.stderr)
+                titleschanged[billno_str] = \
+                    g_all_bills[yearcode][billno_str][0]
+                g_all_bills[yearcode][billno_str][0] = title_a.text
+
             # Add this billno and billurl to the global list.
             # Don't know the contents or amend urls yet, so leave blank.
-            g_all_bills[yearcode][billno_url] \
+            g_all_bills[yearcode][billno_str] \
                 = [ title_a.text, baseurl + "/" + billno_a['href'],
                     "", "" ]
 
@@ -674,7 +715,7 @@ def all_bills(sessionid, yearcode, sessionname):
                   file=outfp)
 
     # Now g_all_bills[yearcode] is populated, one way or the other
-    return g_all_bills[yearcode]
+    return g_all_bills[yearcode], titleschanged
 
 
 house_senate_billno_pat = re.compile('.*_linkBillID_[0-9]*')
@@ -778,8 +819,6 @@ def expand_committee(code):
                     # extraneous space between : and 30.
                     timestr = ' '.join([mtgdates[i].text,
                                         mtgtimes[i].text.replace(' ', '')])
-                    print("  %s: appending '%s', '%s'" % (code, billno,
-                                                          timestr))
                     scheduled.append([billno, timestr])
         else:
             print("Unequal dates %d, times %d, bills %d"

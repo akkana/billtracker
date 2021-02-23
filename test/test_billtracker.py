@@ -95,7 +95,7 @@ class TestBillTracker(unittest.TestCase):
         self.assertEqual(bill.billno, "HB73")
         self.assertEqual(bill.title, 'EXEMPT NM FROM DAYLIGHT SAVINGS TIME')
 
-        # Add a bill that has mostly null fields
+        # Add a bill that has mostly null fields.
         bill = Bill()
         billdata = {
             'billno': 'HB100',
@@ -292,6 +292,101 @@ class TestBillTracker(unittest.TestCase):
         self.assertIn("""<div class="error">""", pageHTML)
         self.assertIn("&#39;HB-45&#39; doesn&#39;t look like a bill number",
                       pageHTML)
+
+        # Some bills_seen tests
+        billno_list = [ 'SB1', 'SB2', 'SB3' ]
+        user.update_bills_seen(','.join(billno_list), '19')
+        seen = user.get_bills_seen('19')
+        self.assertEqual(seen, billno_list)
+
+        user.add_to_bills_seen([ "HB1", "HB100" ], '19')
+        billno_list.append("HB1")
+        billno_list.append("HB100")
+        seen = user.get_bills_seen('19')
+        billno_list.sort()
+        self.assertEqual(seen, billno_list)
+
+        ################
+        # Now check how the allbills page influences bills_seen
+        user.bills_seen = ""
+        db.session.add(user)
+        db.session.commit()
+
+        # allbills page: everything should be new.
+        response = self.app.get("/allbills?yearcode=19")
+        self.assertTrue(response.status_code == 200 or
+                        response.status_code == 302)
+
+        response_html = response.get_data(as_text=True)
+
+        # If output changes, uncomment this to get a new copy:
+        # with open("/tmp/check1.html", "w") as outfp:
+        #     outfp.write(response_html)
+        with open("test/files/allnewbills.html") as fp:
+            expected_html = fp.read()
+        self.assertEqual(response_html, expected_html)
+
+        # Now all the bills have been seen, none should be new.
+        response = self.app.get("/allbills?yearcode=19")
+        self.assertTrue(response.status_code == 200 or
+                        response.status_code == 302)
+        response_html = response.get_data(as_text=True)
+        # with open("/tmp/check2.html", "w") as outfp:
+        #     outfp.write(response_html)
+        with open("test/files/nonewbills.html") as fp:
+            expected_html = fp.read()
+        self.assertEqual(response_html, expected_html)
+
+        # The next section requires a lot of substituting of
+        # temporary replacement files. A pair of helpers:
+        def substitute_file(filename, extra):
+            os.rename(filename, filename + ".save")
+            os.rename(filename + extra, filename)
+
+        def orig_file(filename, extra):
+            os.rename(filename, filename + extra)
+            os.rename(filename + ".save", filename)
+
+        # Change a bill's title. That involves moving the bill's
+        # html description aside and replacing it with one that
+        # has a different title.
+        substitute_file("test/cache/Legislation_List_Session=57",
+                        ".titlechange")
+        substitute_file("test/cache/2019-HB73.html", ".titlechange")
+
+        # Make sure the old title is the expected one
+        hb73 = Bill.query.filter_by(billno="HB73").first()
+        self.assertEqual(hb73.title, "EXEMPT NM FROM DAYLIGHT SAVINGS TIME")
+
+        # Refresh HB73 so it will get the new title
+        # XXX probably remove this!
+        response = self.app.post("/api/refresh_one_bill",
+                                 data={ 'BILLNO': 'HB73', 'KEY': self.key,
+                                        'YEARCODE': '19'} )
+        self.assertTrue(response.status_code == 200 or
+                        response.status_code == 302)
+        self.assertEqual(response.get_data(as_text=True), 'OK Updated HB73')
+
+        hb73 = Bill.query.filter_by(billno="HB73").first()
+        self.assertEqual(hb73.title, "THIS IS A NEW TITLE FOR THIS BILL")
+
+        # move the files back where they belong.
+        orig_file("test/cache/Legislation_List_Session=57",
+                  ".titlechange")
+        orig_file("test/cache/2019-HB73.html", ".titlechange")
+
+        # Now test the allbills page again to make sure it shows
+        # the retitled bill as new.
+        response = self.app.get("/allbills?yearcode=19")
+        self.assertTrue(response.status_code == 200 or
+                        response.status_code == 302)
+        response_html = response.get_data(as_text=True)
+        # with open("/tmp/check3.html", "w") as outfp:
+        #     outfp.write(response_html)
+
+        # with open("test/files/afternamechange.html") as fp:
+        #     expected_html = fp.read()
+        # self.assertEqual(response_html, expected_html)
 
 
 if __name__ == '__main__':
