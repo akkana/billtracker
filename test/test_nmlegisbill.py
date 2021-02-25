@@ -35,7 +35,6 @@ class TestNMlegisbill(unittest.TestCase):
         pass
 
     def test_parse_bills(self):
-
         # To see large diffs, set this:
         self.maxDiff = None
 
@@ -109,12 +108,16 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
             'mtg_time': 'Monday, Wednesday & Friday- 8:30 a.m. (Room 315)',
             'name': 'House Health & Human Services',
             'scheduled_bills': [
-                ['HB186', 'Wednesday, February 17, 2021 8:30a.m.'],
-                ['HB203', 'Wednesday, February 17, 2021 8:30a.m.'],
-                ['HB204', 'Wednesday, February 17, 2021 8:30a.m.'],
-                ['HB210', 'Wednesday, February 17, 2021 8:30a.m.'],
-                ['HB215', 'Wednesday, February 17, 2021 8:30a.m.'],
-                ['HB253', 'Wednesday, February 17, 2021 8:30a.m.']]})
+                ['SB96', datetime.datetime(2021, 3, 1, 8, 30)],
+                ['SB27', datetime.datetime(2021, 3, 1, 8, 30)],
+                ['HB305', datetime.datetime(2021, 3, 1, 8, 30)],
+                ['HB284', datetime.datetime(2021, 3, 1, 8, 30)],
+                ['HB272', datetime.datetime(2021, 2, 26, 8, 30)],
+                ['HB269', datetime.datetime(2021, 2, 26, 8, 30)],
+                ['HB250', datetime.datetime(2021, 2, 26, 8, 30)],
+                ['HB209', datetime.datetime(2021, 2, 26, 8, 30)],
+                ['HB151', datetime.datetime(2021, 3, 1, 8, 30)] ]
+        })
 
         sirc = nmlegisbill.expand_committee("SIRC")
         self.assertEqual(sirc, {
@@ -123,6 +126,48 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
             'members': ['SPINS', 'SJARA', 'SGRIG', 'SMCKE', 'SSANJ', 'SSHEN'],
             'mtg_time': 'Tuesday & Thursday - 9:00 a.m. (Room 303)',
             'name': 'Senate Indian, Rural & Cultural Affairs',
-            'scheduled_bills': [['SB361', '2/16/2021'],
-                                ['SB332', '2/16/2021']]})
+            'scheduled_bills': [['SB361', datetime.datetime(2021, 2, 16, 9, 0)],
+                                ['SB332', datetime.datetime(2021, 2, 16, 9, 0)]]})
+
+    def test_parse_datetimes(self):
+        datestr, hour, minute = nmlegisbill.parse_comm_datetime("4:15 pm")
+        self.assertEqual(datestr, "")
+        self.assertEqual(hour, 16)
+        self.assertEqual(minute, 15)
+
+        datestr, hour, minute = nmlegisbill.parse_comm_datetime("4: 15 pm")
+        self.assertEqual(datestr, "")
+        self.assertEqual(hour, 16)
+        self.assertEqual(minute, 15)
+
+        datestr, hour, minute = nmlegisbill.parse_comm_datetime("Sometime around 4:15")
+        self.assertEqual(datestr, "Sometime around")
+        self.assertEqual(hour, 16)
+        self.assertEqual(minute, 15)
+
+        datestr, hour, minute = nmlegisbill.parse_comm_datetime("LALALA4:15plus some other stuff")
+        self.assertEqual(datestr, "LALALA")
+        self.assertEqual(hour, 16)
+        self.assertEqual(minute, 15)
+
+        datestr, hour, minute = nmlegisbill.parse_comm_datetime("Thursday, February 25, 2021  -  1:30 or 15 minutes after floor session")
+        self.assertEqual(datestr, "Thursday, February 25, 2021")
+        self.assertEqual(hour, 13)
+        self.assertEqual(minute, 30)
+
+        datestr, hour, minute = nmlegisbill.parse_comm_datetime("Tuesday & Thursday -1:30 p.m. (Room 321)")
+        self.assertEqual(datestr, "Tuesday & Thursday")
+        self.assertEqual(hour, 13)
+        self.assertEqual(minute, 30)
+
+        datestr, hour, minute = nmlegisbill.parse_comm_datetime("Wednesday, February 24, 2021  -  9:00 a.m.  -  Room")
+        self.assertEqual(datestr, "Wednesday, February 24, 2021")
+        self.assertEqual(hour, 9)
+        self.assertEqual(minute, 0)
+
+        datestr, hour, minute = nmlegisbill.parse_comm_datetime("Monday, Wednesday & Friday - 9:00 a.m. (Room 321)")
+        self.assertEqual(datestr, "Monday, Wednesday & Friday")
+        self.assertEqual(hour, 9)
+        self.assertEqual(minute, 0)
+
 

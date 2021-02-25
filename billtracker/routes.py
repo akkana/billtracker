@@ -1101,7 +1101,7 @@ def refresh_one_committee(comcode):
     return "OK Updated committee %s" % comcode
 
 
-@billtracker.route("/api/refresh_committee", methods=['POST'])
+@billtracker.route("/api/refresh_committee", methods=['GET', 'POST'])
 def refresh_committee():
     """Long-running API: update a committee from its website.
        POST data includes COMCODE and KEY.

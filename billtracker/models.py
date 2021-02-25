@@ -143,8 +143,8 @@ class User(UserMixin, db.Model):
             except ValueError:
                 pass
 
-        # Probably a parse problem: maybe the yearcode is missing
-        # and it's just a comma separated list of billnos.
+        # Got here, probably a parse problem: maybe the yearcode
+        # is missing and it's just a comma separated list of billnos.
         # Return the last list of bills.
         if sl and ':' not in sl:
             print("Trouble parsing bills_seen for", self.username,
@@ -995,9 +995,6 @@ class Legislator(db.Model):
         db.session.commit()
 
 
-meeting_time_pat = re.compile(".*(\d{1,2}):(\d\d) ([ap]\.?m\.?)",
-                              flags=re.IGNORECASE)
-
 class Committee(db.Model):
     """A Committee object may be a committee, or another bill destination
        such as House Floor, Governor's Desk or Dead.
@@ -1032,23 +1029,10 @@ class Committee(db.Model):
         """Try to parse the meeting time from the string mtg_time.
            Return (hour, min).
         """
-        try:
-            m = meeting_time_pat.match(self.mtg_time)
-            hour = int(m.group(1))
-            if m.group(3) == "p.m.":
-                hour += 12
-            minute = int(m.group(2))
-            return hour, minute
-        except:
-            if self.mtg_time:
-                print("Can't parse %s meeting time of '%s'" % (self.code,
-                                                               self.mtg_time),
-                      file=sys.stderr)
-            else:
-                print("%s meeting time is unknown" % self.code,
-                      file=sys.stderr)
-
+        if not self.mtg_time:
             return 0, 0
+        datestr, hour, minute = nmlegisbill.parse_comm_datetime(self.mtg_time)
+        return hour, minute
 
     def update_from_parsed_page(self, newcom, yearcode=None):
         """Update a committee from the web, assuming the time-consuming
@@ -1105,30 +1089,21 @@ class Committee(db.Model):
         not_updated_bills = []
         # Loop over (billno, date) pairs where date is a string, 1/27/2019
         if 'scheduled_bills' in newcom:
-            hour, minute = self.get_meeting_time()
-            # print("Looping over scheduled bills", newcom['scheduled_bills'])
-            for billdate in newcom['scheduled_bills']:
-                b = Bill.query.filter_by(billno=billdate[0],
+            for sched_pair in newcom['scheduled_bills']:
+                # sched_pair is (billno, date_and_time)
+                b = Bill.query.filter_by(billno=sched_pair[0],
                                          year=yearcode).first()
                 if b:
                     b.location = self.code
-                    if billdate[1]:
-                        try:
-                            sched_date = dateutil.parser.parse(billdate[1])
-                            sched_date = sched_date.replace(hour=hour,
-                                                            minute=minute)
-                            b.scheduled_date = sched_date
-                            print(b, "set sched date to", sched_date)
-                        except Exception as e:
-                            print("Couldn't set sched_date for %s" % b.billno,
-                                  file=sys.stderr)
-                            print(e, file=sys.stderr)
+                    b.scheduled_date = sched_pair[1]
+
                     # XXX Don't need to add(): that happens automatically
                     # when changing a field in an existing object.
                     db.session.add(b)
                     updated_bills.append(str(b))
                 else:
-                    not_updated_bills.append(billdate[0])
+                    # billno isn't in the database
+                    not_updated_bills.append(sched_pair[0])
 
         self.last_check = datetime.now()
 

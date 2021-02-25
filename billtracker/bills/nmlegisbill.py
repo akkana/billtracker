@@ -751,14 +751,59 @@ billno_cell_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewS
 
 sched_date_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_lblScheduledDate_[0-9]*')
 
-def expand_committee(code):
-    """Return a dictionary, with keys code, name, mtg_time, chair,
-       members, scheduled_bills
-    """
 
+# Pattern for a time followed by optional am, AM, a.m. etc.
+# optionally preceded by a date or day specifier like "Tuesday & Thursday"
+mtg_datetime_pat = re.compile("(.*) *(\d{1,2}): *(\d\d) *([ap]\.?m\.?)?",
+                              flags=re.IGNORECASE)
+
+def parse_comm_datetime(datetimestr, hour=0, minute=0):
+    """Parse a date time string in the many creative ways different
+       committees format them.
+       Return: (date_or_dayspec, hour:int, minute:int)
+       Examples:
+        Thursday, February 25, 2021  -  1:30 or 15 minutes after floor session
+        Tuesday & Thursday -1:30 p.m. (Room 321)
+    """
+    # This could have date and time, possibly with
+    # extraneous crap after the time that might confused
+    # dateutil.parser; or it might be just the date,
+    # and needs a time.
+    # XXX should add some unit tests for this.
+    m = mtg_datetime_pat.match(datetimestr)
+    if not m:
+        # Nothing matching hour:minute.
+        return None, hour, minute
+
+    datestr = m.group(1).strip()
+    # Trim off any " - " on the end of the date string
+    while datestr.endswith('-'):
+        datestr = datestr[:-1].strip()
+    hour = int(m.group(2))
+    minute = int(m.group(3))
+    if m.group(4) and m.group(4).lower().startswith('p'):
+        hour += 12
+    # But sometimes they don't specify pm, they just assume you know
+    # that a committee isn't going to meet at 1:30am
+    if hour < 6:
+        hour += 12
+
+    return datestr, hour, minute
+
+
+def expand_committee(code):
+    """Return a dictionary, with keys
+           code       str, short committee code
+           name,      str, human-readable name
+           mtg_time   e.g. 'Tuesday & Thursday -1:30 p.m. (Room 321)'
+           chair      str, legislator code
+           members    list of legislator codes
+           scheduled_bills  list of [billno, scheduled_datetime]]
+       Scheduled datetimes may be null if we can't parse the time string
+       (see parse_committee_datetime).
+    """
     if code == 'House' or code == 'Senate':
         return expand_house_or_senate(code)
-    # XXX Need some other special cases
 
     url = 'https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=%s' % code
     soup = billrequests.soup_from_cache_or_net(url)
@@ -774,26 +819,41 @@ def expand_committee(code):
 
     ret['name'] = namespan.text
 
-    # Meeting time/place (free text, not parsed)
+    # Normal meeting time/place
     timespan = soup.find(id="MainContent_formViewCommitteeInformation_lblMeetingDate")
+    # Save the unparsed human-readable string:
+    ret['mtg_time'] = timespan.text
     if timespan:
-        ret['mtg_time'] = timespan.text
+        datestr, hour, minute = parse_comm_datetime(timespan.text)
+        if not datestr:
+            print("%s: Couldn't find a usual meeting time in '%s'"
+                  % (timespan.text), file=sys.stderr)
 
-    # Find bills to be considered.
+    # Find bills that are to be considered.
     scheduled = []
 
-    # First look for a table listing all upcoming bills and their dates:
+    # First look for a table listing all upcoming bills and their dates.
+    # If it's there, add all those bills with the committee's normal
+    # hour:minute meeting time.
     allsched = soup.find("table", { "id": tbl_bills_scheduled })
     if allsched:
         for row in allsched.findAll('tr'):
             billcell = row.find(id=billno_cell_pat)
             scheduled_date = row.find(id=sched_date_pat)
             if billcell and scheduled_date:
-                # Bills on these pages have extra spaces, like 'HB 101'.
-                # Some of them also start with * for unexplained reasons.
-                scheduled.append([
-                    billcell.text.replace(' ', '').replace('*', ''),
-                    scheduled_date.text.strip() ])
+                # Turn the date string into a datetime.
+                # So far, these tables have only had dates as m/d/y.
+                try:
+                    scheduled_date = dateutil.parser.parse(scheduled_date.text)
+                    # Bills on these pages have extra spaces, like 'HB 101'.
+                    # Some of them also start with * for unexplained reasons.
+                    billno = billcell.text.replace(' ', '').replace('*', '')
+                    scheduled.append([ billno,
+                        scheduled_date.replace(hour=hour, minute=minute) ])
+                except Exception as e:
+                    print("%s: Can't parse scheduled date '%s'"
+                          % (code, scheduled_date), file=sys.stderr)
+                    print(e, file=sys.stderr)
 
     # Some committees don't fill out the list of upcoming scheduled bills,
     # but do list their schedule for specific days, so try that if the
@@ -804,7 +864,33 @@ def expand_committee(code):
         mtgtimes = soup.findAll("span", { "id": tbl_committee_mtg_times })
         mtgbills = soup.findAll("table", { "id": tbl_committee_mtg_bills })
         if len(mtgdates) == len(mtgtimes) and len(mtgdates) == len(mtgbills):
+            # Loop over meeting tables: each mtgtbl is one upcoming  meeting.
             for i, mtgtbl in enumerate(mtgbills):
+                # Meeting date and time, in no particularly regular format,
+                # are mtgdates[i].text and mtgtimes[i].text.
+                # Try to turn those into a datetime:
+                try:
+                    mtgdate = dateutil.parser.parse(mtgdates[i].text)
+                except:
+                    print("%s: dateutil couldn't parse '%s'"
+                              % (code, mtgdates[i].text),
+                          file=sys.stderr)
+                    continue
+
+                # Now try to parse the meeting time, in case it's
+                # different from the normal hour:minute meeting time
+                # for this committee.
+                s, h, m = parse_comm_datetime(mtgtimes[i].text, hour, minute)
+                if not s:
+                    print("%s: Couldn't parse meeting time from '%s"
+                          % (code, mtgtimes[i].text), code,
+                          file=sys.stderr)
+                    continue
+
+                mtgdate = mtgdate.replace(hour=h, minute=m)
+                # Yay, now this meeting has a date and time.
+
+                # Loop over the bills listed for this meeting.
                 for row in mtgtbl.findAll('tr'):
                     cells = list(row.findAll("td"))
                     if len(cells) < 5:
@@ -813,13 +899,7 @@ def expand_committee(code):
                                           .replace(' ', '').replace('*', '')
                     if not billno_pat.match(billno):
                         continue
-                    # date is something like "Wednesday, February 17, 2021"
-                    # time is something like "8: 30 a. m."
-                    # dateutil.parser can handle everything except the
-                    # extraneous space between : and 30.
-                    timestr = ' '.join([mtgdates[i].text,
-                                        mtgtimes[i].text.replace(' ', '')])
-                    scheduled.append([billno, timestr])
+                    scheduled.append([billno, mtgdate])
         else:
             print("Unequal dates %d, times %d, bills %d"
                   % (len(mtgdates), len(mtgtimes), len(mtgbills)),
