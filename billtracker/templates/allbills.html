@@ -39,6 +39,9 @@ Please try again later.
 
     <tr><th>Bill <th>Title <th>Bill text
     {% if user %}
+      {% if returnpage == "popular" %}
+        <th>Users</th>
+      {% endif %}
       <th>Track <th>Untrack
     {% endif %}
  </thead>
@@ -54,6 +57,9 @@ Please try again later.
       <td>&nbsp;
       {% endif %}
       {% if user and not user.is_anonymous %}
+        {% if returnpage == "popular" %}
+          <td>{{ bill_line[4] }}
+        {% endif %}
         {% if bill_line[4] %}
           <td>
           <td><input type="checkbox" class="untrack" name="u_{{ bill_line[0] }}">
