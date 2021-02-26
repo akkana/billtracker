@@ -827,7 +827,7 @@ def expand_committee(code):
         datestr, hour, minute = parse_comm_datetime(timespan.text)
         if not datestr:
             print("%s: Couldn't find a usual meeting time in '%s'"
-                  % (timespan.text), file=sys.stderr)
+                  % (code, timespan.text), file=sys.stderr)
 
     # Find bills that are to be considered.
     scheduled = []
