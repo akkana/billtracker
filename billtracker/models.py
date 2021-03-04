@@ -714,15 +714,21 @@ class Bill(db.Model):
                 future = self.scheduled_in_future()
                 sched_date = datetime.date(self.scheduled_date)
                 today = datetime.date(datetime.now())
+                if comm.name == "House" or comm.name == "Senate":
+                    schedstr = "Third reading"
+                else:
+                    schedstr = "SCHEDULED"
 
                 # If the bill is scheduled in the future, bold it:
                 if future:
                     if self.scheduled_date.hour:
-                        outstr += ' <b class="highlight">SCHEDULED: %s</b>' \
-                            % self.scheduled_date.strftime('%a %m/%d/%Y %H:%M')
+                        outstr += ' <b class="highlight">%s: %s</b>' \
+                            % (schedstr,
+                               self.scheduled_date.strftime('%a %m/%d/%Y %H:%M'))
                     else:
-                        outstr += ' <b class="highlight">SCHEDULED: %s</b>' \
-                            % self.scheduled_date.strftime('%a %m/%d/%Y')
+                        outstr += ' <b class="highlight">%s: %s</b>' \
+                            % (schedstr,
+                               self.scheduled_date.strftime('%a %m/%d/%Y'))
 
                 # if it's not considered future but still today,
                 # highlight that:
