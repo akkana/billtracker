@@ -1086,6 +1086,7 @@ def refresh_one_committee(comcode):
           file=sys.stderr)
     newcom = nmlegisbill.expand_committee(comcode)
     if not newcom:
+        print("Couldn't expand committee %s" % comcode, file=sys.stderr)
         return "FAIL Couldn't expand committee %s" % comcode
 
     com = Committee.query.filter_by(code=comcode).first()
@@ -1101,18 +1102,18 @@ def refresh_one_committee(comcode):
     return "OK Updated committee %s" % comcode
 
 
-@billtracker.route("/api/refresh_committee", methods=['GET', 'POST'])
-def refresh_committee():
+@billtracker.route("/api/refresh_committee/<comcode>/<key>")
+def refresh_committee(comcode, key):
     """Long-running API: update a committee from its website.
        POST data includes COMCODE and KEY.
     """
-    key = request.values.get('KEY')
-    if key != billtracker.config["SECRET_KEY"]:
-        return "FAIL Bad key\n"
+    # key = request.values.get('KEY')
+    # if key != billtracker.config["SECRET_KEY"]:
+    #     return "FAIL Bad key\n"
 
-    comcode = request.values.get('COMCODE')
-    if not comcode:
-        return "FAIL No COMCODE\n"
+    # comcode = request.values.get('COMCODE')
+    # if not comcode:
+    #     return "FAIL No COMCODE\n"
 
     return refresh_one_committee(comcode)
 

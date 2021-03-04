@@ -731,11 +731,20 @@ def expand_house_or_senate(code, cache_locally=True):
         r = billrequests.get(url)
         soup = BeautifulSoup(r.text, 'lxml')
 
+    # House and Senate meeting times aren't listed on their schedule pages --
+    # you just have to know. Currently it's 11 am.
+    # The exact time isn't that important since the House and Senate
+    # floors spend most of their time on silly stuff and never stick
+    # to their schedules anyway.
+    today = datetime.datetime.now().replace(hour=11, minute=0)
+
     ret = { 'code': code, 'name': code }
 
     ret['scheduled_bills'] = []
     for a in soup.findAll('a', { "id": house_senate_billno_pat }):
-        ret['scheduled_bills'].append([a.text.replace(' ', ''), None])
+        ret['scheduled_bills'].append([a.text.replace(' ', '')
+                                             .replace('*', ''),
+                                       today])
 
     return ret
 
@@ -802,6 +811,7 @@ def expand_committee(code):
        Scheduled datetimes may be null if we can't parse the time string
        (see parse_committee_datetime).
     """
+    print("expand_committee", code)
     if code == 'House' or code == 'Senate':
         return expand_house_or_senate(code)
 
@@ -859,7 +869,7 @@ def expand_committee(code):
     # but do list their schedule for specific days, so try that if the
     # allsched method didn't work.
     if not scheduled:
-        print("No upcoming bills table found in", url, file=sys.stderr)
+        print("No upcoming bills table in", url, file=sys.stderr)
         mtgdates = soup.findAll("span", { "id": tbl_committee_mtg_dates })
         mtgtimes = soup.findAll("span", { "id": tbl_committee_mtg_times })
         mtgbills = soup.findAll("table", { "id": tbl_committee_mtg_bills })

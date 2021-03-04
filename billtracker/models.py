@@ -700,12 +700,8 @@ class Bill(db.Model):
         if self.location:
             comm = Committee.query.filter_by(code=self.location).first()
             if comm:
-                if comm.name == 'House' or comm.name == 'Senate':
-                    outstr += '<b class="highlight">Location: <a href="%s" target="_blank">%s Floor</a></b>' % \
-                        (comm.get_link(), comm.name)
-                else:
-                    outstr += 'Location: <a href="%s" target="_blank">%s</a>' % \
-                        (comm.get_link(), comm.name)
+                outstr += 'Location: <a href="%s" target="_blank">%s</a>' % \
+                    (comm.get_link(), comm.name)
 
             else:        # A location that has no committee entry
                 outstr += 'Location: %s<br />' % self.location
@@ -722,10 +718,10 @@ class Bill(db.Model):
                 # If the bill is scheduled in the future, bold it:
                 if future:
                     if self.scheduled_date.hour:
-                        outstr += ' <b>SCHEDULED: %s</b>' \
+                        outstr += ' <b class="highlight">SCHEDULED: %s</b>' \
                             % self.scheduled_date.strftime('%a %m/%d/%Y %H:%M')
                     else:
-                        outstr += ' <b>SCHEDULED: %s</b>' \
+                        outstr += ' <b class="highlight">SCHEDULED: %s</b>' \
                             % self.scheduled_date.strftime('%a %m/%d/%Y')
 
                 # if it's not considered future but still today,
