@@ -46,6 +46,13 @@ if in_session:
     # and their schedules are updated randomly and sometimes frequently.
     committee_hours = [ 5, 11, 17, 23 ]
 
+    # The allbills page fetches a collection of files listing all bills,
+    # memorials, resolutions, etc. Fetching these makes the allbills
+    # page slow, so make sure it's called offline every 2 hours
+    # during normal waking hours so the pages will be pre-fetched
+    # and users won't have to wait.
+    allbills_hours = [ 5, 7, 9, 11, 13, 15, 17, 19, 21 ]
+
     # Bill updating is a bit more complicated since there are so many bills
     # and we want to avoid flooding the legislative website.
     # But we don't want to wait too long; a lot can happen in 4 hours.
@@ -92,6 +99,11 @@ def main():
         posturl = '%s/api/db_backup' % (BASEURL)
         postdata = { "KEY": KEY }
         res = requests.post(posturl, postdata)
+
+    # allbills isn't part of the API, but it updates lots of files.
+    if now.hour in allbills_hours:
+        print("Updating allbills files")
+        coms = requests.get('%s/allbills' % (BASEURL)).text
 
     if now.hour in committee_hours:
         coms = requests.get('%s/api/all_committees' % (BASEURL)).text
