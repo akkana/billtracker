@@ -100,7 +100,7 @@ tr.even td { background: #dfe; }
 .system-alert { color: red; }
 .system-message { color: green; }
 
-.highlight { background: yellow; }
+.highlight { background: #ffb; }
 
 table.bordered, table.bordered td { border: 1px solid black; }
 table.bordered td { padding: .3em; }
