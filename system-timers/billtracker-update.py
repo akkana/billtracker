@@ -44,7 +44,7 @@ if in_session:
     # Committees are really the important things to refresh:
     # they're the only way to find out when bills are scheduled,
     # and their schedules are updated randomly and sometimes frequently.
-    committee_hours = [ 5, 11, 17, 23 ]
+    committee_hours = [ 5, 11, 17, 21 ]
 
     # The allbills page fetches a collection of files listing all bills,
     # memorials, resolutions, etc. Fetching these makes the allbills
@@ -103,18 +103,13 @@ def main():
     # allbills isn't part of the API, but it updates lots of files.
     if now.hour in allbills_hours:
         print("Updating allbills files")
-        coms = requests.get('%s/allbills' % (BASEURL)).text
+        allbills = requests.get('%s/allbills' % (BASEURL)).text
+        print("allbills returned:", allbills)
 
     if now.hour in committee_hours:
-        coms = requests.get('%s/api/all_committees' % (BASEURL)).text
-        if not coms.startswith('FAIL'):
-            committees = coms.split(',')
-            for com in committees:
-                print("Fetching committee", com)
-                posturl = '%s/api/refresh_committee' % (BASEURL)
-                postdata = { "COMCODE": com, "KEY": KEY }
-                responses['committee %s' % com] \
-                    = requests.post(posturl, postdata)
+        print("refresh_all_committees:", comout)
+        comout = requests.get('%s/api/refresh_all_committees/%s'
+                              % (BASEURL, KEY)).text
 
     # Nothing for legislators, they'll be updated if needed
     # when updating committees.
