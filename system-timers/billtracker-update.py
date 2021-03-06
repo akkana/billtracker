@@ -107,9 +107,10 @@ def main():
         print("allbills returned:", allbills)
 
     if now.hour in committee_hours:
-        print("refresh_all_committees:", comout)
+        print("refresh_all_committees:")
         comout = requests.get('%s/api/refresh_all_committees/%s'
                               % (BASEURL, KEY)).text
+        print(comout)
 
     # Nothing for legislators, they'll be updated if needed
     # when updating committees.
