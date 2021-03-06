@@ -1068,7 +1068,6 @@ def refresh_all_committees(key):
     refreshed = []
     inactive = []
     for code in comm_locs:
-        print("Trying ...", code, file=sys.stderr)
         ret = refresh_one_committee(code)
         if ret.startswith("FAIL"):
             inactive.append(code)
