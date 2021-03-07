@@ -7,7 +7,7 @@ from billtracker.bills import nmlegisbill, billutils
 from billtracker.emails import send_email
 from billtracker.bills.nmlegisbill import update_legislative_session_list
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import dateutil.parser
 import time
 import re
@@ -711,7 +711,7 @@ class Bill(db.Model):
             # or scheduled_date.
             last_action = self.last_action_date
 
-            now = datetime.now()
+            now = datetime.now(timezone.utc)
             today = datetime.date(now)
 
             def highlight_if_recent(adate, pre_string):
