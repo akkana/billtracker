@@ -944,10 +944,13 @@ def expand_committee(code):
 
 
 def get_sponcodes(url):
+    legs = {}
     r = billrequests.get(url)
+    if not r or not r.text:
+        print("ERROR: Couldn't fetch", url, file=sys.stderr)
+        return legs
     soup = BeautifulSoup(r.text, 'lxml')
     select = soup.find(id="MainContent_ddlLegislators")
-    legs = {}
     for opt in select.findAll('option'):
         value = opt.get('value')
         if value == "...":
