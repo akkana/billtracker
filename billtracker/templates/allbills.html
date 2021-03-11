@@ -49,22 +49,22 @@ Please try again later.
  <tbody>
   {% for bill_line in bill_list['thelist'] %}
     <tr class="{{ loop.cycle('odd', 'even') }}">
-      <td>{{ bill_line[0] }}
-      <td><a href="{{ bill_line[2] }}" target="_blank">{{ bill_line[1] }}</a>
-      {% if bill_line[3] %}
-      <td><a href="{{ bill_line[3] }}" target="_blank">{{ bill_line[0] }} text</a>
+      <td>{{ bill_line["billno"] }}
+      <td><a href="{{ bill_line["url"] }}" target="_blank">{{ bill_line["title"] }}</a>
+      {% if bill_line["contentsurl"] %}
+        <td><a href="{{ bill_line["contentsurl"] }}" target="_blank">{{ bill_line["billno"] }} text</a>
       {% else %}
-      <td>&nbsp;
+        <td>&nbsp;
       {% endif %}
       {% if user and not user.is_anonymous %}
         {% if returnpage == "popular" %}
-          <td>{{ bill_line[4] }}
+          <td>{{ bill_line["num_tracking"] }}
         {% endif %}
-        {% if bill_line[4] %}
+        {% if bill_line["user_tracking"] %}
           <td>
-          <td><input type="checkbox" class="untrack" name="u_{{ bill_line[0] }}">
+          <td><input type="checkbox" class="untrack" name="u_{{ bill_line["billno"] }}">
         {% else %}
-          <td><input type="checkbox" class="track" name="f_{{ bill_line[0] }}">
+          <td><input type="checkbox" class="track" name="f_{{ bill_line["billno"] }}">
           <td>
         {% endif %}
       {% else %}

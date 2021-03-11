@@ -331,8 +331,6 @@ class TestBillTracker(unittest.TestCase):
         self.assertTrue(response.status_code == 200 or
                         response.status_code == 302)
         response_html = response.get_data(as_text=True)
-        # with open("/tmp/check2.html", "w") as outfp:
-        #     outfp.write(response_html)
         with open("test/files/nonewbills.html") as fp:
             expected_html = fp.read()
         self.assertEqual(response_html, expected_html)

@@ -437,23 +437,35 @@ def popular():
     leg_session = LegSession.by_yearcode(session["yearcode"])
     bills = Bill.query.filter_by(year=yearcode).all()
 
-    # allbills.html expects a list of
-    # [ [billno, title, link, fulltext_link, num_tracking ] ]
+    if current_user and not current_user.is_anonymous:
+        user = User.query.filter_by(username=current_user.username).first()
+        bills_seen = user.get_bills_seen(yearcode)
+        bills_tracking = [ b.billno for b in user.bills if b.year == yearcode]
+    else:
+        user = None
+        bills_seen = []
+        bills_tracking = []
+
+    # allbills.html expects a list of dictionaries with keys:
+    # billno, title, url, contentsurl, user_tracking, num_tracking
     bill_list = []
     for bill in bills:
         num_tracking = bill.num_tracking()
         if num_tracking:
             if bill.amendlink:
-                bill_list.append( [ bill.billno, bill.title,
-                                    bill.bill_url(), bill.amendlink,
-                                    num_tracking ] )
+                contentsurl = bill.amendlink
             else:
-                bill_list.append( [ bill.billno, bill.title,
-                                    bill.bill_url(), bill.contentslink,
-                                    num_tracking ] )
+                contentsurl = bill.contentslink
+            bill_list.append( { "billno": bill.billno,
+                                "title": bill.title,
+                                "url": bill.bill_url(),
+                                "contentsurl": contentsurl,
+                                "user_tracking":
+                                    bill.billno in bills_tracking,
+                                "num_tracking": num_tracking } )
 
     # Now sort by num_tracking, column 4:
-    bill_list.sort(reverse=True, key=lambda l: l[4])
+    bill_list.sort(reverse=True, key=lambda l: l["num_tracking"])
     bill_lists = [ { 'thelist': bill_list,
                      'header': "",
                      'alt': "Nobody seems to be tracking anything" } ]
@@ -519,15 +531,20 @@ def allbills():
     newbills = []
     oldbills = []
 
-    # allbills.html expects a list of
+    # allbills.html expects a list of dictionaries with keys:
+    # billno, title, url, contentsurl, user_tracking, num_tracking
     # [ [billno, title, link, fulltext_link, tracked_by_user ] ]
     for billno in allbills:
         # Used to query each bill here. That was nice because we could update
         # the bill's title and show a column for number of users tracking it;
         # but these queries turned out to be a huge performance bottleneck,
         # adding more than a second to page loading.
-        args = [ billno, allbills[billno][0], allbills[billno][1],
-                 allbills[billno][2], billno in bills_tracking ]
+        args = { "billno": billno,
+                 "title": allbills[billno][0],
+                 "url": allbills[billno][1],
+                 "contentsurl": allbills[billno][2],
+                 "user_tracking": billno in bills_tracking
+               }
 
         if user and (billno not in bills_seen or billno in titleschanged):
             newbills.append(args)
