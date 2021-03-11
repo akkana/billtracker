@@ -732,11 +732,15 @@ def expand_house_or_senate(code, cache_locally=True):
         soup = BeautifulSoup(r.text, 'lxml')
 
     # House and Senate meeting times aren't listed on their schedule pages --
-    # you just have to know. Currently it's 11 am.
+    # you just have to know. Currently the Senate claims a start
+    # time of 11 am, House is 2:30pm (actual meeting times vary widely).
     # The exact time isn't that important since the House and Senate
     # floors spend most of their time on silly stuff and never stick
     # to their schedules anyway.
-    today = datetime.datetime.now().replace(hour=11, minute=0)
+    if code == "Senate":
+        today = datetime.datetime.now().replace(hour=11, minute=0)
+    elif code == "House":
+        today = datetime.datetime.now().replace(hour=14, minute=30)
 
     ret = { 'code': code, 'name': code }
 
