@@ -710,12 +710,15 @@ class Bill(db.Model):
             # The date to show is the most recent of last_action_date
             # or scheduled_date.
             last_action = self.last_action_date
+            if last_action:
+                last_action = last_action.astimezone()
 
-            now = datetime.now(timezone.utc)
+            now = datetime.now().astimezone()
             today = datetime.date(now)
 
             def highlight_if_recent(adate, pre_string):
-                if (now - adate) < timedelta(hours=30):
+                if adate and adate.tzinfo and \
+                   ((now - adate) < timedelta(hours=30)):
                     return "<b>%s: %s</b>" % (pre_string,
                                               adate.strftime('%a %m/%d/%Y'))
                 else:
@@ -726,10 +729,7 @@ class Bill(db.Model):
             if self.scheduled_date:
                 future = self.scheduled_in_future()
                 sched_date = datetime.date(self.scheduled_date)
-                if comm.name == "House" or comm.name == "Senate":
-                    schedstr = "Third reading"
-                else:
-                    schedstr = "SCHEDULED"
+                schedstr = "SCHEDULED"
 
                 # If the bill is scheduled in the future, bold it:
                 if future:
@@ -753,10 +753,10 @@ class Bill(db.Model):
                 else:
                     if self.last_action_date:
                         if self.last_action_date > self.scheduled_date:
-                            outstr += highlight_if_recent(self.last_action_date,
+                            outstr += highlight_if_recent(last_action,
                                                           "Last action")
                         else:
-                            outstr += highlight_if_recent(self.last_action_date,
+                            outstr += highlight_if_recent(last_action,
                                                           "Last scheduled")
                         outstr += '<br />'
 
@@ -764,7 +764,7 @@ class Bill(db.Model):
             outstr += 'Location: unknown<br />'
 
         if self.last_action_date:
-            outstr += highlight_if_recent(self.last_action_date,
+            outstr += highlight_if_recent(last_action,
                                           "Last action")
             outstr += '<br />'
 
