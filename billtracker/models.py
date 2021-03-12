@@ -719,28 +719,26 @@ class Bill(db.Model):
             def highlight_if_recent(adate, pre_string):
                 if adate and adate.tzinfo and \
                    ((now - adate) < timedelta(hours=30)):
-                    return "<b>%s: %s</b>" % (pre_string,
-                                              adate.strftime('%a %m/%d/%Y'))
+                    return "<b>%s %s</b>" % (pre_string,
+                                             adate.strftime('%a %m/%d/%Y'))
                 else:
-                    return "%s: %s" % (pre_string,
-                                       adate.strftime('%a %m/%d/%Y'))
-
+                    return "%s %s" % (pre_string,
+                                      adate.strftime('%a %m/%d/%Y'))
 
             if self.scheduled_date:
                 future = self.scheduled_in_future()
                 sched_date = datetime.date(self.scheduled_date)
-                schedstr = "SCHEDULED"
 
                 # If the bill is scheduled in the future, bold it:
                 if future:
-                    if self.scheduled_date.hour:
-                        outstr += ' <b class="highlight">%s: %s</b><br />' \
-                            % (schedstr,
-                               self.scheduled_date.strftime('%a %m/%d/%Y %H:%M'))
+                    outstr += ' <b class="highlight">'
+                    if self.location == "House" or self.location == "Senate" \
+                       or not self.scheduled_date.hour:
+                        outstr += 'SCHEDULED: %s</b> (check <a href="https://www.nmlegis.gov/Calendar/Session" target="_blank">PDF schedules</a> for time)<br />' \
+                            % (self.scheduled_date.strftime('%a %m/%d/%Y'))
                     else:
-                        outstr += ' <b class="highlight">%s: %s</b><br />' \
-                            % (schedstr,
-                               self.scheduled_date.strftime('%a %m/%d/%Y'))
+                        outstr += 'SCHEDULED: %s</b><br />' \
+                            % (self.scheduled_date.strftime('%a %m/%d/%Y %H:%M'))
 
                 # if it's not considered future but still today,
                 # highlight that:
@@ -835,7 +833,7 @@ class Bill(db.Model):
         return outstr
 
 
-    def get_sponsor_links(self):
+    def get_sponsor_links(self, html=True):
         """Return HTML for a list of sponsor links, each of which is like
            "https://www.nmlegis.gov/Members/Legislator?SponCode=HFIGU"
         """
@@ -847,8 +845,11 @@ class Bill(db.Model):
         for sponcode in sponcodes:
             leg = Legislator.query.filter_by(sponcode=sponcode).first()
             if leg:
-                sponlinks.append('<a href="https://www.nmlegis.gov/Members/Legislator?SponCode=%s" target="_blank">%s</a>'
-                                 % (leg.sponcode, leg.lastname))
+                if html:
+                    sponlinks.append('<a href="https://www.nmlegis.gov/Members/Legislator?SponCode=%s" target="_blank">%s</a>'
+                                     % (leg.sponcode, leg.lastname))
+                else:
+                    sponlinks.append('%s <%s>' % (leg.lastname, leg.sponcode))
 
         return ', '.join(sponlinks)
 
@@ -868,12 +869,17 @@ class Bill(db.Model):
             outstr += "No action yet.\n"
 
         if self.location:
-            comm = Committee.query.filter_by(code=self.location).first()
-            if comm:
-                outstr += 'Location: %s <%s>' % \
-                    (comm.name, comm.get_link())
+
+            # If it's on the House or Senate floor, highlight that:
+            if self.location == 'House' or self.location == 'Senate':
+                outstr += 'Location: ** %s Floor **\n' % self.location
             else:
-                outstr += 'Location: %s' % self.location
+                comm = Committee.query.filter_by(code=self.location).first()
+                if comm:
+                    outstr += 'Location: %s <%s>\n' % \
+                        (comm.name, comm.get_link())
+                else:
+                    outstr += 'Location: %s\n' % self.location
 
             # The date to show is the most recent of last_action_date
             # or scheduled_date.
@@ -886,8 +892,13 @@ class Bill(db.Model):
 
                 # If the bill is scheduled in the future, bold it:
                 if future:
-                    outstr += ' SCHEDULED: %s' \
-                        % self.scheduled_date.strftime('%a %m/%d/%Y')
+                    if self.location == "House" or self.location == "Senate" \
+                       or not self.scheduled_date.hour:
+                        outstr += 'SCHEDULED: %s (check PDF schedules for time:\n    https://www.nmlegis.gov/Calendar/Session )' \
+                            % (self.scheduled_date.strftime('%a %m/%d/%Y'))
+                    else:
+                        outstr += ' SCHEDULED: %s' \
+                            % (self.scheduled_date.strftime('%a %m/%d/%Y %H:%M'))
 
                 # if it's not considered future but still today,
                 # highlight that:
@@ -898,15 +909,11 @@ class Bill(db.Model):
                 # otherwise show the most recent of scheduled or last_action
                 elif (self.last_action_date
                       and self.last_action_date > self.scheduled_date):
-                    outstr += ' Last action: %s' % \
+                    outstr += ' Last action: %s\n' % \
                         self.last_action_date.strftime('%a %m/%d/%Y')
                 else:
                     outstr += ' (Last scheduled: %s)' \
                         % sched_date.strftime('%a %m/%d/%Y')
-
-            # If it's on the House or Senate floor, highlight that:
-            if self.location == 'House' or self.location == 'Senate':
-                outstr += ' ** %s Floor **' % self.location
             outstr += '\n'
 
         else:
@@ -929,10 +936,7 @@ class Bill(db.Model):
 
         # print('Sponsor: %s : %s' % (self.sponsor, self.sponsorlink))
         if self.sponsor:
-            if self.sponsorlink:
-                outstr += 'Sponsor: %s <%s>' % (self.sponsor, self.sponsorlink)
-            else:
-                outstr += 'Sponsor:  %s' % self.sponsor + '\n'
+            outstr += 'Sponsor: %s' % self.get_sponsor_links(html=False)
 
         return outstr
 
