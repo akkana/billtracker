@@ -44,14 +44,14 @@ if in_session:
     # Committees are really the important things to refresh:
     # they're the only way to find out when bills are scheduled,
     # and their schedules are updated randomly and sometimes frequently.
-    committee_hours = [ 5, 11, 17, 21 ]
+    committee_hours = [ 7, 11, 17, 21 ]
 
     # The allbills page fetches a collection of files listing all bills,
     # memorials, resolutions, etc. Fetching these makes the allbills
     # page slow, so make sure it's called offline every 2 hours
     # during normal waking hours so the pages will be pre-fetched
     # and users won't have to wait.
-    allbills_hours = [ 5, 7, 9, 11, 13, 15, 17, 19, 21 ]
+    allbills_hours = [ 4, 6, 9, 11, 13, 15, 17, 19, 21 ]
 
     # Bill updating is a bit more complicated since there are so many bills
     # and we want to avoid flooding the legislative website.
