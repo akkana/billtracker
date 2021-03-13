@@ -700,12 +700,13 @@ def all_bills(sessionid, yearcode, sessionname):
                 # print(e, file=sys.stderr)
                 pass
 
+    # Update all the places we might find bill original or amended text
     for billtype in ("bills", "memorials", "resolutions"):
         for chamber in ("house", "senate"):
             url = "%s/%s/%s" % (baseurl, billtype, chamber)
             update_bill_links(url, 2, ".html")
 
-    # Add amendments_in_context links too:
+    # Update amendments_in_context links too:
     update_bill_links("%s/Amendments_In_Context/" % baseurl, 3, ".pdf")
 
     # Write the new list back to the bill cachefile

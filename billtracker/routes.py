@@ -531,6 +531,7 @@ def allbills():
     newbills = []
     oldbills = []
 
+    from pprint import pprint
     # allbills.html expects a list of dictionaries with keys:
     # billno, title, url, contentsurl, user_tracking, num_tracking
     # [ [billno, title, link, fulltext_link, tracked_by_user ] ]
@@ -539,10 +540,14 @@ def allbills():
         # the bill's title and show a column for number of users tracking it;
         # but these queries turned out to be a huge performance bottleneck,
         # adding more than a second to page loading.
+        if len(allbills[billno]) > 3 and allbills[billno][3]:
+            contents = allbills[billno][3]
+        else:
+            contents = allbills[billno][2]
         args = { "billno": billno,
                  "title": allbills[billno][0],
                  "url": allbills[billno][1],
-                 "contentsurl": allbills[billno][2],
+                 "contentsurl": contents,
                  "user_tracking": billno in bills_tracking
                }
 
