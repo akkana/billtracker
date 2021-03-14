@@ -310,10 +310,9 @@ https://nmbilltracker.com/confirm_email/%s
         outstr = ''
         parity = 1
         curday = None
-        print("sort_type", sort_type)
         for bill in bill_list:
             if sort_type == "action" and bill.last_action_date:
-                newday = bill.last_action_date.date()
+                newday = bill.last_action_date.astimezone().date()
                 if newday != curday:
                     curday = newday
                     outstr += "<tr %s><th>Last action: %s\n" \
@@ -759,8 +758,7 @@ class Bill(db.Model):
             outstr += 'Location: unknown<br />'
 
         if self.last_action_date:
-            outstr += highlight_if_recent(last_action,
-                                          "Last action")
+            outstr += highlight_if_recent(last_action, "Last action")
             outstr += '<br />'
 
         # Bills don't have action dates on signing:

@@ -81,16 +81,16 @@ table.definitions th {
   font-family: fixed; white-space: pre; font-weight: normal;
 }
 
+/*
 table.ddddefinitions tr { border: 1px solid black; }
 
-/*
 li:nth-child(odd) { background: lightblue; }</style>
  */
 
 tr.odd td  { background: #fff; }
 tr.even td { background: #dfe; }
 
-th { background: #eee; }
+th { background: #eee; border: 1px inset white; }
 
 .newsbanner {
     color: #050;
