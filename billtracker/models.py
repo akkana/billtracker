@@ -207,8 +207,9 @@ class User(UserMixin, db.Model):
     def send_confirmation_mail(self):
         authcode = ''
         for i in range(5):
-            charset = 'abcdefghijklmnopqrstuvwxyz0123456789'
-            codelen = 6
+            charset = 'abcdefghijklmnopqrstuvwxyz' \
+                'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_'
+            codelen = 20
             for i in range(codelen):
                 authcode += random.choice(charset)
 
@@ -223,6 +224,8 @@ class User(UserMixin, db.Model):
         db.session.add(self)
         db.session.commit()
 
+        print("Sending confirmation email to", self.email,
+              "with code", self.auth_code, file=sys.stderr)
         send_email("New Mexico Bill Tracker Confirmation",
                    "noreply@nmbilltracker.com",
                    [ self.email ],

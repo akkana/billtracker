@@ -29,12 +29,16 @@ class RegistrationForm(FlaskForm):
     def validate_username(self, username):
         user = User.query.filter_by(username=username.data).first()
         if user is not None:
+            print("Someone tried to re-use email", username.data,
+                  file=sys.stderr)
             raise ValidationError('Please use a different username.')
 
     def validate_email(self, email):
         user = User.query.filter_by(email=email.data).first()
         if user is not None:
-            raise ValidationError('Please use a different email address.')
+            print("Someone tried to re-use email", email.data,
+                  file=sys.stderr)
+            raise ValidationError('That email address is already in use.')
 
 class AddBillsForm(FlaskForm):
     billno = StringField('Bill Designation (e.g. SB21)',

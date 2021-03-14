@@ -124,15 +124,22 @@ def register():
                 flash("Sorry, that email address is already taken")
                 return redirect(url_for("register"))
 
+        print("Creating new user account", form.username.data,
+              file=sys.stderr)
         user = User(username=form.username.data, email=form.email.data)
         user.set_password(form.password.data)
 
         if user.email:
             try:
+                print("Sending confirmation mail to", form.username.data)
                 user.send_confirmation_mail()
                 flash("Welcome to the NM Bill Tracker. A confirmation message has been mailed to %s."
                       % user.email)
-            except:
+            except Exception as e:
+                print(e, file=sys.stderr)
+                print("Couldn't send confirmation mail to", user.email,
+                      file=sys.stderr)
+                print(traceback.format_exc(), file=sys.stderr)
                 flash("You're registered! But something went wrong trying to send you a confirmation mail, so your email address won't work yet. Please contact an administrator. Sorry about that!")
         else:
             flash('Welcome to the NM Bill Tracker. Click Login to sign in.')

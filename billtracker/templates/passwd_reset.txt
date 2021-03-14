@@ -2,10 +2,11 @@
 You requested a password reset for username {{ username }} with
 email address {{ email }} on the New Mexico Bill Tracker.
 
+Username: {{ username }}
 Your new password is: {{ newpasswd }}
 
 Please log in as soon as possible: https://nmbilltracker.com/login
-and click on Settings to change it.
+and click on Settings to choose a new password.
 
 If you still have a problem logging in, contact Akkana (akkana@shallowsky.com).
 
