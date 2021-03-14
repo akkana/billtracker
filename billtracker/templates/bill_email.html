@@ -9,7 +9,7 @@ at: <a href="https://nmbilltracker.com/">The New Mexico Bill Tracker</a>.
 <h2>Bills {{ recipient.username }} is tracking:</h2>
 
 <table class="bill_list">
-{{ recipient.show_bill_table(bill_list, True) | safe }}
+{{ recipient.show_bill_table("status", inline=True) | safe }}
 </table>
 
 <hr>

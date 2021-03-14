@@ -37,4 +37,4 @@ def daily_user_email(recipient):
                render_template("bill_email.txt",
                                recipient=recipient, bill_list=bills),
                render_template("bill_email.html",
-                               recipient=recipient, bill_list=bills))
+                               recipient=recipient))

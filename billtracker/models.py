@@ -7,7 +7,7 @@ from billtracker.bills import nmlegisbill, billutils
 from billtracker.emails import send_email
 from billtracker.bills.nmlegisbill import update_legislative_session_list
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, date, timedelta, timezone
 import dateutil.parser
 import time
 import re
@@ -280,13 +280,21 @@ https://nmbilltracker.com/confirm_email/%s
     def bills_by_status(self, yearcode=None):
         return sorted(self.bills_by_yearcode(yearcode), key=Bill.status_key)
 
-    def show_bill_table(self, bill_list, inline=False):
+    def show_bill_table(self, sort_type, yearcode=None, inline=False):
         """Return an HTML string showing status for a list of bills
            as HTML table rows.
            Does not inclue the enclosing <table> or <tbody> tags.
            If inline==True, add table row colors as inline CSS
            since email can't use stylesheets.
         """
+        if not yearcode:
+            yearcode = LegSession.current_yearcode()
+
+        if sort_type == "action":
+            bill_list = self.bills_by_action_date(yearcode=yearcode)
+        else:
+            bill_list = self.bills_by_status(yearcode=yearcode)
+
         # Make the table rows alternate color.
         # This is done through CSS on the website,
         # but through inline styles in email.
@@ -301,7 +309,16 @@ https://nmbilltracker.com/confirm_email/%s
 
         outstr = ''
         parity = 1
+        curday = None
+        print("sort_type", sort_type)
         for bill in bill_list:
+            if sort_type == "action" and bill.last_action_date:
+                newday = bill.last_action_date.date()
+                if newday != curday:
+                    curday = newday
+                    outstr += "<tr %s><th>Last action: %s\n" \
+                        % (rowstyles[0], newday.strftime('%a %m/%d/%Y'))
+
             parity = 1 - parity
             outstr += '<tr %s><td id="%s"%s>%s\n' % (rowstyles[parity],
                                                      bill.billno,
@@ -448,43 +465,19 @@ class Bill(db.Model):
            with a secondary sort on billno.
            But if a bill is scheduled, put it first in the list,
            with bills that have the earliest scheduled dates first.
-           This is the default sort on the home page.
         """
-        # Bills scheduled for a committee meeting soon are the most
-        # important and must be listed first.
-        # Just checking for a scheduled date isn't enough;
-        # many committees don't update their schedules regularly
-        # so a bill's scheduled date may be several days in the past.
-        # However, a scheduled date is just a day (time is 00:00:00);
-        # if it's morning, it's crucially important to see bills
-        # scheduled for today, but by evening, they're less interesting
-        if bill.scheduled_in_future():
-            # This starts with 0 so it will always come first:
-            return bill.scheduled_date.strftime('0 %Y-%m-%d %H:%M') \
-                + Bill.a2order(bill.billno)
-
         # Bills with no last_action_date go to the end of the list.
         if not bill.last_action_date:
             return '9 ' + Bill.a2order(bill.billno)
 
         # There's definitely a last_action_date.
-        # But if there's a scheduled_date that's more recent,
-        # use that as the last action:
-        lastaction = bill.last_action_date
-        if bill.scheduled_date and bill.scheduled_date > lastaction:
-            lastaction = bill.scheduled_date
-
-        # Sort by the last action in reverse order:
+        # Sort by the last action in reverse order,
         # so later dates return an earlier key.
         # It's hard to reverse a datetime, but it's easy with Unix time.
-        lastaction = bill.last_action_date
-        if not lastaction or (bill.scheduled_date and
-                              bill.scheduled_date > lastaction):
-            lastaction = bill.scheduled_date
         # Need to reverse the date, so later dates return an
         # earlier key. This will start with a digit other than 0.
-        return '2 %010d' % (2000000000 -
-                            time.mktime(lastaction.timetuple())) \
+        return '1 %010d' \
+            % (2000000000 - time.mktime(bill.last_action_date.timetuple())) \
             + Bill.a2order(bill.billno)
 
 
@@ -493,6 +486,7 @@ class Bill(db.Model):
         """Sort bills by their location/status,
            with chaptered (signed) bills first, then passed bills,
            then bills on the Senate or House floors, then everything else.
+           This is the default sort on the home page.
         """
         # Bills that are tabled should be lower priority than active bills.
         if bill.statustext and 'tabled' in bill.statustext.lower():
@@ -590,12 +584,12 @@ class Bill(db.Model):
            (Figuring not many committees meet later than 6pm.)
         """
         now = datetime.now()
-        nowdate = datetime.date(now)
+        nowdate = now.date()
         if now.hour >= 18:
             nowdate += timedelta(days=1)
 
         if self.scheduled_date:
-            scheddate = datetime.date(self.scheduled_date)
+            scheddate = self.scheduled_date.date()
             if scheddate >= nowdate:
                 return True
 
@@ -717,7 +711,7 @@ class Bill(db.Model):
                 last_action = last_action.astimezone()
 
             now = datetime.now().astimezone()
-            today = datetime.date(now)
+            today = now.date()
 
             def highlight_if_recent(adate, pre_string):
                 if adate and adate.tzinfo and \
@@ -730,7 +724,7 @@ class Bill(db.Model):
 
             if self.scheduled_date:
                 future = self.scheduled_in_future()
-                sched_date = datetime.date(self.scheduled_date)
+                sched_date = self.scheduled_date.date()
 
                 # If the bill is scheduled in the future, bold it:
                 if future:
@@ -890,8 +884,8 @@ class Bill(db.Model):
 
             if self.scheduled_date:
                 future = self.scheduled_in_future()
-                sched_date = datetime.date(self.scheduled_date)
-                today = datetime.date(datetime.now())
+                sched_date = self.scheduled_date.date()
+                today = datetime.now().date()
 
                 # If the bill is scheduled in the future, bold it:
                 if future:

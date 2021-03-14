@@ -90,6 +90,8 @@ li:nth-child(odd) { background: lightblue; }</style>
 tr.odd td  { background: #fff; }
 tr.even td { background: #dfe; }
 
+th { background: #eee; }
+
 .newsbanner {
     color: #050;
     padding: .4em;
