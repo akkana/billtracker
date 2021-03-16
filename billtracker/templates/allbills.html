@@ -32,8 +32,9 @@ Please try again later.
 
 <table class="bill_minilist">
  <thead>
-    <tr><td><td><td>
     {% if user and not user.is_anonymous %}
+      <tr><td><td>
+      <td style="text-align: right"><b>Save changes:</b>
       <td colspan=2><input type="submit" value="Track / Untrack">
     {% endif %}
 
@@ -73,8 +74,9 @@ Please try again later.
   {% endfor %}
 
   {% if user and not user.is_anonymous %}
-    <tr><th><th><th>
-    <th colspan=2><input type="submit" value="Track / Untrack">
+    <tr><td><td>
+      <td style="text-align: right"><b>Save changes:</b>
+    <td colspan=2><input type="submit" value="Track / Untrack">
   {% endif %}
 
 </table>
