@@ -733,11 +733,13 @@ def expand_house_or_senate(code, cache_locally=True):
         soup = BeautifulSoup(r.text, 'lxml')
 
     # House and Senate meeting times aren't listed on their schedule pages --
-    # you just have to know. Currently the Senate claims a start
-    # time of 11 am, House is 2:30pm (actual meeting times vary widely).
-    # The exact time isn't that important since the House and Senate
-    # floors spend most of their time on silly stuff and never stick
-    # to their schedules anyway.
+    # you just have to know. Both of them can meet at any time of day;
+    # in 2021, 11am is a common Senate meeting time, 2pm is common for
+    # the House and the House almost never meets before noon, but the
+    # times given here are just a wild guess, and instead of showing
+    # exact times to the user, we'll show a link to the only official
+    # meeting time, the one on the PDF schedules. Even that is just an
+    # early boundary, since they often meet as much as several hours late.
     if code == "Senate":
         today = datetime.datetime.now().replace(hour=11, minute=0)
     elif code == "House":
