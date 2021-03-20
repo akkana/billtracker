@@ -320,12 +320,10 @@ class TestBillTracker(unittest.TestCase):
         response_html = response.get_data(as_text=True)
 
         # If output changes, uncomment this to get a new copy:
-        # with open("/tmp/check1.html", "w") as outfp:
+        # with open("/tmp/out.html", "w") as outfp:
         #     outfp.write(response_html)
         with open("test/files/allnewbills.html") as fp:
             expected_html = fp.read()
-        # with open("/tmp/out.html", "w") as outfp:
-        #     outfp.write(response_html)
         self.assertEqual(response_html, expected_html)
 
         # Now all the bills have been seen, none should be new.
