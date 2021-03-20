@@ -55,27 +55,30 @@ if in_session:
 
     # Bill updating is a bit more complicated since there are so many bills
     # and we want to avoid flooding the legislative website.
-    # But we don't want to wait too long; a lot can happen in 4 hours.
+    # But don't wait too long; a lot can happen in 4 hours.
+    # Around the end of the session, 4 hours is way too long.
     # So bill_update_percent is the percent of bills to update each hour.
     # The billtracker will update that percent of bills sorted by
     # how long it's been since the last update.
     # Still, no need to keep refreshing throughout the night.
     # bill_hours = list(range(6, 24))
-    bill_hours = [ 0, 3, 6, 9, 12, 15, 18, 21 ]
+    bill_hours = [ 0, 3, 4, 5, 6, 7, 8, 9, 12, 15, 18, 21 ]
     bill_update_percent = 20
 
 else:
     # When out of session, only update bills and back up the db once a day,
     # and don't update the other tables at all.
     email_hours = [ ]
-    legislator_hours = [ ]    # Should happen automatically when needed
+    legislator_hours = [ ]
     FIR_hours = [ ]
     LESC_hours = [ ]
     amend_hours = [ ]
-    db_backup_hours = [ 5 ]
+    db_backup_hours = [ 4 ]
     committee_hours = [ ]
 
-    bill_hours = [ 0, 2, 4 ]
+    llbills_hours = [ ]
+
+    bill_hours = [ 2 ]
     bill_update_percent = 34
 
 # End configuration, no need to edit anything below this.
