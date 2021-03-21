@@ -37,6 +37,13 @@ class Config(object):
     MAIL_DEBUG = str2bool(os.environ.get('MAIL_DEBUG'))
     TESTING = str2bool(os.environ.get('TESTING'))
 
+    # Store the "next" link in the session, not as a GET parameter.
+    # without this, going to / redirects to /login?next=%2F
+    # and there doesn't seem to be any way to get rid of the %2F
+    # redirect or pass it as POST rather than GET.
+    USE_SESSION_FOR_NEXT = True
+
+
 # administrator list
 ADMINS = [ os.environ.get('FLASK_ADMIN') or 'user@example.com']
 
