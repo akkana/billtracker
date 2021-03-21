@@ -49,7 +49,7 @@ def set_session_by_request_values(values=None):
 
 
 @billtracker.route('/')
-@billtracker.route('/index', methods=['GET'])
+@billtracker.route('/index')
 @login_required
 def index():
     values = request.values.to_dict()
@@ -58,7 +58,7 @@ def index():
     return render_template('index.html', title='Home', sortby='status')
 
 
-@billtracker.route('/statusbills', methods=['GET'])
+@billtracker.route('/statusbills')
 @login_required
 def statusbills():
     values = request.values.to_dict()
@@ -70,7 +70,7 @@ def statusbills():
                            leg_session=leg_session)
 
 
-@billtracker.route('/activebills', methods=['GET'])
+@billtracker.route('/activebills')
 @login_required
 def activebills():
     values = request.values.to_dict()
@@ -100,7 +100,7 @@ def login():
 @billtracker.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for('index'))
+    return redirect(url_for('login'))
 
 
 # The mega tutorial called this /register,
@@ -760,12 +760,20 @@ def appinfo(key):
 
 
 @billtracker.route("/api/all_daily_emails/<key>")
-def all_daily_emails(key):
+@billtracker.route("/api/all_daily_emails/<key>/<justpreview>")
+def all_daily_emails(key, justpreview=False):
     """Send out daily emails to all users with an email address registered.
        A cron job will visit this URL once a day.
+       To test the email system, pass any string as a second parameter.
     """
     if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
+
+    if justpreview:
+        print("Preview of daily emails, not actually sending")
+
+    recipients = []
+    skipped = []
 
     # Get the current date. Bills' last action dates are just dates,
     # with the time set to 00:00:00. We'll consider a bill active if
@@ -810,13 +818,26 @@ def all_daily_emails(key):
                 break
 
         if sendmail:
-            mailto(user.username, key)
+            recipients.append('"%s" <%s>' % (user.username, user.email))
+            if justpreview:
+                print("Would send to", user.username, user.email,
+                      file=sys.stderr)
+            else:
+                mailto(user.username, key)
         else:
+            skipped.append('"%s" <%s>' % (user.username, user.email))
             print("Not emailing %s (%s): no active bills" % (user.username,
                                                              user.email),
                   file=sys.stderr)
 
-    return "OK\n"
+    def userstring(userlist):
+        if not userlist:
+            return "<none>"
+        return ', '.join(userlist)
+
+    return "OK %s %s; Skipping %s" % \
+        ("Testing, would email" if justpreview else "Emailing",
+         userstring(recipients), userstring(skipped))
 
 
 @billtracker.route('/api/mailto/<username>/<key>')
