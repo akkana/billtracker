@@ -13,13 +13,13 @@ Go to <a href="/settings">Settings</a> to request another confirmation message.
 
 <div class="rightalign">
 Sort by:
-{% if sortby == 'status' %}
-<span class="selectable"><a href="/activebills">Recent action</a></span>
-<span class="active">Status</span>
-{% else %}
-<span class="active">Recent action</span>
-<span class="selectable"><a href="/statusbills">Status</a></span>
-{% endif %}
+{% for btnname in [ 'status', 'action_date', 'passed' ] %}
+  {% if btnname == sortby %}
+    <span class="active">{{ sortnames[btnname] }}</span>
+  {% else %}
+    <span class="selectable"><a href="/{{ btnname }}_bills">{{ sortnames[btnname] }}</a></span>
+  {% endif %}
+{% endfor %}
 </div>
 
 <p>
@@ -31,11 +31,9 @@ You last checked at {{ current_user.last_check.strftime('%H:%M %m/%d/%Y') }}.
 {% endif %}
 
 <table id="bills" class="bill_list">
-{% if sortby == 'status' %}
-{{ current_user.show_bill_table("status", yearcode=session["yearcode"]) | safe }}
-{% else %}
-{{ current_user.show_bill_table("action", yearcode=session["yearcode"]) | safe }}
-{% endif %}
+
+{{ current_user.show_bill_table(sortby, yearcode=session["yearcode"]) | safe }}
+
 </tbody>
 </table>
 

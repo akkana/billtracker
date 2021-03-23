@@ -152,7 +152,7 @@ class TestBillTracker(unittest.TestCase):
         self.assertTrue(response.status_code == 200 or
                         response.status_code == 302)
         self.assertEqual(response.headers['location'],
-                         'http://localhost/login?next=%2Faddbills')
+                         'http://localhost/login')
 
         # Now log in
         response = self.app.post('/login', data=dict(

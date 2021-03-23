@@ -33,7 +33,7 @@ You're currently tracking:
 <table class="bill_minilist">
   <tr><th>Bill <th>Title <th>Untrack
 
-  {% for bill in current_user.bills_by_number() %}
+  {% for bill in bill_list %}
 
     <tr class="{{ loop.cycle('odd', 'even') }}">
       <td>{{ bill.billno }}

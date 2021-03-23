@@ -48,6 +48,16 @@ def set_session_by_request_values(values=None):
         session["sessionname"] = leg_session.sessionname()
 
 
+#
+# index.html can be called with a variety of sort views.
+# Set sortby to one of (status, action_date, passed)
+#
+sortnames = {
+    'status': 'Status',
+    'action_date': 'Last action',
+    'passed': 'Passed'
+}
+
 @billtracker.route('/')
 @billtracker.route('/index')
 @login_required
@@ -55,28 +65,37 @@ def index():
     values = request.values.to_dict()
     set_session_by_request_values(values)
 
-    return render_template('index.html', title='Home', sortby='status')
+    return render_template('index.html', title='Home',
+                           sortby='status', sortnames=sortnames,
+                       leg_session=LegSession.by_yearcode(session["yearcode"]))
 
 
-@billtracker.route('/statusbills')
+@billtracker.route('/status_bills')
 @login_required
 def statusbills():
-    values = request.values.to_dict()
-    set_session_by_request_values(values)
-    yearcode = session["yearcode"]
-    leg_session = LegSession.by_yearcode(session["yearcode"])
-
-    return render_template('index.html', title='Home', sortby='status',
-                           leg_session=leg_session)
+    return redirect(url_for('index'))
 
 
-@billtracker.route('/activebills')
+@billtracker.route('/action_date_bills')
 @login_required
 def activebills():
     values = request.values.to_dict()
     set_session_by_request_values(values)
 
-    return render_template('index.html', title='Home', sortby='action_date')
+    return render_template('index.html', title='Home',
+                           sortby='action_date', sortnames=sortnames,
+                       leg_session=LegSession.by_yearcode(session["yearcode"]))
+
+
+@billtracker.route('/passed_bills')
+@login_required
+def passedbills():
+    values = request.values.to_dict()
+    set_session_by_request_values(values)
+
+    return render_template('index.html', title='Home',
+                           sortby='passed', sortnames=sortnames,
+                       leg_session=LegSession.by_yearcode(session["yearcode"]))
 
 
 @billtracker.route('/login', methods=['GET', 'POST'])
@@ -210,7 +229,7 @@ def make_new_bill(billno, yearcode):
 @billtracker.route('/addbills', methods=['GET', 'POST'])
 @login_required
 def addbills():
-    """Despite the name, this is for either tracking or untracking:
+    """The name is misleading. This is for either tracking or untracking:
        adding bills to a user's list, not to the general database.
     """
     user = User.query.filter_by(username=current_user.username).first()
@@ -292,6 +311,8 @@ def addbills():
         bill = None
 
     return render_template('addbills.html', title='Add More Bills',
+                           bill_list=sorted(current_user.bills_by_yearcode(),
+                                            key=Bill.bill_natural_key),
                            yearcode=session["yearcode"],
                            form=form, user=user)
 

@@ -27,6 +27,8 @@ BASEURL = os.environ.get('BILLTRACKER_HOME') or 'https://yourdomain'
 
 # Is the legislature currently in session?
 # Only send daily emails if it is.
+# Unfortunately, I've found no reliable way to get this info
+# from the legislative website, so it has to be changed by hand.
 in_session = True
 
 # Log file

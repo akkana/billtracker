@@ -255,32 +255,27 @@ https://nmbilltracker.com/confirm_email/%s
     # All user bills*() functions can take an optional yearcode..
     # If not specified, will return only bills for the current
     # legislative session. If negative, will return bills from all years.
+    # Optional sortkey is a string, "action_date", "status", "passed".
     #
 
-    def bills_by_yearcode(self, yearcode=None):
+    def bills_by_yearcode(self, yearcode=None, sort_type=None):
         if not yearcode:
             yearcode = LegSession.current_yearcode()
 
         # Here's how to do a join query that also filters by attributes:
-        return db.session.query(Bill) \
-                         .join(userbills) \
-                         .join(User) \
-                         .filter(User.id == self.id) \
-                         .filter(Bill.year == yearcode) \
-                         .all()
+        bill_list = db.session.query(Bill) \
+                              .join(userbills) \
+                              .join(User) \
+                              .filter(User.id == self.id) \
+                              .filter(Bill.year == yearcode) \
+                              .all()
+        if sort_type:
+            bill_list.sort(key=Bill.get_sort_key(sort_type))
 
-    def bills_by_number(self, yearcode=None):
-        return sorted(self.bills_by_yearcode(yearcode),
-                      key=Bill.bill_natural_key)
+        return bill_list
 
-    def bills_by_action_date(self, yearcode=None):
-        return sorted(self.bills_by_yearcode(yearcode),
-                      key=Bill.last_action_key)
 
-    def bills_by_status(self, yearcode=None):
-        return sorted(self.bills_by_yearcode(yearcode), key=Bill.status_key)
-
-    def show_bill_table(self, sort_type, yearcode=None, inline=False):
+    def show_bill_table(self, sort_type=None, yearcode=None, inline=False):
         """Return an HTML string showing status for a list of bills
            as HTML table rows.
            Does not inclue the enclosing <table> or <tbody> tags.
@@ -290,10 +285,10 @@ https://nmbilltracker.com/confirm_email/%s
         if not yearcode:
             yearcode = LegSession.current_yearcode()
 
-        if sort_type == "action":
-            bill_list = self.bills_by_action_date(yearcode=yearcode)
-        else:
-            bill_list = self.bills_by_status(yearcode=yearcode)
+        sort_key = Bill.get_sort_key(sort_type)
+        bill_list = self.bills_by_yearcode(yearcode)
+        if sort_key:
+            bill_list.sort(key=sort_key)
 
         # Make the table rows alternate color.
         # This is done through CSS on the website,
@@ -311,7 +306,9 @@ https://nmbilltracker.com/confirm_email/%s
         parity = 1
         curday = None
         for bill in bill_list:
-            if sort_type == "action" and bill.last_action_date:
+            # In a table sorted by last_action, inclue separators
+            # between days.
+            if sort_type == "action_date" and bill.last_action_date:
                 newday = bill.last_action_date.astimezone().date()
                 if newday != curday:
                     curday = newday
@@ -433,13 +430,37 @@ class Bill(db.Model):
     def __repr__(self):
         return 'Bill %s %s' % (self.billno, self.year)
 
+    #
+    # Sort keys for bills
+    #
+
+    @staticmethod
+    def get_sort_key(sort_type):
+        """Choose a sort key according to a string sort type,
+           which may be "action_date", "status", or "passed".
+           This allows jinja and email functions that don't have access
+           to the model classes to specify sort keys.
+        """
+        if sort_type == "status":
+            return Bill.status_key
+        elif sort_type == "passed":
+            return Bill.passed_key
+        elif sort_type == "action_date":
+            return Bill.last_action_key
+        else:
+            return Bill.natural_key
+
     @staticmethod
     def natural_key(billno):
         """Natural key, digits considered as numbers, for sorting text.
            Return a string but with the number turned into a
            leading-zeros 5-digit string.
         """
+        if type(billno) is Bill:
+            billno = billno.billno
+
         # return [ Bill.a2order(c) for c in re.split('(\d+)', text) ]
+
         for i, c in enumerate(billno):
             if c.isdigit():
                 return '%s%05d' % (billno[:i], int(billno[i:]))
@@ -456,7 +477,6 @@ class Bill(db.Model):
         """Natural key, digits considered as numbers, for sorting Bills.
         """
         return Bill.natural_key(bill.billno)
-
 
     @staticmethod
     def last_action_key(bill):
@@ -478,7 +498,6 @@ class Bill(db.Model):
         return '1 %010d' \
             % (2000000000 - time.mktime(bill.last_action_date.timetuple())) \
             + Bill.a2order(bill.billno)
-
 
     @staticmethod
     def status_key(bill):
@@ -541,6 +560,25 @@ class Bill(db.Model):
         # Put them after the House and Senate floors but before anything else.
         return '40' + Bill.last_action_key(bill)
 
+    @staticmethod
+    def passed_key(bill):
+        """A sort key that gives precedence to bills that have passed.
+        """
+        if bill.location == 'Chaptered':
+            return '10 ' + Bill.bill_natural_key(bill)
+        if bill.location == 'SIgned':
+            return '20 ' + Bill.bill_natural_key(bill)
+        if bill.location == 'Passed':
+            return '30 ' + Bill.bill_natural_key(bill)
+        if bill.location == 'Senate':
+            return '40 ' + Bill.bill_natural_key(bill)
+        if bill.location == 'House':
+            return '50 ' + Bill.bill_natural_key(bill)
+        return '90 '+ Bill.bill_natural_key(bill)
+
+    #
+    # Some utilities relating to users tracking bills
+    #
 
     @staticmethod
     def num_tracking_billno(billno, yearcode):

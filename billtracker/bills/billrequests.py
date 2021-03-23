@@ -291,6 +291,9 @@ def get_http_dirlist(url):
         print("No dir list at", url, file=sys.stderr)
         return None
 
+    if not listing:
+        return None
+
     ls = []
 
     # The listing is inside a <pre>, with lines separated by <br>,
