@@ -703,23 +703,24 @@ def password_reset():
             for i in range(passwdlen):
                 newpasswd += random.choice(charset)
 
-            print("Sending password reset email to", user.email,
-                  file=sys.stderr)
+            user.set_password(newpasswd)
+            db.session.add(user)
+            db.session.commit()
+
+            print("Sending password reset email to %s, password %s"
+                  % (user.email, newpasswd), file=sys.stderr)
             send_email("NM Bill Tracker Password Reset",
                        "noreply@nmbilltracker.com", [ user.email ],
                        render_template("passwd_reset.txt",
                                        username=user.username,
                                        email=user.email,
                                        newpasswd=newpasswd))
-            user.set_password(newpasswd)
-            db.session.add(user)
-            db.session.commit()
 
-            flash("Mailed a new password to your email address")
+            flash("Mailed a new password to %s" % user.email)
         else:
             print("WARNING: unsuccessful attempt to reset password for email",
                   email, file=sys.stderr)
-            flash("Sorry, no email address %s registered" % email)
+            flash("Sorry, no email address %s is registered" % email)
 
     return render_template('passwd_reset.html', title='Password Reset',
                            form=form)

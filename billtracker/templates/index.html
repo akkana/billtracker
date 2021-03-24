@@ -11,6 +11,7 @@ Go to <a href="/settings">Settings</a> to request another confirmation message.
 
 <h1>Bills {{ current_user.username }} is tracking:</h1>
 
+{% if current_user.bill_list %}
 <div class="rightalign">
 Sort by:
 {% for btnname in [ 'status', 'action_date', 'passed' ] %}
@@ -21,14 +22,15 @@ Sort by:
   {% endif %}
 {% endfor %}
 </div>
+{% endif %}
 
 <p>
 {% if current_user.last_check is not defined or not current_user.last_check %}
 This is your first check.
 {% else %}
 You last checked at {{ current_user.last_check.strftime('%H:%M %m/%d/%Y') }}.
-{{ current_user.update_last_check() }}
 {% endif %}
+{{ current_user.update_last_check() }}
 
 <table id="bills" class="bill_list">
 
@@ -36,14 +38,5 @@ You last checked at {{ current_user.last_check.strftime('%H:%M %m/%d/%Y') }}.
 
 </tbody>
 </table>
-
-<p>
-<b><a href="/addbills">Follow
-{% if current_user.bills is defined and current_user.bills|length > 0 %}
-more
-{% else %}
-some
-{% endif %}
-bills</a></b>
 
 {% endblock %}

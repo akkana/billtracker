@@ -320,6 +320,19 @@ https://nmbilltracker.com/confirm_email/%s
                                                      bill.billno,
                                                      cellstyle,
                                                      bill.show_html())
+
+        if not outstr:
+            outstr = """You're not tracking any bills yet.
+<p>
+You can see a list of all bills filed during this session on the
+<b><a href="/allbills">All Bills</a></b> page.
+<p>
+If you know the number of a bill you want to follow,
+you can track it on the <b><a href="/addbills">Track Bill by #</a></b> page.
+<p>
+Or you can see what bills other users are tracking on the
+<b><a href="/popular">Popular Bills</a></b> page."""
+
         return outstr
 
 
