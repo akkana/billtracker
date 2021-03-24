@@ -37,9 +37,9 @@ ul.mainmenu {
     margin: 6px 8px;
 }
 
-.mainmenu span.greyed {
-    margin: 0px 5px;
-    padding:  3px 5px;
+.mainmenu span.greyed, .mainmenu span.pressed {
+    padding: 3px 5px;
+    margin: 0px 3px;
     font-family: Arial, Helvetica, sans-serif; font-weight: bold;
 }
 
@@ -81,7 +81,15 @@ ul.mainmenu {
         border: 3px solid #ddc;;
         border-radius: 8px;
     }
-}
+
+    .mainmenu span.pressed {
+        display: block;
+        color: #fff;
+        background:  #c88;
+        border: 3px inset #ddc;;
+        border-radius: 8px;
+   }
+ }
 
 /* Only for smaller screens, like phones */
 @media (max-width: 50em) {

@@ -35,6 +35,19 @@
         <span class="navicon"></span>
       </label>
 
+    {% set cururl = url_for(request.endpoint) %}
+    {% set navlinks = [
+        [ '/index', 'Home', True ],
+        [ '/allbills', 'All/New Bills', True ],
+        [ '/popular', 'Popular Bills', True ],
+        [ '/addbills', 'Track Bill #', False ],
+        [ '/settings', 'Settings', False ],
+        [ '/links', 'Links', True ],
+        [ '/help', 'Help', True ],
+        [ '/about', 'About', True ],
+        [ '/login', 'Login', True ],
+      ] %}
+
       <ul class="mainmenu">
 
         <li><span class=username>
@@ -43,30 +56,27 @@
           {% else %}
             <i>(not logged in)</i>
           {% endif %}
-        </span></li><li>
+        </span></li>
 
-      <li><a href="{{ url_for('index') }}">Home</a></li>
-      <li><a href="{{ url_for('allbills') }}">All/New bills</a></li>
-      <li><a href="{{ url_for('popular') }}">Popular bills</a></li>
-      {% if current_user and not current_user.is_anonymous %}
-          <li><a href="{{ url_for('addbills') }}">Track bill #</a></li>
-          <li><a href="{{ url_for('user_settings') }}">Settings</a></li>
-      {% else %}
-          <li><span class="greyed">Track Bill #</span></li>
-          <li><span class="greyed">Settings</span></li>
-      {% endif %}
-
-      <li><a href="{{ url_for('links') }}">Links</a></li>
-      <li><a href="{{ url_for('help') }}">Help</a></li>
-      <li><a href="{{ url_for('about') }}">About</a></li>
-
-      <li>
-      {% if current_user.is_anonymous %}
-          <a href="{{ url_for('login') }}">Login</a>
-      {% else %}
-          <a href="{{ url_for('logout') }}">Logout</a>
-      {% endif %}
-      </li>
+        {% for navlink in navlinks %}
+          {% if current_user and not current_user.is_anonymous %}
+            {% if navlink[0] == '/login' %}
+              <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            {% elif navlink[0] == cururl %}
+              <li><span class="pressed">{{ navlink[1] }}</span></li>
+            {% else %}
+              <li><a href="{{ navlink[0] }}">{{ navlink[1] }}</a></li>
+            {% endif %}
+          {% else %}
+            {% if navlink[0] == cururl %}
+              <li><span class="pressed"}}">{{ navlink[1] }}</a></li>
+            {% elif navlink[2] %}
+              <li><a href="{{ navlink[0] }}">{{ navlink[1] }}</a></li>
+            {% else %}
+              <li><span class="greyed">{{ navlink[1] }}</span></li>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
     </ul>
 
     {% if session["sessionname"] %}
