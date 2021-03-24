@@ -11,7 +11,7 @@ Go to <a href="/settings">Settings</a> to request another confirmation message.
 
 <h1>Bills {{ current_user.username }} is tracking:</h1>
 
-{% if current_user.bill_list %}
+{% if current_user.bills|length > 0 %}
 <div class="rightalign">
 Sort by:
 {% for btnname in [ 'status', 'action_date', 'passed' ] %}
