@@ -57,9 +57,14 @@ table#banner {
 
 span.historycode { color: grey; }
 
+#banner h1 { font-size: 2em; }
+
 /*
  * Body content:
  */
+
+/* h1 headers that aren't in the banner should be a little smaller */
+h1 { font-size: 1.5em; }
 
 table.bill_list, table.bill_minilist { width: 99%; }
 
