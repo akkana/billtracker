@@ -24,6 +24,16 @@ import json
 TEST_DB = 'test/cache/test.db'
 
 
+# Some of these tests run flask routes and compare the generated HTML
+# against a saved file. That means that whenever anything about the
+# page changes, it breaks the tests. If you're sure that the only things
+# you changed are chrome and not content, set renew_files to True and
+# run the test again. It will generate the files you need to copy into
+# the test/files directory to make the tests work.
+# Don't forget to set it back to False afterward.
+renew_files = True
+
+
 class TestBillTracker(unittest.TestCase):
     # setUp() will be called for every test_*() function in the class.
     def setUp(self):
@@ -205,6 +215,9 @@ class TestBillTracker(unittest.TestCase):
         self.assertTrue('HB100' in pageHTML)
 
         # Make sure untracking works too
+        # Failing to re-query user here sometimes results in:
+        # sqlalchemy.orm.exc.DetachedInstanceError: Parent instance <User at 0x7f0393d60490> is not bound to a Session; lazy load operation of attribute 'bills' cannot proceed (Background on this error at: http://sqlalche.me/e/13/bhk3)
+        user = User.query.filter_by(username='testuser').first()
         bill0, bill1 = user.bills
         user.bills.remove(bill0)
         user.bills.remove(bill1)
@@ -319,21 +332,33 @@ class TestBillTracker(unittest.TestCase):
 
         response_html = response.get_data(as_text=True)
 
-        # If output changes, uncomment this to get a new copy:
-        # with open("/tmp/out.html", "w") as outfp:
-        #     outfp.write(response_html)
         with open("test/files/allnewbills.html") as fp:
             expected_html = fp.read()
-        self.assertEqual(response_html, expected_html)
+        if renew_files:
+            if response_html != expected_html:
+                with open("/tmp/allnewbills.html", "w") as outfp:
+                    outfp.write(response_html)
+                print("allnewbills will fail without: "
+                      "cp tmp/allnewbills.html test/files/allnewbills.html")
+        else:
+            self.assertEqual(response_html, expected_html)
 
         # Now all the bills have been seen, none should be new.
         response = self.app.get("/allbills?yearcode=19")
         self.assertTrue(response.status_code == 200 or
                         response.status_code == 302)
         response_html = response.get_data(as_text=True)
+
         with open("test/files/nonewbills.html") as fp:
             expected_html = fp.read()
-        self.assertEqual(response_html, expected_html)
+        if renew_files:
+            if response_html != expected_html:
+                with open("/tmp/nonewbills.html", "w") as outfp:
+                    outfp.write(response_html)
+                print("nonewbills will fail without: "
+                      "cp tmp/nonewbills.html test/files/nonewbills.html")
+        else:
+            self.assertEqual(response_html, expected_html)
 
         # The next section requires a lot of substituting of
         # temporary replacement files. A pair of helpers:
