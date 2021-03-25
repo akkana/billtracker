@@ -322,7 +322,7 @@ https://nmbilltracker.com/confirm_email/%s
                                                      bill.show_html())
 
         if not outstr:
-            outstr = """You're not tracking any bills yet.
+            outstr = """You're not tracking any bills in this session.
 <p>
 You can see a list of all bills filed during this session on the
 <b><a href="/allbills">All Bills</a></b> page.
