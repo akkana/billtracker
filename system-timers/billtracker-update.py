@@ -78,7 +78,7 @@ else:
     db_backup_hours = [ 4 ]
     committee_hours = [ ]
 
-    llbills_hours = [ ]
+    allbills_hours = [ ]
 
     bill_hours = [ 2 ]
     bill_update_percent = 34

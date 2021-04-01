@@ -293,7 +293,8 @@ def update_legislative_session_list():
             lsess["typename"] = sessionname[space+1:]
             if lsess["typename"] == "Regular":
                 typecode = ""
-            elif lsess["typename"] == "1st Special":
+            elif lsess["typename"] == "Special" or \
+                 lsess["typename"] == "1st Special":
                 typecode = "s"
             elif lsess["typename"] == "2nd Special":
                 typecode = "s2"
