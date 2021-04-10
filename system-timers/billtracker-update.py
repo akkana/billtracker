@@ -80,7 +80,7 @@ else:
 
     allbills_hours = [ 1 ]
 
-    bill_hours = [ 2 ]
+    bill_hours = [ 1, 2, 3, 4. 7, 13, 19 ]
     bill_update_percent = 34
 
 # End configuration, no need to edit anything below this.
@@ -156,22 +156,8 @@ def main():
                                               data={ 'KEY': KEY })
 
         print("Updating some bills")
-        billstr = requests.get('%s/api/bills_by_update_date' % (BASEURL)).text
-        updated_bills = []
-        failed_updates = []
-        if not billstr:
-            print("No bills to update")
-        elif not billstr.startswith("FAIL"):
-            allbills = billstr.split(',')
-            num2update = len(allbills) * bill_update_percent // 100
-            if num2update == 0 and allbills:
-                num2update = 1
-            print("Will update %d bills" % num2update)
-            for billno in allbills[:num2update]:
-                posturl = '%s/api/refresh_one_bill' % (BASEURL)
-                billdata = { "BILLNO": billno,
-                             "KEY": KEY }
-                responses[billno] = requests.post(posturl, billdata)
+        requests.post('%s/api/refresh_percent_of_bills' % BASEURL,
+                      { "PERCENT": 30, "KEY": KEY })
 
     # Email comes last, in case anything else needed updating.
     if now.hour in email_hours:

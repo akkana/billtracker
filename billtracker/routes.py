@@ -918,7 +918,7 @@ def mailto(username, key):
 # as in refresh_legisdata.
 @billtracker.route("/api/refresh_one_bill", methods=['POST'])
 def refresh_one_bill():
-    """Long-running query: fetch the page for a bill and update it in the db.
+    """Fetch the page for a bill and update it in the db.
        Send BILLNO, YEARCODE and the app KEY in POST data.
     """
     key = request.values.get('KEY')
@@ -949,7 +949,92 @@ def refresh_one_bill():
 
     return "OK Updated %s" % billno
 
+# Test with:
+# requests.post('%s/api/refresh_percent_of_bills' % baseurl,
+#               { "PERCENT": percent, "YEAR": year, "KEY": key }).text
+# requests.post('%s/api/refresh_percent_of_bills' % baseurl,
+#               { "PERCENT": percent, "YEARCODE": yearcode, "KEY": key }).text
+@billtracker.route("/api/refresh_percent_of_bills", methods=['POST'])
+def refresh_percent_of_bills():
+    """Refresh a given percentage of the bill list
+       for a specified yearcode or year.
+       If a year is given, refresh that percentage of bills
+       within all yearcodes from that year.
+       This is necessary because a special session may be called
+       before all the bills from the previous session have been signed.
+       If neither yearcode nor year is specified, refresh the current year.
+    """
+    key = request.values.get('KEY')
+    if key != billtracker.config["SECRET_KEY"]:
+        print("FAIL refresh_one_bill: bad key %s" % key, file=sys.stderr)
+        return "FAIL Bad key\n"
 
+    percent = request.values.get("PERCENT")
+    if percent:
+        try:
+            percent = int(percent)
+        except ValueError:
+            return "FAIL: Don't understand '%s' PERCENT" % percent
+
+    yearcode = request.values.get('YEARCODE')
+    if yearcode:
+        yearcode_list = [ yearcode ]
+    else:
+        year = request.values.get('YEAR')
+        if not year:
+            yearcode = LegSession.current_yearcode()
+            if len(yearcode) < 2:
+                return "FAIL Can't get current yearcode"
+            year = yearcode[:2]
+        yearcode_list = []
+        allsessions = LegSession.query.order_by(LegSession.id).all()
+        for ls in allsessions:
+            yc = ls.yearcode
+            if yc.startswith(year):
+                yearcode_list.append(yc)
+
+    # Now yearcode_list is a list of session names (yearcodes)
+    retstr = "OK Refreshed %d%% of bills:" % percent
+    for yearcode in yearcode_list:
+        allbills = Bill.query.filter_by(year=yearcode) \
+                             .order_by(Bill.update_date).all()
+        if not allbills:
+            print("No bills in", yearcode, file=sys.stderr)
+            continue
+
+        num2update = len(allbills) * percent // 100
+        if not num2update:
+            num2update = 1
+
+        bill_list = allbills[:num2update]
+        print("Updating %d%% of bills in %s (%s bills): %s"
+              % (percent, yearcode, num2update,
+                 ', '.join([b.billno for b in bill_list])),
+              file=sys.stderr)
+
+        updated_bills = []
+        failed_updates = []
+        for bill in bill_list:
+            b = nmlegisbill.parse_bill_page(bill.billno, yearcode)
+            if not b:
+                print("Failed to refresh:", bill, file=sys.stderr)
+                failed_updates.append(b.billno)
+                continue
+            bill.set_from_parsed_page(b)
+            updated_bills.append(bill)
+            db.session.add(bill)
+
+        retstr += "\n%4s: Updated %s" % (
+            yearcode, ' '.join([b.billno for b in updated_bills]))
+        if failed_updates:
+            retstr += "\n      Failed to update: %s" % (
+            ' '.join([b.billno for b in failed_updates]))
+
+    db.session.commit()
+    return retstr
+
+# Test:
+# requests.post('%s/api/refresh_session_list' % baseurl, { "KEY": KEY }).text
 @billtracker.route("/api/refresh_session_list", methods=['POST'])
 def refresh_session_list():
     """Fetch Legislation_List (the same file that's used for allbills)
