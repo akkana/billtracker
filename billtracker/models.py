@@ -145,12 +145,18 @@ class User(UserMixin, db.Model):
 
         # Got here, probably a parse problem: maybe the yearcode
         # is missing and it's just a comma separated list of billnos.
+        # Or maybe the given yearcode isn't the most recent: we only store
+        # bills_seen for the latest yearcode.
         # Return the last list of bills.
         if sl and ':' not in sl:
-            print("Trouble parsing bills_seen for", self.username,
-                  file=sys.stderr)
+            print("No colon in bills_seen for %s: %s"
+                  % (self.username, self.bills_seen), file=sys.stderr)
             return sl.split(',')
-        print("Confused, resetting %s bills_seen", file=sys.stderr)
+
+        # No bills seen for this yearcode.
+        if self.bills_seen:
+            print("%s has bills_seen but not for session %s"
+                  % (self.username, yearcode), file=sys.stderr)
         return []
 
     def remove_from_bills_seen(self, billno_list, yearcode):
@@ -183,7 +189,7 @@ class User(UserMixin, db.Model):
     def update_bills_seen(self, billno_list, yearcode):
         """billno_list should be a comma-separated string.
         """
-        # Don't update with an earlier year than is currently there.
+        # Don't update with an earlier yearcode than is currently there.
         # A user shouldn't lose all their bills_seen info just because
         # they wanted to view all_bills from a previous session.
         # But if there's nothing from the current session, it's okay
