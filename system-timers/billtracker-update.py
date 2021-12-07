@@ -68,7 +68,8 @@ if in_session:
     bill_update_percent = 20
 
 else:
-    # When out of session, only update bills and back up the db once a day,
+    # When out of session, only update bills and legislative session
+    # and back up the db once a day,
     # and don't update the other tables at all.
     email_hours = [ ]
     legislator_hours = [ ]
@@ -106,7 +107,14 @@ def main():
         res = requests.post(posturl, postdata)
 
     # allbills isn't part of the API, but it updates lots of files.
+    # This is done even when off-session.
     if now.hour in allbills_hours:
+        # First refresh the session list.
+        print("Refreshing the list of sessions")
+        responses["sessions"] = requests.post("%s/api/refresh_session_list" \
+                                              % BASEURL,
+                                              data={ 'KEY': KEY })
+
         print("Updating allbills files")
         allbills = requests.get('%s/allbills' % (BASEURL)).text
         print("allbills returned:", allbills)
@@ -150,11 +158,6 @@ def main():
     # Update the session list, and the least recently updated bills.
     #
     if now.hour in bill_hours:
-        print("Refreshing the list of sessions")
-        responses["sessions"] = requests.post("%s/api/refresh_session_list" \
-                                              % BASEURL,
-                                              data={ 'KEY': KEY })
-
         print("Updating some bills")
         requests.post('%s/api/refresh_percent_of_bills' % BASEURL,
                       { "PERCENT": 30, "KEY": KEY })

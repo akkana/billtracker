@@ -143,6 +143,36 @@ def register():
                 flash("Sorry, that email address is already taken")
                 return redirect(url_for("register"))
 
+        # Some simple logic to try to guard against attacks.
+        # insertion attack.
+        def probably_bogus(s, maxlen=75):
+            """Is a string way too long to be a username/password?
+               Might want to add other heuristics, like charset tests.
+            """
+            if len(s) > maxlen:
+                return True
+
+            # The December 2021 Russian attacks contained long Cyrillic
+            # spam text that included URLs.
+            if "://" in s:
+                return True
+
+            return False
+
+        if probably_bogus(form.username.data):
+            flash("That doesn't look like a user name")
+            print("ATTACK ALERT: Probably bogus username", form.username.data,
+                  file=sys.stderr)
+            return render_template('register.html', title='Register',
+                                   form=form)
+
+        if probably_bogus(form.email.data) or '@' not in form.email.data:
+            flash("That doesn't look like a real email address")
+            print("ATTACK ALERT: Probably bogus email", form.email.data,
+                  file=sys.stderr)
+            return render_template('register.html', title='Register',
+                                   form=form)
+
         print("Creating new user account", form.username.data,
               file=sys.stderr)
         user = User(username=form.username.data, email=form.email.data)
