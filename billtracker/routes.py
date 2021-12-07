@@ -149,6 +149,9 @@ def register():
             """Is a string way too long to be a username/password?
                Might want to add other heuristics, like charset tests.
             """
+            if not s:
+                return False
+
             if len(s) > maxlen:
                 return True
 
@@ -166,7 +169,7 @@ def register():
             return render_template('register.html', title='Register',
                                    form=form)
 
-        if probably_bogus(form.email.data) or '@' not in form.email.data:
+        if probably_bogus(form.email.data):
             flash("That doesn't look like a real email address")
             print("ATTACK ALERT: Probably bogus email", form.email.data,
                   file=sys.stderr)
