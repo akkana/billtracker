@@ -81,7 +81,7 @@ else:
 
     allbills_hours = [ 1 ]
 
-    bill_hours = [ 1, 2, 3, 4. 7, 13, 19 ]
+    bill_hours = [ 11, 2, 5 ]
     bill_update_percent = 34
 
 # End configuration, no need to edit anything below this.
