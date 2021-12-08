@@ -1,5 +1,6 @@
 from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask import session
+from flask import request
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 
@@ -164,7 +165,8 @@ def register():
 
         if probably_bogus(form.username.data):
             flash("That doesn't look like a user name")
-            print("ATTACK ALERT: Probably bogus username", form.username.data,
+            print("ATTACK ALERT: IP", request.remote_addr,
+                  "Probably bogus username", form.username.data,
                   file=sys.stderr)
             return render_template('register.html', title='Register',
                                    form=form)
