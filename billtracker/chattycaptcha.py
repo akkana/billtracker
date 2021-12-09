@@ -37,6 +37,8 @@ class ChattyCaptcha:
         self.QandA = None
         self.current_question = None
 
+        random.seed()
+
         self.read_question_file()
 
     def read_question_file(self):
@@ -90,5 +92,5 @@ if __name__ == '__main__':
                 print("Yes!")
             else:
                 print("Sorry, no.")
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, EOFError):
         print("\nBye!")
