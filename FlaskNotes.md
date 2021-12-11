@@ -94,6 +94,9 @@ apachectl -k graceful
 
 ## Debugging with the Interactive Flask Shell
 
+You may need to specify your database first:
+export DATABASE_URL=postgresql:///dbname
+
 % export FLASK_APP=run_billtracker.py
 % flask shell
 >>> from billtracker.models import User
@@ -105,6 +108,7 @@ apachectl -k graceful
 [Bill HB55 20, Bill SM9 20, Bill HB94 20, Bill SB17 20, Bill SB20 20]
 >>> b =  Bill.query.filter_by(billno='HB55', year='20').first()
 >>> b.users_tracking()
+
 
 ### Debugging on the Production WSGI Server
 
