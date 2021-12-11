@@ -106,6 +106,15 @@ class ChattyCaptcha:
 
         if not question:
             question = self.current_question
+
+        # Bots can send random answers as form field data,
+        # which will raise a KeyError since the capq.data
+        # may not be one of the valid questions.
+        if question not in self.QandA:
+            print("BOT ALERT: '%s' wasn't one of the questions" % question,
+                  file=sys.stderr)
+            return False
+
         return ans.lower() in self.QandA[question]
 
 

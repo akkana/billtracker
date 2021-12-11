@@ -126,14 +126,9 @@ def logout():
 
 captcha = None
 
-# The mega tutorial called this /register,
-# but flask seems to have a problem calling anything /register.
-# As long as it's named something else, this works.
-@billtracker.route('/newaccount', methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-
+def new_captcha():
+    """Get a new captcha question, initializing as needed.
+    """
     # Initialize the captcha file the first time through or,
     # if the question file only appears later, initialize it
     # the next time a user tries to register.
@@ -149,6 +144,18 @@ def register():
                   file=sys.stderr)
             captcha = None
 
+
+# The mega tutorial called this /register,
+# but flask seems to have a problem calling anything /register.
+# As long as it's named something else, this works.
+@billtracker.route('/newaccount', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+
+    # Reset the captcha question:
+    new_captcha()
+
     form = RegistrationForm()
 
     # Give the form a reference to the captcha object,
@@ -162,6 +169,7 @@ def register():
     # into the form have passed, register() is called again
     # with form.validate_on_submit() true.
     if not form.validate_on_submit():
+        print("form didn't validate")
         # Just displaying the form.
         # Don't change the captcha question, but initialize it if needed.
         if captcha:
@@ -171,6 +179,7 @@ def register():
 
         return render_template('register.html', title='Register', form=form)
 
+    print("form validated")
     # The form has been submitted.
     # We just called validate_on_submit(), which reloaded the form,
     # then called the various validate() methods AFTER reloading.

@@ -38,11 +38,14 @@ class RegistrationForm(FlaskForm):
     capa = StringField("answer", validators=[DataRequired()])
     submit = SubmitField('Register')
 
-    def validate(self):
-        FlaskForm.validate(self)
+    def validate(self, *args, **kwargs):
+        if not super().validate(*args, **kwargs):
+            return False
         return True
 
     def validate_capa(self, capa):
+        print("validate_capa: capa =", capa.data, file=sys.stderr)
+        print("               capq =", self.capq.data, file=sys.stderr)
         if self.captcha:
             if not self.captcha.is_answer_correct(capa.data,
                                                   question=self.capq.data):
