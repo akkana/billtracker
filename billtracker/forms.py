@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, session
 from flask_login import current_user
 
 try:
@@ -35,7 +35,8 @@ class RegistrationForm(FlaskForm):
     # it not look like an input field.
     capq = StringField("question",
                        render_kw={ "readonly": True,  "tabIndex":"-1" })
-    capa = StringField("answer", validators=[DataRequired()])
+    capa = StringField("question", validators=[DataRequired()])
+
     submit = SubmitField('Register')
 
     def validate(self, *args, **kwargs):
@@ -44,14 +45,30 @@ class RegistrationForm(FlaskForm):
         return True
 
     def validate_capa(self, capa):
-        print("validate_capa: capa =", capa.data, file=sys.stderr)
-        print("               capq =", self.capq.data, file=sys.stderr)
-        if self.captcha:
-            if not self.captcha.is_answer_correct(capa.data,
-                                                  question=self.capq.data):
-                raise ValidationError("No, try again")
-        else:
+        if not self.captcha:
             print("* validate_capa has no captcha object", file=sys.stderr)
+
+        if 'captcha' in session:
+            question = session['captcha']
+            if question != self.capq.data:
+                print("WARNING validating new registration: "
+                      "capq '%s' didn't match session '%s'"
+                      % (self.capq.data, session['captcha']),
+                      file=sys.stderr)
+        else:
+            print("no captcha in session", file=sys.stderr)
+
+        if not question:
+            print("** Couldn't get captcha question from session",
+                  file=sys.stderr)
+            question = self.capq.data
+
+        if not self.captcha.is_answer_correct(capa.data, question=question):
+            print("Wrong answer '%s' for captcha question '%s'"
+                  % (capa.data, question), file=sys.stderr)
+            print("Valid answers are", self.captcha.QandA[question])
+
+            raise ValidationError("No, try again")
 
     def validate_username(self, username):
         # Some simple logic to guard against attacks,
@@ -111,3 +128,30 @@ class UserSettingsForm(FlaskForm):
 class PasswordResetForm(FlaskForm):
     username = StringField('Email', validators=[DataRequired()])
     submit = SubmitField('Send Password Reset')
+
+    # See comment under RegistrationForm
+    capq = StringField("question",
+                       render_kw={ "readonly": True,  "tabIndex":"-1" })
+    capa = StringField("question", validators=[DataRequired()])
+
+    def validate_capa(self, capa):
+        if not self.captcha:
+            print("* validate_capa has no captcha object", file=sys.stderr)
+
+        if 'captcha' in session:
+            question = session['captcha']
+            if question != self.capq.data:
+                print("WARNING validating password reset: "
+                      "capq '%s' didn't match session '%s'"
+                      % (self.capq.data, session['captcha']),
+                      file=sys.stderr)
+        else:
+            print("no captcha in session", file=sys.stderr)
+
+        if not question:
+            print("** Couldn't get captcha question from session",
+                  file=sys.stderr)
+            question = self.capq.data
+
+        if not self.captcha.is_answer_correct(capa.data, question=question):
+            raise ValidationError("No, try again")

@@ -1,8 +1,9 @@
 
-You requested a password reset for username {{ username }} with
-email address {{ email }} on the New Mexico Bill Tracker.
+Someone, hopefully you, requested a password reset for your email address
+on the New Mexico Bill Tracker.
 
 Username: {{ username }}
+Email address {{ email }}
 Your new password is: {{ newpasswd }}
 
 Please log in as soon as possible: https://nmbilltracker.com/login

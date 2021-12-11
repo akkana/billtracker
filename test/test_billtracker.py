@@ -141,6 +141,7 @@ class TestBillTracker(unittest.TestCase):
 
         # Create a user.
         # Don't set email address, or it will try to send a confirmation mail.
+        print("About to create a user")
         USERNAME = "testuser"
         PASSWORD = "testpassword"
         response = self.app.post("/newaccount",
@@ -149,6 +150,7 @@ class TestBillTracker(unittest.TestCase):
                                         'password2': PASSWORD,
                                         'capa' : 'yes',
                                         'submit': 'Register' })
+        print("Tried to create it. status code was", response.status_code)
         self.assertTrue(response.status_code == 200 or
                         response.status_code == 302)
         allusers = User.query.all()
@@ -436,6 +438,9 @@ class TestBillTracker(unittest.TestCase):
         self.assertEqual(len(allusers), 1)
         user = User.query.filter_by(username='testuser').first()
         self.assertEqual(user.username, 'testuser')
+
+        os.unlink(questionfile)
+
 
 
 if __name__ == '__main__':

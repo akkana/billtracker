@@ -129,20 +129,18 @@ captcha = None
 def new_captcha():
     """Get a new captcha question, initializing as needed.
     """
-    # Initialize the captcha file the first time through or,
-    # if the question file only appears later, initialize it
-    # the next time a user tries to register.
     global captcha
     if not captcha:
         CAPTCHA_FILE_NAME = os.path.join(billrequests.CACHEDIR,
                                          "CAPTCHA-QUESTIONS")
         try:
             captcha = ChattyCaptcha(CAPTCHA_FILE_NAME)
-            captcha.random_question()
         except Exception as e:
             print("No captcha file found in", CAPTCHA_FILE_NAME, e,
                   file=sys.stderr)
             captcha = None
+
+    return captcha.random_question()
 
 
 # The mega tutorial called this /register,
@@ -153,8 +151,9 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
 
-    # Reset the captcha question:
-    new_captcha()
+    # If the user doesn't already have a captcha, choose a question.
+    if not captcha or 'captcha' not in session:
+        session['captcha'] = new_captcha()
 
     form = RegistrationForm()
 
@@ -169,23 +168,21 @@ def register():
     # into the form have passed, register() is called again
     # with form.validate_on_submit() true.
     if not form.validate_on_submit():
-        print("form didn't validate")
         # Just displaying the form.
         # Don't change the captcha question, but initialize it if needed.
         if captcha:
-            if not captcha.current_question:
-                captcha.random_question()
-            form.capq.data = captcha.current_question
+            # if not captcha.current_question:
+            #     captcha.random_question()
+            form.capq.data = session['captcha']
 
         return render_template('register.html', title='Register', form=form)
 
-    print("form validated")
-    # The form has been submitted.
+    # The form has been submitted and validated.
     # We just called validate_on_submit(), which reloaded the form,
     # then called the various validate() methods AFTER reloading.
     print("Creating new user account", form.username.data,
           "from IP", request.remote_addr,
-          "with captcha", captcha.current_question,
+          "with captcha", session['captcha'],
           file=sys.stderr)
     user = User(username=form.username.data, email=form.email.data)
     user.set_password(form.password.data)
@@ -209,7 +206,7 @@ def register():
     db.session.commit()
 
     # Now reset the captcha question.
-    captcha.random_question()
+    del session['captcha']
 
     return redirect(url_for('login'))
 
@@ -729,42 +726,67 @@ def user_settings():
 
 @billtracker.route("/password_reset", methods=['GET', 'POST'])
 def password_reset():
+    # If the user doesn't already have a captcha, choose a question.
+    if not captcha or 'captcha' not in session:
+        session['captcha'] = new_captcha()
+        print("setting session to new captcha,", session['captcha'])
+
     form = PasswordResetForm()
 
-    if form.validate_on_submit():
-        email = form.username.data
-        user = User.query.filter_by(email=form.username.data).first()
+    # Give the form a reference to the captcha object,
+    # so it can use it for captcha validation.
+    form.captcha = captcha
 
-        if user and user.email:
-            # Generate a new password
-            lc = 'abcdefghijklmnopqrstuvwxyz'
-            uc = lc.upper()
-            num = '0123456789'
-            punct = '-.!@$%*'
-            charset = lc+uc+num+punct
-            newpasswd = ''
-            passwdlen = 9
-            for i in range(passwdlen):
-                newpasswd += random.choice(charset)
+    if not form.validate_on_submit():
+        # initial display, or validation error.
+        # Set the captcha q.
+        if captcha:
+            print("Setting capq.data")
+            form.capq.data = session['captcha']
 
-            user.set_password(newpasswd)
-            db.session.add(user)
-            db.session.commit()
+        return render_template('passwd_reset.html', title='Password Reset',
+                           form=form)
 
-            print("Sending password reset email to %s, password %s"
-                  % (user.email, newpasswd), file=sys.stderr)
-            send_email("NM Bill Tracker Password Reset",
-                       "noreply@nmbilltracker.com", [ user.email ],
-                       render_template("passwd_reset.txt",
-                                       username=user.username,
-                                       email=user.email,
-                                       newpasswd=newpasswd))
+    # The form was validated and submitted
+    email = form.username.data
+    user = User.query.filter_by(email=form.username.data).first()
 
-            flash("Mailed a new password to %s" % user.email)
-        else:
-            print("WARNING: unsuccessful attempt to reset password for email",
-                  email, file=sys.stderr)
-            flash("Sorry, no email address %s is registered" % email)
+    if user and user.email:
+        # Generate a new password
+        lc = 'abcdefghijklmnopqrstuvwxyz'
+        uc = lc.upper()
+        num = '0123456789'
+        punct = '-.!@$%*'
+        charset = lc+uc+num+punct
+        newpasswd = ''
+        passwdlen = 9
+        for i in range(passwdlen):
+            newpasswd += random.choice(charset)
+
+        user.set_password(newpasswd)
+        db.session.add(user)
+        db.session.commit()
+
+        print("Sending password reset email to %s, password %s"
+              % (user.email, newpasswd), file=sys.stderr)
+        print("captcha q was", session['captcha'], file=sys.stderr)
+        send_email("NM Bill Tracker Password Reset",
+                   "noreply@nmbilltracker.com", [ user.email ],
+                   render_template("passwd_reset.txt",
+                                   username=user.username,
+                                   email=user.email,
+                                   newpasswd=newpasswd))
+
+        flash("Mailed a new password to %s" % user.email)
+
+        # Now reset the captcha question.
+        del session['captcha']
+
+    else:
+        # Missing user or user.email
+        print("WARNING: unsuccessful attempt to reset password for email",
+              email, file=sys.stderr)
+        flash("Sorry, no email address %s is registered" % email)
 
     return render_template('passwd_reset.html', title='Password Reset',
                            form=form)
