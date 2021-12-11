@@ -112,3 +112,25 @@ th { background: #eee; }
 table.bordered, table.bordered td { border: 1px solid black; }
 table.bordered td { padding: .3em; }
 
+/* The captcha on the registration page */
+.captcha {
+    background: #eee;
+}
+fieldset legend {
+  font-weight: bold;
+  font-style: italic;
+  font-size: 9%;
+}
+input#capq {
+    user-select: none !important;
+    -webkit-user-select: none;
+    -moz-user-select: none !important;
+    -ms-user-select: none;
+    background: #eee;
+    border: none;
+    display: inline;
+    font-family: inherit;
+    font-size: inherit;
+    padding: none;
+    width: auto;
+}

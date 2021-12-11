@@ -32,6 +32,16 @@
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>
+        <fieldset class="captcha">
+            <legend>Are you a human?</legend>
+            <p>
+                {{ form.capq(size=64) }}<br>
+                {{ form.capa(size=64) }}<br>
+                {% for error in form.capa.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+        </fieldset>
         <p>{{ form.submit() }}</p>
     </form>
 {% endblock %}

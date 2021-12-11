@@ -21,7 +21,8 @@ from config import Config, basedir
 import json
 
 
-TEST_DB = 'test/cache/test.db'
+CACHEDIR = 'test/cache'
+TEST_DB = '%s/test.db' % CACHEDIR
 
 
 # Some of these tests run flask routes and compare the generated HTML
@@ -41,7 +42,7 @@ class TestBillTracker(unittest.TestCase):
 
         # Don't go to the actual nmlegis site
         billrequests.LOCAL_MODE = True
-        billrequests.CACHEDIR = 'test/cache'
+        billrequests.CACHEDIR = CACHEDIR
 
         # Uncomment to get verbose information on cache/net requests:
         # billrequests.DEBUG = True
@@ -146,6 +147,7 @@ class TestBillTracker(unittest.TestCase):
                                  data={ 'username': USERNAME,
                                         'password': PASSWORD,
                                         'password2': PASSWORD,
+                                        'capa' : 'yes',
                                         'submit': 'Register' })
         self.assertTrue(response.status_code == 200 or
                         response.status_code == 302)
@@ -404,6 +406,36 @@ class TestBillTracker(unittest.TestCase):
         self.assertTrue(response.status_code == 200 or
                         response.status_code == 302)
         response_html = response.get_data(as_text=True)
+
+
+    def test_captcha(self):
+        """Test adding new users with a captcha file in place
+        """
+        # Create a captcha file with only one question in it
+        ANSWERSTR = "You betcha!"
+        QUESTIONSTR = "Should this test pass?"
+        questionfile = "%s/CAPTCHA-QUESTIONS" % CACHEDIR
+        with open(questionfile, "w") as fp:
+            print(QUESTIONSTR, file=fp)
+            print(ANSWERSTR, file=fp)
+
+        # Create a user.
+        # Don't set email address, or it will try to send a confirmation mail.
+        USERNAME = "testuser"
+        PASSWORD = "testpassword"
+        response = self.app.post("/newaccount",
+                                 data={ 'username': USERNAME,
+                                        'password': PASSWORD,
+                                        'password2': PASSWORD,
+                                        'capq' : QUESTIONSTR,
+                                        'capa' : ANSWERSTR,
+                                        'submit': 'Register' })
+        self.assertTrue(response.status_code == 200 or
+                        response.status_code == 302)
+        allusers = User.query.all()
+        self.assertEqual(len(allusers), 1)
+        user = User.query.filter_by(username='testuser').first()
+        self.assertEqual(user.username, 'testuser')
 
 
 if __name__ == '__main__':

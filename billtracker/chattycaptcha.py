@@ -30,6 +30,9 @@ class ChattyCaptcha:
     """Take a list of questions, each with one or more valid answers,
        from a file. Offer a way to choose random questions, and to
        check answers against the last question presented.
+
+       You can test a ChattyCaptcha object's truth value to see if it
+       has questions: if not chatty_captcha: print("No questions file")
     """
 
     def __init__(self, questionfile):
@@ -41,39 +44,69 @@ class ChattyCaptcha:
 
         self.read_question_file()
 
+    def __bool__(self):
+        if self.QandA:
+            return True
+        return False
+
     def read_question_file(self):
         """Initialize the questions and their answers.
         """
         self.QandA = {}
+
+        if not self.filename:
+            return
+
         cur_question = None
-        with open(self.filename) as fp:
-            for line in fp:
-                line = line.strip()
+        try:
+            with open(self.filename) as fp:
+                for line in fp:
+                    line = line.strip()
 
-                if not line or line.startswith('#'):
-                    cur_question = None
-                    continue
+                    if line.startswith('#'):
+                        continue
 
-                if cur_question:
-                    self.QandA[cur_question].append(line.lower())
-                    continue
+                    if not line:
+                        cur_question = None
+                        continue
 
-                cur_question = line
-                self.QandA[cur_question] = []
+                    if cur_question:
+                        self.QandA[cur_question].append(line.lower())
+                        continue
+
+                    cur_question = line
+                    self.QandA[cur_question] = []
+        except:
+            return
 
     def random_question(self):
-        """Return a randomly chosen question,
+        """Return a randomly chosen question (different from the current one)
            and set self.current_question to it.
         """
-        self.current_question = random.choice(list(self.QandA))
+        if not self:
+            return ""
+
+        oldq = self.current_question
+        while self.current_question == oldq:
+            self.current_question = random.choice(list(self.QandA))
+            if len(self.QandA) == 1:
+                break
+
         return self.current_question
 
-    def is_answer_correct(self, ans):
-        """Does ans match any of the answers for self.current_question?
+    def is_answer_correct(self, ans, question=None):
+        """Does ans match any of the answers for the given question?
+           If question is unspecified, use self.current_question.
            Case insensitive.
            Returns a Boolean.
         """
-        return ans.lower() in self.QandA[self.current_question]
+        # If there are no questions, consider all answers correct
+        if not self:
+            return True
+
+        if not question:
+            question = self.current_question
+        return ans.lower() in self.QandA[question]
 
 
 if __name__ == '__main__':

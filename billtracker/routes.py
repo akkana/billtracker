@@ -5,6 +5,7 @@ from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 
 from billtracker import billtracker, db
+from billtracker.chattycaptcha import ChattyCaptcha
 from billtracker.forms import LoginForm, RegistrationForm, AddBillsForm, \
     UserSettingsForm, PasswordResetForm
 from billtracker.models import User, Bill, Legislator, Committee, LegSession
@@ -123,6 +124,8 @@ def logout():
     return redirect(url_for('login'))
 
 
+captcha = None
+
 # The mega tutorial called this /register,
 # but flask seems to have a problem calling anything /register.
 # As long as it's named something else, this works.
@@ -131,78 +134,75 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
 
+    # Initialize the captcha file the first time through or,
+    # if the question file only appears later, initialize it
+    # the next time a user tries to register.
+    global captcha
+    if not captcha:
+        CAPTCHA_FILE_NAME = os.path.join(billrequests.CACHEDIR,
+                                         "CAPTCHA-QUESTIONS")
+        try:
+            captcha = ChattyCaptcha(CAPTCHA_FILE_NAME)
+            captcha.random_question()
+        except Exception as e:
+            print("No captcha file found in", CAPTCHA_FILE_NAME, e,
+                  file=sys.stderr)
+            captcha = None
+
     form = RegistrationForm()
-    if form.validate_on_submit():
-        # Flask's unique=True doesn't work for optional (nullable) fields.
-        # So we have to check for uniqueness manually here.
-        if form.email.data:
-            same_email = User.query.filter_by(email=form.email.data).first()
-            if same_email:
-                print("WARNING: Someone tried to register existing email",
-                      form.email.data,
-                      file=sys.stderr)
-                flash("Sorry, that email address is already taken")
-                return redirect(url_for("register"))
 
-        # Some simple logic to try to guard against attacks.
-        # insertion attack.
-        def probably_bogus(s, maxlen=75):
-            """Is a string way too long to be a username/password?
-               Might want to add other heuristics, like charset tests.
-            """
-            if not s:
-                return False
+    # Give the form a reference to the captcha object,
+    # so it can use it for captcha validation.
+    form.captcha = captcha
 
-            if len(s) > maxlen:
-                return True
+    # This function is called in two ways.
+    # It's called to display the form in the first place,
+    # in which case form.validate_on_submit() is false,
+    # but then when the form is submitted after the validations built
+    # into the form have passed, register() is called again
+    # with form.validate_on_submit() true.
+    if not form.validate_on_submit():
+        # Just displaying the form.
+        # Don't change the captcha question, but initialize it if needed.
+        if captcha:
+            if not captcha.current_question:
+                captcha.random_question()
+            form.capq.data = captcha.current_question
 
-            # The December 2021 Russian attacks contained long Cyrillic
-            # spam text that included URLs.
-            if "://" in s:
-                return True
+        return render_template('register.html', title='Register', form=form)
 
-            return False
+    # The form has been submitted.
+    # We just called validate_on_submit(), which reloaded the form,
+    # then called the various validate() methods AFTER reloading.
+    print("Creating new user account", form.username.data,
+          "from IP", request.remote_addr,
+          "with captcha", captcha.current_question,
+          file=sys.stderr)
+    user = User(username=form.username.data, email=form.email.data)
+    user.set_password(form.password.data)
 
-        if probably_bogus(form.username.data):
-            flash("That doesn't look like a user name")
-            print("ATTACK ALERT: IP", request.remote_addr,
-                  "Probably bogus username", form.username.data,
+    if user.email:
+        try:
+            print("Sending confirmation mail to", form.username.data)
+            user.send_confirmation_mail()
+            flash("Welcome to the NM Bill Tracker. A confirmation message has been mailed to %s."
+                  % user.email)
+        except Exception as e:
+            print(e, file=sys.stderr)
+            print("Couldn't send confirmation mail to", user.email,
                   file=sys.stderr)
-            return render_template('register.html', title='Register',
-                                   form=form)
+            print(traceback.format_exc(), file=sys.stderr)
+            flash("You're registered! But something went wrong trying to send you a confirmation mail, so your email address won't work yet. Please contact an administrator. Sorry about that!")
+    else:
+        flash('Welcome to the NM Bill Tracker. Please sign in.')
 
-        if probably_bogus(form.email.data):
-            flash("That doesn't look like a real email address")
-            print("ATTACK ALERT: Probably bogus email", form.email.data,
-                  file=sys.stderr)
-            return render_template('register.html', title='Register',
-                                   form=form)
+    db.session.add(user)
+    db.session.commit()
 
-        print("Creating new user account", form.username.data,
-              file=sys.stderr)
-        user = User(username=form.username.data, email=form.email.data)
-        user.set_password(form.password.data)
+    # Now reset the captcha question.
+    captcha.random_question()
 
-        if user.email:
-            try:
-                print("Sending confirmation mail to", form.username.data)
-                user.send_confirmation_mail()
-                flash("Welcome to the NM Bill Tracker. A confirmation message has been mailed to %s."
-                      % user.email)
-            except Exception as e:
-                print(e, file=sys.stderr)
-                print("Couldn't send confirmation mail to", user.email,
-                      file=sys.stderr)
-                print(traceback.format_exc(), file=sys.stderr)
-                flash("You're registered! But something went wrong trying to send you a confirmation mail, so your email address won't work yet. Please contact an administrator. Sorry about that!")
-        else:
-            flash('Welcome to the NM Bill Tracker. Click Login to sign in.')
-
-        db.session.add(user)
-        db.session.commit()
-
-        return redirect(url_for('login'))
-    return render_template('register.html', title='Register', form=form)
+    return redirect(url_for('login'))
 
 
 @billtracker.route('/confirm_email/<auth>')
