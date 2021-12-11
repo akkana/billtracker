@@ -236,8 +236,8 @@ class User(UserMixin, db.Model):
                    "noreply@nmbilltracker.com",
                    [ self.email ],
                    """
-You either registered for a new account on the New Mexico Bill Tracker,
-or changed your email address.
+Someone (hopefully you) registered your email for a new account on
+the New Mexico Bill Tracker, or changed your email address there.
 
 Username: %s
 Email:    %s
@@ -246,6 +246,9 @@ Please confirm your email address so you can get daily updates about
 bills that have changed by following this link:
 
 https://nmbilltracker.com/confirm_email/%s
+
+If this was done by someone else using your email address, please
+accept our apologies, and don't click the confirmation link.
 
 """ % (self.username, self.email, self.auth_code))
 
