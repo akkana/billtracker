@@ -768,8 +768,10 @@ def password_reset():
         db.session.commit()
 
         print("Sending password reset email to %s, password %s"
-              % (user.email, newpasswd), file=sys.stderr)
-        print("captcha q was", session['captcha'], file=sys.stderr)
+              % (user.email, newpasswd),
+              ": captcha q was", session['captcha'],
+              file=sys.stderr)
+        print(
         send_email("NM Bill Tracker Password Reset",
                    "noreply@nmbilltracker.com", [ user.email ],
                    render_template("passwd_reset.txt",
