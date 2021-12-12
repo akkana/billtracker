@@ -771,7 +771,6 @@ def password_reset():
               % (user.email, newpasswd),
               ": captcha q was", session['captcha'],
               file=sys.stderr)
-        print(
         send_email("NM Bill Tracker Password Reset",
                    "noreply@nmbilltracker.com", [ user.email ],
                    render_template("passwd_reset.txt",
