@@ -160,7 +160,7 @@ def main():
     if now.hour in bill_hours:
         print("Updating some bills")
         requests.post('%s/api/refresh_percent_of_bills' % BASEURL,
-                      { "PERCENT": 30, "KEY": KEY })
+                      { "PERCENT": 34, "KEY": KEY })
 
     # Email comes last, in case anything else needed updating.
     if now.hour in email_hours:

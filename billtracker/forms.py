@@ -51,20 +51,19 @@ class RegistrationForm(FlaskForm):
         if 'captcha' in session:
             question = session['captcha']
             if question != self.capq.data:
-                print("WARNING validating new registration: "
-                      "capq '%s' didn't match session '%s'"
+                print("validate_capq: '%s' didn't match session '%s'"
                       % (self.capq.data, session['captcha']),
                       file=sys.stderr)
         else:
             print("no captcha in session", file=sys.stderr)
 
         if not question:
-            print("** Couldn't get captcha question from session",
+            print("validate_capa: Couldn't get captcha question from session",
                   file=sys.stderr)
             question = self.capq.data
 
         if not self.captcha.is_answer_correct(capa.data, question=question):
-            print("Wrong answer '%s' for captcha question '%s'"
+            print("validate_capa: Wrong answer '%s' for captcha question '%s'"
                   % (capa.data, question), file=sys.stderr)
             print("Valid answers are", self.captcha.QandA[question])
 

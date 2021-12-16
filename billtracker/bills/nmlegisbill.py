@@ -982,6 +982,9 @@ def get_legislator_list():
     billrequests.ftp_get('www.nmlegis.gov', 'Legislator Information',
             'RETR Legislators.XLS', outfile=cachefile)
 
+    # xlrd gives
+    # WARNING *** OLE2 inconsistency: SSCS size is 0 but SSAT size is non-zero
+    # but still seems to work okay.
     wb = xlrd.open_workbook(cachefile)
     sheet = wb.sheet_by_name(wb.sheet_names()[0])
     if not sheet or sheet.ncols <= 0 :

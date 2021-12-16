@@ -729,7 +729,6 @@ def password_reset():
     # If the user doesn't already have a captcha, choose a question.
     if not captcha or 'captcha' not in session:
         session['captcha'] = new_captcha()
-        print("setting session to new captcha,", session['captcha'])
 
     form = PasswordResetForm()
 
@@ -741,7 +740,6 @@ def password_reset():
         # initial display, or validation error.
         # Set the captcha q.
         if captcha:
-            print("Setting capq.data")
             form.capq.data = session['captcha']
 
         return render_template('passwd_reset.html', title='Password Reset',
@@ -759,7 +757,7 @@ def password_reset():
         punct = '-.!@$%*'
         charset = lc+uc+num+punct
         newpasswd = ''
-        passwdlen = 9
+        passwdlen = 11
         for i in range(passwdlen):
             newpasswd += random.choice(charset)
 
@@ -1085,7 +1083,7 @@ def refresh_percent_of_bills():
             b = nmlegisbill.parse_bill_page(bill.billno, yearcode)
             if not b:
                 print("Failed to refresh:", bill, file=sys.stderr)
-                failed_updates.append(b.billno)
+                failed_updates.append(bill.billno)
                 continue
             bill.set_from_parsed_page(b)
             updated_bills.append(bill)
