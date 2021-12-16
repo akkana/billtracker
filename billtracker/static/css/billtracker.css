@@ -98,7 +98,7 @@ tr.even td { background: #dfe; }
 th { background: #eee; }
 
 .newsbanner {
-    color: #050;
+    color: #040; background: #ffe;
     padding: .4em;
     border: 1px outset black; border-radius: 5px;
 }

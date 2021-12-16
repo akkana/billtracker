@@ -43,6 +43,10 @@ class Config(object):
     # redirect or pass it as POST rather than GET.
     USE_SESSION_FOR_NEXT = True
 
+    # A short status message highlighted at the top of every page.
+    # For instance, it might say "The current session ends on 2/21".
+    BILLTRACKER_BANNER = os.environ.get('BILLTRACKER_BANNER') or None
+
 
 # administrator list
 ADMINS = [ os.environ.get('FLASK_ADMIN') or 'user@example.com']

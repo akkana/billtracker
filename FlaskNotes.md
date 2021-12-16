@@ -54,7 +54,7 @@ On the development machine:
 On the live server, flask db upgrade needs something extra.
 Try this (from the directory where run_billtracker.py is):
 export FLASK_APP=run_billtracker.py
-export DATABASE_URL=postgresql:///nmbilltracker
+export DATABASE_URL=postgresql:///DBNAME
 followed by: flask db upgrade
 
 Sometimes the database gets confused about where it is, and wants to
@@ -114,11 +114,11 @@ export DATABASE_URL=postgresql:///dbname
 
 Your wsgi script probably has a bunch of lines like
 ```
-sys.path.insert(0, '/var/www/nmbilltracker/billtracker')
+sys.path.insert(0, '/PATH/TO/BILLTRACKER/CODE')
 ```
 and
 ```
-os.environ["DATABASE_URL"] = "postgresql:///nmbilltracker"
+os.environ["DATABASE_URL"] = "postgresql:///DBNAME"
 ```
 
 Make a copy of it, then add to the end the stuff you need for

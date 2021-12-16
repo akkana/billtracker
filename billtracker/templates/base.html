@@ -92,9 +92,12 @@
     <!-- Put system messages and alerts here,
          with class "newsbanner", and optionally also
          class either system-alert (red) or system-message (green).
-    <p class="newsbanner">
-    </p>
     -->
+    {% if config['BILLTRACKER_BANNER'] %}
+    <p class="newsbanner">
+        {{ config['BILLTRACKER_BANNER'] }}
+    </p>
+    {% endif %}
 
     {% with messages = get_flashed_messages() %}
     {% if messages %}
