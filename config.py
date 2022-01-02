@@ -45,7 +45,8 @@ class Config(object):
 
     # A short status message highlighted at the top of every page.
     # For instance, it might say "The current session ends on 2/21".
-    BILLTRACKER_BANNER = os.environ.get('BILLTRACKER_BANNER') or None
+    BILLTRACKER_INFO = os.environ.get('BILLTRACKER_INFO') or None
+    BILLTRACKER_ALERT = os.environ.get('BILLTRACKER_ALERT') or None
 
 
 # administrator list

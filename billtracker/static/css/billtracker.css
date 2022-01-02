@@ -97,11 +97,15 @@ tr.even td { background: #dfe; }
 
 th { background: #eee; }
 
-.newsbanner {
+/* The optional news banner (BILLTRACKER_INFO) and alert (BILLTRACKER_ALERT)
+ * displayed at the top of every page.
+ */
+.newsbanner, .newsalert {
     color: #040; background: #ffe;
     padding: .4em;
     border: 1px outset black; border-radius: 5px;
 }
+.newsalert { color: #900; }
 
 .error { color: red; }
 .system-alert { color: red; }

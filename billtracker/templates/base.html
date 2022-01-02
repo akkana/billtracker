@@ -89,13 +89,22 @@
     {% endif %}
     </header>
 
-    <!-- Put system messages and alerts here,
-         with class "newsbanner", and optionally also
+    <!-- Put system messages and alerts here to show on every page,
+         with class "newsbanner" or "newsalert", and optionally also
          class either system-alert (red) or system-message (green).
+         You can set news alerts by setting an environment variable
+         in your run script (e.g. billtracker.wsgi):
+         os.environ["BILLTRACKER_ALERT"] = "Senate updates are running behind."
+         os.environ["BILLTRACKER_INFO"] = "The current session ends Feb 10."
     -->
-    {% if config['BILLTRACKER_BANNER'] %}
+    {% if config['BILLTRACKER_ALERT'] %}
+    <p class="newsalert">
+        {{ config['BILLTRACKER_ALERT'] }}
+    </p>
+    {% endif %}
+    {% if config['BILLTRACKER_INFO'] %}
     <p class="newsbanner">
-        {{ config['BILLTRACKER_BANNER'] }}
+        {{ config['BILLTRACKER_INFO'] }}
     </p>
     {% endif %}
 
