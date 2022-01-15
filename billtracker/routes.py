@@ -816,7 +816,8 @@ def appinfo(key):
     now = datetime.now(timezone.utc)
     yearcode = LegSession.current_yearcode()
     checked_in_last_day = 0
-    never_checked = 0
+    never_checked = []
+    no_bills = []
     has_current_year_bills = 0
     totbills = 0
     spacer = '&nbsp;&nbsp;&nbsp;&nbsp;'
@@ -827,19 +828,29 @@ def appinfo(key):
                < timedelta(days=1):
                 checked_in_last_day += 1
         else:
-            never_checked += 1
+            never_checked.append(user)
 
-        totbills += len(user.bills)
-        for bill in user.bills:
-            if bill.year == yearcode:
-                has_current_year_bills += 1
-                break
+        numbills = len(user.bills)
+        if numbills:
+            totbills += numbills
+            for bill in user.bills:
+                if bill.year == yearcode:
+                    has_current_year_bills += 1
+                    break
+        else:
+            no_bills.append(user)
 
     infostr += "<br>\n%swith bills from this session: %d" % (spacer,
                                                       has_current_year_bills)
     infostr += "<br>\n%schecked in past day: %d" % (spacer,
                                                     checked_in_last_day)
-    infostr += "<br>\n%snever checked: %d" % (spacer, never_checked)
+    infostr += "<br>\n%snever checked: %d" % (spacer, len(never_checked))
+    for user in never_checked:
+        infostr += " " + user.username
+
+    infostr += "<br>\n%sno bills in any session: %d" % (spacer, len(no_bills))
+    for user in no_bills:
+        infostr += " " + user.username
 
     infostr += "<br>\nAverage bills per user: %d" % (totbills / len(allusers))
 
