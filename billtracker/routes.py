@@ -24,7 +24,13 @@ import traceback
 import shutil
 import subprocess
 import re
+from collections import OrderedDict
 import sys, os
+
+
+# filenames are e.g. HB000032.PDF with a random number of zeros.
+# Remove all zeros -- but not in the middle of a number, like 103.
+billno_pat = re.compile("([A-Z]*)(0*)([1-9][0-9]*)")
 
 
 def set_session_by_request_values(values=None):
@@ -600,7 +606,6 @@ def allbills():
     newbills = []
     oldbills = []
 
-    from pprint import pprint
     # allbills.html expects a list of dictionaries with keys:
     # billno, title, url, contentsurl, user_tracking, num_tracking
     # [ [billno, title, link, fulltext_link, tracked_by_user ] ]
@@ -628,6 +633,18 @@ def allbills():
     # Update user's bills seen, so they won't show up as new next time.
     if user:
         user.update_bills_seen(','.join(allbills.keys()), yearcode)
+
+    # Now sort both dicts; the allbills page will display the order
+    # passed in, in each case.
+    def dic_to_key(dic):
+        match = re.match(billno_pat, dic["billno"])
+        if not match:
+            return "X" + billno
+        billtype, zeros, num = match.groups()
+        return billtype + num.zfill(5)
+
+    newbills.sort(key=dic_to_key)
+    oldbills.sort(key=dic_to_key)
 
     bill_lists = [ { 'thelist': newbills,
                      'header': """<h2>Recently Filed Bills:</h2>
@@ -1111,7 +1128,7 @@ def refresh_percent_of_bills():
 
 # Test:
 # requests.post('%s/api/refresh_session_list' % baseurl, { "KEY": KEY }).text
-@billtracker.route("/api/refresh_session_list", methods=['POST'])
+@billtracker.route("/api/refresh_session_list", methods=['POST', 'GET'])
 def refresh_session_list():
     """Fetch Legislation_List (the same file that's used for allbills)
        and check the menu of sessions to see if there's a new one.
@@ -1210,10 +1227,6 @@ def refresh_legisdata():
         return "FAIL Couldn't fetch %s" % url
 
     # Slow part is done. Now it's okay to access the database.
-
-    # filenames are e.g. HB000032.PDF with a random number of zeros.
-    # Remove all zeros -- but not in the middle of a number, like 103.
-    billno_pat = re.compile("([A-Z]*)(0*)([1-9][0-9]*)")
 
     changes = []
     not_in_db = []
