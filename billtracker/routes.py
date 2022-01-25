@@ -1121,7 +1121,7 @@ def refresh_percent_of_bills():
             yearcode, ' '.join([b.billno for b in updated_bills]))
         if failed_updates:
             retstr += "\n      Failed to update: %s" % (
-            ' '.join([b.billno for b in failed_updates]))
+            ' '.join([str(b) for b in failed_updates]))
 
     db.session.commit()
     return retstr
