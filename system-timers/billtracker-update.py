@@ -38,9 +38,9 @@ LOGFILE = '/var/log/billtracker-update.log'
 if in_session:
     email_hours = [ 21 ]
     legislator_hours = [ ]    # Should happen automatically when needed
-    FIR_hours = [ 2, 13 ]
-    LESC_hours = [ 3, 15 ]
-    amend_hours = [ 4, 16 ]
+    FIR_hours = [ 2, 10, 17 ]
+    LESC_hours = [ 3, 11, 18 ]
+    amend_hours = [ 4, 12, 19 ]
     db_backup_hours = [ 1, 13 ]
 
     # Committees are really the important things to refresh:
@@ -158,7 +158,7 @@ def main():
     # Update the session list, and the least recently updated bills.
     #
     if now.hour in bill_hours:
-        print("Updating some bills")
+        responses['bills'] = "Updated some bills")
         requests.post('%s/api/refresh_percent_of_bills' % BASEURL,
                       { "PERCENT": 34, "KEY": KEY })
 
@@ -172,6 +172,7 @@ def main():
             print(r, ":", responses[r].text)
     else:
         print("Nothing to do at hour", now.hour)
+
 
 if __name__ == '__main__':
     main()
