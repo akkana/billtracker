@@ -76,6 +76,15 @@ class TestBillTracker(unittest.TestCase):
         # Users and bills depend on each other, so they pretty much
         # need to be combined in the same test.
 
+        # yearcode = '19'
+        # session["yearcode"] = '19'
+
+        # Fetch the list of legislative sessions.
+        # Do this first, many things depend on current_leg_session()
+        response = self.app.post("/api/refresh_session_list",
+                                 data={ 'KEY': self.key })
+        self.assertTrue(response.get_data(as_text=True).startswith('OK'))
+
         # Check that the home page loads.
         # This has nothing to do with bills, but calling setUp/tearDown
         # just for this would be a waste of cycles.
@@ -97,8 +106,12 @@ class TestBillTracker(unittest.TestCase):
         self.assertEqual(len(allbills), 1)
 
         # Test that bills_by_update_date now shows the bill
-        response = self.app.get("/api/bills_by_update_date",
+        response = self.app.post("/api/bills_by_update_date",
                                 data={ 'yearcode': '19' })
+        self.assertEqual(response.get_data(as_text=True), 'HB73')
+
+        # Same thing but with GET
+        response = self.app.get("/api/bills_by_update_date?yearcode=19")
         self.assertEqual(response.get_data(as_text=True), 'HB73')
 
         # Test whether the bill just added is in the database
@@ -131,11 +144,6 @@ class TestBillTracker(unittest.TestCase):
         db.session.add(bill)
         db.session.commit()
 
-        # Fetch the list of legislative sessions
-        response = self.app.post("/api/refresh_session_list",
-                                 data={ 'KEY': self.key })
-        self.assertTrue(response.get_data(as_text=True).startswith('OK'))
-
         # This is needed to test WTForms to test any POSTs:
         billtracker.config['WTF_CSRF_ENABLED'] = False
 
@@ -148,7 +156,7 @@ class TestBillTracker(unittest.TestCase):
                                  data={ 'username': USERNAME,
                                         'password': PASSWORD,
                                         'password2': PASSWORD,
-                                        'capa' : 'yes',
+                                        'capa' : 'you betcha!',
                                         'submit': 'Register' })
         print("Tried to create it. status code was", response.status_code)
         self.assertTrue(response.status_code == 200 or
