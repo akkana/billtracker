@@ -124,8 +124,6 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
 
         committee_sched = nmlegisbill.expand_committees(
                                   jsonsrc="test/files/schedule-20220211.json")
-        from pprint import pprint
-        pprint(committee_sched)
         self.assertEqual(committee_sched, {
             'HHHC': {'chair': 'HARMS',
                      'code': 'HHHC',

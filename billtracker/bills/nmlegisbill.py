@@ -961,7 +961,6 @@ def expand_committees(jsonsrc=None):
                     meeting["timestr"] += ", <a href='%s' target='_blank'>PDF schedule</a>" \
                         % mtg['url']
 
-                print(commcode, ":", meeting["timestr"], "in nmlegisbill")
 
                 committees[commcode]["meetings"].append(meeting)
 
