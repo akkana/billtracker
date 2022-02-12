@@ -889,7 +889,6 @@ class Bill(db.Model):
             outstr += "No action yet.\n"
 
         if self.location:
-
             # If it's on the House or Senate floor, highlight that:
             if self.location == 'House' or self.location == 'Senate':
                 outstr += 'Location: ** %s Floor **\n' % self.location

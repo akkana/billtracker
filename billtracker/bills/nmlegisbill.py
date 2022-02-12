@@ -941,10 +941,10 @@ def expand_committees(jsonsrc=None):
                     meeting["timestr"] += ", room %s" \
                         % mtg['room']
                 if 'zoom' in mtg:
-                    meeting["timestr"] += ", <a href='%s'>zoom link</a>" \
+                    meeting["timestr"] += ", <a href='%s' target='_blank'>zoom link</a>" \
                         % mtg['zoom']
                 if 'url' in mtg:
-                    meeting["timestr"] += ", <a href='%s'>PDF schedule</a>" \
+                    meeting["timestr"] += ", <a href='%s' target='_blank'>PDF schedule</a>" \
                         % mtg['url']
 
                 committees[commcode]["meetings"].append(meeting)
