@@ -1406,7 +1406,6 @@ def refresh_all_committees(key):
     unscheduled = []
     for bill in Bill.query.filter_by(year=yearcode).all():
         if bill.billno not in billnos:
-            print(bill.billno, "was not in the schedule")
             bill.scheduled_date = None
             db.session.add(bill)
             unscheduled.append(billno)
