@@ -122,11 +122,41 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
                      "SJC", "SRC", "STBTC"
                     ]
 
-        committee_sched = nmlegisbill.expand_committees(codelist,
-                                            jsonsrc="test/files/schedule.json")
-        from pprint import pprint
-        pprint(committee_sched)
-        self.assertEqual(committee_sched,
-                         {})
+        committee_sched = nmlegisbill.expand_committees(
+                                  jsonsrc="test/files/schedule-20220211.json")
+        self.assertEqual(committee_sched,    {
+            'HHHC': {'chair': 'HARMS',
+                     'code': 'HHHC',
+                     'meetings': [{'bills': ['SB38', 'SB40', 'SB138', 'HB239'],
+                                   'datetime': datetime.datetime(2022, 2, 11, 8, 30),
+                                   'timestr': '08:30, room 315, <a '
+                                   "href='https://us02web.zoom.us/j/84182969724'>zoom "
+                                   'link</a>, <a '
+                                   "href='https://nmlegis.gov/Agendas/Standing/hSched021122.pdf'>PDF "
+                                   'schedule</a>'}],
+                     'members': ['HARMS',
+                                 'HFERJ',
+                                 'HANDP',
+                                 'HARMG',
+                                 'HBABR',
+                                 'HBASH',
+                                 'HLORD',
+                                 'HMATT',
+                                 'HMORO',
+                                 'HTERR',
+                                 'HTHOE'],
+                     'name': 'House Health & Human Services'},
+            'SIRC': {'chair': 'SPINS',
+                     'code': 'SIRC',
+                     'meetings': [{'bills': ['HB15'],
+                                   'datetime': datetime.datetime(2022, 2, 11, 13, 30),
+                        'timestr': '13:30, room 303, <a '
+                                   "href='https://us02web.zoom.us/j/84137686373'>zoom "
+                                   'link</a>, <a '
+                                   "href='https://nmlegis.gov/Agendas/Standing/sSched021122.pdf'>PDF "
+                                   'schedule</a>'}],
+                     'members': ['SPINS', 'SJARA', 'SGRIG', 'SMCKE', 'SSANJ', 'SSHEN'],
+                     'name': 'Senate Indian, Rural & Cultural Affairs'}
+        })
 
 

@@ -1047,7 +1047,7 @@ def refresh_one_bill():
 #               { "PERCENT": percent, "YEAR": year, "KEY": key }).text
 # requests.post('%s/api/refresh_percent_of_bills' % baseurl,
 #               { "PERCENT": percent, "YEARCODE": yearcode, "KEY": key }).text
-@billtracker.route("/api/refresh_percent_of_bills", methods=['POST'])
+@billtracker.route("/api/refresh_percent_of_bills", methods=['GET', 'POST'])
 def refresh_percent_of_bills():
     """Refresh a given percentage of the bill list
        for a specified yearcode or year.
@@ -1125,6 +1125,7 @@ def refresh_percent_of_bills():
 
     db.session.commit()
     return retstr
+
 
 # Test:
 # requests.post('%s/api/refresh_session_list' % baseurl, { "KEY": KEY }).text
@@ -1290,6 +1291,9 @@ def list_committees():
 
 @billtracker.route("/api/refresh_all_committees/<key>")
 def refresh_all_committees(key):
+    """Update all committees based on the latest list of upcoming
+       committee meetings. Update bills' scheduled_date.
+    """
     if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
     print("Refreshing all committees", file=sys.stderr)
@@ -1301,26 +1305,13 @@ def refresh_all_committees(key):
     # First update the legislators list:
     Legislator.refresh_legislators_list()
 
-    # Get the list of all committees that are locations for bills.
-    # There's no pressing need to refresh committees not in that list.
-    # Some bill locations aren't committees, e.g. "chaptered" or "Senate".
-    comm_locs = set()
-    for bill in Bill.query.filter_by(year=yearcode).all():
-        if bill.location and \
-           not nmlegisbill.is_special_location(bill.location):
-            comm_locs.add(bill.location)
-
-    # House and Senate are special locations: don't skip them.
-    comm_locs.add("House")
-    comm_locs.add("Senate")
-
-    comm_mtgs = nmlegisbill.expand_committees(comm_locs)
-
     known_committees = Committee.query.all()
-    known_commcodes = [ c.code for c in known_committees ]
+    # known_commcodes = [ c.code for c in known_committees ]
+
+    comm_mtgs = nmlegisbill.expand_committees()
 
     # Are there any new committees in comm_mtgs not yet in the database?
-    for commcode in comm_locs:
+    for commcode in comm_mtgs:
         comm = Committee.query.filter_by(code=commcode).first()
         if not comm:
             newcomm = Committee()
@@ -1337,98 +1328,99 @@ def refresh_all_committees(key):
             # Now it should be safe to refresh
             newcomm.refresh()
 
-    print("api/refresh_all_committees: will refresh", ' '.join(comm_locs),
-          file=sys.stderr)
+    print("api/refresh_all_committees", file=sys.stderr)
 
     hasmeetings = []
     nomeetings = []
-    for commcode in comm_locs:
-        if commcode in comm_mtgs:
-            comm = Committee.query.filter_by(code=commcode).first()
-            if not comm:
-                print("***** EEK! committee", commcode, "not in the db",
-                      file=sys.stderr)
-                nomeetings.append(commcode)
+    billnos = set()
+    for comm in Committee.query.filter_by().all():
+        if comm.code not in comm_mtgs or not comm_mtgs[comm.code]:
+            comm.mtg_time = None
+            nomeetings.append(comm.code)
+            continue
+
+        if "meetings" not in comm_mtgs[comm.code]:
+            nomeetings.append(comm.code)
+            continue
+
+        # XXX Currently the Committee database object can only
+        # handle one meeting at once, and this code doesn't yet
+        # try to handle multiple meetings.
+
+        # Sort this committee's by datetime. Items missing time will have
+        # time of 00:00 and so will come before items with a
+        # time on the same day.
+        # comm_mtgs[comm.code]["meetings"].sort(
+        #     key=lambda m: m["datetime"] if "datetime" in m else "zzz")
+
+        # Now update the committee's comm.mtg_time (a string) to show
+        # meeting time and details. mtg["timestr"] is a free-form string
+        # like "1:30 PM  (or 15 minutes following the floor session)"
+        timestrings = []
+        updated_comm = False
+        for mtg in comm_mtgs[comm.code]["meetings"]:
+            # Ignore any meeting without datetime or bills field.
+            if "datetime" not in mtg:
+                nomeetings.append(comm.code)
+                continue
+            if "bills" not in mtg:
+                nomeetings.append(comm.code)
                 continue
 
-            if "meetings" not in comm_mtgs[comm.code]:
-                nomeetings.append(commcode)
-                continue
+            if "timestr" in mtg:
+                timestr = mtg["timestr"]
+                # May include other details like zoom and schedule links
+            elif type(mtg["datetime"]) is datetime and mtg["datetime"].hour:
+                timestr = mtg["datetime"].strftime("%H:%M")
+            else:
+                timestr = "(unknown time)"
 
-            # XXX Currently the Committee database object can only
-            # handle one meeting at once, and this code doesn't yet
-            # try to handle multiple meetings.
+            comm.mtg_time = timestr
 
-            # Now sort by datetime. Items missing time will have
-            # time of 00:00 and so will come before items with a
-            # time on the same day.
-            comm_mtgs[comm.code]["meetings"].sort(
-                key=lambda m: m["datetime"] if "datetime" in m else "zzz")
-
-            # Now update the committee's comm.mtg_time (a string) to show
-            # meeting details. mtg["details"] is a free-form string like
-            # "1:30 PM  (or 15 minutes following the floor session)"
-            timestrings = []
-            billnos = set()
-            updated_comm = False
-            for mtg in comm_mtgs[comm.code]["meetings"]:
-                # Ignore any meeting without datetime or bills field.
-                if "datetime" not in mtg:
-                    nomeetings.append(commcode)
-                    continue
-                if "bills" not in mtg:
-                    nomeetings.append(commcode)
-                    continue
-
-                if "timestr" in mtg:
-                    timestr = mtg["timestr"]
-                    # May include other details like zoom and schedule links
-                elif type(mtg["datetime"]) is datetime and mtg["datetime"].hour:
-                    timestr = mtg["datetime"].strftime("%H:%M")
-                else:
-                    timestr = "(unknown time)"
-
-                comm.mtg_time = timestr
-
-                for billno in mtg["bills"]:
-                    billnos.add(billno)
-                    bill = Bill.query.filter_by(billno=billno,
-                                                year=yearcode).first()
-                    if bill:
-                        if mtg['datetime']:
-                            bill.scheduled_date = mtg['datetime']
-                            updated_comm = True
-                        else:
-                            bill.scheduled_date = None
-                        db.session.add(bill)
-
-            # Remove any bills that used to be assigned to this committee
-            # but no longer are (so they're not in billnos).
-            oldbills = Bill.query.filter_by(year=yearcode,
-                                            location=comm.code).all()
-            for bill in oldbills:
-                if bill.billno not in billnos:
-                    bill.location = None
+            for billno in mtg["bills"]:
+                billnos.add(billno)
+                bill = Bill.query.filter_by(billno=billno,
+                                            year=yearcode).first()
+                if bill:
+                    bill.location = comm.code
+                    if mtg['datetime']:
+                        bill.scheduled_date = mtg['datetime']
+                        updated_comm = True
+                    else:
+                        bill.scheduled_date = None
                     db.session.add(bill)
 
-            if updated_comm:
-                hasmeetings.append(comm.code)
-                db.session.add(comm)
-            else:
-                nomeetings.append(comm.code)
-
+        if updated_comm:
+            hasmeetings.append(comm.code)
+            db.session.add(comm)
         else:
-            comm.mtg_time = ""
             nomeetings.append(comm.code)
-            # print(comm.code, "has no scheduled meetings", file=sys.stderr)
 
         db.session.add(comm)
 
+    # Having looped through all the meetings, now clean up any bills
+    # that aren't scheduled any longer.
+
+    # Remove any bills that used to be assigned to this committee
+    # but no longer are (so they're not in billnos).
+    unscheduled = []
+    for bill in Bill.query.filter_by(year=yearcode).all():
+        if bill.billno not in billnos:
+            print(bill.billno, "was not in the schedule")
+            bill.scheduled_date = None
+            db.session.add(bill)
+            unscheduled.append(billno)
+
     db.session.commit()
 
+    billnos = sorted(list(billnos))
+    unscheduled.sort()
     return "OK\n<br>Committees meeting: " + ",".join(hasmeetings) \
         + "\n<br>No meetings, or no followed bills: " \
-        + ",".join(nomeetings)
+        + ",".join(nomeetings) \
+        + "\n<br>" \
+        + "\n<br>Bills updated: " + " ".join(billnos) \
+        + "\n<br>Bills not scheduled: " + " ".join(unscheduled)
 
 
 def refresh_one_committee(comcode):

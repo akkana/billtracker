@@ -795,6 +795,9 @@ def expand_committee(code):
     url = 'https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=%s' % code
     soup = billrequests.soup_from_cache_or_net(url)
 
+    if not soup:
+        return None
+
     # The all-important committee code
     ret = { 'code': code }
 
@@ -832,9 +835,9 @@ def expand_committee(code):
     return ret
 
 
-def expand_committees(codelist, jsonsrc=None):
-    """Expand all committees listed, including meeting dates
-       from the latest PDF schedules.
+def expand_committees(jsonsrc=None):
+    """Expand all committees that have meetings upcoming,
+       updating meeting dates from the latest PDF schedules.
 
        Return a dictionary of dictionaries, with the outer one keyed
        by committee code.
@@ -846,12 +849,10 @@ def expand_committees(codelist, jsonsrc=None):
                datetime         datetime for meeting
                timestr          time and details for next meeting
                scheduled_bills  list of [billno, scheduled_datetime]]
+          (Currently meetings will have only one meeting,
+          we don't handle multiple meetings yet.)
     """
-    committees = {}
-
-    for commcode in codelist:
-        committees[commcode] = expand_committee(commcode)
-    # Now committees dict has everything except meeting times.
+    thisyear = datetime.date.today().year
 
     # Ed Santiago has a perl script, nmlegis-get-calendars,
     # https://gitlab.com/edsantiago/nmlegis
@@ -871,16 +872,24 @@ def expand_committees(codelist, jsonsrc=None):
         r = requests.get(jsonsrc)
         scheduledata = r.json()
     else:
-        scheduledata = json.loads(jsonsrc)
-    print("Input json is", scheduledata)
+        with open(jsonsrc) as jfp:
+            scheduledata = json.load(jfp)
 
-    thisyear = datetime.date.today().year
+    committees = {}
 
-    for commcode in committees:
-        if commcode not in scheduledata:
+    for commcode in scheduledata:
+        if commcode == "_schema":
             continue
 
+        commdict = expand_committee(commcode)
+        if not commdict:
+            print("Couldn't expand committee", commdict, file=sys.stderr)
+            continue
+        committees[commcode] = commdict
+        # Now committees[commcode] has everything except meeting times.
+
         committees[commcode]["meetings"] = []
+
         for meetingdate in scheduledata[commcode]:
             for mtg in scheduledata[commcode][meetingdate]:
                 # Are there bills? If no, don't care about this meeting
