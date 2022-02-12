@@ -1373,7 +1373,7 @@ def refresh_all_committees(key):
             elif type(mtg["datetime"]) is datetime and mtg["datetime"].hour:
                 timestr = mtg["datetime"].strftime("%H:%M")
             else:
-                timestr = "(unknown time)"
+                timestr = ""
 
             comm.mtg_time = timestr
 
@@ -1408,7 +1408,7 @@ def refresh_all_committees(key):
         if bill.billno not in billnos:
             bill.scheduled_date = None
             db.session.add(bill)
-            unscheduled.append(billno)
+            unscheduled.append(bill.billno)
 
     db.session.commit()
 

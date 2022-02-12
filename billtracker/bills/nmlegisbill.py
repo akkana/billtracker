@@ -898,19 +898,40 @@ def expand_committees(jsonsrc=None):
 
                 meeting = {}
 
+                # meeting["timestr"] is a human-readable time (no date)
+                # that doesn't need to be parseable,
+                # e.g. it might be "9:30" but it also might be
+                # "1:30 or half an hour after floor session".
+                if "time" in mtg:
+                    meeting["timestr"] = mtg["time"]
+                else:
+                    meeting["timestr"] = ""
+
                 # Parse datetime field, which is in ISO format
-                # but may be date only or date and time
+                # but may be date only or date and time.
+                # Replace datetime or date field.
                 try:
                     if 'T' in mtg["datetime"]:
                         meeting["datetime"] = datetime.datetime.strptime(
                             mtg["datetime"],
                             "%Y-%m-%dT%H:%M:%S")
+                        if not meeting["timestr"]:
+                            meeting["timestr"] \
+                                = meeting["datetime"].strftime("%H:%M")
                     # There may or may not be a time; if there wasn't,
                     # parse only the date portion. H and M will be zero.
                     else:
                         meeting["datetime"] = datetime.datetime.strptime(
                             mtg["datetime"],
                             "%Y-%m-%d")
+
+                except KeyError:
+                    # No datetime, fall back on date
+                    if "date" not in mtg:
+                        print("EEK! No 'date' field in", mtg, file=sys.stderr)
+                        continue
+                    meeting["datetime"] = datetime.datetime.strptime(
+                        mtg["date"], "%Y-%m-%d")
 
                 except RuntimeError:
                     print("Couldn't parse meeting datetime from",
@@ -925,18 +946,11 @@ def expand_committees(jsonsrc=None):
                           file=sys.stderr)
                     continue
 
-                # There's a datetime and bills, so it's a real meeting.
-                # Fill out the free-form "timestr" field.
+                # Add more to the the free-form "timestr" field.
 
                 # Start with a nice human-friendly date
                 # meeting["time"] = meeting["datetime"].strftime("%a, %b %d ")
                 # then add the human-readable, but maybe unparseable, time:
-                if "time" in meeting:
-                        meeting["timestr"] = meeting["time"]
-                else:
-                        meeting["timestr"] = \
-                            meeting["datetime"].strftime("%H:%M")
-
                 if 'room' in mtg:
                     meeting["timestr"] += ", room %s" \
                         % mtg['room']
@@ -946,6 +960,8 @@ def expand_committees(jsonsrc=None):
                 if 'url' in mtg:
                     meeting["timestr"] += ", <a href='%s' target='_blank'>PDF schedule</a>" \
                         % mtg['url']
+
+                print(commcode, ":", meeting["timestr"], "in nmlegisbill")
 
                 committees[commcode]["meetings"].append(meeting)
 
