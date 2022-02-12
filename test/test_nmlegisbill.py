@@ -105,18 +105,7 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
             'members': ['HARMS', 'HFERJ', 'HANDP', 'HARMG',
                         'HBABR', 'HBASH', 'HLORD', 'HMATT',
                         'HMORO', 'HTERR', 'HTHOE'],
-            'mtg_time': 'Monday, Wednesday & Friday- 8:30 a.m. (Room 315)',
-            'name': 'House Health & Human Services',
-            'scheduled_bills': [
-                ['SB96', datetime.datetime(2021, 3, 1, 8, 30)],
-                ['SB27', datetime.datetime(2021, 3, 1, 8, 30)],
-                ['HB305', datetime.datetime(2021, 3, 1, 8, 30)],
-                ['HB284', datetime.datetime(2021, 3, 1, 8, 30)],
-                ['HB272', datetime.datetime(2021, 2, 26, 8, 30)],
-                ['HB269', datetime.datetime(2021, 2, 26, 8, 30)],
-                ['HB250', datetime.datetime(2021, 2, 26, 8, 30)],
-                ['HB209', datetime.datetime(2021, 2, 26, 8, 30)],
-                ['HB151', datetime.datetime(2021, 3, 1, 8, 30)] ]
+            'name': 'House Health & Human Services'
         })
 
         sirc = nmlegisbill.expand_committee("SIRC")
@@ -124,50 +113,20 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
             'chair': 'SPINS',
             'code': 'SIRC',
             'members': ['SPINS', 'SJARA', 'SGRIG', 'SMCKE', 'SSANJ', 'SSHEN'],
-            'mtg_time': 'Tuesday & Thursday - 9:00 a.m. (Room 303)',
-            'name': 'Senate Indian, Rural & Cultural Affairs',
-            'scheduled_bills': [['SB361', datetime.datetime(2021, 2, 16, 9, 0)],
-                                ['SB332', datetime.datetime(2021, 2, 16, 9, 0)]]})
+            'name': 'Senate Indian, Rural & Cultural Affairs'
+        })
 
-    def test_parse_datetimes(self):
-        datestr, hour, minute = nmlegisbill.parse_comm_datetime("4:15 pm")
-        self.assertEqual(datestr, "")
-        self.assertEqual(hour, 16)
-        self.assertEqual(minute, 15)
+    def test_parse_json_schedules(self):
+        codelist = [ "HAAWC", "HCEDC", "HEC", "HGEIC", "HJC",
+                     "HLVMC", "HTRC", "SFC", "SHPAC", "SIRC",
+                     "SJC", "SRC", "STBTC"
+                    ]
 
-        datestr, hour, minute = nmlegisbill.parse_comm_datetime("4: 15 pm")
-        self.assertEqual(datestr, "")
-        self.assertEqual(hour, 16)
-        self.assertEqual(minute, 15)
-
-        datestr, hour, minute = nmlegisbill.parse_comm_datetime("Sometime around 4:15")
-        self.assertEqual(datestr, "Sometime around")
-        self.assertEqual(hour, 16)
-        self.assertEqual(minute, 15)
-
-        datestr, hour, minute = nmlegisbill.parse_comm_datetime("LALALA4:15plus some other stuff")
-        self.assertEqual(datestr, "LALALA")
-        self.assertEqual(hour, 16)
-        self.assertEqual(minute, 15)
-
-        datestr, hour, minute = nmlegisbill.parse_comm_datetime("Thursday, February 25, 2021  -  1:30 or 15 minutes after floor session")
-        self.assertEqual(datestr, "Thursday, February 25, 2021")
-        self.assertEqual(hour, 13)
-        self.assertEqual(minute, 30)
-
-        datestr, hour, minute = nmlegisbill.parse_comm_datetime("Tuesday & Thursday -1:30 p.m. (Room 321)")
-        self.assertEqual(datestr, "Tuesday & Thursday")
-        self.assertEqual(hour, 13)
-        self.assertEqual(minute, 30)
-
-        datestr, hour, minute = nmlegisbill.parse_comm_datetime("Wednesday, February 24, 2021  -  9:00 a.m.  -  Room")
-        self.assertEqual(datestr, "Wednesday, February 24, 2021")
-        self.assertEqual(hour, 9)
-        self.assertEqual(minute, 0)
-
-        datestr, hour, minute = nmlegisbill.parse_comm_datetime("Monday, Wednesday & Friday - 9:00 a.m. (Room 321)")
-        self.assertEqual(datestr, "Monday, Wednesday & Friday")
-        self.assertEqual(hour, 9)
-        self.assertEqual(minute, 0)
+        committee_sched = nmlegisbill.expand_committees(codelist,
+                                            jsonsrc="test/files/schedule.json")
+        from pprint import pprint
+        pprint(committee_sched)
+        self.assertEqual(committee_sched,
+                         {})
 
 

@@ -46,7 +46,7 @@ if in_session:
     # Committees are really the important things to refresh:
     # they're the only way to find out when bills are scheduled,
     # and their schedules are updated randomly and sometimes frequently.
-    committee_hours = [ 7, 11, 17, 21 ]
+    committee_hours = [ 7, 9, 11, 15, 17, 20 ]
 
     # The allbills page fetches a collection of files listing all bills,
     # memorials, resolutions, etc. Fetching these makes the allbills

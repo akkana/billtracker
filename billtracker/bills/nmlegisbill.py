@@ -14,8 +14,14 @@ import re
 import posixpath
 from collections import OrderedDict
 from bs4 import BeautifulSoup
+import json
 import xlrd
 import traceback
+
+# XXX Requests is only needed temporarily while introducing Ed's PDF
+# calendar parser. Eventually we should get that via billrequests
+# like everything else.
+import requests
 
 # A bill pattern, allowing for any number of extra leading zeros
 # like the FIR/LESC links randomly add.
@@ -150,8 +156,9 @@ def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
                 billdic['curloc'] = 'Senate'
 
         # In 2020, they've started adding "Scheduled for" to the
-        # curloc text if the bill is scheduled.
-        # Sometimes that's the only clue to scheduling, so look for it.
+        # curloc text if the bill is scheduled (sometimes).
+        # Sometimes that's the only clue to scheduling, so look for it,
+        # though it typically has only the date, not the time.
         # If it's not here, it might get filled in when the committee
         # gets updated.
         scheduled_for = scheduled_for_pat.match(curloc_text)
@@ -459,7 +466,6 @@ def decode_history(action, legday):
     """Decode a single history day according to the code specified in
        https://www.nmlegis.gov/Legislation/Action_Abbreviations
        For instance, 'HCPAC/HJC-HCPAC' -> 'Moved to HCPAC, ref HJC-HCPAC'
-       'DNP-CS/DP-HJC' -> XXXXXX
        Return the decoded text string.
     """
     # Committee changes are listed as NEWCOMM/COMM{,-COMM}
@@ -723,8 +729,8 @@ def all_bills(sessionid, yearcode, sessionname):
 house_senate_billno_pat = re.compile('.*_linkBillID_[0-9]*')
 
 def expand_house_or_senate(code, cache_locally=True):
-    """Return a dictionary, with keys code, name, scheduled_bills.
-       Other fields that committees would have will be unset.
+    """Return a dictionary, with keys equivalent to those of
+       expand_committee, below. Some fields may be unset.
     """
     url = 'https://www.nmlegis.gov/Entity/%s/Floor_Calendar' % code
     if cache_locally:
@@ -741,18 +747,19 @@ def expand_house_or_senate(code, cache_locally=True):
     # exact times to the user, we'll show a link to the only official
     # meeting time, the one on the PDF schedules. Even that is just an
     # early boundary, since they often meet as much as several hours late.
-    if code == "Senate":
-        today = datetime.datetime.now().replace(hour=11, minute=0)
-    elif code == "House":
-        today = datetime.datetime.now().replace(hour=14, minute=30)
 
     ret = { 'code': code, 'name': code }
 
-    ret['scheduled_bills'] = []
+    today = datetime.date.today()
+
+    # Some fields that, for committees, are picked up by parsing the
+    # PDF agendas. But the house/senate PDF agendas don't reliably list time.
+    ret['meetings'] = [ { 'datetime': today,
+                          'bills': []
+                         } ]
     for a in soup.findAll('a', { "id": house_senate_billno_pat }):
-        ret['scheduled_bills'].append([a.text.replace(' ', '')
-                                             .replace('*', ''),
-                                       today])
+        ret['meetings'][0]['bills'].append(a.text.replace(' ', '')
+                                            .replace('*', ''))
 
     return ret
 
@@ -774,52 +781,14 @@ sched_date_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewSc
 mtg_datetime_pat = re.compile("(.*) *(\d{1,2}): *(\d\d) *([ap]\.?m\.?)?",
                               flags=re.IGNORECASE)
 
-def parse_comm_datetime(datetimestr, hour=0, minute=0):
-    """Parse a date time string in the many creative ways different
-       committees format them.
-       Return: (date_or_dayspec, hour:int, minute:int)
-       Examples:
-        Thursday, February 25, 2021  -  1:30 or 15 minutes after floor session
-        Tuesday & Thursday -1:30 p.m. (Room 321)
-    """
-    # This could have date and time, possibly with
-    # extraneous crap after the time that might confused
-    # dateutil.parser; or it might be just the date,
-    # and needs a time.
-    # XXX should add some unit tests for this.
-    m = mtg_datetime_pat.match(datetimestr)
-    if not m:
-        # Nothing matching hour:minute.
-        return None, hour, minute
-
-    datestr = m.group(1).strip()
-    # Trim off any " - " on the end of the date string
-    while datestr.endswith('-'):
-        datestr = datestr[:-1].strip()
-    hour = int(m.group(2))
-    minute = int(m.group(3))
-    if m.group(4) and m.group(4).lower().startswith('p'):
-        hour += 12
-    # But sometimes they don't specify pm, they just assume you know
-    # that a committee isn't going to meet at 1:30am
-    if hour < 6:
-        hour += 12
-
-    return datestr, hour, minute
-
 
 def expand_committee(code):
     """Return a dictionary, with keys
            code       str, short committee code
            name,      str, human-readable name
-           mtg_time   e.g. 'Tuesday & Thursday -1:30 p.m. (Room 321)'
            chair      str, legislator code
            members    list of legislator codes
-           scheduled_bills  list of [billno, scheduled_datetime]]
-       Scheduled datetimes may be null if we can't parse the time string
-       (see parse_committee_datetime).
     """
-    print("expand_committee", code)
     if code == 'House' or code == 'Senate':
         return expand_house_or_senate(code)
 
@@ -836,94 +805,6 @@ def expand_committee(code):
         return
 
     ret['name'] = namespan.text
-
-    # Normal meeting time/place
-    timespan = soup.find(id="MainContent_formViewCommitteeInformation_lblMeetingDate")
-    # Save the unparsed human-readable string:
-    ret['mtg_time'] = timespan.text
-    if timespan:
-        datestr, hour, minute = parse_comm_datetime(timespan.text)
-        if not datestr:
-            print("%s: Couldn't find a usual meeting time in '%s'"
-                  % (code, timespan.text), file=sys.stderr)
-
-    # Find bills that are to be considered.
-    scheduled = []
-
-    # First look for a table listing all upcoming bills and their dates.
-    # If it's there, add all those bills with the committee's normal
-    # hour:minute meeting time.
-    allsched = soup.find("table", { "id": tbl_bills_scheduled })
-    if allsched:
-        for row in allsched.findAll('tr'):
-            billcell = row.find(id=billno_cell_pat)
-            scheduled_date = row.find(id=sched_date_pat)
-            if billcell and scheduled_date:
-                # Turn the date string into a datetime.
-                # So far, these tables have only had dates as m/d/y.
-                try:
-                    scheduled_date = dateutil.parser.parse(scheduled_date.text)
-                    # Bills on these pages have extra spaces, like 'HB 101'.
-                    # Some of them also start with * for unexplained reasons.
-                    billno = billcell.text.replace(' ', '').replace('*', '')
-                    scheduled.append([ billno,
-                        scheduled_date.replace(hour=hour, minute=minute) ])
-                except Exception as e:
-                    print("%s: Can't parse scheduled date '%s'"
-                          % (code, scheduled_date), file=sys.stderr)
-                    print(e, file=sys.stderr)
-
-    # Some committees don't fill out the list of upcoming scheduled bills,
-    # but do list their schedule for specific days, so try that if the
-    # allsched method didn't work.
-    if not scheduled:
-        print("No upcoming bills table in", url, file=sys.stderr)
-        mtgdates = soup.findAll("span", { "id": tbl_committee_mtg_dates })
-        mtgtimes = soup.findAll("span", { "id": tbl_committee_mtg_times })
-        mtgbills = soup.findAll("table", { "id": tbl_committee_mtg_bills })
-        if len(mtgdates) == len(mtgtimes) and len(mtgdates) == len(mtgbills):
-            # Loop over meeting tables: each mtgtbl is one upcoming  meeting.
-            for i, mtgtbl in enumerate(mtgbills):
-                # Meeting date and time, in no particularly regular format,
-                # are mtgdates[i].text and mtgtimes[i].text.
-                # Try to turn those into a datetime:
-                try:
-                    mtgdate = dateutil.parser.parse(mtgdates[i].text)
-                except:
-                    print("%s: dateutil couldn't parse '%s'"
-                              % (code, mtgdates[i].text),
-                          file=sys.stderr)
-                    continue
-
-                # Now try to parse the meeting time, in case it's
-                # different from the normal hour:minute meeting time
-                # for this committee.
-                s, h, m = parse_comm_datetime(mtgtimes[i].text, hour, minute)
-                if not s:
-                    print("%s: Couldn't parse meeting time from '%s"
-                          % (code, mtgtimes[i].text), code,
-                          file=sys.stderr)
-                    continue
-
-                mtgdate = mtgdate.replace(hour=h, minute=m)
-                # Yay, now this meeting has a date and time.
-
-                # Loop over the bills listed for this meeting.
-                for row in mtgtbl.findAll('tr'):
-                    cells = list(row.findAll("td"))
-                    if len(cells) < 5:
-                        continue
-                    billno = cells[1].text.strip() \
-                                          .replace(' ', '').replace('*', '')
-                    if not billno_pat.match(billno):
-                        continue
-                    scheduled.append([billno, mtgdate])
-        else:
-            print("Unequal dates %d, times %d, bills %d"
-                  % (len(mtgdates), len(mtgtimes), len(mtgbills)),
-                  file=sys.stderr)
-
-    ret['scheduled_bills'] = scheduled
 
     # Now get the list of members:
     members = []
@@ -949,6 +830,117 @@ def expand_committee(code):
         ret['members'] = members
 
     return ret
+
+
+def expand_committees(codelist, jsonsrc=None):
+    """Expand all committees listed, including meeting dates
+       from the latest PDF schedules.
+
+       Return a dictionary of dictionaries, with the outer one keyed
+       by committee code.
+       Each inner dict has  keys:
+           name,      str, human-readable name
+           chair      str, legislator code
+           members    list of legislator codes
+           meetings:  list of dicts:
+               datetime         datetime for meeting
+               timestr          time and details for next meeting
+               scheduled_bills  list of [billno, scheduled_datetime]]
+    """
+    committees = {}
+
+    for commcode in codelist:
+        committees[commcode] = expand_committee(commcode)
+    # Now committees dict has everything except meeting times.
+
+    # Ed Santiago has a perl script, nmlegis-get-calendars,
+    # https://gitlab.com/edsantiago/nmlegis
+    # that parses the PDF schedules that are really the only reliable
+    # way to get committee meeting times and bill lists.
+    # It's run once an hour to update the indicated URL.
+    if not jsonsrc:
+        jsonsrc = "http://nmlegis.edsantiago.com/schedule.json"
+
+    # XXX Eventually should check to make sure it's being kept
+    # up to date and at least some dates are in the future.
+    # h = requests.get(pdf_cal_url).headers["Last-Modified"]
+    # is something like "Sun, 06 Feb 2022 21:55:07 GMT"
+    # the strftime format is "%a, %d %b %Y %H:%M:%S GMT"
+    # but billrequests doesn't yet handle head() properly
+    if jsonsrc.startswith("http") and ':' in jsonsrc:
+        r = requests.get(jsonsrc)
+        scheduledata = r.json()
+    else:
+        scheduledata = json.loads(jsonsrc)
+    print("Input json is", scheduledata)
+
+    thisyear = datetime.date.today().year
+
+    for commcode in committees:
+        if commcode not in scheduledata:
+            continue
+
+        committees[commcode]["meetings"] = []
+        for meetingdate in scheduledata[commcode]:
+            for mtg in scheduledata[commcode][meetingdate]:
+                # Are there bills? If no, don't care about this meeting
+                if "bills" not in mtg:
+                    continue
+
+                meeting = {}
+
+                # Parse datetime field, which is in ISO format
+                # but may be date only or date and time
+                try:
+                    if 'T' in mtg["datetime"]:
+                        meeting["datetime"] = datetime.datetime.strptime(
+                            mtg["datetime"],
+                            "%Y-%m-%dT%H:%M:%S")
+                    # There may or may not be a time; if there wasn't,
+                    # parse only the date portion. H and M will be zero.
+                    else:
+                        meeting["datetime"] = datetime.datetime.strptime(
+                            mtg["datetime"],
+                            "%Y-%m-%d")
+
+                except RuntimeError:
+                    print("Couldn't parse meeting datetime from",
+                          scheduledata[commcode], file=sys.stderr)
+                    continue
+
+                # Now there's a datetime. Are there bills?
+                try:
+                    meeting["bills"] = mtg["bills"]
+                except:
+                    print("No bills for meeting", scheduledata[commcode],
+                          file=sys.stderr)
+                    continue
+
+                # There's a datetime and bills, so it's a real meeting.
+                # Fill out the free-form "timestr" field.
+
+                # Start with a nice human-friendly date
+                # meeting["time"] = meeting["datetime"].strftime("%a, %b %d ")
+                # then add the human-readable, but maybe unparseable, time:
+                if "time" in meeting:
+                        meeting["timestr"] = meeting["time"]
+                else:
+                        meeting["timestr"] = \
+                            meeting["datetime"].strftime("%H:%M")
+
+                if 'room' in mtg:
+                    meeting["timestr"] += ", room %s" \
+                        % mtg['room']
+                if 'zoom' in mtg:
+                    meeting["timestr"] += ", <a href='%s'>zoom link</a>" \
+                        % mtg['zoom']
+                if 'url' in mtg:
+                    meeting["timestr"] += ", <a href='%s'>PDF schedule</a>" \
+                        % mtg['url']
+
+                committees[commcode]["meetings"].append(meeting)
+
+    return committees
 
 
 def get_sponcodes(url):

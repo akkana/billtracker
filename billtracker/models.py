@@ -350,34 +350,6 @@ def load_user(id):
     return User.query.get(int(id))
 
 
-# This has to be defined before it's called from bill.update()
-def get_committee(comcode):
-    """Look up the latest on a commitee and return a Committee object.
-       Fetch it from the web if it doesn't exist yet or hasn't been
-       updated recently, otherwise get it from the database.
-       Doesn't commit the db session; the caller should do that.
-    """
-    comm = Committee.query.filter_by(code=comcode).first()
-    now = datetime.now()
-    if comm:
-        now = datetime.now()
-        # How often to check committee pages
-        if comm.last_check and now - comm.last_check < COMMITTEEPAGE_REFRESH:
-            # It's new enough
-            return comm
-
-        # It's in the database but needs updating
-    else:
-        # New committee, haven't seen it before
-        comm = Committee()
-        comm.code = comcode
-
-    # com is now a Committee object.
-    # The only attr guaranteed to be set is code.
-    comm.refresh()
-    return comm
-
-
 class Bill(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
@@ -677,29 +649,15 @@ class Bill(db.Model):
         if 'curloc' in b:
             self.location = b['curloc']
 
-            # A bill's page only has a date, not a time.
-            # But when committees are updated, they include a time.
-            # Don't overwrite a datetime with just a date,
-            # but do change it if the date has changed.
-            if 'scheduled_date' in b and b['scheduled_date']:
-                if (not self.scheduled_date
-                    or self.scheduled_date.year != b['scheduled_date'].year
-                    or self.scheduled_date.month != b['scheduled_date'].month
-                    or self.scheduled_date.day != b['scheduled_date'].day):
-                    # Different date, go ahead and change it.
-                    comm = Committee.query.filter_by(code=self.location).first()
-                    if comm:
-                        h, m = comm.get_meeting_time()
-                        # Set to proper time for committee meetings
-                        self.scheduled_date = \
-                            b['scheduled_date'].replace(hour=h, minute=m)
-                    else:
-                        # No committee, take just the date
-                        self.scheduled_date = b['scheduled_date']
-                # else self.scheduled_date is already set, don't change it
-
-            else:
-                self.scheduled_date = None
+            # If the bill's scheduled date hasn't been filled in yet,
+            # but the parsed page has one, copy it.
+            # The scheduled date in bill pages isn't very reliable
+            # and only has date, not time, but it's better than nothing.
+            # The most reliable info is in the PDF calendars
+            # which are updated when updating all committees.
+            if not self.scheduled_date and \
+               'scheduled_date' in b and b['scheduled_date']:
+                self.scheduled_date = b['scheduled_date']
 
         for k in b:
             if k == 'curloc' or k == 'scheduled_date':
@@ -753,6 +711,21 @@ class Bill(db.Model):
         outstr = '<b><a href="%s" target="_blank">%s: %s</a></b><br />' % \
             (self.bill_url(), self.billno, self.title)
 
+        # The date to show is the most recent of last_action_date
+        # or scheduled_date.
+        last_action = self.last_action_date
+        if last_action and last_action.hour:
+            last_action = last_action.astimezone()
+
+        def highlight_if_recent(adate, pre_string):
+            if adate and adate.tzinfo and \
+               ((now - adate) < timedelta(hours=30)):
+                return "<b>%s %s</b>" % (pre_string,
+                                         adate.strftime('%a %m/%d/%Y'))
+            else:
+                return "%s %s" % (pre_string,
+                                  adate.strftime('%a %m/%d/%Y'))
+
         if self.location:
             comm = Committee.query.filter_by(code=self.location).first()
             if comm:
@@ -763,23 +736,8 @@ class Bill(db.Model):
             else:        # A location that has no committee entry
                 outstr += 'Location: %s<br />' % self.location
 
-            # The date to show is the most recent of last_action_date
-            # or scheduled_date.
-            last_action = self.last_action_date
-            if last_action:
-                last_action = last_action.astimezone()
-
             now = datetime.now().astimezone()
             today = now.date()
-
-            def highlight_if_recent(adate, pre_string):
-                if adate and adate.tzinfo and \
-                   ((now - adate) < timedelta(hours=30)):
-                    return "<b>%s %s</b>" % (pre_string,
-                                             adate.strftime('%a %m/%d/%Y'))
-                else:
-                    return "%s %s" % (pre_string,
-                                      adate.strftime('%a %m/%d/%Y'))
 
             if self.scheduled_date:
                 future = self.scheduled_in_future()
@@ -788,13 +746,20 @@ class Bill(db.Model):
                 # If the bill is scheduled in the future, bold it:
                 if future:
                     outstr += ' <b class="highlight">'
-                    if self.location == "House" or self.location == "Senate" \
-                       or not self.scheduled_date.hour:
-                        outstr += 'SCHEDULED: %s</b> (check <a href="https://www.nmlegis.gov/Calendar/Session" target="_blank">PDF schedules</a> for time)<br />' \
-                            % (self.scheduled_date.strftime('%a %m/%d/%Y'))
-                    else:
+                    if self.scheduled_date.hour and not comm.mtg_time:
                         outstr += 'SCHEDULED: %s</b><br />' \
-                            % (self.scheduled_date.strftime('%a %m/%d/%Y %H:%M'))
+                          % (self.scheduled_date.strftime(
+                              '%a %m/%d/%Y %H:%M'))
+                    # elif comm.mtg_time:
+                    else:
+                        outstr += 'SCHEDULED: %s %s</b><br />' \
+                          % (self.scheduled_date.strftime(
+                              '%a %m/%d'), comm.mtg_time)
+                    # else:
+                    #     outstr += 'SCHEDULED: %s</b><br />' \
+                    #       % (self.scheduled_date.strftime('%a %m/%d'))
+
+                    outstr += '</b>'
 
                 # if it's not considered future but still today,
                 # highlight that:
@@ -1051,8 +1016,8 @@ class Legislator(db.Model):
 
 
     def __repr__(self):
-        return '%s: %s %s %s' % (self.sponcode, self.title,
-                                 self.firstname, self.lastname)
+        return '%s %s %s (%s)' % (self.title, self.firstname, self.lastname,
+                                  self.sponcode)
 
     @staticmethod
     def refresh_legislators_list():
@@ -1101,15 +1066,6 @@ class Committee(db.Model):
     def __repr__(self):
         return 'Committee %s: %s' % (self.code, self.name)
 
-    def get_meeting_time(self):
-        """Try to parse the meeting time from the string mtg_time.
-           Return (hour, min).
-        """
-        if not self.mtg_time:
-            return 0, 0
-        datestr, hour, minute = nmlegisbill.parse_comm_datetime(self.mtg_time)
-        return hour, minute
-
     def update_from_parsed_page(self, newcom, yearcode=None):
         """Update a committee from the web, assuming the time-consuming
            web fetch has already been done.
@@ -1119,8 +1075,12 @@ class Committee(db.Model):
 
         self.code = newcom['code']
         self.name = newcom['name']
-        if 'mtg_time' in newcom:
-            self.mtg_time = newcom['mtg_time']
+
+        if 'timestr' in newcom:
+            self.mtg_time = newcom['timestr']
+        else:
+            self.mtg_time = ""
+
         if 'chair' in newcom:
             chair = Legislator.query \
                               .filter_by(sponcode=newcom['chair']).first()
@@ -1193,7 +1153,6 @@ class Committee(db.Model):
     def refresh(self):
         """Refresh a committee from its web page.
         """
-        return
         print("Committee.refresh: Updating committee", self.code,
               file=sys.stderr)
         newcom = nmlegisbill.expand_committee(self.code)
@@ -1232,8 +1191,11 @@ class LegSession(db.Model):
         """
         try:
             max_id = db.session.query(func.max(LegSession.id)).scalar()
+            if max_id is None:
+                return None    # XXX arguably, call update_session_list ?
             return LegSession.query.get(max_id)
         except:
+            # XXX arguably, call update_session_list ?
             return None
 
     @staticmethod
