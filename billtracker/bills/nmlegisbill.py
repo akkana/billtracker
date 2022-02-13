@@ -1008,8 +1008,8 @@ def expand_committees(jsonsrc=None):
                     else:
                         meeting["bills"] = pdfmtg["bills"]
                 if "bills" not in meeting or not meeting["bills"]:
-                    print("No bills for meeting", scheduledata[commcode],
-                          file=sys.stderr)
+                    print(commcode, ": No bills for meeting",
+                          scheduledata[commcode], file=sys.stderr)
                     continue
 
                 # Add more to the the free-form "timestr" field.
