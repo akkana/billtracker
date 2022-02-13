@@ -740,79 +740,78 @@ def expand_house_or_senate(code, cache_locally=True):
          chair, members: unset
     """
     ret = { 'code': code, 'name': code }
+
+    # Ideally, everything else -- norably bill list and meeting datetime --
+    # will come from the PDF parser, since the PDF agendas are kept
+    # much more up to date than the PDF page.
+    # However, some bills on the PDF pages are sometimes unparseable,
+    # while the HTML is much more tractable. So this will get initial
+    # lists which may be modified from the PDF later.
+
+    # The floorurl pages (below) don't say anything about the meeting date.
+    # But the next meeting's date is encoded into the Floor Calendar PDF
+    # links on the Session Calendar overview page:
+    calendars_url = "https://www.nmlegis.gov/Calendar/Session"
+    if cache_locally:
+        soup = billrequests.soup_from_cache_or_net(calendars_url)
+    else:
+        r = billrequests.get(url)
+        soup = BeautifulSoup(r.text, 'lxml')
+
+    def get_date_from_floor_link(chamber, soup):
+        """chamber is "House" or "Senate. Return pdf_url, yyyy-mm-dd"""
+        href = None
+        try:
+            floorlink = soup.find('a', {
+                "id": "MainContent_dataList%sCalendarFloor_linkFloorCalendar_0"
+                       % chamber
+            })
+            href = 'https://www.nmlegis.gov' + floorlink.get('href')
+            # href="/Agendas/Floor/hFloor021222.pdf?t=637803128677866884"
+            floorlinkpat = ".*/Floor/%sFloor([0-9]{6})\.pdf.*" \
+                % chamber[0].lower()
+            m = re.match(floorlinkpat, href)
+            mmddyy = m.group(1)
+            return href, \
+                '20%s-%s-%s' % (mmddyy[4:], mmddyy[2:4], mmddyy[:2])
+        except:
+            print("Couldn't get floor PDF link", file=sys.stderr)
+            return href, 0
+
+    # Some fields that, for committees, are picked up by parsing the
+    # PDF agendas. But the house/senate PDF agendas don't reliably list time.
+    pdf_url, yyyymmdd = get_date_from_floor_link(code, soup)
+    ret['meetings'] = [ {
+        'datetime': yyyymmdd,
+        'url': pdf_url,
+        'zoom': 'https://sg001-harmony.sliq.net/00293/harmony',
+        'bills': []
+    } ]
+
+    # Now we're done with the calendars URL.
+    # The bills come from the HTML Floor_Calendar page.
+    floorurl = "https://www.nmlegis.gov/Entity/%s/Floor_Calendar" % code
+    if cache_locally:
+        soup = billrequests.soup_from_cache_or_net(floorurl)
+    else:
+        r = billrequests.get(url)
+        soup = BeautifulSoup(r.text, 'lxml')
+
+    # House and Senate meeting times aren't listed on their schedule pages --
+    # you just have to know. Both of them can meet at any time of day;
+    # in 2021, 11am is a common Senate meeting time, 2pm is common for
+    # the House and the House almost never meets before noon, but the
+    # times given here are just a wild guess, and instead of showing
+    # exact times to the user, we'll show a link to the only official
+    # meeting time, the one on the PDF schedules. Even that is just an
+    # early boundary, since they often meet as much as several hours late.
+    for a in soup.findAll('a', { "id": house_senate_billno_pat }):
+        ret['meetings'][0]['bills'].append(a.text.replace(' ', '')
+                                            .replace('*', ''))
     return ret
 
-    # XXX The rest of this was only for when the PDF parser doesn't get
-    # House or Senate floor meetings. Now that it does, this
-    # should no longer be needed.
 
-    # # The floorurl pages (below) don't say anything about the meeting date.
-    # # But the next meeting's date is encoded into the Floor Calendar PDF
-    # # links on the Session Calendar overview page:
-    # calendars_url = "https://www.nmlegis.gov/Calendar/Session"
-    # if cache_locally:
-    #     soup = billrequests.soup_from_cache_or_net(calendars_url)
-    # else:
-    #     r = billrequests.get(url)
-    #     soup = BeautifulSoup(r.text, 'lxml')
-
-    # def get_date_from_floor_link(chamber, soup):
-    #     """chamber is "House" or "Senate. Return pdf_url, yyyy-mm-dd"""
-    #     href = None
-    #     try:
-    #         floorlink = soup.find('a', {
-    #             "id": "MainContent_dataList%sCalendarFloor_linkFloorCalendar_0"
-    #                    % chamber
-    #         })
-    #         href = 'https://www.nmlegis.gov' + floorlink.get('href')
-    #         # href="/Agendas/Floor/hFloor021222.pdf?t=637803128677866884"
-    #         floorlinkpat = ".*/Floor/%sFloor([0-9]{6})\.pdf.*" \
-    #             % chamber[0].lower()
-    #         m = re.match(floorlinkpat, href)
-    #         mmddyy = m.group(1)
-    #         # return datetime.date(int(mmddyy[4:]) + 2000,
-    #         #                      int(mmddyy[2:4]),
-    #         #                      int(mmddyy[:2]))
-    #         return href, \
-    #             '20%s-%s-%s' % (mmddyy[4:], mmddyy[2:4], mmddyy[:2])
-    #     except:
-    #         print("Couldn't get floor PDF link", file=sys.stderr)
-    #         return href, 0
-
-    # # Some fields that, for committees, are picked up by parsing the
-    # # PDF agendas. But the house/senate PDF agendas don't reliably list time.
-    # pdf_url, yyyymmdd = get_date_from_floor_link(code, soup)
-    # ret['meetings'] = [ {
-    #     'datetime': yyyymmdd,
-    #     'url': pdf_url,
-    #     'zoom': 'https://sg001-harmony.sliq.net/00293/harmony',
-    #     'bills': []
-    # } ]
-
-    # # Now we're done with the calendars URL.
-    # # The bills come from the HTML Floor_Calendar page.
-    # floorurl = "https://www.nmlegis.gov/Entity/%s/Floor_Calendar" % code
-    # if cache_locally:
-    #     soup = billrequests.soup_from_cache_or_net(floorurl)
-    # else:
-    #     r = billrequests.get(url)
-    #     soup = BeautifulSoup(r.text, 'lxml')
-
-    # # House and Senate meeting times aren't listed on their schedule pages --
-    # # you just have to know. Both of them can meet at any time of day;
-    # # in 2021, 11am is a common Senate meeting time, 2pm is common for
-    # # the House and the House almost never meets before noon, but the
-    # # times given here are just a wild guess, and instead of showing
-    # # exact times to the user, we'll show a link to the only official
-    # # meeting time, the one on the PDF schedules. Even that is just an
-    # # early boundary, since they often meet as much as several hours late.
-    # for a in soup.findAll('a', { "id": house_senate_billno_pat }):
-    #     ret['meetings'][0]['bills'].append(a.text.replace(' ', '')
-    #                                         .replace('*', ''))
-    # return ret
-
-
-# Patterns needed for parsing committee pages
+# RE patterns needed for parsing committee pages
 tbl_bills_scheduled = re.compile("MainContent_formViewCommitteeInformation_gridViewScheduledLegislation")
 
 tbl_committee_mtg_dates = re.compile("MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_lblHearingDate_[0-9]*")
@@ -909,13 +908,16 @@ def expand_committees(jsonsrc=None):
     # It's run once an hour to update the indicated URL.
     if not jsonsrc:
         jsonsrc = "http://nmlegis.edsantiago.com/schedule.json"
+        # Version for the JSON schema, to tell whether something
+        # might have changed
+        jsonschema = "20210213"
 
     # XXX Eventually should check to make sure it's being kept
     # up to date and at least some dates are in the future.
     # h = requests.get(pdf_cal_url).headers["Last-Modified"]
     # is something like "Sun, 06 Feb 2022 21:55:07 GMT"
     # the strftime format is "%a, %d %b %Y %H:%M:%S GMT"
-    # but billrequests doesn't yet handle head() properly
+    # but billrequests doesn't yet handle head() properly.
     if jsonsrc.startswith("http") and ':' in jsonsrc:
         r = requests.get(jsonsrc)
         scheduledata = r.json()
@@ -923,22 +925,14 @@ def expand_committees(jsonsrc=None):
         with open(jsonsrc) as jfp:
             scheduledata = json.load(jfp)
 
-    # nmlegis-get-calendars doesn't currently handle House or Senate floors.
-    # Add those separately; they'll be expanded by expand_committee
-    # which calls expand_house_or_senate
-    # scheduledata["House"] = {}
-    # scheduledata["Senate"] = {}
-
-    # Rename "H Floor" to "House" and likewise for Senate
-    if "H Floor" in scheduledata:
-        scheduledata["House"] = scheduledata.pop("H Floor")
-    if "S Floor" in scheduledata:
-        scheduledata["Senate"] = scheduledata.pop("S Floor")
-
     committees = {}
 
     for commcode in scheduledata:
         if commcode == "_schema":
+            if scheduledata["_schema"] != "20220213":
+                print("*****************************************\n"
+                      "**** NEW SCHEMA ON scheduledata.json ****",
+                      scheduledata["_schema"], file=sys.stderr)
             continue
 
         commdict = expand_committee(commcode)
@@ -948,32 +942,37 @@ def expand_committees(jsonsrc=None):
         committees[commcode] = commdict
         # Now committees[commcode] has everything except meeting times.
 
-        committees[commcode]["meetings"] = []
+        if "meetings" not in committees[commcode]:
+            committees[commcode]["meetings"] = []
 
         for meetingdate in scheduledata[commcode]:
-            for mtg in scheduledata[commcode][meetingdate]:
+            for pdfmtg in scheduledata[commcode][meetingdate]:
                 # Are there bills? If no, don't care about this meeting
-                if "bills" not in mtg:
+                if "bills" not in pdfmtg:
                     continue
 
-                meeting = {}
+                if "meetings" in committees[commcode] and \
+                   len(committees[commcode]["meetings"]) >= 1:
+                    meeting = committees[commcode]["meetings"][0]
+                else:
+                    meeting = {}
 
                 # meeting["timestr"] is a human-readable time (no date)
                 # that doesn't need to be parseable,
                 # e.g. it might be "9:30" but it also might be
                 # "1:30 or half an hour after floor session".
-                if "time" in mtg:
-                    meeting["timestr"] = mtg["time"]
-                else:
+                if "time" in pdfmtg:
+                    meeting["timestr"] = pdfmtg["time"]
+                elif "timestr" not in meeting:
                     meeting["timestr"] = ""
 
                 # Parse datetime field, which is in ISO format
                 # but may be date only or date and time.
                 # Replace datetime or date field.
                 try:
-                    if 'T' in mtg["datetime"]:
+                    if 'T' in pdfmtg["datetime"]:
                         meeting["datetime"] = datetime.datetime.strptime(
-                            mtg["datetime"],
+                            pdfmtg["datetime"],
                             "%Y-%m-%dT%H:%M:%S")
                         if not meeting["timestr"]:
                             meeting["timestr"] \
@@ -982,16 +981,17 @@ def expand_committees(jsonsrc=None):
                     # parse only the date portion. H and M will be zero.
                     else:
                         meeting["datetime"] = datetime.datetime.strptime(
-                            mtg["datetime"],
+                            pdfmtg["datetime"],
                             "%Y-%m-%d")
 
                 except KeyError:
                     # No datetime, fall back on date
-                    if "date" not in mtg:
-                        print("EEK! No 'date' field in", mtg, file=sys.stderr)
+                    if "date" not in pdfmtg:
+                        print("EEK! No 'date' field in", pdfmtg,
+                              file=sys.stderr)
                         continue
                     meeting["datetime"] = datetime.datetime.strptime(
-                        mtg["date"], "%Y-%m-%d")
+                        pdfmtg["date"], "%Y-%m-%d")
 
                 except RuntimeError:
                     print("Couldn't parse meeting datetime from",
@@ -999,9 +999,15 @@ def expand_committees(jsonsrc=None):
                     continue
 
                 # Now there's a datetime. Are there bills?
-                try:
-                    meeting["bills"] = mtg["bills"]
-                except:
+                # If there's a bill list already from expand_house_or_senate,
+                # keep those and add in the new ones.
+                if "bills" in pdfmtg and pdfmtg["bills"]:
+                    if "bills" in meeting and meeting["bills"]:
+                        meeting["bills"] \
+                            = list(set(meeting["bills"]).union(pdfmtg["bills"]))
+                    else:
+                        meeting["bills"] = pdfmtg["bills"]
+                if "bills" not in meeting or not meeting["bills"]:
                     print("No bills for meeting", scheduledata[commcode],
                           file=sys.stderr)
                     continue
@@ -1011,21 +1017,21 @@ def expand_committees(jsonsrc=None):
                 # Start with a nice human-friendly date
                 # meeting["time"] = meeting["datetime"].strftime("%a, %b %d ")
                 # then add the human-readable, but maybe unparseable, time:
-                if 'room' in mtg:
-                    meeting["timestr"] += ", room %s" \
-                        % mtg['room']
-                if 'zoom' in mtg:
+                if 'room' in pdfmtg:
+                    meeting["timestr"] += ", room: %s" \
+                        % pdfmtg['room']
+                if 'zoom' in pdfmtg:
                     meeting["timestr"] \
                         += ", <a href='%s' target='_blank'>zoom link</a>" \
-                           % mtg['zoom']
+                           % pdfmtg['zoom']
                 elif commcode == "House" or commcode == "Senate":
                     meeting["timestr"] \
                         += ", <a href='https://sg001-harmony.sliq.net/00293/" \
-                           "harmony' target='_blank'>view on sliq</a>"
-                if 'url' in mtg:
+                           "harmony' target='_blank'>watch on sliq</a>"
+                if 'url' in pdfmtg:
                     meeting["timestr"] \
                         += ", <a href='%s' target='_blank'>PDF schedule</a>" \
-                           % mtg['url']
+                           % pdfmtg['url']
 
                 committees[commcode]["meetings"].append(meeting)
 
