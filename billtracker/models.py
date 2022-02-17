@@ -746,11 +746,12 @@ class Bill(db.Model):
                 # If the bill is scheduled in the future, bold it:
                 if future:
                     outstr += ' <b class="highlight">'
-                    if self.scheduled_date.hour and not comm.mtg_time:
+                    if self.scheduled_date.hour \
+                       and not comm or not comm.mtg_time:
                         outstr += 'SCHEDULED: %s</b><br />' \
                           % (self.scheduled_date.strftime(
                               '%a %m/%d/%Y %H:%M'))
-                    elif comm.mtg_time:
+                    elif comm and comm.mtg_time:
                         outstr += 'SCHEDULED: %s %s</b><br />' \
                           % (self.scheduled_date.strftime(
                               '%a %m/%d'), comm.mtg_time)

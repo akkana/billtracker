@@ -1333,6 +1333,7 @@ def refresh_all_committees(key):
     hasmeetings = []
     nomeetings = []
     billnos = set()
+    bills_in_multi_comm = {}
     for comm in Committee.query.filter_by().all():
         if comm.code not in comm_mtgs or not comm_mtgs[comm.code]:
             comm.mtg_time = None
@@ -1378,6 +1379,12 @@ def refresh_all_committees(key):
             comm.mtg_time = timestr
 
             for billno in mtg["bills"]:
+                if billno in billnos:
+                    print(billno, "is in multiple committees!")
+                    if billno in bills_in_multi_comm:
+                        bills_in_multi_comm[billno].add(billno)
+                    else:
+                        bills_in_multi_comm[billno] = set([billno])
                 billnos.add(billno)
                 bill = Bill.query.filter_by(billno=billno,
                                             year=yearcode).first()
@@ -1409,6 +1416,16 @@ def refresh_all_committees(key):
             bill.scheduled_date = None
             db.session.add(bill)
             unscheduled.append(bill.billno)
+
+    # XXX Sometimes there are joint committee meetings,
+    # in which case a bill may be listed for more than
+    # one committee. In that case, the bill's location
+    # should be set from the bill's HTML page, which
+    # means it should be re-parsed here.
+    for billno in bills_in_multi_comm:
+        print("***", billno, "Is in multiple committees:",
+              ' '.join(bills_in_multi_comm[billno]), file=sys.stderr)
+        # reparse bill page or something
 
     db.session.commit()
 

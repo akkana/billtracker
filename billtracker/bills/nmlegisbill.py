@@ -1016,19 +1016,22 @@ def expand_committees(jsonsrc=None):
 
                 # Start with a nice human-friendly date
                 # meeting["time"] = meeting["datetime"].strftime("%a, %b %d ")
-                # then add the human-readable, but maybe unparseable, time:
-                if 'room' in pdfmtg:
+                # then add the human-readable, but maybe unparseable, time.
+                # For each item, check to see whether it's already
+                # been added from an earlier meeting of the same committee.
+                if 'room' in pdfmtg and 'room:' not in meeting["timestr"]:
                     meeting["timestr"] += ", room: %s" \
                         % pdfmtg['room']
-                if 'zoom' in pdfmtg:
+                if 'zoom' in pdfmtg and 'zoom link' not in meeting["timestr"]:
                     meeting["timestr"] \
                         += ", <a href='%s' target='_blank'>zoom link</a>" \
                            % pdfmtg['zoom']
-                elif commcode == "House" or commcode == "Senate":
+                elif commcode == "House" or commcode == "Senate" \
+                     and 'harmony.sliq.net' not in meeting["timestr"]:
                     meeting["timestr"] \
                         += ", <a href='https://sg001-harmony.sliq.net/00293/" \
                            "harmony' target='_blank'>watch on sliq</a>"
-                if 'url' in pdfmtg:
+                if 'url' in pdfmtg and 'PDF schedule' not in meeting["timestr"]:
                     meeting["timestr"] \
                         += ", <a href='%s' target='_blank'>PDF schedule</a>" \
                            % pdfmtg['url']
