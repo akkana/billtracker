@@ -750,14 +750,13 @@ class Bill(db.Model):
                         outstr += 'SCHEDULED: %s</b><br />' \
                           % (self.scheduled_date.strftime(
                               '%a %m/%d/%Y %H:%M'))
-                    # elif comm.mtg_time:
-                    else:
+                    elif comm.mtg_time:
                         outstr += 'SCHEDULED: %s %s</b><br />' \
                           % (self.scheduled_date.strftime(
                               '%a %m/%d'), comm.mtg_time)
-                    # else:
-                    #     outstr += 'SCHEDULED: %s</b><br />' \
-                    #       % (self.scheduled_date.strftime('%a %m/%d'))
+                    else:
+                        outstr += 'SCHEDULED: %s</b><br />' \
+                          % (self.scheduled_date.strftime('%a %m/%d'))
 
                     outstr += '</b>'
 
