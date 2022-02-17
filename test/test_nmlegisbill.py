@@ -125,39 +125,39 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
         committee_sched = nmlegisbill.expand_committees(
                                   jsonsrc="test/files/schedule-20220211.json")
         self.assertEqual(committee_sched, {
-            'HHHC': {'chair': 'HARMS',
-                     'code': 'HHHC',
-                     'meetings': [{'bills': ['SB38', 'SB40', 'SB138', 'HB239'],
-                                   'datetime': datetime.datetime(2022, 2, 11, 8, 30),
-                                   'timestr': '8:30 AM, room 315, <a '
+'HHHC': {'chair': 'HARMS',
+          'code': 'HHHC',
+          'meetings': [{'bills': ['SB38', 'SB40', 'SB138', 'HB239'],
+                        'datetime': datetime.datetime(2022, 2, 11, 8, 30),
+                        'timestr': '8:30 AM, room: 315, <a '
                                    "href='https://us02web.zoom.us/j/84182969724' "
                                    "target='_blank'>zoom link</a>, <a "
                                    "href='https://nmlegis.gov/Agendas/Standing/hSched021122.pdf' "
                                    "target='_blank'>PDF schedule</a>"}],
-                     'members': ['HARMS',
-                                 'HFERJ',
-                                 'HANDP',
-                                 'HARMG',
-                                 'HBABR',
-                                 'HBASH',
-                                 'HLORD',
-                                 'HMATT',
-                                 'HMORO',
-                                 'HTERR',
-                                 'HTHOE'],
-                     'name': 'House Health & Human Services'},
-            'SIRC': {'chair': 'SPINS',
-                     'code': 'SIRC',
-                     'meetings': [{'bills': ['HB15'],
-                                   'datetime': datetime.datetime(2022, 2, 11, 13, 30),
-                                   'timestr': '1:30 PM or 1/2 hr after, room 303, <a '
+          'members': ['HARMS',
+                      'HFERJ',
+                      'HANDP',
+                      'HARMG',
+                      'HBABR',
+                      'HBASH',
+                      'HLORD',
+                      'HMATT',
+                      'HMORO',
+                      'HTERR',
+                      'HTHOE'],
+          'name': 'House Health & Human Services'},
+ 'SIRC': {'chair': 'SPINS',
+          'code': 'SIRC',
+          'meetings': [{'bills': ['HB15'],
+                        'datetime': datetime.datetime(2022, 2, 11, 13, 30),
+                        'timestr': '1:30 PM or 1/2 hr after, room: 303, <a '
                                    "href='https://us02web.zoom.us/j/84137686373' "
                                    "target='_blank'>zoom link</a>, <a "
                                    "href='https://nmlegis.gov/Agendas/Standing/sSched021122.pdf' "
                                    "target='_blank'>PDF schedule</a>"}],
-                     'members': ['SPINS', 'SJARA', 'SGRIG', 'SMCKE', 'SSANJ', 'SSHEN'],
-                     'name': 'Senate Indian, Rural & Cultural Affairs'
-                     }
-        })
+          'members': ['SPINS', 'SJARA', 'SGRIG', 'SMCKE', 'SSANJ', 'SSHEN'],
+          'name': 'Senate Indian, Rural & Cultural Affairs'
+          }
+ })
 
 
