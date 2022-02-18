@@ -1,7 +1,5 @@
 New Mexico Bill Tracker Daily Email
 
-The 2021 session runs from Tuesday, Jan 19 to Saturday, Mar 20.
-
 You can add or remove bills from your list, or change your settings,
 at: https://nmbilltracker.com/
 
