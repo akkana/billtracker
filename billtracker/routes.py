@@ -1380,6 +1380,10 @@ def refresh_all_committees(key):
 
             for billno in mtg["bills"]:
                 if billno in billnos:
+                    # XXX this generates a lot of lines,
+                    # might want to save which billno is in which
+                    # committees and print it out later in a
+                    # more compact format.
                     print(billno, "is in multiple committees!")
                     if billno in bills_in_multi_comm:
                         bills_in_multi_comm[billno].add(billno)
