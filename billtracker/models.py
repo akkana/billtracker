@@ -560,7 +560,7 @@ class Bill(db.Model):
         """
         if bill.location == 'Chaptered':
             return '10 ' + Bill.bill_natural_key(bill)
-        if bill.location == 'SIgned':
+        if bill.location == 'Signed':
             return '20 ' + Bill.bill_natural_key(bill)
         if bill.location == 'Passed':
             return '30 ' + Bill.bill_natural_key(bill)
