@@ -558,6 +558,8 @@ class Bill(db.Model):
     def passed_key(bill):
         """A sort key that gives precedence to bills that have passed.
         """
+        if bill.location == 'Constitutional Amendment':
+            return '09 ' + Bill.bill_natural_key(bill)
         if bill.location == 'Chaptered':
             return '10 ' + Bill.bill_natural_key(bill)
         if bill.location == 'Signed':
