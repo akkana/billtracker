@@ -158,7 +158,7 @@ def main():
     # Update the session list, and the least recently updated bills.
     #
     if now.hour in bill_hours:
-        responses['bills'] = "Updated some bills")
+        responses['bills'] = "Updating some bills")
         requests.post('%s/api/refresh_percent_of_bills' % BASEURL,
                       { "PERCENT": 34, "KEY": KEY })
 
