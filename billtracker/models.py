@@ -1182,8 +1182,8 @@ class LegSession(db.Model):
     typename = db.Column(db.String(16))
 
     def __repr__(self):
-        return "LegSession(id=%d, %04d %s)" % (self.id, self.year,
-                                               self.typename)
+        return "LegSession(id=%d, '%s', %04d %s)" % (self.id, self.yearcode,
+                                                     self.year, self.typename)
 
     @staticmethod
     def current_leg_session():

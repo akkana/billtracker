@@ -274,15 +274,32 @@ def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
 
 def update_legislative_session_list():
     """Read the list of legislative sessions from the legislative website.
+       Return a list of dictionaries that include at least these keys:
+       id, year, yearcode, name, typename
     """
     # This file can't import the Flask models (circular dependence),
     # so instead, return a list of dicts, in the order read.
     leg_sessions = []
     try:
+        # Unfortunately, Legislation_List has the session ids but not
+        # the session codes (e.g. 21s2). BillFinder/Number has the
+        # codes but not the IDs. So first loop through BillFinder/Number
+        # making a table of name and code, then get the rest
+        # from Legislation_List
+        soup = billrequests.soup_from_cache_or_net(
+            "https://www.nmlegis.gov/Legislation/BillFinder/Number",
+            cachesecs=60*60*24)
+        sessionselect = soup.find("select", id="MainContent_ddlSessions")
+        yearcodes_by_name = {}
+        for opt in sessionselect.findAll("option"):
+            yearcodes_by_name[opt.get_text()] = opt["value"]
+
+        # Now iterate over Legislation_List
         soup = billrequests.soup_from_cache_or_net(
             "https://www.nmlegis.gov/Legislation/Legislation_List",
             cachesecs=60*60*24)
         sessionselect = soup.find("select", id="MainContent_ddlSessionStart")
+
         # The first option listed is the most recent one.
         # But read all of them, in order to update the cache sessions file.
         options = sessionselect.findAll("option")
@@ -295,6 +312,13 @@ def update_legislative_session_list():
             lsess = { "id": sessionid }
 
             sessionname = opt.get_text()
+            try:
+                lsess["yearcode"] = yearcodes_by_name[sessionname]
+            except:
+                print("'%s' appears in Legislation_List but not BillFinder"
+                      % sessionname, file=sys.stderr)
+                continue
+
             space = sessionname.find(" ")
             lsess["year"] = int(sessionname[:space])
             lsess["typename"] = sessionname[space+1:]
@@ -313,7 +337,7 @@ def update_legislative_session_list():
             year = lsess["year"] - 1900
             if year >= 100:
                 year -= 100
-            lsess["yearcode"] = "%2d%s" % (year, typecode)
+            # lsess["yearcode"] = "%2d%s" % (year, typecode)
 
             leg_sessions.append(lsess)
 
