@@ -681,9 +681,10 @@ def config():
 
 @billtracker.route("/changesession")
 def changesession():
+    cursession = None
     if "yearcode" in session:
         cursession = LegSession.by_yearcode(session["yearcode"])
-    else:
+    if not cursession:
         cursession = LegSession.current_leg_session()
 
     sessionlist = []
@@ -1128,6 +1129,7 @@ def refresh_percent_of_bills():
 
 
 # Test:
+# SERVERURL/api/refresh_session_list?KEY=KEY
 # requests.post('%s/api/refresh_session_list' % baseurl, { "KEY": KEY }).text
 @billtracker.route("/api/refresh_session_list", methods=['POST', 'GET'])
 def refresh_session_list():
@@ -1137,7 +1139,6 @@ def refresh_session_list():
     key = request.values.get('KEY')
     if key != billtracker.config["SECRET_KEY"]:
         print("FAIL refresh_session_list: bad key %s" % key, file=sys.stderr)
-        print(billtracker.config["SECRET_KEY"], file=sys.stderr)
         return "FAIL Bad key\n"
 
     LegSession.update_session_list()

@@ -658,8 +658,16 @@ def all_bills(sessionid, yearcode, sessionname):
         sessionlong = "Regular"
     elif yearcode.endswith("s"):
         sessionlong = "Special"
-    elif yearcode.endswith("s2"):
-        sessionlong = "Special2"
+    elif yearcode[-1].isdigit():
+        # it's a special session. Yearcode is something like 21s2;
+        # separate the parts before and after the s.
+        m = re.search(r'(\d+)s(\d+)$', yearcode)
+        if m and len(m.groups())== 2:
+            sessionlong = "Special" + m.group(2)
+        else:
+            print("******* Error: Can't parse session yearcode", yearcode,
+                  file=sys.stderr)
+            sessionlong = "?"
     elif yearcode.endswith("x"):
         sessionlong = "Extraordinary"
     # XXX also in that dir: 11Redistricting, DIY_Redistricting,
