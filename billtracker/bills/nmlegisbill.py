@@ -549,7 +549,7 @@ g_all_bills = {}
     # g_all_bills[yearcode][billno] = [title, url, contentslink, amendlink]
 
 
-def all_bills(sessionid, yearcode, sessionname):
+def all_bills(sessionid, yearcode):
     """Get an OrderedDict of all bills in the given session.
        From https://www.nmlegis.gov/Legislation/Legislation_List?Session=NN
        sessionid a numeric ID used by nmlegis; yearcode is a string e.g. 20s2.

@@ -36,17 +36,21 @@
       </label>
 
     {% set cururl = url_for(request.endpoint) %}
+
+    {#     URL           Button text      Usable w/o login?  #}
     {% set navlinks = [
-        [ '/index', 'Home', True ],
-        [ '/allbills', 'All/New Bills', True ],
-        [ '/popular', 'Popular Bills', True ],
-        [ '/addbills', 'Track Bill #', False ],
-        [ '/settings', 'Settings', False ],
-        [ '/links', 'Links', True ],
-        [ '/help', 'Help', True ],
-        [ '/about', 'About', True ],
-        [ '/login', 'Login', True ],
-      ] %}
+        [ '/index',          'Home',           True ],
+        [ '/allbills',       'All/New Bills',  True ],
+        [ '/popular',        'Popular Bills',  True ],
+        [ '/addbills',       'Track Bill #',   False ],
+        [ '/interest-lists', 'Lists',          True ],
+        [ '/settings',       'Settings',       False ],
+        [ '/links',          'Links',          True ],
+        [ '/help',           'Help',           True ],
+        [ '/about',          'About',          True ],
+        [ '/login',          'Login',          True ],
+      ]
+    %}
 
       <ul class="mainmenu">
 

@@ -7,8 +7,9 @@ from werkzeug.urls import url_parse
 from billtracker import billtracker, db
 from billtracker.chattycaptcha import ChattyCaptcha
 from billtracker.forms import LoginForm, RegistrationForm, AddBillsForm, \
-    UserSettingsForm, PasswordResetForm
-from billtracker.models import User, Bill, Legislator, Committee, LegSession
+    EditInterestListForm, interest_list_form_builder, UserSettingsForm, PasswordResetForm
+from billtracker.models import User, Bill, Legislator, Committee, \
+    InterestList, LegSession
 from billtracker.bills import nmlegisbill, billutils, billrequests
 from .emails import daily_user_email, send_email
 from config import ADMINS
@@ -367,6 +368,9 @@ def addbills():
 #
 # WTForms apparently doesn't have any way to allow adding checkboxes
 # in a loop next to each entry; so this is an old-school form.
+# XXX Later found a way but it's hacky, see the edit_interest_list route
+# and interest_list_form_builder in forms.py.
+# I'm not sure if there's any point rewriting track_untrack to use it.
 #
 @billtracker.route('/track_untrack', methods=['GET', 'POST'])
 @login_required
@@ -522,7 +526,7 @@ def popular():
         bills_tracking = []
 
     # allbills.html expects a list of dictionaries with keys:
-    # billno, title, url, contentsurl, user_tracking, num_tracking
+    # billno, title, url, contentsurl, tracked, num_tracking
     bill_list = []
     for bill in bills:
         num_tracking = bill.num_tracking()
@@ -535,7 +539,7 @@ def popular():
                                 "title": bill.title,
                                 "url": bill.bill_url(),
                                 "contentsurl": contentsurl,
-                                "user_tracking":
+                                "tracked":
                                     bill.billno in bills_tracking,
                                 "num_tracking": num_tracking } )
 
@@ -554,6 +558,41 @@ def popular():
                            bill_lists=bill_lists)
 
 
+def fetch_allbills(leg_session):
+    """Get the latest list of all bills filed in a given session
+       (either from cache, or from nmlegis if the cache is too old).
+       Returns allbills, titleschanged:
+         allbills is an OrderedDict,
+           { billno: [title, url, contentslink, amendlink] }
+         titleschanged is a dict, { billno: "old title" }
+    """
+    # This can fail, e.g. if nmlegis isn't answering.
+    try:
+        return nmlegisbill.all_bills(leg_session.id, leg_session.yearcode)
+
+    except Exception as e:
+        print("Problem fetching all_bills", file=sys.stderr)
+        print(traceback.format_exc(), file=sys.stderr)
+        return None, None
+
+
+def nmlegis_to_dict(billno, bill_line, bills_tracking=[]):
+    """Rewrite the nmlegisbill.all_bills OrderedDict line
+         billno: [title, url, contentslink, amendlink]
+       to a dictionary with keys billno, title, url, contentsurl, tracked
+    """
+    if len(bill_line) > 3 and bill_line[3]:
+        contents = bill_line[3]
+    else:
+        contents = bill_line[2]
+    return { "billno": billno,
+             "title": bill_line[0],
+             "url": bill_line[1],
+             "contentsurl": contents,
+             "tracked": billno in bills_tracking
+           }
+
+
 @billtracker.route('/allbills')
 def allbills():
     """Show all bills that have been filed in the given session,
@@ -568,22 +607,11 @@ def allbills():
     if "sessionname" in session:
         sessionname = session["sessionname"]
     else:
-        sessionbane = leg_session.sessionname()
+        sessionname = leg_session.sessionname()
         session["sessionname"] = sessionname
 
     # Do the slow part first, before any database accesses.
-    # This can fail, e.g. if nmlegis isn't answering.
-    try:
-        allbills, titleschanged = nmlegisbill.all_bills(
-            leg_session.id, yearcode, sessionname)
-        # allbills is an OrderedDict,
-        #   { billno: [title, url, contentslink, amendlink] }
-        # titleschanged is a dict, { billno: "old title" }
-
-    except Exception as e:
-        print("Problem fetching all_bills", file=sys.stderr)
-        print(traceback.format_exc(), file=sys.stderr)
-        allbills = None
+    allbills, titleschanged = fetch_allbills(leg_session)
 
     if not allbills:
         flash("Problem fetching the list of all bills."
@@ -606,24 +634,14 @@ def allbills():
     newbills = []
     oldbills = []
 
-    # allbills.html expects a list of dictionaries with keys:
-    # billno, title, url, contentsurl, user_tracking, num_tracking
-    # [ [billno, title, link, fulltext_link, tracked_by_user ] ]
+    # listbills.html expects a list of dictionaries with keys:
+    # billno, title, url, contentsurl, tracked, num_tracking
     for billno in allbills:
         # Used to query each bill here. That was nice because we could update
         # the bill's title and show a column for number of users tracking it;
         # but these queries turned out to be a huge performance bottleneck,
         # adding more than a second to page loading.
-        if len(allbills[billno]) > 3 and allbills[billno][3]:
-            contents = allbills[billno][3]
-        else:
-            contents = allbills[billno][2]
-        args = { "billno": billno,
-                 "title": allbills[billno][0],
-                 "url": allbills[billno][1],
-                 "contentsurl": contents,
-                 "user_tracking": billno in bills_tracking
-               }
+        args = nmlegis_to_dict(billno, allbills[billno], bills_tracking)
 
         if user and (billno not in bills_seen or billno in titleschanged):
             newbills.append(args)
@@ -807,6 +825,327 @@ def password_reset():
 
     return render_template('passwd_reset.html', title='Password Reset',
                            form=form)
+
+
+#
+# Interest Lists
+#
+import time
+@billtracker.route("/interest-lists", methods=['GET', 'POST'])
+def list_interest_lists():
+    """Show all interest lists for the given session"""
+    values = request.values.to_dict()
+    set_session_by_request_values(values)
+
+    print("Getting list of lists")
+    all_lists = InterestList.query.filter_by(yearcode=session["yearcode"]).all()
+    print("Found", len(all_lists), "lists")
+
+    my_lists = []
+    followed_lists = []
+    visible_lists = []
+    if current_user:
+        if current_user.interest_lists:
+            followed = [ int(bl) for bl in current_user.interest_lists ]
+        else:
+            followed = []
+
+    for interestlist in all_lists:
+        if not interestlist.private or (current_user and
+                                        interestlist.can_edit(current_user)):
+            visible_lists.append(interestlist)
+        if current_user:
+            if interestlist.id in followed:
+                followed_lists.append(interestist)
+            if interestlist.can_edit(current_user):
+                my_lists.append(interestlist)
+        else:
+            followed_Lists = []
+            my_lists = []
+
+    return render_template('interest_lists.html',
+                           user=current_user,
+                           all_lists=visible_lists,
+                           my_lists=my_lists,
+                           followed_lists=followed_lists)
+
+
+@billtracker.route("/view-interest-list", methods=['GET', 'POST'])
+def view_interest_list():
+    """Show one interest list"""
+    values = request.values.to_dict()
+    print("values:", values, file=sys.stderr)
+    set_session_by_request_values(values)
+    editable = False
+
+    try:
+        interestlist = find_interest_list(values["id"], None)
+        if interestlist and interestlist.editors:
+            editors = interestlist.editors.split(',')
+            for editor in editors:
+                if editor == current_user.username:
+                    editable = True
+                    break
+
+    except Exception as e:
+        print("Exception:", e)
+        interestlist = None
+
+    print("interest_list passed to view:", interestlist)
+    if not interestlist:
+        if "id" in values:
+            flash("No interest list with id %s" % str(values["id"]))
+        else:
+            flash("Create a new interest list")
+
+    return render_template('view_interest_list.html', user=current_user,
+                           interestlist=interestlist, editable=editable)
+
+
+def find_interest_list(listid, name=None):
+    """Return an InterestList matching the id or name ... or None.
+    """
+    try:
+        listid = int(listid)
+        return InterestList.query.filter_by(id=listid).first()
+    except:
+        pass
+
+    # Couldn't find an InterestList by listid. Try matching the name.
+    if not name:
+        return None
+    return InterestList.query.filter_by(name=name,
+                                        yearcode=session["yearcode"]).first()
+
+
+@billtracker.route("/edit-interest-list", methods=['GET', 'POST'])
+@login_required
+def edit_interest_list():
+    print("*** edit_interest_list() ***")
+
+    values = request.values.to_dict()
+    set_session_by_request_values(values)
+
+    user = User.query.filter_by(username=current_user.username).first()
+    print("In edit_interest_list(), user is", user)
+    interest_list = None
+
+    leg_session = LegSession.by_yearcode(session["yearcode"])
+
+    # Now fetch all bills and generate a list of bills to add or remove.
+    # XXX We really only need this when creating a new form; when
+    # submitting a form, we can stick with the list of bills it already had.
+    allbills, titleschanged = fetch_allbills(leg_session)
+
+    from pprint import pprint
+    # pprint("allbills:", allbills)
+    billdics = []
+    for billno in allbills:
+        billdics.append(nmlegis_to_dict(billno, allbills[billno], []))
+        # Note that this isn't passing bills_in_list,
+        # so that will have to be reconciled later.
+
+    print("billdics:")
+    pprint(billdics)
+
+    # form = EditInterestListForm()
+    # Create a new form that includes checkboxes for all the bills
+    form = interest_list_form_builder(billdics)
+
+    def save_interestlist(interestlist):
+        interestlist.set_editors(form.editors.data, current_user.username)
+        # XXX do something about bills here
+
+        print("Just before committing, editors =", interestlist.editors)
+        print("and bills =", interestlist.bills)
+
+        print("Committing interest list", interestlist, file=sys.stderr)
+        db.session.add(interestlist)
+        db.session.commit()
+
+    def fill_interestlist_form(interestlist):
+        """Fill name, description etc. in the for to match the interestlist.
+           Also fill billdics to match the interestlist's bill list:
+           the listbills macro uses billdics, not the form values,
+           to decide which bills to check, because jinja doesn't have
+           a way to deal with variable lists of checkboxes.
+        """
+        form.name.data = interestlist.name
+        form.description.data = interestlist.description
+        form.private.data = interestlist.private
+        form.editors.data = interestlist.editors
+
+        if interestlist.bills:
+            bills_in_list = interestlist.bills.split(',')
+        else:
+            bills_in_list = []
+
+        for field in form.__dict__:  # could also use the pairs in form._fields
+            if field.startswith("f_"):
+                checkbox_field = getattr(form, field)
+                if not checkbox_field:
+                    print("Can't get checkbox field for", field)
+                billname = field[2:]
+                if billname in bills_in_list:
+                    checkbox_field.data = True
+                else:
+                    checkbox_field.data = False
+                print("Set", field, "to", checkbox_field.data)
+
+    # Did the user just submit this form, and it needs to be processed?
+    if form.validate_on_submit():
+        print("After validate_on_submit: form values are", form,
+              file=sys.stderr)
+        print("         name", form.name.data, file=sys.stderr)
+        print("  description", form.description.data, file=sys.stderr)
+        print("      private", form.private.data, type(form.private.data),
+              file=sys.stderr)
+        print("      editors", form.editors.data, file=sys.stderr)
+        # pprint(form.__dict__)
+
+        # Loop over the bill checkboxes to see what changes need to be made
+        bills2follow = set()
+        for field in form.__dict__:  # could also use the pairs in form._fields
+            if field.startswith("f_"):
+                billname = field[2:]
+                if getattr(form, field).data:
+                    bills2follow.add(billname)
+                    print("follow", billname)
+                else:
+                    print("not following", billname)
+        print("Bills the form says to follow:", bills2follow)
+
+        interestlist = find_interest_list(form.listid.data)
+
+        if interestlist:    # Changing an existing list
+            print("find_interest_list(", form.listid.data, form.name.data,
+                  ") returned", interestlist, file=sys.stderr)
+            changedfields = []
+            if interestlist.name != form.name.data:
+                interestlist.name = form.name.data
+                changedfields.append("name")
+            if interestlist.description != form.description.data:
+                interestlist.description = form.description.data
+                changedfields.append("description")
+                print("description changed")
+            else:
+                print("No description change: old", interestlist.description,
+                      ", new", form.description.data)
+            if interestlist.private != form.private.data:
+                interestlist.private = form.private.data
+                changedfields.append("private")
+
+            if changedfields:
+                print("Changed fields:", changedfields)
+                flash("Changed fields: %s" % ', '.join(changedfields))
+
+            print("interestlist bills:", interestlist.bills)
+            if interestlist.bills:
+                wasfollowing = [ b.strip() for b in interestlist.bills.split(',') ]
+                wasfollowing = set(wasfollowing)
+            else:
+                wasfollowing = set()
+            print("Was following:", wasfollowing)
+            print("Becomes:      ", bills2follow)
+            print("Newly added:  ", bills2follow - wasfollowing)
+            print("Removed:      ", wasfollowing - bills2follow)
+            billsadded = sorted(list(bills2follow - wasfollowing))
+            if billsadded:
+                flash("Added bills: %s" % ', '.join(billsadded))
+            billsremoved = sorted(list(wasfollowing - bills2follow))
+            if billsremoved:
+                flash("Removed bills: %s" % ', '.join(billsremoved))
+
+            interestlist.bills = ','.join(bills2follow)
+            print("bills now:", interestlist.bills)
+
+            # Reconcile billdics with the new list, so the checkboxes
+            # will show properly in listbills.html.
+            for bill_line in billdics:
+                bill_line['tracked'] = (bill_line['billno'] in bills2follow)
+
+            try:
+                save_interestlist(interestlist)
+            except RuntimeError as e:
+                flash("Error: %s, CHANGES NOT SAVED")
+
+            fill_interestlist_form(interestlist)
+
+        else:
+            # Create a new InterestList
+            interestlist = InterestList(name=form.name.data,
+                                        yearcode=session['yearcode'],
+                                        description=form.description.data,
+                                        private=form.private.data)
+            print("Created a new interestlist with id", interestlist.id)
+            if bills2follow:
+                print("bills2follow:", bills2follow)
+                interestlist.bills = ','.join(bills2follow)
+                print("Setting bills to", interestlist.bills)
+            else:
+                print("No bills2follow")
+            save_interestlist(interestlist)
+            print("After save, it's", interestlist)
+            flash("Created New Interest List '%s'" % values['name'])
+
+
+            ######################
+            # PROBLEMS NOW with creating a new interestlist
+            #
+            # 1. Bill list gets saved, but doesn't show up in the form
+            # 2. cur_username doesn't get added to editors
+            #    despite the code in set_editors CLEARLY doing that
+            #
+            ######################
+
+            print("Before fill_interestlist_form: bills=", interestlist.bills)
+            print("editors:", interestlist.editors)
+            print("form HB2:", getattr(form, "f_HB2").data)
+            fill_interestlist_form(interestlist)
+            print("After fill_interestlist_form, form HB2:",
+                  getattr(form, "f_HB2").data)
+            for b in billdics:
+                print("  ", b)
+
+    elif form.errors:
+        print("Form has errors!", form.errors, file=sys.stderr)
+        try:
+            interestlist = find_interest_list(values["id"])
+        except:
+            interestlist = None
+
+        # XXXXXX need to re-fill the form with the old values.
+        # It gets the easy values but not the selected bills.
+        print("Whoops, need to re-fill those bill values after a form error")
+
+    elif "id" in values and values["id"]:
+        print("Edit id, not submitted", file=sys.stderr)
+        form.listid.data = values["id"]
+        interestlist = find_interest_list(values["id"], None)
+        if interestlist:
+            print("Found interestlist:", interestlist)
+            fill_interestlist_form(interestlist)
+            if interestlist.bills:
+                trackedbills = interestlist.bills.split(',')
+                print("interestlist bills:", interestlist.bills, trackedbills)
+                for bill_line in billdics:
+                    bill_line['tracked'] = (bill_line['billno'] in trackedbills)
+                print("Will pass billdics:")
+                pprint(billdics)
+            else:
+                print("interestlist has no bills")
+        else:
+            flash("No interest list with id %s, but you can create a new one"
+                  % values["id"])
+
+    else:
+        print("Showing a new form", file=sys.stderr)
+        interestlist = None
+
+    return render_template('edit_interest_list.html',
+                           form=form, user=user,
+                           interestlist=interestlist,
+                           allbills=billdics)
 
 
 #

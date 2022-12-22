@@ -417,6 +417,12 @@ class TestBillTracker(unittest.TestCase):
                         response.status_code == 302)
         response_html = response.get_data(as_text=True)
 
+        ############## Interest lists
+        response = self.app.post('/addbills',
+                                 data={ 'billno': 'HB73',
+                                        'yearcode': '19',
+                                        'submit': 'Track a Bill' })
+
 
     def test_captcha(self):
         """Test adding new users with a captcha file in place

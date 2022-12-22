@@ -6,7 +6,9 @@ try:
 except:
     from flask_wtf import Form as FlaskForm
 
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, \
+    HiddenField, FieldList
+from wtforms.widgets import TextArea
 from wtforms.validators import ValidationError, DataRequired, Email, \
     EqualTo, Optional
 from billtracker.models import User
@@ -125,6 +127,7 @@ class UserSettingsForm(FlaskForm):
         if user is not None and user.username != current_user.username:
             raise ValidationError('That email address is already in use.')
 
+
 class PasswordResetForm(FlaskForm):
     username = StringField('Email', validators=[DataRequired()])
     submit = SubmitField('Send Password Reset')
@@ -155,3 +158,56 @@ class PasswordResetForm(FlaskForm):
 
         if not self.captcha.is_answer_correct(capa.data, question=question):
             raise ValidationError("No, try again")
+
+
+class EditInterestListForm(FlaskForm):
+    # has form, user, yearcode passed in from routes.py
+    name = StringField("Name", validators=[DataRequired()])
+    listid = HiddenField("InterestListID")
+    description = StringField("Description", widget=TextArea())
+    private = BooleanField("Private?",
+                    description="Should the list be hidden from other users?")
+    editors = StringField("Who can contribute?")
+
+    # routes.py may change the submit field's name based on whether
+    # this is editing an existing list, or creating a new one.
+    submit = SubmitField("Save changes")
+
+    def validate_editors(self, editor_field):
+        print("**** Called validate_editors with '%s'" % editor_field.data)
+        badusers = []
+        print("editor_field.data: '%s'" % editor_field.data)
+        if not editor_field.data.strip():
+            return
+        usernames = [ s.strip() for s in editor_field.data.split(',') ]
+        print("usernames:", usernames)
+        for username in usernames:
+            if not username:
+                continue
+            # Is it a valid username?
+            print("Looking up", username)
+            user = User.query.filter_by(username=username).first()
+            if not user:
+                badusers.append(username)
+
+        if badusers:
+            print("badusers:", badusers)
+            raise ValidationError("Unknown user%s: %s" %
+                                  ('s' if len(badusers) > 1 else '',
+                                   ', '.join(badusers)))
+
+# But it's more complicated to add a list of checkboxes to the
+# EditInterestListForm, because WTForms has no provision for a
+# variable-length list of boolean items and that requires monkeypatching.
+# https://stackoverflow.com/a/46656811
+# Which complicates things because it means the form can't be created
+# in routes.py until after the full bill list has been read.
+def interest_list_form_builder(bill_dic_list):
+    class EditInterestListBillsForm(EditInterestListForm):
+        pass
+
+    for bill in bill_dic_list:
+        setattr(EditInterestListBillsForm, 'f_%s' % bill["billno"],
+                BooleanField(label=bill["billno"]))
+
+    return EditInterestListBillsForm()

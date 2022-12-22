@@ -48,8 +48,13 @@ the same form after submitting.
 On the development machine:
 - Update models.db
 - flask db migrate
-- review the migration file to make sure it looks right
+- review the migrations/versions/ file to make sure it looks right
 - flask db upgrade
+
+Downgrading: while adding a feature, if you need to tweak your model
+definition, flask db downgrade will (by default) go back one step, so
+you can make a new migration (don't forget to move the old migration
+out of migrations/versions/
 
 On the live server, flask db upgrade needs something extra.
 Try this (from the directory where run_billtracker.py is):

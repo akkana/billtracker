@@ -84,13 +84,8 @@ table.definitions th,  table.definitions td {
 
 table.definitions th {
   font-family: fixed; white-space: pre; font-weight: normal;
+  text-align: right;
 }
-
-/*
-table.ddddefinitions tr { border: 1px solid black; }
-
-li:nth-child(odd) { background: lightblue; }</style>
- */
 
 tr.odd td  { background: #fff; }
 tr.even td { background: #dfe; }
@@ -110,6 +105,12 @@ th { background: #eee; }
 .error { color: red; }
 .system-alert { color: red; }
 .system-message { color: green; }
+
+.form-field-error {
+  list-style-type: none; /* Remove bullets */
+  padding: 0; /* Remove padding */
+  margin: 0; /* Remove margins */
+}
 
 .highlight { background: #ffb; }
 

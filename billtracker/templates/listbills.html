@@ -1,0 +1,43 @@
+{# A list of bills suitable for including inside other templates.
+ # Expects variables: bill_list, trackverb
+ # where bill_list is a list of dictionaries with keys
+ # billno, title, url, contentsurl, user_tracking
+ # not a list of database objects.
+ #}
+
+{% macro listbills(bill_list, form, user, trackverb="Track") %}
+
+<table class="bill_minilist">
+ <thead>
+    <tr><th>Bill <th>Title <th>Bill text
+    {% if user and not user.is_anonymous %}
+      {% if returnpage == "popular" %}
+        <th>Users</th>
+      {% endif %}
+      <th>{{ trackverb }}
+    {% endif %}
+ </thead>
+
+ <tbody>
+  {% for bill_line in bill_list %}
+    <tr class="{{ loop.cycle('odd', 'even') }}">
+      <td>{{ bill_line["billno"] }}
+      <td><a href="{{ bill_line["url"] }}" target="_blank">{{ bill_line["title"] }}</a>
+      {% if bill_line["contentsurl"] %}
+        <td><a href="{{ bill_line["contentsurl"] }}" target="_blank">{{ bill_line["billno"] }} text</a>
+      {% else %}
+        <td>&nbsp;
+      {% endif %}
+      {% if user and not user.is_anonymous %}
+        {% if returnpage == "popular" %}
+          <td>{{ bill_line["num_tracking"] }}
+        {% endif %}
+        <td>{{ form["f_" + bill_line["billno"]] }}
+      {% else %}
+          <td>&nbsp;
+      {% endif %}
+  {% endfor %}
+
+</table>
+
+{% endmacro %}

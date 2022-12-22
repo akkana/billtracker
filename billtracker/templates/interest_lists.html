@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% macro show_list(somelist) %}
+
+{% if somelist %}
+
+<ul>
+
+  {% for bl in somelist %}
+    <li><a href="/view-interest-list?id={{ bl.id }}">{{ bl.name }}</a>
+        {% if bl.private %}
+          (private for
+        {% else %}
+          (by
+        {% endif %}
+        {{ bl.editors }})
+        {{ bl.description }}
+        {% if user and bl.editors and user.username in bl.editors %}
+          (<a href="/edit-interest-list?id={{ bl.id }}">edit</a>)
+        {% endif %}
+    </li>
+  {% endfor %}
+
+</ul>
+
+{% else %}
+
+None
+
+{% endif %}
+
+{% endmacro %}
+
+{% block content %}
+
+<h1>Interest Lists for {{ session["sessionname"] }} Session</h1>
+
+{% if not all_lists %}
+
+<p>
+No interest lists have been created for the
+{{ session["sessionname"] }} session.
+
+{% else %}
+
+<h2>Lists You Can Edit</h2>
+
+{{ show_list(my_lists) }}
+
+<h2>Lists You Follow</h2>
+
+{{ show_list(followed_lists) }}
+
+<h2>All Lists</h2>
+
+{{ show_list(all_lists) }}
+
+{% endif %}
+
+<p>
+<a href="/edit-interest-list">Create a new list</a>
+
+{% endblock %}

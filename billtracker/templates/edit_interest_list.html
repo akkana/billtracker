@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Edit Interest List in the {{ session['sessionname'] }} Session</h1>
+
+<form action="" method="post">
+
+{{ form.hidden_tag() }}
+
+{% if interestlist %}
+
+<input type="hidden" id="listid" name="listid" value="{{ interestlist.id }}">
+
+{% else %}
+
+<input type="hidden" id="listid" name="listid" value="">
+
+{% endif %}
+
+<table class="definitions">
+<tr><th>{{ form.name.label }} <td>{{ form.name(size=35) }}
+
+<tr><th valign="top" align="right">{{ form.description.label }}
+    <td>{{ form.description(cols="50", rows="3") }}
+
+<tr><th>{{ form.private.label }} <td>{{ form.private() }}
+        {% if form.private.description %}
+          (<i>{{ form.private.description }}</i>)
+        {% endif %}
+
+<tr><th>{{ form.editors.label }} <td>{{ form.editors(size=50) }}
+{% if form.editors.errors %}
+    <ul class="error form-field-error">
+    {% for error in form.editors.errors %}
+        <li>{{ error }}</li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+</table>
+
+<br />
+
+
+{% from "listbills.html" import listbills %}
+
+{{ listbills(allbills, form, user, trackverb="In List") }}
+
+<p>
+{{ form.submit() }}
+</p>
+
+</form>
+
+{% endblock %}

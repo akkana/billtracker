@@ -71,6 +71,10 @@ class User(UserMixin, db.Model):
     # so there's some legacy code to eliminate all but the latest yearcode.
     bills_seen = db.Column(db.String())
 
+    # Which interest lists is the user following?
+    # A comma-separated list of InterestList ids.
+    interest_lists = db.Column(db.String())
+
     # Comma-separated list of sponcodes for legislators this user
     # might want to contact:
     legislators = db.Column(db.String())
@@ -1254,3 +1258,94 @@ class LegSession(db.Model):
            "20 Special2" (with space replaced with %20).
         """
         return nmlegisbill.yearcode_to_longURLcode(self.year)
+
+
+class InterestList(db.Model):
+    """Lists of bills within a session,
+       e.g. healthcare bills, environment bills,
+       bills tracked by the LWV or the Sierra Club.
+    """
+    id = db.Column(db.Integer, primary_key=True, unique=True,
+                   autoincrement=True)
+
+    # Display name
+    name = db.Column(db.String())
+
+    # Private? By default, lists are visible to everyone.
+    private = db.Column(db.Boolean())
+
+    # LegSession yearcode.
+    # An InterestList only contains bills from one session.
+    yearcode = db.Column(db.String)
+
+    # List of bill IDs, comma separated
+    bills = db.Column(db.String())
+
+    # description
+    description = db.Column(db.String())
+
+    # Users who can edit this list: comma separated user IDs.
+    # Initially this will probably only be the user who created the list.
+    editors = db.Column(db.String())
+
+    def __repr__(self):
+        s = '<InterestList#%s "%s" %s (%s)>' % (self.id, self.name,
+                                                self.yearcode, self.editors)
+        return s
+
+    def get_bills(self):
+        try:
+            return [ Bill.query.filter_by(id=bill_id).first()
+                     for id in self.bills.split(',') ]
+        except:
+            print("No bills in", self)
+            return []
+
+    def can_edit(self, user):
+        """Can the user edit this interest list?"""
+        return user.username in self.editors.split(',')
+
+    def set_editors(self, usernamelist, cur_username):
+        """Parse a comma-separated (possibly with extra spaces) list of
+           users allowed to edit this list.
+           Alters the object but does not update the database.
+        """
+        print("set_editors: from form '%s', cur_username: '%s'"
+              % (usernamelist,cur_username))
+        userlist = []
+        badusers = []
+        # First time on a new list, with no editors yet:
+        # make sure the current user gets listed as an editor
+        if not usernamelist:
+            print("Not usernamelist, setting to [ '%s' ]" % cur_username)
+            self.editors = cur_username
+        else:
+            usernames = [ s.strip() for s in usernamelist.split(',') ]
+            print("usernames before adding curent:", usernames)
+
+            # Following code duplicates (and extends) the check already done
+            # at form submission time in EditInterestListForm.validate_editors()
+            for username in usernames:
+                # Is it a valid username?
+                user = User.query.filter_by(username=username).first()
+                if user:
+                    if user not in userlist:
+                        userlist.append(user.username)
+                else:
+                    print("'%s' isn't a valid user and can't be an editor"
+                          % username)
+
+            # If this is a brand-new list, then make sure to include the
+            # list's creator as the first editor.
+            # Otherwise, if the current user isn't listed,
+            # maybe it's because they wanted to remove themselves.
+            if not self.editors and cur_username not in userlist:
+                userlist.insert(0, cur_username)
+
+            print("userlist, about to save:", userlist)
+            self.editors = ','.join(userlist)
+
+        if badusers:
+            raise(RuntimeError("No such users: %s" % ','.join(badusers)))
+        print(self, ": set editors to", self.editors, file=sys.stderr)
+

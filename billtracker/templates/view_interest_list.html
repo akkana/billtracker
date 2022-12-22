@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if interestlist %}
+
+<h1>"{{ interestlist.name }}" ({{ session['sessionname'] }} Session)</h1>
+
+
+<p>
+Owned by: {{ interestlist.editors }}
+
+{% if editable %}
+  (<a href="/edit-interest-list?id={{ interestlist.id }}">edit</a>)
+{% endif %}
+
+<h2>Description:</h2>
+
+<p>
+{{ interestlist.description }}
+
+<h2>Bills:</h2>
+
+<ul>
+  {% for bill in interestlist.get_bills() %}
+
+    <li>{{ bill.billno }} {{ bill.title }}</li>
+
+  {% endfor %}
+</ul>
+
+{% else %}
+
+<h1>Error: No such Interest List</h1>
+
+{% endif %}
+
+
+{% endblock %}
