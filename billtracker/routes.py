@@ -836,6 +836,10 @@ def list_interest_lists():
     """Show all interest lists for the given session"""
     values = request.values.to_dict()
     set_session_by_request_values(values)
+    if current_user.is_anonymous:
+        user = None
+    else:
+        user = current_user
 
     print("Getting list of lists")
     all_lists = InterestList.query.filter_by(yearcode=session["yearcode"]).all()
@@ -844,27 +848,27 @@ def list_interest_lists():
     my_lists = []
     followed_lists = []
     visible_lists = []
-    if current_user:
-        if current_user.interest_lists:
-            followed = [ int(bl) for bl in current_user.interest_lists ]
+    if user:
+        if user.interest_lists:
+            followed = [ int(bl) for bl in user.interest_lists ]
         else:
             followed = []
 
     for interestlist in all_lists:
-        if not interestlist.private or (current_user and
-                                        interestlist.can_edit(current_user)):
+        if not interestlist.private or (user and
+                                        interestlist.can_edit(user)):
             visible_lists.append(interestlist)
-        if current_user:
+        if user:
             if interestlist.id in followed:
                 followed_lists.append(interestist)
-            if interestlist.can_edit(current_user):
+            if interestlist.can_edit(user):
                 my_lists.append(interestlist)
         else:
             followed_Lists = []
             my_lists = []
 
     return render_template('interest_lists.html',
-                           user=current_user,
+                           user=user,
                            all_lists=visible_lists,
                            my_lists=my_lists,
                            followed_lists=followed_lists)

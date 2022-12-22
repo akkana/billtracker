@@ -4,24 +4,34 @@
 
 {% if somelist %}
 
-<ul>
+<table class="definitions">
+<thead>
+<tr>
+  <td>Name
+  <td>Owner(s)
+  <td>Description
+  <td>Edit
+</thead>
+<tbody)
 
   {% for bl in somelist %}
-    <li><a href="/view-interest-list?id={{ bl.id }}">{{ bl.name }}</a>
-        {% if bl.private %}
+  <tr>
+    <td><a href="/view-interest-list?id={{ bl.id }}">{{ bl.name }}</a>
+    <td>{% if bl.private %}
           (private for
         {% else %}
           (by
         {% endif %}
         {{ bl.editors }})
-        {{ bl.description }}
-        {% if user and bl.editors and user.username in bl.editors %}
+    <td>{{ bl.description }}
+    <td>{% if user and bl.editors and user.username in bl.editors %}
           (<a href="/edit-interest-list?id={{ bl.id }}">edit</a>)
         {% endif %}
-    </li>
+  </tr>
   {% endfor %}
 
-</ul>
+</tbody>
+</table>
 
 {% else %}
 
@@ -43,6 +53,8 @@ No interest lists have been created for the
 
 {% else %}
 
+{% if user %}
+
 <h2>Lists You Can Edit</h2>
 
 {{ show_list(my_lists) }}
@@ -51,7 +63,9 @@ No interest lists have been created for the
 
 {{ show_list(followed_lists) }}
 
-<h2>All Lists</h2>
+{% endif %}
+
+<h2>All Public Lists</h2>
 
 {{ show_list(all_lists) }}
 
