@@ -214,6 +214,11 @@ class User(UserMixin, db.Model):
         self.bills_seen = "%s:%s" % (yearcode, billno_list)
         db.session.add(self)
 
+    def get_interest_list_ids(self):
+        if not self.interest_lists:
+            return []
+        return [ int(il.strip()) for il in self.interest_lists.split(',') ]
+
     def send_confirmation_mail(self):
         authcode = ''
         for i in range(5):
@@ -1295,15 +1300,27 @@ class InterestList(db.Model):
 
     def get_bills(self):
         try:
-            return [ Bill.query.filter_by(id=bill_id).first()
-                     for id in self.bills.split(',') ]
+            return [ Bill.query.filter_by(billno=billno,
+                                          year=self.yearcode).first()
+                     for billno in self.bills.split(',') ]
         except:
-            print("No bills in", self)
             return []
 
     def can_edit(self, user):
         """Can the user edit this interest list?"""
         return user.username in self.editors.split(',')
+
+    def is_user_following(self, user):
+        if not user:
+            return False
+        if not user.interest_lists:
+            return False
+        try:
+            followlist = [ int(il.strip())
+                           for il in user.interest_lists.split(',') ]
+            return self.id in followlist
+        except:
+            return False
 
     def set_editors(self, usernamelist, cur_username):
         """Parse a comma-separated (possibly with extra spaces) list of

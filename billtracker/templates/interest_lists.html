@@ -11,6 +11,7 @@
   <td>Owner(s)
   <td>Description
   <td>Edit
+  <td>Following?
 </thead>
 <tbody)
 
@@ -27,6 +28,7 @@
     <td>{% if user and bl.editors and user.username in bl.editors %}
           (<a href="/edit-interest-list?id={{ bl.id }}">edit</a>)
         {% endif %}
+    <td>{% if bl.is_user_following(user) %}Yes{% else %}&nbsp;{% endif %}
   </tr>
   {% endfor %}
 
@@ -35,7 +37,7 @@
 
 {% else %}
 
-None
+<p>None</p>
 
 {% endif %}
 
@@ -60,6 +62,11 @@ No interest lists have been created for the
 {{ show_list(my_lists) }}
 
 <h2>Lists You Follow</h2>
+
+<p>
+(You can follow a list from its page: click on the list name to see
+what bills it includes).
+</p>
 
 {{ show_list(followed_lists) }}
 

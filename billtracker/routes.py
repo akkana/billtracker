@@ -860,7 +860,7 @@ def list_interest_lists():
             visible_lists.append(interestlist)
         if user:
             if interestlist.id in followed:
-                followed_lists.append(interestist)
+                followed_lists.append(interestlist)
             if interestlist.can_edit(user):
                 my_lists.append(interestlist)
         else:
@@ -874,36 +874,47 @@ def list_interest_lists():
                            followed_lists=followed_lists)
 
 
-@billtracker.route("/view-interest-list", methods=['GET', 'POST'])
+# I would really like to use this form:
+# @billtracker.route("/view-interest-list/<int:listid>", methods=["GET", "POST"])
+# def view_interest_list(listid):
+# but then the render_template step dies with
+# werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'view_interest_list'. Did you forget to specify values ['listid']?
+@billtracker.route("/view-interest-list", methods=["GET", "POST"])
 def view_interest_list():
     """Show one interest list"""
     values = request.values.to_dict()
-    print("values:", values, file=sys.stderr)
+    print("values=", values)
     set_session_by_request_values(values)
-    editable = False
+
+    if "id" not in values:
+        flash("No interest list id specified")
+        return redirect("/interest-lists")
+
+    listid = int(values["id"])
+    print("listid is", listid)
+
+    if current_user.is_anonymous:
+        user = None
+    else:
+        user = current_user
 
     try:
-        interestlist = find_interest_list(values["id"], None)
-        if interestlist and interestlist.editors:
-            editors = interestlist.editors.split(',')
-            for editor in editors:
-                if editor == current_user.username:
-                    editable = True
-                    break
+        interestlist = InterestList.query.filter_by(id=listid).first()
+        print("Found interestlist", interestlist)
+        editable = interestlist.can_edit(user)
+        following = interestlist.is_user_following(user)
 
     except Exception as e:
-        print("Exception:", e)
-        interestlist = None
+        print("Exception in view_interest_list:", e)
+        flash("Couldn't find interest list with id %d" % listid)
+        return redirect("/interest-lists")
+        # That works, but this doesn't:
+        # return redirect(url_for(list_interest_lists))
 
-    print("interest_list passed to view:", interestlist)
-    if not interestlist:
-        if "id" in values:
-            flash("No interest list with id %s" % str(values["id"]))
-        else:
-            flash("Create a new interest list")
-
-    return render_template('view_interest_list.html', user=current_user,
-                           interestlist=interestlist, editable=editable)
+    print("Got this far, and interestlist is", interestlist)
+    return render_template('view_interest_list.html',
+                           user=user, interestlist=interestlist,
+                           editable=editable, following=following)
 
 
 def find_interest_list(listid, name=None):
@@ -922,16 +933,62 @@ def find_interest_list(listid, name=None):
                                         yearcode=session["yearcode"]).first()
 
 
+@billtracker.route("/follow-interest-list", methods=['GET', 'POST'])
+@login_required
+def follow_interest_list():
+    values = request.values.to_dict()
+    set_session_by_request_values(values)
+
+    listid = int(values["id"])
+    interestlist = InterestList.query.filter_by(id=listid).first()
+    user = User.query.filter_by(username=current_user.username).first()
+    following = interestlist.is_user_following(user)
+    userlists = user.get_interest_list_ids()
+    print("userlists:", userlists)
+
+    if values["action"] == "unfollow":
+        print("Action is unfollow", interestlist)
+        try:
+            userlists.remove(listid)
+            user.interest_lists = ','.join(map(str, userlists))
+            db.session.add(user)
+            db.session.commit()
+            flash("No longer following interest list '%s'" % interestlist.name)
+        except ValueError:
+            print("%s tried to unfollow list %d but wasn't following it!"
+                  % (user.username, listid), file=sys.stderr)
+            print("  -- follow list was %s" % (user.interest_lists),
+                  file=sys.stderr)
+            flash("You weren't following list %d" % listid)
+    else:
+        print("follow list", interestlist)
+        # Default to follow
+        if listid in userlists:
+            flash("You're already following list %d" % listid)
+        else:
+            userlists.append(listid)
+            user.interest_lists = ','.join(map(str, userlists))
+            db.session.add(user)
+            db.session.commit()
+            print("Committed user who now has", user.interest_lists)
+            flash("You are now following list: '%s'" % interestlist.name)
+
+    return redirect("/view-interest-list?id=%d" % listid)
+    # return redirect(url_for('view_interest_list', listid=interestlist.id))
+    # return render_template('view_interest_list.html', user=current_user,
+    #                        interestlist=interestlist,
+    #                        editable=interestlist.can_edit(user),
+    #                        following=following)
+
+
 @billtracker.route("/edit-interest-list", methods=['GET', 'POST'])
 @login_required
 def edit_interest_list():
-    print("*** edit_interest_list() ***")
-
     values = request.values.to_dict()
     set_session_by_request_values(values)
 
     user = User.query.filter_by(username=current_user.username).first()
-    print("In edit_interest_list(), user is", user)
+
     interest_list = None
 
     leg_session = LegSession.by_yearcode(session["yearcode"])

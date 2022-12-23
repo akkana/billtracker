@@ -4,7 +4,7 @@
 
 {% if interestlist %}
 
-<h1>"{{ interestlist.name }}" ({{ session['sessionname'] }} Session)</h1>
+<h1>{{ interestlist.name }} ({{ session['sessionname'] }} Session)</h1>
 
 
 <p>
@@ -12,6 +12,14 @@ Owned by: {{ interestlist.editors }}
 
 {% if editable %}
   (<a href="/edit-interest-list?id={{ interestlist.id }}">edit</a>)
+{% endif %}
+
+<p>
+{% if following %}
+You are following this list
+(<a href="/follow-interest-list?id={{ interestlist.id }}&action=unfollow">Stop following</a>)
+{% else %}
+<a href="/follow-interest-list?id={{ interestlist.id }}&action=follow">Follow this Interest List</a>
 {% endif %}
 
 <h2>Description:</h2>
@@ -24,7 +32,11 @@ Owned by: {{ interestlist.editors }}
 <ul>
   {% for bill in interestlist.get_bills() %}
 
-    <li>{{ bill.billno }} {{ bill.title }}</li>
+    <li><a href="{{ bill.bill_url() }}" target="_blank">{{ bill.billno }}</a>
+        {{ bill.title }}
+        (<a href="{{ bill.contentslink }}" target="_blank">bill text</a>)
+        (<a href="{{ bill.contentslink.replace(".html", ".pdf") }}" target="_blank">PDF</a>)
+    </li>
 
   {% endfor %}
 </ul>
