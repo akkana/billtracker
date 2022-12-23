@@ -29,17 +29,29 @@ You are following this list
 
 <h2>Bills:</h2>
 
-<ul>
-  {% for bill in interestlist.get_bills() %}
-
-    <li><a href="{{ bill.bill_url() }}" target="_blank">{{ bill.billno }}</a>
-        {{ bill.title }}
-        (<a href="{{ bill.contentslink }}" target="_blank">bill text</a>)
-        (<a href="{{ bill.contentslink.replace(".html", ".pdf") }}" target="_blank">PDF</a>)
-    </li>
-
+<table class="bill_minilist">
+  {% for billno in billdic %}
+  <tr class="{{ loop.cycle('odd', 'even') }}">
+    <td><a href="{{ billdic[billno][1] }}" target="_blank">{{ billno }}:
+        {{ billdic[billno][0] }}</a>
+    </td>
+    <td>
+        {% if billdic[billno][1] %}
+          (<a href="{{ billdic[billno][2] }}" target="_blank">bill text</a>)
+        {% else %}
+          &nbsp;
+        {% endif %}
+    </td>
+    <td>
+        {% if billdic[billno][2] %}
+          (<a href="{{ billdic[billno][3] }}" target="_blank">PDF</a>)
+        {% else %}
+          &nbsp;
+        {% endif %}
+    </td>
+  </tr>
   {% endfor %}
-</ul>
+</tr></table>
 
 {% else %}
 

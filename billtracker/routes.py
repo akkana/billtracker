@@ -29,6 +29,10 @@ from collections import OrderedDict
 import sys, os
 
 
+#temporary for testing
+from pprint import pprint
+
+
 # filenames are e.g. HB000032.PDF with a random number of zeros.
 # Remove all zeros -- but not in the middle of a number, like 103.
 billno_pat = re.compile("([A-Z]*)(0*)([1-9][0-9]*)")
@@ -850,7 +854,8 @@ def list_interest_lists():
     visible_lists = []
     if user:
         if user.interest_lists:
-            followed = [ int(bl) for bl in user.interest_lists ]
+            followed = [ int(bl.strip())
+                         for bl in user.interest_lists.split(',') ]
         else:
             followed = []
 
@@ -883,7 +888,6 @@ def list_interest_lists():
 def view_interest_list():
     """Show one interest list"""
     values = request.values.to_dict()
-    print("values=", values)
     set_session_by_request_values(values)
 
     if "id" not in values:
@@ -891,7 +895,6 @@ def view_interest_list():
         return redirect("/interest-lists")
 
     listid = int(values["id"])
-    print("listid is", listid)
 
     if current_user.is_anonymous:
         user = None
@@ -900,7 +903,6 @@ def view_interest_list():
 
     try:
         interestlist = InterestList.query.filter_by(id=listid).first()
-        print("Found interestlist", interestlist)
         editable = interestlist.can_edit(user)
         following = interestlist.is_user_following(user)
 
@@ -911,9 +913,22 @@ def view_interest_list():
         # That works, but this doesn't:
         # return redirect(url_for(list_interest_lists))
 
-    print("Got this far, and interestlist is", interestlist)
+    # Get a list of billdics for bills in this interestlist.
+    # Can't use the Bills db object for that: interestlists
+    # may follow bills that users aren't following, which
+    # therefore aren't in the Bills database yet.
+    billdic = {}
+    billnos_in_list = interestlist.bills.split(',')
+    if billnos_in_list:
+        leg_session = LegSession.by_yearcode(session["yearcode"])
+        allbills, titleschanged = fetch_allbills(leg_session)
+        for billno in billnos_in_list:
+            if billno in allbills:
+                billdic[billno] = allbills[billno]
+
     return render_template('view_interest_list.html',
                            user=user, interestlist=interestlist,
+                           billdic=billdic,
                            editable=editable, following=following)
 
 
@@ -944,10 +959,8 @@ def follow_interest_list():
     user = User.query.filter_by(username=current_user.username).first()
     following = interestlist.is_user_following(user)
     userlists = user.get_interest_list_ids()
-    print("userlists:", userlists)
 
     if values["action"] == "unfollow":
-        print("Action is unfollow", interestlist)
         try:
             userlists.remove(listid)
             user.interest_lists = ','.join(map(str, userlists))
@@ -961,7 +974,6 @@ def follow_interest_list():
                   file=sys.stderr)
             flash("You weren't following list %d" % listid)
     else:
-        print("follow list", interestlist)
         # Default to follow
         if listid in userlists:
             flash("You're already following list %d" % listid)
@@ -970,7 +982,6 @@ def follow_interest_list():
             user.interest_lists = ','.join(map(str, userlists))
             db.session.add(user)
             db.session.commit()
-            print("Committed user who now has", user.interest_lists)
             flash("You are now following list: '%s'" % interestlist.name)
 
     return redirect("/view-interest-list?id=%d" % listid)
@@ -998,7 +1009,6 @@ def edit_interest_list():
     # submitting a form, we can stick with the list of bills it already had.
     allbills, titleschanged = fetch_allbills(leg_session)
 
-    from pprint import pprint
     # pprint("allbills:", allbills)
     billdics = []
     for billno in allbills:

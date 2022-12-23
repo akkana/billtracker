@@ -66,6 +66,15 @@ span.historycode { color: grey; }
 /* h1 headers that aren't in the banner should be a little smaller */
 h1 { font-size: 1.5em; }
 
+/*
+ * Bill lists that span alternating colors.
+ * Class bill_list is for multiple lines (e.g. on the main used page);
+ * bill_minilist is for single-line bills, like in the allbills page
+ * or in interest list pages.
+ * In either case, style table rows thusly to get alternating colors:
+ * <tr class="{{ loop.cycle('odd', 'even') }}">
+ */
+
 table.bill_list, table.bill_minilist { width: 99%; }
 
 table.bill_list th, table.bill_list td { padding: 1em; }

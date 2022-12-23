@@ -1298,14 +1298,6 @@ class InterestList(db.Model):
                                                 self.yearcode, self.editors)
         return s
 
-    def get_bills(self):
-        try:
-            return [ Bill.query.filter_by(billno=billno,
-                                          year=self.yearcode).first()
-                     for billno in self.bills.split(',') ]
-        except:
-            return []
-
     def can_edit(self, user):
         """Can the user edit this interest list?"""
         return user.username in self.editors.split(',')
