@@ -23,6 +23,7 @@ import json
 
 CACHEDIR = 'test/cache'
 TEST_DB = '%s/test.db' % CACHEDIR
+dbname = os.path.join(basedir, TEST_DB)
 
 
 # Some of these tests run flask routes and compare the generated HTML
@@ -50,19 +51,45 @@ class TestBillTracker(unittest.TestCase):
         billtracker.config['TESTING'] = True
         billtracker.config['SECRET_KEY'] = self.key
 
-        self.dbname = os.path.join(basedir, TEST_DB)
-        billtracker.config['SQLALCHEMY_DATABASE_URI'] = \
-            'sqlite:///' + self.dbname
+        billtracker.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + dbname
 
         self.app = billtracker.test_client()
+
+        # Sometime in 2022, all tests started raising
+        # "RuntimeError: Working outside of application context"
+        # This seems to be the cure
+        self.app_context = billtracker.app_context()
+        self.app_context.push()
 
         db.drop_all()
         db.create_all()
 
+    def setUpClass():
+        # Done once per file rather than for each test
+        # More 2022 change: now it's necessary to initialize the db explicitly.
+        # sqlalchemy used to do that automatically.
+        # This can only be done once per class; if it's in setUp so it's
+        # done once each test, it will result in this error:
+        #   AssertionError: The setup method 'shell_context_processor' can
+        #   no longer be called on the application. It has already handled
+        #   its first request, any changes will not be applied consistently.
+        #   Make sure all imports, decorators, functions, etc. needed to
+        #   set up the application are done before running it.
+        db.init_app(billtracker)
+
     def tearDown(self):
         db.session.remove()
         db.drop_all()
-        os.unlink(self.dbname)
+
+        # Recommended for the 2022 change, see setUp()
+        self.app_context.pop()
+
+    def tearDownClass():
+        # In 2022, apparently this can only be done at the end
+        try:
+            os.unlink(dbname)
+        except FileNotFoundError:
+            print("There was no %s to unlink" % dbname, file=sys.stderr)
 
     def test_password_hashing(self):
         u = User(username='testuser')
@@ -174,7 +201,10 @@ class TestBillTracker(unittest.TestCase):
         self.assertTrue(response.status_code == 200 or
                         response.status_code == 302)
         self.assertEqual(response.headers['location'],
-                         'http://localhost/login')
+                         # 2022 change: this used to be the location:
+                         # 'http://localhost/login')
+                         # but now it's:
+                         '/login')
 
         # Now log in
         response = self.app.post('/login', data=dict(

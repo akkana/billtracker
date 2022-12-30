@@ -250,12 +250,19 @@ def soup_from_cache_or_net(url, billdic=None, cachesecs=CACHESECS):
     if response.status_code != 200:
         print("No soup! Response was", response.status_code, file=sys.stderr)
         print("  on cache %s,\n  URL %s" % (cachefile, url), file=sys.stderr)
+        # print(traceback.print_stack(), file=sys.stderr)
+        if DEBUG:
+            print(">>>>> Couldn't get", url, "-->", cachefile, file=sys.stderr)
+            # print("wget '%s' -O %s" % (url, cachefile), file=sys.stderr)
         return None
 
     soup = BeautifulSoup(response.text, "lxml")
     if not soup:
         print("No soup! On cache %s,\n  URL %s" % (cachefile, url),
               file=sys.stderr)
+        # print(traceback.print_stack(), file=sys.stderr)
+        if DEBUG:
+            print("***** Couldn't get", url, "-->", cachefile, file=sys.stderr)
 
     return soup
 
