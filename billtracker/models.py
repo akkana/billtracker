@@ -416,6 +416,9 @@ class Bill(db.Model):
     # Is the bill scheduled to come up for debate? A datetime.
     scheduled_date = db.Column(db.DateTime)
 
+    # Tags: defined by users, comma separated
+    tags = db.Column(db.String(150))
+
     # We'll seldom need to know users for a bill, so no need to
     # include it as a line here.
     # user = db.relationship('User', secondary=userbills, lazy='subquery',
@@ -708,7 +711,7 @@ class Bill(db.Model):
 
 
     def show_html(self):
-        """Show a summary of the bill's status.
+        """Show a summary of the bill's status, as seen on a user's home page.
         """
         outstr = '<b><a href="%s" target="_blank">%s: %s</a></b><br />' % \
             (self.bill_url(), self.billno, self.title)
@@ -850,7 +853,10 @@ class Bill(db.Model):
             outstr += ' &bull; '.join(contents) + '<br />'
 
         if self.sponsor:
-            outstr += 'Sponsor: ' + self.get_sponsor_links()
+            outstr += 'Sponsor: ' + self.get_sponsor_links() + '<br />'
+
+        if self.tags:
+            outstr += "Tags: " + self.tags
 
         return outstr
 
