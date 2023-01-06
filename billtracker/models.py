@@ -210,7 +210,7 @@ class User(UserMixin, db.Model):
         self.bills_seen = "%s:%s" % (yearcode, billno_list)
         db.session.add(self)
 
-    def send_confirmation_mail(self):
+    def send_confirmation_mail(self, baseurl):
         authcode = ''
         for i in range(5):
             charset = 'abcdefghijklmnopqrstuvwxyz' \
@@ -245,12 +245,12 @@ Email:    %s
 Please confirm your email address so you can get daily updates about
 bills that have changed by following this link:
 
-https://nmbilltracker.com/confirm_email/%s
+%sconfirm_email/%s
 
 If this was done by someone else using your email address, please
 accept our apologies, and don't click the confirmation link.
 
-""" % (self.username, self.email, self.auth_code))
+""" % (self.username, self.email, baseurl, self.auth_code))
 
 
     def update_last_check(self):

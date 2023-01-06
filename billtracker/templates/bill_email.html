@@ -2,7 +2,7 @@
 
 <p>
 You can add or remove bills from your list, or change your settings,
-at: <a href="https://nmbilltracker.com/">The New Mexico Bill Tracker</a>.
+at: <a href="{{ url_for('index', _external=True) }}">The New Mexico Bill Tracker</a>.
 
 <h2>Bills {{ recipient.username }} is tracking:</h2>
 
@@ -12,6 +12,6 @@ at: <a href="https://nmbilltracker.com/">The New Mexico Bill Tracker</a>.
 
 <hr>
 This is the daily (once the session starts) email from
-<a href="https://nmbilltracker.com/">The New Mexico Bill Tracker</a>.
+<a href="{{ url_for('index', _external=True) }}">The New Mexico Bill Tracker</a>.
 If you have a problem with these emails, contact
 <a href="mailto:akkana@nmbilltracker.com">Akkana</a>.

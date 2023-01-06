@@ -196,7 +196,7 @@ def register():
     if user.email:
         try:
             print("Sending confirmation mail to", form.username.data)
-            user.send_confirmation_mail()
+            user.send_confirmation_mail(request.url_root)
             flash("Welcome to the NM Bill Tracker. A confirmation message has been mailed to %s."
                   % user.email)
         except Exception as e:
@@ -563,8 +563,15 @@ def allbills():
        New bills the user hasn't seen before are listed first.
     """
     set_session_by_request_values()
-    leg_session = LegSession.by_yearcode(session["yearcode"])
     yearcode = session["yearcode"]
+    leg_session = LegSession.by_yearcode(yearcode)
+    if not leg_session:
+        LegSession.update_session_list()
+        leg_session = LegSession.by_yearcode(yearcode)
+        if not leg_session:
+            flash("Error getting the list of legislative sessions")
+            print("*** Error getting the list of legislative sessions!",
+                  file=sys.stderr)
     if "sessionname" in session:
         sessionname = session["sessionname"]
     else:
@@ -736,7 +743,7 @@ def user_settings():
             print("Sending confirmation mail to %s <%s>, auth_code %s" \
                   % (current_user.username, current_user.email,
                      current_user.auth_code), file=sys.stderr)
-            current_user.send_confirmation_mail()
+            current_user.send_confirmation_mail(request.url_root)
             flash("Sent confirmation mail")
 
     return render_template('settings.html', form=form)

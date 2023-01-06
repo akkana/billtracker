@@ -6,8 +6,9 @@ Username: {{ username }}
 Email address {{ email }}
 Your new password is: {{ newpasswd }}
 
-Please log in as soon as possible: https://nmbilltracker.com/login
+Please log in as soon as possible: {{ url_for('login') }}
 and click on Settings to choose a new password.
 
-If you still have a problem logging in, contact Akkana (akkana@shallowsky.com).
+If you still have a problem logging in, contact Akkana
+(akkana@nmbilltracker.com).
 

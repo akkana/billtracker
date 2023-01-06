@@ -9,7 +9,8 @@ You can change your password or email address here.
 {% if current_user.email and not current_user.email_confirmed() %}
 <p class="error">
 Warning: Your email hasn't been confirmed yet.
-Updating your settings will send you a confirmation message.
+Clicking update will re-send the email with a confirmation link
+(you don't need to change anything first).
 </p>
 {% endif %}
 

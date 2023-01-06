@@ -1,7 +1,7 @@
 New Mexico Bill Tracker Daily Email
 
 You can add or remove bills from your list, or change your settings,
-at: https://nmbilltracker.com/
+at: {{ url_for(/', _external=True) }}
 
 
 ==== Bills {{ recipient.username }} is tracking ====
@@ -13,7 +13,7 @@ at: https://nmbilltracker.com/
 -----------------------------------------------------------
 This is the daily (once the session starts) email from
 the New Mexico Bill Tracker,
-    https://nmbilltracker.com/
+    {{ url_for('index', _external=True) }}
 If you have a problem with these emails,
 contact Akkana (akkana@nmbilltracker.com).
 
