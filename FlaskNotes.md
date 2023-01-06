@@ -48,7 +48,7 @@ the same form after submitting.
 On the development machine:
 - Update models.db
 - flask db migrate
-- review the migration file to make sure it looks right
+- review the migrations/versions/ file to make sure it looks right
 - flask db upgrade
 
 On the live server, flask db upgrade needs something extra.
@@ -56,6 +56,9 @@ Try this (from the directory where run_billtracker.py is):
 export FLASK_APP=run_billtracker.py
 export DATABASE_URL=postgresql:///DBNAME
 followed by: flask db upgrade
+
+flask db upgrade is also a good way to create a new database,
+up to the most recent migration.
 
 Sometimes the database gets confused about where it is, and wants to
 do upgrades it's already done (which of course will fail).
@@ -66,6 +69,11 @@ and set it with:
 
 The db version is the 12-digit code, NOT including any description you
 might have added to the filename.
+
+Downgrading: while adding a feature, if you need to tweak your model
+definition, flask db downgrade will (by default) go back one step, so
+you can make a new migration (don't forget to move the old migration
+out of migrations/versions/
 
 ## Migrations: adding/dropping tables in sqlite3
 
