@@ -365,8 +365,8 @@ def addbills():
 
 
 #
-# WTForms apparently doesn't have any way to allow adding checkboxes
-# in a loop next to each entry; so this is an old-school form.
+# WTForms doesn't have any way to allow adding variable
+# numbers of checkboxes, so this is an old-school form.
 #
 @billtracker.route('/track_untrack', methods=['GET', 'POST'])
 @login_required
@@ -382,9 +382,6 @@ def track_untrack():
         # either ImmutableMultiDict or CombinedMultiDict;
         # to_dict() is the only way I've found of accessing the contents.
 
-        track = []
-        untrack = []
-
         values = request.values.to_dict()
 
         if 'returnpage' in values:
@@ -394,55 +391,33 @@ def track_untrack():
 
         set_session_by_request_values(values)
 
-        for billno in values:
-            if values[billno] == 'on':
-                # Untrack buttons may be u_BILLNO.YEAR or just BILLNO.YEAR;
-                # track buttons will be f_BILLNO.YEAR.
-                if billno.startswith('f_'):
-                    track.append(billno[2:])
-                elif billno.startswith('u_'):
-                    untrack.append(billno[2:])
-                else:
-                    untrack.append(billno)
+        # Loop over checkboxes to see what tracking changes are needed.
+        # The form will only include checked bills; if there are any
+        # that the user un-checked, those can be detected as bills
+        # the user is currently following that don't have a corresponding
+        # f_billno checkbox in values.
+        now_tracking = set([ b.billno
+            for b in current_user.bills_by_yearcode(session["yearcode"]) ])
+        will_track = set()
+        for btnno in values:
+            if not btnno.startswith('f_'):
+                continue
+            if values[btnno] != 'on':
+                continue
+            billno = btnno[2:]
+            will_track.add(billno)
 
-        # print("track:", track, file=sys.stderr)
-        # print("untrack:", untrack, file=sys.stderr)
+        track_bills = will_track - now_tracking
+        untrack_bills = now_tracking - will_track
 
-        if not track and not untrack:
+        if not track_bills and not untrack_bills:
             return redirect(url_for(returnpage))
 
-        # Was querying the user here. Why? current_user is already set.
-        # It's better not to do any database queries until we can batch
-        # them all together.
-        # user = User.query.filter_by(username=current_user.username).first()
-
-        will_untrack = []
-        not_tracking = []
-        will_track = []
-        already_tracking = []
-        for billno in untrack:
-            if current_user.tracking(billno, session["yearcode"]):
-                will_untrack.append(billno)
-            else:
-                not_tracking.append(billno)
-        for billno in track:
-            if current_user.tracking(billno, session["yearcode"]):
-                already_tracking.append(billno)
-            else:
-                will_track.append(billno)
-
-        if already_tracking:
-            flash("Already tracking %s" % ', '.join(already_tracking))
-
-        if not_tracking:
-            flash("Can't untrack %s; you weren't tracking them"
-                  % ', '.join(not_tracking))
-
-        if will_untrack:
+        if untrack_bills:
             for b in current_user.bills_by_yearcode(session["yearcode"]):
-                if b.billno in will_untrack:
+                if b.billno in untrack_bills:
                     current_user.bills.remove(b)
-            flash("You are no longer tracking %s" % ', '.join(will_untrack))
+            flash("You are no longer tracking %s" % ', '.join(untrack_bills))
 
         # The hard (and slow) part: make new bills as needed.
         # Can't really do this asynchronously (unless it's with AJAX)
@@ -451,13 +426,13 @@ def track_untrack():
         # the database locked open, keeping anyone else from writing it
         # while make_new_bill fetches info.
 
-        if will_track:
+        if track_bills:
             # Figure out which bills will need to be fetched:
             # Bills the user wants to track that don't exist yet in the db:
             new_billnos = []
             # Bills that the user will start tracking:
             bills_to_track = []
-            for billno in will_track:
+            for billno in track_bills:
                 b = Bill.query.filter_by(billno=billno,
                                          year=session["yearcode"]).first()
                 if b:
@@ -479,7 +454,7 @@ def track_untrack():
                 else:
                     print("WARNING: make_new_bill", billno, session["yearcode"],
                           "returned None!")
-            flash("You are now tracking %s" % ', '.join(will_track))
+            flash("You are now tracking %s" % ', '.join(track_bills))
 
             # Now add all the bills to track to the user's list
             # (hitting the database):
@@ -489,7 +464,7 @@ def track_untrack():
                 db.session.add(bill)
                 current_user.bills.append(bill)
 
-        if will_track or will_untrack:
+        if track_bills or untrack_bills:
             # We changed something. Finish up and commit.
             db.session.add(current_user)
             db.session.commit()
