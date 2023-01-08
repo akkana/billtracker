@@ -114,6 +114,7 @@ class AddBillsForm(FlaskForm):
 
 
 class UserSettingsForm(FlaskForm):
+    # Form will auto-populate email if obj is passed in
     email = StringField('Email', validators=[Optional(), Email()])
     password = PasswordField('New Password')
     password2 = PasswordField('Repeat New Password',
@@ -124,6 +125,7 @@ class UserSettingsForm(FlaskForm):
         user = User.query.filter_by(email=email.data).first()
         if user is not None and user.username != current_user.username:
             raise ValidationError('That email address is already in use.')
+
 
 class PasswordResetForm(FlaskForm):
     username = StringField('Email', validators=[DataRequired()])

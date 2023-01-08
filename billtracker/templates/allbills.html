@@ -33,9 +33,8 @@ Please try again later.
 <table class="bill_minilist">
  <thead>
     {% if user and not user.is_anonymous %}
-      <tr><td><td>
-      <td style="text-align: right"><b>Save changes:</b>
-      <td colspan=2><input type="submit" value="Track / Untrack">
+      <tr><td><td><td>
+      <td colspan=2><input type="submit" value="Save Changes">
     {% endif %}
 
     <tr><th>Bill <th>Title <th>Bill text
@@ -43,7 +42,7 @@ Please try again later.
       {% if returnpage == "popular" %}
         <th>Users</th>
       {% endif %}
-      <th>Track <th>Untrack
+      <th>Track
     {% endif %}
  </thead>
 
@@ -61,22 +60,19 @@ Please try again later.
         {% if returnpage == "popular" %}
           <td>{{ bill_line["num_tracking"] }}
         {% endif %}
+        <td><input type="checkbox" class="track"
         {% if bill_line["user_tracking"] %}
-          <td>
-          <td><input type="checkbox" class="untrack" name="u_{{ bill_line["billno"] }}">
-        {% else %}
-          <td><input type="checkbox" class="track" name="f_{{ bill_line["billno"] }}">
-          <td>
+                   checked
         {% endif %}
+                   name="f_{{ bill_line["billno"] }}">
       {% else %}
           <td>&nbsp; <td>&nbsp;
       {% endif %}
   {% endfor %}
 
   {% if user and not user.is_anonymous %}
-    <tr><td><td>
-      <td style="text-align: right"><b>Save changes:</b>
-    <td colspan=2><input type="submit" value="Track / Untrack">
+    <tr><td><td><td>
+    <td colspan=2><input type="submit" value="Save Changes">
   {% endif %}
 
 </table>

@@ -422,7 +422,7 @@ class Bill(db.Model):
     #                         backref=db.backref('bills', lazy=True))
 
     def __repr__(self):
-        return 'Bill %s %s' % (self.billno, self.year)
+        return '<Bill %s %s>' % (self.billno, self.year)
 
     #
     # Sort keys for bills
