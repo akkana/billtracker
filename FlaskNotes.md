@@ -43,7 +43,7 @@ to go in routes.py.
 routes.py is also the place to clear the form field if you go back to
 the same form after submitting.
 
-# Database Upgrade and Downgrade Workflow
+# Database Upgrade/Downgrade Workflow
 
 On the development machine:
 - Update models.db

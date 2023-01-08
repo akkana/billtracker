@@ -2,7 +2,7 @@
 
 {% block content %}
 
-{% if not current_user.email_confirmed() %}
+{% if current_user.email and not current_user.email_confirmed() %}
 <p class="error">
 Warning: Your email hasn't been confirmed yet.
 Go to <a href="/settings">Settings</a> to request another confirmation message.

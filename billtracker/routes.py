@@ -206,7 +206,7 @@ def register():
             print(traceback.format_exc(), file=sys.stderr)
             flash("You're registered! But something went wrong trying to send you a confirmation mail, so your email address won't work yet. Please contact an administrator. Sorry about that!")
     else:
-        flash('Welcome to the NM Bill Tracker. Please sign in.')
+        flash('Welcome to the NM Bill Tracker.')
 
     db.session.add(user)
     db.session.commit()
