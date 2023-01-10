@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Bills People are Tracking</h1>
+ 
+<form method="POST" action="/track_untrack">
+<input type="hidden" id="yearcode" name="yearcode" value="{{ session['yearcode'] }}">
+<input type="hidden" id="returnpage" name="returnpage" value="popular">
+
+{% import "listbills.html" as listbills %}
+
+{{ listbills.listbills(bill_list, user, extras=["popular"]) }}
+
+<input type=submit name="update" value="Track/Untrack Bills">
+
+</form>
+
+{% endblock %}

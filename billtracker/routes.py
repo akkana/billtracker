@@ -483,53 +483,14 @@ def popular():
        and how many people are tracking each one.
     """
     set_session_by_request_values()
-    yearcode = session["yearcode"]
     leg_session = LegSession.by_yearcode(session["yearcode"])
-    bills = Bill.query.filter_by(year=yearcode).all()
 
-    if current_user and not current_user.is_anonymous:
-        user = User.query.filter_by(username=current_user.username).first()
-        bills_seen = user.get_bills_seen(yearcode)
-        bills_tracking = [ b.billno for b in user.bills if b.year == yearcode]
-    else:
-        user = None
-        bills_seen = []
-        bills_tracking = []
-
-    # allbills.html expects a list of dictionaries with keys:
-    # billno, title, url, contentsurl, user_tracking, num_tracking
-    bill_list = []
-    for bill in bills:
-        num_tracking = bill.num_tracking()
-        if num_tracking:
-            if bill.amendlink:
-                contentsurl = bill.amendlink
-            else:
-                contentsurl = bill.contentslink
-            bill_list.append( { "billno": bill.billno,
-                                "title": bill.title,
-                                "url": bill.bill_url(),
-                                "contentsurl": contentsurl,
-                                "user_tracking":
-                                    bill.billno in bills_tracking,
-                                "num_tracking": num_tracking,
-                                "tags": bill.tags if bill.tags else ""
-                               } )
-
-    # Now sort by num_tracking, column 4:
-    bill_list.sort(reverse=True, key=lambda l: l["num_tracking"])
-    bill_lists = [ { 'thelist': bill_list,
-                     'header': "",
-                     'alt': "Nobody seems to be tracking anything" } ]
-
-    verb = 'are' if yearcode >= LegSession.current_yearcode() else 'were'
-
-    return render_template('allbills.html', user=current_user,
-                           title="Bills People %s Tracking" % verb,
-                           returnpage="popular",
-                           yearcode=yearcode,
-                           showtags=True,
-                           bill_lists=bill_lists)
+    bill_list = Bill.query.filter_by(year=session["yearcode"]).all()
+    bill_list.sort(key=lambda b: b.num_tracking(), reverse=True)
+    return render_template('popular.html',
+                           yearcode=session["yearcode"],
+                           user=current_user,
+                           bill_list=bill_list)
 
 
 @billtracker.route('/allbills')
@@ -659,14 +620,8 @@ def get_all_tags(yearcode):
     all_tags = set()
     for bill in Bill.query.filter_by(year=yearcode).all():
         if bill.tags:
-            print(bill, "tags:", bill.tags)
             for tag in bill.tags.split(','):
-                print("tag", tag)
                 all_tags.add(tag)
-        else:
-            print(bill, ": no tags")
-
-    print("all tags:", all_tags)
 
     return all_tags
 
@@ -677,7 +632,6 @@ def get_all_tags(yearcode):
 @billtracker.route("/tags/<tag>", methods=['GET', 'POST'])
 def tags(tag=None):
     values = request.values.to_dict()
-    print("tags route got values:", values)
     set_session_by_request_values()
 
     bill_list = Bill.query.filter_by(year=session["yearcode"])
@@ -690,6 +644,7 @@ def tags(tag=None):
         tag = values["tag"]
         bills_added = []
         bills_removed = []
+        bills_tagged = 0
 
         for bill in bill_list:
             if bill.tags:
@@ -711,12 +666,18 @@ def tags(tag=None):
                 db.session.add(bill)
                 bills_removed.append(bill.billno)
 
+            if tag in billtags:
+                bills_tagged += 1
+
         if bills_added:
             flash(','.join(bills_added) + " now tagged '%s'" % tag)
         if bills_removed:
             flash(','.join(bills_removed) + " no longer tagged '%s'" % tag)
         if bills_added or bills_removed:
             db.session.commit()
+        if not bills_tagged:
+            flash("No remaining bills tagged '%s': tag has been removed"
+                  % tag)
 
     elif "submitnewtag" in request.form:
         if values["newtag"]:

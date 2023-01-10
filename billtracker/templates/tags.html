@@ -1,10 +1,4 @@
-<html>
-<head>
-    {% include "std-headers.html" %}
-</head>
-<body>
-
-{% include "banner.html" %}
+{% extends "base.html" %}
 
 {% block content %}
 
@@ -22,6 +16,10 @@ Edit a tag:
     <a href="/tags/{{ t }}" class="buttonlike">{{ t }}</a>
   {% endif %}
 {% endfor %}
+
+{% if tag %}
+or <a href="/tags" class="buttonlike">View all tags</a>
+{% endif %}
 
 <form method="POST" action="/tags">
 <input type="hidden" id="yearcode" name="yearcode" value="{{ session['yearcode'] }}">
@@ -41,12 +39,13 @@ If you don't see a bill in the list below, maybe nobody has tracked it yet.
 
 {% if tag %}
 <input type="hidden" id="tag" name="tag" value="{{ tag }}">
-{{ listbills.listbills(bill_list, form, user, extras={ "tag": tag }, checkverb="Tag") }}
+{{ listbills.listbills(bill_list, user, extras={ "tag": tag, "popular": None }, checkverb="Tag") }}
 
 {% else %}
-{{ listbills.listbills(bill_list, form, user, extras={ "tag": None }) }}
+{{ listbills.listbills(bill_list, user, extras={ "tag": None, "popular": None }) }}
 {% endif %}
 
+<p>
 {% if tag %}
 <input type=submit name="update" value="Update bills with tag '{{ tag }}'">
 {% endif %}
@@ -55,5 +54,3 @@ If you don't see a bill in the list below, maybe nobody has tracked it yet.
 
 {% endblock %}
 
-</body>
-</html>
