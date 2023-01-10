@@ -42,9 +42,6 @@
         [ '/popular', 'Popular Bills', True ],
         [ '/addbills', 'Track Bill #', False ],
         [ '/settings', 'Settings', False ],
-        [ '/links', 'Links', True ],
-        [ '/help', 'Help', True ],
-        [ '/about', 'About', True ],
         [ '/login', 'Login', True ],
       ] %}
 
@@ -122,6 +119,8 @@
 
     <!-- - Each page will put its content here: -->
     {% block content %}{% endblock %}
+
+    {% include "footer.html" %}
 
   </body>
 </html>
