@@ -1,0 +1,61 @@
+{# A list of bills suitable for including inside other templates.
+   bill_list is a list of Bill objects (so this macro isn't suitable
+   for allbills, where many bills don't have a db object yet).
+
+   Extras is a dictionary with things like "tag": tag
+   If checkverb is set, each bill will have a checkbox labeled with that verb
+   (only logged-in users will see checkboxes).
+ #}
+
+{% macro listbills(bill_list, form, user, extras={}, checkverb="") %}
+
+<table class="bill_minilist">
+ <thead>
+    <tr><th>Bill <th>Title <th>Bill text <th># users
+    {% if user and not user.is_anonymous %}
+      {% if "popular" in extras %}
+        <th>Users</th>
+      {% endif %}
+      {% if "tag" in extras %}
+        <th>Tags</th>
+      {% endif %}
+      {% if checkverb %}
+        <th>{{ checkverb }}
+      {% endif %}
+    {% endif %}
+ </thead>
+
+ <tbody>
+  {% for bill in bill_list %}
+    <tr class="{{ loop.cycle('odd', 'even') }}">
+      <td>{{ bill.billno }}
+      <td><a href="{{ bill.bill_url() }}" target="_blank">{{ bill.title }}</a>
+      {% if bill.contentslink %}
+        <td><a href="{{ bill.contentslink }}" target="_blank">{{ bill.billno }} text</a>
+      {% else %}
+        <td>&nbsp;
+      {% endif %}
+      {% if user and not user.is_anonymous %}
+        <td>{{ bill.num_tracking() }}
+          <td>
+          {% if bill.tags %}
+            {{ bill.tags }}
+          {% else %}
+            &nbsp;
+          {% endif %}
+          </td>
+        {% if "tag" in extras and extras["tag"] %}
+          <td><input type="checkbox" class="track"
+          {% if bill.tags and extras["tag"] in bill.tags %}
+                     checked
+          {% endif %}
+                     name="f_{{ bill.billno }}">
+        {% endif %}
+      {% else %}
+          <td>&nbsp;
+      {% endif %}
+  {% endfor %}
+
+</table>
+
+{% endmacro %}

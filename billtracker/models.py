@@ -860,7 +860,6 @@ class Bill(db.Model):
 
         return outstr
 
-
     def get_sponsor_links(self, html=True):
         """Return HTML for a list of sponsor links, each of which is like
            "https://www.nmlegis.gov/Members/Legislator?SponCode=HFIGU"
@@ -880,7 +879,6 @@ class Bill(db.Model):
                     sponlinks.append('%s <%s>' % (leg.lastname, leg.sponcode))
 
         return ', '.join(sponlinks)
-
 
     def show_text(self):
         """Show a summary of the bill's status in plaintext format.

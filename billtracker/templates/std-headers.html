@@ -1,0 +1,12 @@
+    {% if title %}
+    <title>{{ title }} - NM Bill Tracker</title>
+    {% else %}
+    <title>New Mexico Bill Tracker</title>
+    {% endif %}
+
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/billtracker.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/burgermenu.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">

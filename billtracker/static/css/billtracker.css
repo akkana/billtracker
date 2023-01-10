@@ -120,6 +120,20 @@ th { background: #eee; }
 table.bordered, table.bordered td { border: 1px solid black; }
 table.bordered td { padding: .3em; }
 
+.buttonlike {
+  color: black;
+  background: #afe;
+  border: 2px outset grey;
+  padding: 2px 3px;
+  border-radius: 6px;
+  text-decoration: none;
+}
+.buttonlike.pressed {
+  color: white;
+  background: #8cc;
+  border: 2px inset grey;
+}
+
 /* The captcha on the registration page */
 .captcha {
     background: #eee;

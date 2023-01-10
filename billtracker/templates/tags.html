@@ -1,0 +1,59 @@
+<html>
+<head>
+    {% include "std-headers.html" %}
+</head>
+<body>
+
+{% include "banner.html" %}
+
+{% block content %}
+
+{% if tag %}
+<h1>NM BillTracker: Edit Bills tagged &ldquo;{{ tag }}&rdquo;</h1>
+{% else %}
+<h1>NM BillTracker: Bill Tags</h1>
+{% endif %}
+
+<p>
+Edit a tag:
+
+{% for t in alltags %}
+  {% if t != tag %}
+    <a href="/tags/{{ t }}" class="buttonlike">{{ t }}</a>
+  {% endif %}
+{% endfor %}
+
+<form method="POST" action="/tags">
+<input type="hidden" id="yearcode" name="yearcode" value="{{ session['yearcode'] }}">
+
+Create a new tag: <input type="text" name="newtag" id="newtag" size="12">
+
+<input type=submit name="submitnewtag" value="Create new tag">
+</p>
+
+{% if tag %}
+<p>
+You can only set tags on bills users have tracked.
+If you don't see a bill in the list below, maybe nobody has tracked it yet.
+{% endif %}
+
+{% import "listbills.html" as listbills %}
+
+{% if tag %}
+<input type="hidden" id="tag" name="tag" value="{{ tag }}">
+{{ listbills.listbills(bill_list, form, user, extras={ "tag": tag }, checkverb="Tag") }}
+
+{% else %}
+{{ listbills.listbills(bill_list, form, user, extras={ "tag": None }) }}
+{% endif %}
+
+{% if tag %}
+<input type=submit name="update" value="Update bills with tag '{{ tag }}'">
+{% endif %}
+
+</form>
+
+{% endblock %}
+
+</body>
+</html>

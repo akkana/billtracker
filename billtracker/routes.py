@@ -512,7 +512,9 @@ def popular():
                                 "contentsurl": contentsurl,
                                 "user_tracking":
                                     bill.billno in bills_tracking,
-                                "num_tracking": num_tracking } )
+                                "num_tracking": num_tracking,
+                                "tags": bill.tags if bill.tags else ""
+                               } )
 
     # Now sort by num_tracking, column 4:
     bill_list.sort(reverse=True, key=lambda l: l["num_tracking"])
@@ -526,6 +528,7 @@ def popular():
                            title="Bills People %s Tracking" % verb,
                            returnpage="popular",
                            yearcode=yearcode,
+                           showtags=True,
                            bill_lists=bill_lists)
 
 
@@ -648,7 +651,84 @@ or reload the page, these bills will no longer be listed as new.)""",
                        title="NM Bill Tracker: All Bills in the %s Session" \
                                  % sessionname,
                            yearcode=yearcode,
-                           bill_lists=bill_lists)
+                           bill_lists=bill_lists,
+                           showtags=False)
+
+
+def get_all_tags(yearcode):
+    all_tags = set()
+    for bill in Bill.query.filter_by(year=yearcode).all():
+        if bill.tags:
+            print(bill, "tags:", bill.tags)
+            for tag in bill.tags.split(','):
+                print("tag", tag)
+                all_tags.add(tag)
+        else:
+            print(bill, ": no tags")
+
+    print("all tags:", all_tags)
+
+    return all_tags
+
+
+# tags is another route that bypasses WTForms in order to have a bill list
+# with checkboxes.
+@billtracker.route("/tags", defaults={'tag': None}, methods=['GET', 'POST'])
+@billtracker.route("/tags/<tag>", methods=['GET', 'POST'])
+def tags(tag=None):
+    values = request.values.to_dict()
+    print("tags route got values:", values)
+    set_session_by_request_values()
+
+    bill_list = Bill.query.filter_by(year=session["yearcode"])
+
+    # Was this a form submittal?
+    # The form has two submit buttons, with names "submitnewtag" for
+    # the new tag input field and "update" to update the buttons for
+    # the current tag. Figure out which path the user followed:
+    if "update" in request.form:
+        tag = values["tag"]
+        bills_added = []
+        bills_removed = []
+
+        for bill in bill_list:
+            if bill.tags:
+                billtags = bill.tags.split(',')
+            else:
+                billtags = []
+
+            # Newly checked?
+            if tag not in billtags and "f_%s" % bill.billno in values:
+                billtags.append(tag)
+                bill.tags = ','.join(billtags)
+                db.session.add(bill)
+                bills_added.append(bill.billno)
+
+            # Newly unchecked?
+            elif tag in billtags and "f_%s" % bill.billno not in values:
+                billtags.remove(tag)
+                bill.tags = ','.join(billtags)
+                db.session.add(bill)
+                bills_removed.append(bill.billno)
+
+        if bills_added:
+            flash(','.join(bills_added) + " now tagged '%s'" % tag)
+        if bills_removed:
+            flash(','.join(bills_removed) + " no longer tagged '%s'" % tag)
+        if bills_added or bills_removed:
+            db.session.commit()
+
+    elif "submitnewtag" in request.form:
+        if values["newtag"]:
+            flash("Now choose some bills to tag with new tag '%s"
+                  % values["newtag"])
+            tag = values["newtag"]
+
+    return render_template('tags.html', user=current_user,
+                           yearcode=session["yearcode"],
+                           bill_list=bill_list,
+                           tag=tag,
+                           alltags=get_all_tags(session["yearcode"]))
 
 
 @billtracker.route("/config")

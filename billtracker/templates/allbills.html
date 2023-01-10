@@ -1,4 +1,15 @@
-{% extends "base.html" %}
+<html>
+<head>
+    {% include "std-headers.html" %}
+
+    <!-- Special JS and CSS for tagging
+         (why this page doesn't extend base.html) -->
+    <script src="/static/js/js-tags/tag.js"></script>
+    <link rel="stylesheet" href="/static/js/js-tags/tag.css">
+</head>
+<body>
+
+{% include "banner.html" %}
 
 {% block content %}
 
@@ -38,6 +49,9 @@ Please try again later.
     {% endif %}
 
     <tr><th>Bill <th>Title <th>Bill text
+    {% if showtags %}
+    <th>Tags
+    {% endif %}
     {% if user and not user.is_anonymous %}
       {% if returnpage == "popular" %}
         <th>Users</th>
@@ -56,6 +70,18 @@ Please try again later.
       {% else %}
         <td>&nbsp;
       {% endif %}
+
+      {% if showtags %}
+        <td class="tagcell">
+        {% if "tags" in bill_line %}
+            {{ bill_line["tags"] }}
+        {% endif %}
+          <a href="#" class="edit-tag-btn"
+             onclick="popup_tag_editor('{{ bill_line["billno"] }}', '{{ bill_line["tags"] }}');">+</a>
+          <div id="tagedit_{{ bill_line['billno'] }}" class="tagedit"></div>
+        </td>
+      {% endif %}
+
       {% if user and not user.is_anonymous %}
         {% if returnpage == "popular" %}
           <td>{{ bill_line["num_tracking"] }}
@@ -85,6 +111,8 @@ Please try again later.
 
 {% endfor %}
 
+</form>
+
 {% if not returnpage %}
 <p>
 Source: This comes from the
@@ -96,3 +124,5 @@ Mexico Legislature's Legislation Listing</a>.
 
 {% endblock %}
 
+</body>
+</html>
