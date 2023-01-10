@@ -487,6 +487,7 @@ def popular():
 
     bill_list = Bill.query.filter_by(year=session["yearcode"]).all()
     bill_list.sort(key=lambda b: b.num_tracking(), reverse=True)
+    bill_list = [ b for b in bill_list if b.num_tracking() > 0 ]
     return render_template('popular.html',
                            yearcode=session["yearcode"],
                            user=current_user,
