@@ -19,11 +19,12 @@ Edit a tag:
 
 {% if tag %}
 or <a href="/tags" class="buttonlike">View all tags</a>
+
+<form method="POST" action="/tags/{{ tag }}">
+<input type="hidden" id="yearcode" name="yearcode" value="{{ session['yearcode'] }}">
 {% endif %}
 
-<form method="POST" action="/tags">
-<input type="hidden" id="yearcode" name="yearcode" value="{{ session['yearcode'] }}">
-
+<p>
 Create a new tag: <input type="text" name="newtag" id="newtag" size="12">
 
 <input type=submit name="submitnewtag" value="Create new tag">
@@ -33,6 +34,9 @@ Create a new tag: <input type="text" name="newtag" id="newtag" size="12">
 <p>
 You can only set tags on bills users have tracked.
 If you don't see a bill in the list below, maybe nobody has tracked it yet.
+<p>
+<input type=submit name="update" value="Update bills with tag '{{ tag }}'">
+<p>
 {% endif %}
 
 {% import "listbills.html" as listbills %}
@@ -48,9 +52,9 @@ If you don't see a bill in the list below, maybe nobody has tracked it yet.
 <p>
 {% if tag %}
 <input type=submit name="update" value="Update bills with tag '{{ tag }}'">
-{% endif %}
 
 </form>
+{% endif %}
 
 {% endblock %}
 

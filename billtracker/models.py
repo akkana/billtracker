@@ -427,9 +427,18 @@ class Bill(db.Model):
     def __repr__(self):
         return '<Bill %s %s>' % (self.billno, self.year)
 
+    def get_PDF_link(self):
+        if self.contentslink:
+            return self.contentslink.replace(".html", ".pdf")
+        return ""
+
     #
     # Sort keys for bills
     #
+
+    # Default sort is natural_key, if no other key is specified
+    def __lt__(self, other):
+        return Bill.natural_key(self) < Bill.natural_key(other)
 
     @staticmethod
     def get_sort_key(sort_type):
@@ -1191,17 +1200,12 @@ class LegSession(db.Model):
 
     @staticmethod
     def current_leg_session():
-        """Return the currently running (or most recent) legislative session
-           (which is the session with the highest id).
+        """Return the latest legislative session
+           (the session with the highest id).
         """
-        try:
-            max_id = db.session.query(func.max(LegSession.id)).scalar()
-            if max_id is None:
-                return None    # XXX arguably, call update_session_list ?
-            return LegSession.query.get(max_id)
-        except:
-            # XXX arguably, call update_session_list ?
-            return None
+        # Revised for sqlalchemy 2.0
+        last = db.session.execute(db.select(func.max(LegSession.id))).scalar()
+        return db.session.get(LegSession, last)
 
     @staticmethod
     def current_yearcode():
@@ -1235,7 +1239,7 @@ class LegSession(db.Model):
             # Is it in the database? Then we can stop: sessions
             # in Legislation_List are listed in reverse chronological,
             # so if we have this one we have everything after it.
-            if LegSession.query.get(lsess["id"]):
+            if db.session.get(LegSession, lsess["id"]):
                 break
 
             newsession = LegSession(id=lsess["id"],

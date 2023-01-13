@@ -58,7 +58,13 @@ export DATABASE_URL=postgresql:///DBNAME
 followed by: flask db upgrade
 
 flask db upgrade is also a good way to create a new database,
-up to the most recent migration.
+up to the most recent migration. To do the same thing in code:
+```
+with app.test_request_context():
+    db.init_app(app)
+    db.create_all()
+```
+
 
 Sometimes the database gets confused about where it is, and wants to
 do upgrades it's already done (which of course will fail).
