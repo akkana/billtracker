@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
 
 """
-A ChattyCaptcha uses questions from a questionfile in the following
+An object that maintains questions and answers for a simple,
+hopefully non-annoying captcha (no "click on road signs", I promise!)
+
+ChattyCaptcha is a singleton; call random_question() to get a question,
+then pass that question back for is_answer_correct().
+You shouldn't need to create your own ChattyCaptcha object
+or reference the one defined here.
+
+ChattyCaptcha uses questions from a questionfile in the following
 human-readable format:
 
 What's the best computer language?
@@ -22,9 +30,40 @@ Comments begin with #. Blank lines separate questions.
 Answers are case insensitive.
 """
 
-import sys
+import sys, os
 import random
+import json
 
+
+#####################################################
+# PUBLIC API
+#####################################################
+
+def init_captcha(questionfile):
+    captcha.initialize(questionfile)
+
+
+def initialized():
+    try:
+        return len(captcha.QandA.keys()) > 1
+    except:
+        return False
+
+
+def random_question(current_question=None):
+    """Return a randomly chosen question (different from the current one)
+       and set self.current_question to it.
+    """
+    return captcha.random_question(current_question)
+
+
+def is_answer_correct(answer, question):
+    return captcha.is_answer_correct(answer, question)
+
+
+#####################################################
+# Not intended to be public
+#####################################################
 
 class ChattyCaptcha:
     """Take a list of questions, each with one or more valid answers,
@@ -35,10 +74,13 @@ class ChattyCaptcha:
        has questions: if not chatty_captcha: print("No questions file")
     """
 
-    def __init__(self, questionfile):
+    def __init__(self):
+        self.filename = None
+        self.QandA = None
+
+    def initialize(self, questionfile):
         self.filename = questionfile
         self.QandA = None
-        self.current_question = None
 
         random.seed()
 
@@ -48,6 +90,45 @@ class ChattyCaptcha:
         if self.QandA:
             return True
         return False
+
+    def random_question(self, current_question=None):
+        if not self.QandA:
+            raise RuntimeError("Need to initialize the captcha with a file")
+
+        if len(self.QandA) <= 1:
+            print("Captcha doesn't have enough questions:", self.QandA,
+                  file=sys.stderr)
+            raise RuntimeError("Captcha doesn't have enough questions")
+
+        oldq = current_question
+        while True:
+            question = random.choice(list(self.QandA))
+            if question == oldq:
+                continue
+            return question
+
+    def is_answer_correct(self, ans, question):
+        """Does ans match any of the answers for the given question?
+           If question is unspecified, use self.current_question.
+           Case insensitive.
+           Returns a Boolean.
+        """
+        # If there are no questions, consider all answers correct
+        if not self.QandA:
+            return True
+
+        if not question:
+            question = self.current_question
+
+        # Bots can send random answers as form field data,
+        # which will raise a KeyError since the capq.data
+        # may not be one of the valid questions.
+        if question not in self.QandA:
+            print("BOT ALERT: '%s' wasn't one of the questions" % question,
+                  file=sys.stderr)
+            return False
+
+        return ans.lower() in self.QandA[question]
 
     def read_question_file(self):
         """Initialize the questions and their answers.
@@ -79,43 +160,9 @@ class ChattyCaptcha:
         except:
             return
 
-    def random_question(self):
-        """Return a randomly chosen question (different from the current one)
-           and set self.current_question to it.
-        """
-        if not self:
-            return ""
 
-        oldq = self.current_question
-        while self.current_question == oldq:
-            self.current_question = random.choice(list(self.QandA))
-            if len(self.QandA) == 1:
-                break
-
-        return self.current_question
-
-    def is_answer_correct(self, ans, question=None):
-        """Does ans match any of the answers for the given question?
-           If question is unspecified, use self.current_question.
-           Case insensitive.
-           Returns a Boolean.
-        """
-        # If there are no questions, consider all answers correct
-        if not self:
-            return True
-
-        if not question:
-            question = self.current_question
-
-        # Bots can send random answers as form field data,
-        # which will raise a KeyError since the capq.data
-        # may not be one of the valid questions.
-        if question not in self.QandA:
-            print("BOT ALERT: '%s' wasn't one of the questions" % question,
-                  file=sys.stderr)
-            return False
-
-        return ans.lower() in self.QandA[question]
+# The singleton
+captcha = ChattyCaptcha()
 
 
 if __name__ == '__main__':
@@ -123,16 +170,17 @@ if __name__ == '__main__':
         print("Usage: %s question_file" % os.path.basename(sys.argv[0]))
         sys.exit(1)
 
-    captcha = ChattyCaptcha(sys.argv[1])
-
+    init_captcha(sys.argv[1])
     try:
         while True:
             print()
-            print(captcha.random_question())
-            ans = input()
-            if captcha.is_answer_correct(ans):
+            question = random_question()
+            print(question)
+            answer = input()
+            if is_answer_correct(answer, question):
                 print("Yes!")
             else:
                 print("Sorry, no.")
+
     except (KeyboardInterrupt, EOFError):
         print("\nBye!")

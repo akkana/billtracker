@@ -9,7 +9,10 @@ except:
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import ValidationError, DataRequired, Email, \
     EqualTo, Optional
+
 from billtracker.models import User
+from billtracker import chattycaptcha
+
 
 import sys
 
@@ -45,29 +48,28 @@ class RegistrationForm(FlaskForm):
         return True
 
     def validate_capa(self, capa):
-        if not self.captcha:
-            print("* validate_capa has no captcha object", file=sys.stderr)
+        if "capq" not in session:
+            raise ValidationError("validate_capa has no captcha object")
 
-        if 'captcha' in session:
-            question = session['captcha']
-            if question != self.capq.data:
-                print("validate_capq: '%s' didn't match session '%s'"
-                      % (self.capq.data, session['captcha']),
-                      request.remote_addr, file=sys.stderr)
-        else:
-            print("no captcha in session", file=sys.stderr)
+        question = session["capq"]
 
         if not question:
-            print("validate_capa: Couldn't get captcha question from session",
-                  request.remote_addr, file=sys.stderr)
-            question = self.capq.data
+            s ="** validate_capa: Couldn't get captcha question from session"
+            print(s, request.remote_addr, file=sys.stderr)
+            raise RuntimeError(s)
 
-        if not self.captcha.is_answer_correct(capa.data, question=question):
+        if question != self.capq.data:
+            err = "'%s' didn't match captcha q '%s'" \
+                % (self.capq.data, session["capq"])
+            print(err, request.remote_addr, file=sys.stderr)
+            raise ValidationError(err)
+
+        if not chattycaptcha.is_answer_correct(capa.data, question=question):
             print("validate_capa: Wrong answer '%s' for captcha question '%s'"
                   % (capa.data, question), request.remote_addr,
                   file=sys.stderr)
-            print("  Valid answers are", self.captcha.QandA[question])
-
+            print("  Valid answers are", chattycaptcha.captcha.QandA[question],
+                  file=sys.stderr)
             raise ValidationError("No, try again")
 
     def validate_username(self, username):
@@ -137,23 +139,15 @@ class PasswordResetForm(FlaskForm):
     capa = StringField("question", validators=[DataRequired()])
 
     def validate_capa(self, capa):
-        if not self.captcha:
-            print("* validate_capa has no captcha object", file=sys.stderr)
+        if "capq" not in session:
+            raise ValidationError("validate_capa has no captcha object")
 
-        if 'captcha' in session:
-            question = session['captcha']
-            if question != self.capq.data:
-                print("WARNING validating password reset: "
-                      "capq '%s' didn't match session '%s'"
-                      % (self.capq.data, session['captcha']),
-                      file=sys.stderr)
-        else:
-            print("no captcha in session", file=sys.stderr)
-
+        question = session["capq"]
         if not question:
-            print("** Couldn't get captcha question from session",
-                  file=sys.stderr)
-            question = self.capq.data
+            print("** Couldn't get captcha question", file=sys.stderr)
+            raise ValidationError("Couldn't get captcha question")
+        if question != self.capq.data:
+            raise ValidationError("No, try again")
 
-        if not self.captcha.is_answer_correct(capa.data, question=question):
+        if not chattycaptcha.is_answer_correct(capa.data, question=question):
             raise ValidationError("No, try again")

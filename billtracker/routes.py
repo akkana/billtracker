@@ -5,7 +5,7 @@ from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 
 from billtracker import billtracker, db
-from billtracker.chattycaptcha import ChattyCaptcha
+from billtracker import chattycaptcha
 from billtracker.forms import LoginForm, RegistrationForm, AddBillsForm, \
     UserSettingsForm, PasswordResetForm
 from billtracker.models import User, Bill, Legislator, Committee, LegSession
@@ -130,23 +130,12 @@ def logout():
     return redirect(url_for('login'))
 
 
-captcha = None
+def initialize_captcha():
+    if chattycaptcha.initialized():
+        return
 
-def new_captcha():
-    """Get a new captcha question, initializing as needed.
-    """
-    global captcha
-    if not captcha:
-        CAPTCHA_FILE_NAME = os.path.join(billrequests.CACHEDIR,
-                                         "CAPTCHA-QUESTIONS")
-        try:
-            captcha = ChattyCaptcha(CAPTCHA_FILE_NAME)
-        except Exception as e:
-            print("No captcha file found in", CAPTCHA_FILE_NAME, e,
-                  file=sys.stderr)
-            captcha = None
-
-    return captcha.random_question()
+    chattycaptcha.init_captcha(os.path.join(billrequests.CACHEDIR,
+                                            "CAPTCHA-QUESTIONS"))
 
 
 # The mega tutorial called this /register,
@@ -157,15 +146,12 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
 
-    # If the user doesn't already have a captcha, choose a question.
-    if not captcha or 'captcha' not in session:
-        session['captcha'] = new_captcha()
+    initialize_captcha()
+
+    if "capq" not in session:
+        session["capq"] = chattycaptcha.random_question()
 
     form = RegistrationForm()
-
-    # Give the form a reference to the captcha object,
-    # so it can use it for captcha validation.
-    form.captcha = captcha
 
     # This function is called in two ways.
     # It's called to display the form in the first place,
@@ -176,10 +162,12 @@ def register():
     if not form.validate_on_submit():
         # Just displaying the form.
         # Don't change the captcha question, but initialize it if needed.
-        if captcha:
-            # if not captcha.current_question:
-            #     captcha.random_question()
-            form.capq.data = session['captcha']
+        if not form.capq.data:
+            if "capq" in session:
+                form.capq.data = session["capq"]
+            else:
+                session["capq"] = chattycaptcha.random_question()
+                form.capq.data = session["capq"]
 
         return render_template('register.html', title='Register', form=form)
 
@@ -188,7 +176,7 @@ def register():
     # then called the various validate() methods AFTER reloading.
     print("Creating new user account", form.username.data,
           "from IP", request.remote_addr,
-          "with captcha", session['captcha'],
+          "with captcha", session["capq"],
           file=sys.stderr)
     user = User(username=form.username.data, email=form.email.data)
     user.set_password(form.password.data)
@@ -212,7 +200,8 @@ def register():
     db.session.commit()
 
     # Now reset the captcha question.
-    del session['captcha']
+    if "capq" in session:
+        session["capq"] = chattycaptcha.random_question(session["capq"])
 
     return redirect(url_for('login'))
 
@@ -635,7 +624,8 @@ def tags(tag=None):
     values = request.values.to_dict()
     set_session_by_request_values()
 
-    bill_list = Bill.query.filter_by(year=session["yearcode"])
+    bill_list = Bill.query.filter_by(year=session["yearcode"]).all()
+    bill_list.sort()
 
     # Was this a form submittal?
     # The form has two submit buttons, with names "submitnewtag" for
@@ -768,21 +758,18 @@ def user_settings():
 
 @billtracker.route("/password_reset", methods=['GET', 'POST'])
 def password_reset():
-    # If the user doesn't already have a captcha, choose a question.
-    if not captcha or 'captcha' not in session:
-        session['captcha'] = new_captcha()
-
     form = PasswordResetForm()
-
-    # Give the form a reference to the captcha object,
-    # so it can use it for captcha validation.
-    form.captcha = captcha
 
     if not form.validate_on_submit():
         # initial display, or validation error.
         # Set the captcha q.
-        if captcha:
-            form.capq.data = session['captcha']
+        initialize_captcha()
+        if not form.capq.data:
+            if session["capq"]:
+                form.capq.data = session["capq"]
+            else:
+                session["capq"] = chattycaptcha.new_captcha_question()
+                form.capq.data = session["capq"]
 
         return render_template('passwd_reset.html', title='Password Reset',
                            form=form)
@@ -809,7 +796,7 @@ def password_reset():
 
         print("Sending password reset email to %s, password %s"
               % (user.email, newpasswd),
-              ": captcha q was", session['captcha'],
+              ": captcha was", session["capq"],
               file=sys.stderr)
         send_email("NM Bill Tracker Password Reset",
                    "noreply@nmbilltracker.com", [ user.email ],
@@ -821,7 +808,7 @@ def password_reset():
         flash("Mailed a new password to %s" % user.email)
 
         # Now reset the captcha question.
-        del session['captcha']
+        session["capq"] = chattycaptcha.random_question(session["capq"])
 
     else:
         # Missing user or user.email

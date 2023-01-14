@@ -1,15 +1,4 @@
-<html>
-<head>
-    {% include "std-headers.html" %}
-
-    <!-- Special JS and CSS for tagging
-         (why this page doesn't extend base.html) -->
-    <script src="/static/js/js-tags/tag.js"></script>
-    <link rel="stylesheet" href="/static/js/js-tags/tag.css">
-</head>
-<body>
-
-{% include "banner.html" %}
+{% extends "base.html" %}
 
 {% block content %}
 
@@ -123,6 +112,3 @@ Mexico Legislature's Legislation Listing</a>.
 {% endif %}
 
 {% endblock %}
-
-</body>
-</html>
