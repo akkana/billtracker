@@ -416,6 +416,9 @@ class Bill(db.Model):
     # Is the bill scheduled to come up for debate? A datetime.
     scheduled_date = db.Column(db.DateTime)
 
+    # Tags: defined by users, comma separated
+    tags = db.Column(db.String(150))
+
     # We'll seldom need to know users for a bill, so no need to
     # include it as a line here.
     # user = db.relationship('User', secondary=userbills, lazy='subquery',
@@ -424,9 +427,18 @@ class Bill(db.Model):
     def __repr__(self):
         return '<Bill %s %s>' % (self.billno, self.year)
 
+    def get_PDF_link(self):
+        if self.contentslink:
+            return self.contentslink.replace(".html", ".pdf")
+        return ""
+
     #
     # Sort keys for bills
     #
+
+    # Default sort is natural_key, if no other key is specified
+    def __lt__(self, other):
+        return Bill.natural_key(self) < Bill.natural_key(other)
 
     @staticmethod
     def get_sort_key(sort_type):
@@ -708,7 +720,7 @@ class Bill(db.Model):
 
 
     def show_html(self):
-        """Show a summary of the bill's status.
+        """Show a summary of the bill's status, as seen on a user's home page.
         """
         outstr = '<b><a href="%s" target="_blank">%s: %s</a></b><br />' % \
             (self.bill_url(), self.billno, self.title)
@@ -850,10 +862,12 @@ class Bill(db.Model):
             outstr += ' &bull; '.join(contents) + '<br />'
 
         if self.sponsor:
-            outstr += 'Sponsor: ' + self.get_sponsor_links()
+            outstr += 'Sponsor: ' + self.get_sponsor_links() + '<br />'
+
+        if self.tags:
+            outstr += "Tags: " + self.tags
 
         return outstr
-
 
     def get_sponsor_links(self, html=True):
         """Return HTML for a list of sponsor links, each of which is like
@@ -874,7 +888,6 @@ class Bill(db.Model):
                     sponlinks.append('%s <%s>' % (leg.lastname, leg.sponcode))
 
         return ', '.join(sponlinks)
-
 
     def show_text(self):
         """Show a summary of the bill's status in plaintext format.
@@ -1187,17 +1200,12 @@ class LegSession(db.Model):
 
     @staticmethod
     def current_leg_session():
-        """Return the currently running (or most recent) legislative session
-           (which is the session with the highest id).
+        """Return the latest legislative session
+           (the session with the highest id).
         """
-        try:
-            max_id = db.session.query(func.max(LegSession.id)).scalar()
-            if max_id is None:
-                return None    # XXX arguably, call update_session_list ?
-            return LegSession.query.get(max_id)
-        except:
-            # XXX arguably, call update_session_list ?
-            return None
+        # Revised for sqlalchemy 2.0
+        last = db.session.execute(db.select(func.max(LegSession.id))).scalar()
+        return db.session.get(LegSession, last)
 
     @staticmethod
     def current_yearcode():
@@ -1231,7 +1239,7 @@ class LegSession(db.Model):
             # Is it in the database? Then we can stop: sessions
             # in Legislation_List are listed in reverse chronological,
             # so if we have this one we have everything after it.
-            if LegSession.query.get(lsess["id"]):
+            if db.session.get(LegSession, lsess["id"]):
                 break
 
             newsession = LegSession(id=lsess["id"],

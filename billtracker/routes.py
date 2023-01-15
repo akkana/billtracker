@@ -5,7 +5,7 @@ from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 
 from billtracker import billtracker, db
-from billtracker.chattycaptcha import ChattyCaptcha
+from billtracker import chattycaptcha
 from billtracker.forms import LoginForm, RegistrationForm, AddBillsForm, \
     UserSettingsForm, PasswordResetForm
 from billtracker.models import User, Bill, Legislator, Committee, LegSession
@@ -130,23 +130,12 @@ def logout():
     return redirect(url_for('login'))
 
 
-captcha = None
+def initialize_captcha():
+    if chattycaptcha.initialized():
+        return
 
-def new_captcha():
-    """Get a new captcha question, initializing as needed.
-    """
-    global captcha
-    if not captcha:
-        CAPTCHA_FILE_NAME = os.path.join(billrequests.CACHEDIR,
-                                         "CAPTCHA-QUESTIONS")
-        try:
-            captcha = ChattyCaptcha(CAPTCHA_FILE_NAME)
-        except Exception as e:
-            print("No captcha file found in", CAPTCHA_FILE_NAME, e,
-                  file=sys.stderr)
-            captcha = None
-
-    return captcha.random_question()
+    chattycaptcha.init_captcha(os.path.join(billrequests.CACHEDIR,
+                                            "CAPTCHA-QUESTIONS"))
 
 
 # The mega tutorial called this /register,
@@ -157,15 +146,12 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
 
-    # If the user doesn't already have a captcha, choose a question.
-    if not captcha or 'captcha' not in session:
-        session['captcha'] = new_captcha()
+    initialize_captcha()
+
+    if "capq" not in session:
+        session["capq"] = chattycaptcha.random_question()
 
     form = RegistrationForm()
-
-    # Give the form a reference to the captcha object,
-    # so it can use it for captcha validation.
-    form.captcha = captcha
 
     # This function is called in two ways.
     # It's called to display the form in the first place,
@@ -176,10 +162,12 @@ def register():
     if not form.validate_on_submit():
         # Just displaying the form.
         # Don't change the captcha question, but initialize it if needed.
-        if captcha:
-            # if not captcha.current_question:
-            #     captcha.random_question()
-            form.capq.data = session['captcha']
+        if not form.capq.data:
+            if "capq" in session:
+                form.capq.data = session["capq"]
+            else:
+                session["capq"] = chattycaptcha.random_question()
+                form.capq.data = session["capq"]
 
         return render_template('register.html', title='Register', form=form)
 
@@ -188,7 +176,7 @@ def register():
     # then called the various validate() methods AFTER reloading.
     print("Creating new user account", form.username.data,
           "from IP", request.remote_addr,
-          "with captcha", session['captcha'],
+          "with captcha", session["capq"],
           file=sys.stderr)
     user = User(username=form.username.data, email=form.email.data)
     user.set_password(form.password.data)
@@ -212,7 +200,8 @@ def register():
     db.session.commit()
 
     # Now reset the captcha question.
-    del session['captcha']
+    if "capq" in session:
+        session["capq"] = chattycaptcha.random_question(session["capq"])
 
     return redirect(url_for('login'))
 
@@ -483,50 +472,15 @@ def popular():
        and how many people are tracking each one.
     """
     set_session_by_request_values()
-    yearcode = session["yearcode"]
     leg_session = LegSession.by_yearcode(session["yearcode"])
-    bills = Bill.query.filter_by(year=yearcode).all()
 
-    if current_user and not current_user.is_anonymous:
-        user = User.query.filter_by(username=current_user.username).first()
-        bills_seen = user.get_bills_seen(yearcode)
-        bills_tracking = [ b.billno for b in user.bills if b.year == yearcode]
-    else:
-        user = None
-        bills_seen = []
-        bills_tracking = []
-
-    # allbills.html expects a list of dictionaries with keys:
-    # billno, title, url, contentsurl, user_tracking, num_tracking
-    bill_list = []
-    for bill in bills:
-        num_tracking = bill.num_tracking()
-        if num_tracking:
-            if bill.amendlink:
-                contentsurl = bill.amendlink
-            else:
-                contentsurl = bill.contentslink
-            bill_list.append( { "billno": bill.billno,
-                                "title": bill.title,
-                                "url": bill.bill_url(),
-                                "contentsurl": contentsurl,
-                                "user_tracking":
-                                    bill.billno in bills_tracking,
-                                "num_tracking": num_tracking } )
-
-    # Now sort by num_tracking, column 4:
-    bill_list.sort(reverse=True, key=lambda l: l["num_tracking"])
-    bill_lists = [ { 'thelist': bill_list,
-                     'header': "",
-                     'alt': "Nobody seems to be tracking anything" } ]
-
-    verb = 'are' if yearcode >= LegSession.current_yearcode() else 'were'
-
-    return render_template('allbills.html', user=current_user,
-                           title="Bills People %s Tracking" % verb,
-                           returnpage="popular",
-                           yearcode=yearcode,
-                           bill_lists=bill_lists)
+    bill_list = Bill.query.filter_by(year=session["yearcode"]).all()
+    bill_list.sort(key=lambda b: b.num_tracking(), reverse=True)
+    bill_list = [ b for b in bill_list if b.num_tracking() > 0 ]
+    return render_template('popular.html',
+                           yearcode=session["yearcode"],
+                           user=current_user,
+                           bill_list=bill_list)
 
 
 @billtracker.route('/allbills')
@@ -648,7 +602,120 @@ or reload the page, these bills will no longer be listed as new.)""",
                        title="NM Bill Tracker: All Bills in the %s Session" \
                                  % sessionname,
                            yearcode=yearcode,
-                           bill_lists=bill_lists)
+                           bill_lists=bill_lists,
+                           showtags=False)
+
+
+def get_all_tags(yearcode):
+    all_tags = set()
+    for bill in Bill.query.filter_by(year=yearcode).all():
+        if bill.tags:
+            for tag in bill.tags.split(','):
+                all_tags.add(tag)
+
+    return all_tags
+
+
+# tags is another route that bypasses WTForms in order to have a bill list
+# with checkboxes.
+@billtracker.route("/tags", defaults={'tag': None}, methods=['GET', 'POST'])
+@billtracker.route("/tags/<tag>", methods=['GET', 'POST'])
+def tags(tag=None):
+    values = request.values.to_dict()
+    set_session_by_request_values()
+
+    bill_list = Bill.query.filter_by(year=session["yearcode"]).all()
+    bill_list.sort()
+
+    # Was this a form submittal?
+    # The form has two submit buttons, with names "submitnewtag" for
+    # the new tag input field and "update" to update the buttons for
+    # the current tag. Figure out which path the user followed:
+    if "update" in request.form:
+        tag = values["tag"]
+        bills_added = []
+        bills_removed = []
+        bills_tagged = 0
+
+        for bill in bill_list:
+            if bill.tags:
+                billtags = bill.tags.split(',')
+            else:
+                billtags = []
+
+            # Newly checked?
+            if tag not in billtags and "f_%s" % bill.billno in values:
+                billtags.append(tag)
+                bill.tags = ','.join(billtags)
+                db.session.add(bill)
+                bills_added.append(bill.billno)
+
+            # Newly unchecked?
+            elif tag in billtags and "f_%s" % bill.billno not in values:
+                billtags.remove(tag)
+                bill.tags = ','.join(billtags)
+                db.session.add(bill)
+                bills_removed.append(bill.billno)
+
+            if tag in billtags:
+                bills_tagged += 1
+
+        if bills_added:
+            flash(','.join(bills_added) + " now tagged '%s'" % tag)
+        if bills_removed:
+            flash(','.join(bills_removed) + " no longer tagged '%s'" % tag)
+        if bills_added or bills_removed:
+            db.session.commit()
+        if not bills_tagged:
+            flash("No remaining bills tagged '%s': tag has been removed"
+                  % tag)
+
+    elif "submitnewtag" in request.form:
+        if values["newtag"]:
+            flash("Now choose some bills to tag with new tag '%s"
+                  % values["newtag"])
+            tag = values["newtag"]
+
+    # Now retagging is finished. Group bills according to whether
+    # they're tagged with the current tag (or at all).
+    tagged = []
+    untagged = []
+    for bill in bill_list:
+        if not bill.num_tracking():
+            continue
+        if not bill.tags:
+            untagged.append(bill)
+            continue
+        billtags = bill.tags.split(',')
+
+        # If this page is for all tags, show bills that have any tag,
+        # but no untagged bills.
+        if not tag:
+            tagged.append(bill)
+
+        # If the page is showing a specific tag,
+        # group bills according to whether they have that tag.
+        elif tag in billtags:
+            tagged.append(bill)
+        else:
+            untagged.append(bill)
+
+    if tag:
+        bill_lists = {
+            "Tagged with '%s'" % tag: tagged,
+            "Not '%s'" % tag: untagged
+        }
+    else:
+        bill_lists = {
+            "Bills with tags": tagged,
+            "Not tagged": untagged
+        }
+
+    return render_template('tags.html', user=current_user,
+                           yearcode=session["yearcode"],
+                           bill_lists=bill_lists,
+                           tag=tag,
+                           alltags=get_all_tags(session["yearcode"]))
 
 
 @billtracker.route("/config")
@@ -726,21 +793,18 @@ def user_settings():
 
 @billtracker.route("/password_reset", methods=['GET', 'POST'])
 def password_reset():
-    # If the user doesn't already have a captcha, choose a question.
-    if not captcha or 'captcha' not in session:
-        session['captcha'] = new_captcha()
-
     form = PasswordResetForm()
-
-    # Give the form a reference to the captcha object,
-    # so it can use it for captcha validation.
-    form.captcha = captcha
 
     if not form.validate_on_submit():
         # initial display, or validation error.
         # Set the captcha q.
-        if captcha:
-            form.capq.data = session['captcha']
+        initialize_captcha()
+        if not form.capq.data:
+            if session["capq"]:
+                form.capq.data = session["capq"]
+            else:
+                session["capq"] = chattycaptcha.new_captcha_question()
+                form.capq.data = session["capq"]
 
         return render_template('passwd_reset.html', title='Password Reset',
                            form=form)
@@ -767,7 +831,7 @@ def password_reset():
 
         print("Sending password reset email to %s, password %s"
               % (user.email, newpasswd),
-              ": captcha q was", session['captcha'],
+              ": captcha was", session["capq"],
               file=sys.stderr)
         send_email("NM Bill Tracker Password Reset",
                    "noreply@nmbilltracker.com", [ user.email ],
@@ -779,7 +843,7 @@ def password_reset():
         flash("Mailed a new password to %s" % user.email)
 
         # Now reset the captcha question.
-        del session['captcha']
+        session["capq"] = chattycaptcha.random_question(session["capq"])
 
     else:
         # Missing user or user.email
