@@ -33,7 +33,7 @@
       <td>{{ bill.billno }}</td>
       <td><a href="{{ bill.bill_url() }}" target="_blank">{{ bill.title }}</a></td>
       {% if bill.contentslink %}
-        <td><a href="{{ bill.contentslink }}" target="_blank">{{ bill.billno }} text</a>,
+        <td><a href="{{ bill.contentslink }}" target="_blank">text</a>,
         {% set pdflink = bill.get_PDF_link() %}
         {% if pdflink %}
             <a href="{{ pdflink }}" target="_blank">PDF</a></td>

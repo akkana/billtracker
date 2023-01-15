@@ -41,13 +41,18 @@ If you don't see a bill in the list below, maybe nobody has tracked it yet.
 
 {% import "listbills.html" as listbills %}
 
-{% if tag %}
 <input type="hidden" id="tag" name="tag" value="{{ tag }}">
-{{ listbills.listbills(bill_list, user, extras={ "tag": tag, "popular": None }, checkverb="Tag") }}
 
+{% if tag and user and not user.is_anonymous %}
+{% set checkverb = "Tag" %}
 {% else %}
-{{ listbills.listbills(bill_list, user, extras={ "tag": None, "popular": None }) }}
+{% set checkverb = "" %}
 {% endif %}
+
+{% for header in bill_lists %}
+  <h2>{{ header }}</h2>
+  {{ listbills.listbills(bill_lists[header], user, extras={ "tag": tag, "popular": None }, checkverb=checkverb) }}
+{% endfor %}
 
 <p>
 {% if tag %}

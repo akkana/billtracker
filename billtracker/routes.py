@@ -676,9 +676,42 @@ def tags(tag=None):
                   % values["newtag"])
             tag = values["newtag"]
 
+    # Now retagging is finished. Group bills according to whether
+    # they're tagged with the current tag (or at all).
+    tagged = []
+    untagged = []
+    for bill in bill_list:
+        if not bill.tags:
+            untagged.append(bill)
+            continue
+        billtags = bill.tags.split(',')
+
+        # If this page is for all tags, show bills that have any tag,
+        # but no untagged bills.
+        if not tag:
+            if billtags:
+                tagged.append(bill)
+
+        # If the page is showing a specific tag,
+        # group bills according to whether they have that tag.
+        elif tag in billtags:
+            tagged.append(bill)
+        else:
+            untagged.append(bill)
+
+    if tag:
+        bill_lists = {
+            "Tagged with '%s'" % tag: tagged,
+            "Not '%s'" % tag: untagged
+        }
+    else:
+        bill_lists = {
+            "Bills with tags": tagged
+        }
+
     return render_template('tags.html', user=current_user,
                            yearcode=session["yearcode"],
-                           bill_list=bill_list,
+                           bill_lists=bill_lists,
                            tag=tag,
                            alltags=get_all_tags(session["yearcode"]))
 
