@@ -19,10 +19,10 @@ Edit a tag:
 
 {% if tag %}
 or <a href="/tags" class="buttonlike">View all tags</a>
+{% endif %}
 
 <form method="POST" action="/tags/{{ tag }}">
 <input type="hidden" id="yearcode" name="yearcode" value="{{ session['yearcode'] }}">
-{% endif %}
 
 <p>
 Create a new tag: <input type="text" name="newtag" id="newtag" size="12">
