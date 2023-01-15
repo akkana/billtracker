@@ -30,13 +30,15 @@ Create a new tag: <input type="text" name="newtag" id="newtag" size="12">
 <input type=submit name="submitnewtag" value="Create new tag">
 </p>
 
+<p>
+Tags only apply to bills users are tracking.
+If you don't see a bill in the list below, maybe nobody is tracking it yet.
+</p>
+
 {% if tag %}
 <p>
-You can only set tags on bills users have tracked.
-If you don't see a bill in the list below, maybe nobody has tracked it yet.
-<p>
 <input type=submit name="update" value="Update bills with tag '{{ tag }}'">
-<p>
+</p>
 {% endif %}
 
 {% import "listbills.html" as listbills %}

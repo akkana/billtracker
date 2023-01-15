@@ -681,6 +681,8 @@ def tags(tag=None):
     tagged = []
     untagged = []
     for bill in bill_list:
+        if not bill.num_tracking():
+            continue
         if not bill.tags:
             untagged.append(bill)
             continue
@@ -689,8 +691,7 @@ def tags(tag=None):
         # If this page is for all tags, show bills that have any tag,
         # but no untagged bills.
         if not tag:
-            if billtags:
-                tagged.append(bill)
+            tagged.append(bill)
 
         # If the page is showing a specific tag,
         # group bills according to whether they have that tag.
@@ -706,7 +707,8 @@ def tags(tag=None):
         }
     else:
         bill_lists = {
-            "Bills with tags": tagged
+            "Bills with tags": tagged,
+            "Not tagged": untagged
         }
 
     return render_template('tags.html', user=current_user,
