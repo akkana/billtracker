@@ -1260,8 +1260,13 @@ class LegSession(db.Model):
             # Is it in the database? Then we can stop: sessions
             # in Legislation_List are listed in reverse chronological,
             # so if we have this one we have everything after it.
-            if db.session.get(LegSession, lsess["id"]):
-                break
+            # Try/except is to handle sqlalchemy's changing API.
+            try:
+                if db.session.get(LegSession, lsess["id"]):
+                    break
+            except AttributeError:
+                if LegSession.query.get(lsess["id"]):
+                    break
 
             newsession = LegSession(id=lsess["id"],
                                     year = lsess["year"],
