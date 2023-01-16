@@ -52,10 +52,12 @@ On the development machine:
 - flask db upgrade
 
 On the live server, flask db upgrade needs something extra.
-Try this (from the directory where run_billtracker.py is):
+Try this (from the directory where *run_billtracker.py* is):
+```
 export FLASK_APP=run_billtracker.py
 export DATABASE_URL=postgresql:///DBNAME
 followed by: flask db upgrade
+```
 
 flask db upgrade is also a good way to create a new database,
 up to the most recent migration. To do the same thing in code:

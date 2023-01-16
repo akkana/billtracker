@@ -627,54 +627,72 @@ def tags(tag=None):
     bill_list = Bill.query.filter_by(year=session["yearcode"]).all()
     bill_list.sort()
 
+    def is_legal_tag(tagname):
+        """Is tagname a legal tag name?"""
+        if len(tagname) > 15:
+            return False
+        if re.match('^[A-Za-z0-9\-]+$', tagname):
+            return True
+        return False
+
+    badtag = None
+
     # Was this a form submittal?
     # The form has two submit buttons, with names "submitnewtag" for
     # the new tag input field and "update" to update the buttons for
     # the current tag. Figure out which path the user followed:
     if "update" in request.form:
         tag = values["tag"]
-        bills_added = []
-        bills_removed = []
-        bills_tagged = 0
+        if not is_legal_tag(tag):
+            flash("'%s' isn't a legal tag name" % tag)
+        else:
+            bills_added = []
+            bills_removed = []
+            bills_tagged = 0
 
-        for bill in bill_list:
-            if bill.tags:
-                billtags = bill.tags.split(',')
-            else:
-                billtags = []
+            for bill in bill_list:
+                if bill.tags:
+                    billtags = bill.tags.split(',')
+                else:
+                    billtags = []
 
-            # Newly checked?
-            if tag not in billtags and "f_%s" % bill.billno in values:
-                billtags.append(tag)
-                bill.tags = ','.join(billtags)
-                db.session.add(bill)
-                bills_added.append(bill.billno)
+                # Newly checked?
+                if tag not in billtags and "f_%s" % bill.billno in values:
+                    billtags.append(tag)
+                    bill.tags = ','.join(billtags)
+                    db.session.add(bill)
+                    bills_added.append(bill.billno)
 
-            # Newly unchecked?
-            elif tag in billtags and "f_%s" % bill.billno not in values:
-                billtags.remove(tag)
-                bill.tags = ','.join(billtags)
-                db.session.add(bill)
-                bills_removed.append(bill.billno)
+                # Newly unchecked?
+                elif tag in billtags and "f_%s" % bill.billno not in values:
+                    billtags.remove(tag)
+                    bill.tags = ','.join(billtags)
+                    db.session.add(bill)
+                    bills_removed.append(bill.billno)
 
-            if tag in billtags:
-                bills_tagged += 1
+                if tag in billtags:
+                    bills_tagged += 1
 
-        if bills_added:
-            flash(','.join(bills_added) + " now tagged '%s'" % tag)
-        if bills_removed:
-            flash(','.join(bills_removed) + " no longer tagged '%s'" % tag)
-        if bills_added or bills_removed:
-            db.session.commit()
-        if not bills_tagged:
-            flash("No remaining bills tagged '%s': tag has been removed"
-                  % tag)
+            if bills_added:
+                flash(','.join(bills_added) + " now tagged '%s'" % tag)
+            if bills_removed:
+                flash(','.join(bills_removed) + " no longer tagged '%s'" % tag)
+            if bills_added or bills_removed:
+                db.session.commit()
+            if not bills_tagged:
+                flash("No remaining bills tagged '%s': tag has been removed"
+                      % tag)
 
     elif "submitnewtag" in request.form:
         if values["newtag"]:
-            flash("Now choose some bills to tag with new tag '%s"
-                  % values["newtag"])
-            tag = values["newtag"]
+            if not is_legal_tag(values["newtag"]):
+                tag = None
+                badtag = values["newtag"]
+                flash("%s' isn't a legal tag name. Only letters, numbers, dash, 15 characters max" % badtag
+)
+            else:
+                tag = values["newtag"]
+                flash("Now choose some bills to tag with new tag '%s'" % tag)
 
     # Now retagging is finished. Group bills according to whether
     # they're tagged with the current tag (or at all).
@@ -714,7 +732,7 @@ def tags(tag=None):
     return render_template('tags.html', user=current_user,
                            yearcode=session["yearcode"],
                            bill_lists=bill_lists,
-                           tag=tag,
+                           tag=tag, badtag=badtag,
                            alltags=get_all_tags(session["yearcode"]))
 
 

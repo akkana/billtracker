@@ -21,14 +21,25 @@ Edit a tag:
 or <a href="/tags" class="buttonlike">View all tags</a>
 {% endif %}
 
-<form method="POST" action="/tags/{{ tag }}">
+<form method="POST" action="/tags">
 <input type="hidden" id="yearcode" name="yearcode" value="{{ session['yearcode'] }}">
 
 <p>
-Create a new tag: <input type="text" name="newtag" id="newtag" size="12">
+Create a new tag:
+{% if badtag %}
+<input type="text" name="newtag" id="newtag" size="12" value="{{ badtag }}">
+{% else %}
+<input type="text" name="newtag" id="newtag" size="12">
+{% endif %}
 
 <input type=submit name="submitnewtag" value="Create new tag">
+
+<i>(Only letters, numbers, dash, 15 characters max)</i>
 </p>
+
+<p>
+Note: <strong>tags are public</strong>.
+Anyone can see and change anyone else's tags.
 
 <p>
 Tags only apply to bills users are tracking.

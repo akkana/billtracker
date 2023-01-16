@@ -1203,9 +1203,30 @@ class LegSession(db.Model):
         """Return the latest legislative session
            (the session with the highest id).
         """
-        # Revised for sqlalchemy 2.0
-        last = db.session.execute(db.select(func.max(LegSession.id))).scalar()
-        return db.session.get(LegSession, last)
+        try:
+            # for sqlalchemy 2.0
+            max_id = db.session.execute(db.select(
+                func.max(LegSession.id))).scalar()
+        except:    #  sqlalchemy.exc.ArgumentError
+            # the error raised by sqlalchemy 1.4.46 and presumably earlier
+            try:
+                max_id = db.session.query(func.max(LegSession.id)).scalar()
+                if max_id is None:
+                    print("Eek, max_id for sessions is None", file=sys.stderr)
+                    raise RuntimeError("Eek, max_id for sessions is None")
+            except:
+                # XXX arguably, call update_session_list ?
+                print("Can't get LegSession max_id either way",
+                      file=sys.stderr)
+                max_id = 0
+                for sess in LegSession.query.all():
+                    if sess.id > max_id:
+                        max_id = sess.id
+        try:
+            # sqlalchemy 2.0 way:
+            return db.session.get(LegSession, last)
+        except:
+            return LegSession.query.get(max_id)
 
     @staticmethod
     def current_yearcode():
