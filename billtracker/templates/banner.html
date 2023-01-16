@@ -18,7 +18,10 @@
         <span class="navicon"></span>
       </label>
 
-    {% set cururl = url_for(request.endpoint) %}
+    {# can't set cururl = url_for(request.endpoint) because
+       url_for fails if there are any values that need specifying
+     #}
+    {% set cururl = request.path %}
     {% set navlinks = [
         [ '/index', 'Home', True ],
         [ '/allbills', 'All/New Bills', True ],
@@ -51,7 +54,7 @@
               <li><a href="{{ navlink[0] }}">{{ navlink[1] }}</a></li>
             {% endif %}
           {% else %}
-            {% if navlink[0] == cururl %}
+            {% if cururl.startswith(navlink[0]) %}
               <li><span class="pressed"}}">{{ navlink[1] }}</a></li>
             {% elif navlink[2] %}
               <li><a href="{{ navlink[0] }}">{{ navlink[1] }}</a></li>

@@ -14,6 +14,8 @@ def send_async_email(billtracker, msg):
 
 
 def send_email(subject, sender, recipients, text_body, html_body=None):
+    """Send one email to a list of recipients
+    """
     msg = Message(subject, sender=sender, recipients=recipients)
     msg.body = text_body
     if html_body:

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Send Email Blast to All Users</h1>
+
+<form action="" method="post">
+{{ form.csrf_token }}
+
+<p>
+{{ form.body.label }}:
+<br>
+{{ form.body(cols=75, rows=15) }}
+{% for error in form.body.errors %}
+  <span style="color: red;">[{{ error }}]</span>
+{% endfor %}
+
+<p>
+{{ form.key.label }}: {{ form.key() }}
+{% for error in form.key.errors %}
+  <span style="color: red;">[{{ error }}]</span>
+{% endfor %}
+
+<p>
+{{ form.submit() }}
+
+</form>
+
+{% endblock %}

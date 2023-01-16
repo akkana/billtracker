@@ -7,7 +7,7 @@ from werkzeug.urls import url_parse
 from billtracker import billtracker, db
 from billtracker import chattycaptcha
 from billtracker.forms import LoginForm, RegistrationForm, AddBillsForm, \
-    UserSettingsForm, PasswordResetForm
+    UserSettingsForm, PasswordResetForm, EmailBlastForm
 from billtracker.models import User, Bill, Legislator, Committee, LegSession
 from billtracker.bills import nmlegisbill, billutils, billrequests
 from .emails import daily_user_email, send_email
@@ -818,10 +818,10 @@ def password_reset():
         # Set the captcha q.
         initialize_captcha()
         if not form.capq.data:
-            if session["capq"]:
+            if "capq" in session and session["capq"]:
                 form.capq.data = session["capq"]
             else:
-                session["capq"] = chattycaptcha.new_captcha_question()
+                session["capq"] = chattycaptcha.random_question()
                 form.capq.data = session["capq"]
 
         return render_template('passwd_reset.html', title='Password Reset',
@@ -1018,6 +1018,52 @@ def all_daily_emails(key, justpreview=False):
     return "OK %s %s; Skipping %s" % \
         ("Testing, would email" if justpreview else "Emailing",
          userstring(recipients), userstring(skipped))
+
+
+@billtracker.route("/api/blastemail/<key>", methods=['GET', 'POST'])
+def blast_email(key):
+    """Blast an email to all registered billtracker users"""
+
+    if key != billtracker.config["SECRET_KEY"]:
+        return "FAIL Bad key\n"
+
+    form = EmailBlastForm()
+
+    if form.validate_on_submit():
+        print("form validated")
+        # This shouldn't be possible because the form should have already
+        # validated the key, but let's be extra cautious with email blasts:
+        if form.key.data != billtracker.config["SECRET_KEY"]:
+            return "FAIL Bad key\n"
+        print("Would send email with body:")
+        print(form.body.data)
+
+        # Build list of recipients
+        recipients = []
+        for user in User.query.all():
+            if not user.email:
+                print("%s doesn't have an email address: not sending email"
+                      % user.username, file=sys.stderr)
+                continue
+
+            if not user.email_confirmed():
+                print("%s has an unconfirmed email address: not sending."
+                      % user.username, file=sys.stderr)
+                continue
+
+            recipients.append([user.username, user.email])
+
+        # Actually send the email
+        subject = "New Mexico BillTracker"
+        for username, email in recipients:
+            body = "Hi, %s,\n\n" % username + form.body.data
+            print("To", email, ":", body)
+            send_email(subject, "noreply@nmbilltracker.com",
+                       [email], body, None)
+
+        return("OK Sent email to %s" % ' '.join([r[1] for r in recipients]))
+
+    return render_template("blastemail.html", form=form)
 
 
 @billtracker.route('/api/mailto/<username>/<key>')

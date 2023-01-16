@@ -6,12 +6,14 @@ try:
 except:
     from flask_wtf import Form as FlaskForm
 
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, \
+    TextAreaField
 from wtforms.validators import ValidationError, DataRequired, Email, \
     EqualTo, Optional
 
 from billtracker.models import User
 from billtracker import chattycaptcha
+from billtracker import billtracker
 
 
 import sys
@@ -151,3 +153,14 @@ class PasswordResetForm(FlaskForm):
 
         if not chattycaptcha.is_answer_correct(capa.data, question=question):
             raise ValidationError("No, try again")
+
+
+class EmailBlastForm(FlaskForm):
+    body = TextAreaField("Email body", validators=[DataRequired()])
+    key = StringField("Secret Key", validators=[DataRequired()])
+    submit = SubmitField('Send Email to All Users')
+
+    def validate_key(self, keyfield):
+        if keyfield.data != billtracker.config["SECRET_KEY"]:
+            raise ValidationError("Bad key")
+        print("validate_key: it was ok")
