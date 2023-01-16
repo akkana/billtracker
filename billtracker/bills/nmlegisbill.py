@@ -1098,11 +1098,12 @@ def get_legislator_list():
     house_sponcodes = get_sponcodes(houseurl)
     senate_sponcodes = get_sponcodes(senateurl)
 
-    # url = 'ftp://www.nmlegis.gov/Legislator%20Information/Legislators.XLS'
     cachefile = '%s/%s' % (billrequests.CACHEDIR, 'Legislators.XLS')
 
-    billrequests.ftp_get('www.nmlegis.gov', 'Legislator Information',
-            'RETR Legislators.XLS', outfile=cachefile)
+    # Hooray, the legislators list is finally available via https
+    # instead of ftp!
+    legurl = "https://www.nmlegis.gov/Sessions/22%20Regular/Legislator%20Information/Legislators.XLS"
+    billrequests.get(legurl)
 
     # xlrd gives
     # WARNING *** OLE2 inconsistency: SSCS size is 0 but SSAT size is non-zero

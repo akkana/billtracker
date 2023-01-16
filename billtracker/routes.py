@@ -1035,8 +1035,6 @@ def blast_email(key):
         # validated the key, but let's be extra cautious with email blasts:
         if form.key.data != billtracker.config["SECRET_KEY"]:
             return "FAIL Bad key\n"
-        print("Would send email with body:")
-        print(form.body.data)
 
         # Build list of recipients
         recipients = []
@@ -1057,7 +1055,6 @@ def blast_email(key):
         subject = "New Mexico BillTracker"
         for username, email in recipients:
             body = "Hi, %s,\n\n" % username + form.body.data
-            print("To", email, ":", body)
             send_email(subject, "noreply@nmbilltracker.com",
                        [email], body, None)
 
@@ -1382,6 +1379,7 @@ def refresh_legislators():
         return "FAIL Bad key\n"
 
     Legislator.refresh_legislators_list()
+    return "OK Refreshed legislators"
 
 
 @billtracker.route("/api/all_committees")
