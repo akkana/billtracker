@@ -99,6 +99,9 @@ table.definitions th {
 tr.odd td  { background: #fff; }
 tr.even td { background: #dfe; }
 
+/* Odd or even, hovering will highlight the entire row */
+table tr:hover td { background: #ff0; }
+
 th { background: #eee; }
 
 /* The optional news banner (BILLTRACKER_INFO) and alert (BILLTRACKER_ALERT)
