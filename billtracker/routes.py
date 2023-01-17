@@ -250,15 +250,27 @@ def make_new_bill(billno, yearcode):
     if not yearcode:
         yearcode = LegSession.current_yearcode()
 
+    # Make sure the bill doesn't already exist.
+    # This happens sometimes, maybe due to a race condition
+    # but I haven't tracked it down yet.
+    bills = Bill.query.filter_by(billno=billno, year=yearcode).all()
+    if bills:
+        print(traceback.format_exc(), file=sys.stderr)
+        print("**** Warning: make_new_bill called for bill that already existed",
+              file=sys.stderr)
+        for b in bills:
+            print("    %s (id %d)" % (str(bill), bill.id), file=sys.stderr)
+        print("See preceding traceback", file=sys.stderr)
+
+        return bills[0]
+
     b = nmlegisbill.parse_bill_page(billno, yearcode=yearcode,
                                     cache_locally=True)
+    if not b:
+        return None
 
-    if b:
-        bill = Bill()
-        bill.set_from_parsed_page(b)
-    else:
-        bill = None
-
+    bill = Bill()
+    bill.set_from_parsed_page(b)
     return bill
 
 
@@ -363,6 +375,7 @@ def track_untrack():
     """Called when the user marks bills for tracking or untracking
        via checkboxes, from either the addbills or allbills page.
     """
+    print("track_untrack")
     if request.method == 'POST' or request.method == 'GET':
         # request contains form (for POST), args (for GET),
         # and values (combined); the first two are ImmutableMultiDict,
@@ -388,16 +401,22 @@ def track_untrack():
         now_tracking = set([ b.billno
             for b in current_user.bills_by_yearcode(session["yearcode"]) ])
         will_track = set()
+        will_untrack = set()
         for btnno in values:
-            if not btnno.startswith('f_'):
-                continue
-            if values[btnno] != 'on':
-                continue
-            billno = btnno[2:]
-            will_track.add(billno)
+            if btnno.startswith('f_'):
+                billno = btnno[2:]
+                if values[btnno] == 'on':
+                    will_track.add(billno)
+                else:
+                    will_untrack.add(billno)
+
+            elif btnno.startswith('u_'):
+                billno = btnno[2:]
+                if values[btnno] == 'on':
+                    will_untrack.add(billno)
 
         track_bills = will_track - now_tracking
-        untrack_bills = now_tracking - will_track
+        untrack_bills = will_untrack
 
         if not track_bills and not untrack_bills:
             return redirect(url_for(returnpage))
@@ -704,6 +723,7 @@ def tags(tag=None):
         if not bill.tags:
             untagged.append(bill)
             continue
+
         billtags = bill.tags.split(',')
 
         # If this page is for all tags, show bills that have any tag,
@@ -721,7 +741,7 @@ def tags(tag=None):
     if tag:
         bill_lists = {
             "Tagged with '%s'" % tag: tagged,
-            "Not '%s'" % tag: untagged
+            "Not %s" % tag: untagged
         }
     else:
         bill_lists = {
@@ -1638,7 +1658,7 @@ def db_backup():
     return "OK Backed up database to '%s'" % (db_new)
 
 
-def find_dups():
+def find_dups(yearcode=None):
     """Return a list of all bills that have duplicate entries in the db:
        multiple bills for the same billno and year.
        Return a list of lists of bills.
@@ -1649,7 +1669,11 @@ def find_dups():
     dup_bill_lists = []
     bill_ids_seen = set()
 
-    bills = Bill.query.all()
+    if yearcode:
+        bills = Bill.query.filter_by(year=yearcode).all()
+    else:
+        bills = Bill.query.all()
+
     for bill in bills:
         # Already seen because it was a dup of something else?
         if bill.id in bill_ids_seen:
@@ -1664,9 +1688,6 @@ def find_dups():
             continue
 
         # There are multiple bills with this billno.
-        print(len(bills_with_this_no), "bills called", bill.billno, bill.year,
-              file=sys.stderr)
-
         dup_bill_lists.append(bills_with_this_no)
 
         for dupbill in bills_with_this_no:
@@ -1676,21 +1697,22 @@ def find_dups():
 
 
 @billtracker.route('/api/showdups/<key>')
-def show_dups(key):
+@billtracker.route('/api/showdups/<key>/<yearcode>')
+def show_dups(key, yearcode=None):
     if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
-    dup_bill_lists = find_dups()
+    dup_bill_lists = find_dups(yearcode)
 
     if not dup_bill_lists:
         print("No duplicate bills in database, whew")
-        return "OK"
+        return "OK No dups"
 
     print("duplicate bills:", dup_bill_lists, file=sys.stderr)
 
     retstr = "OK"
     for dupbills in dup_bill_lists:
-        retstr += "<br>\n%s: " % (str(dupbills[0]))
+        retstr += "<br>\n%s: " % dupbills[0].billno
         for b in dupbills:
             retstr += "<br>&nbsp;&nbsp;id %d '%s' (%d tracking) " \
                 % (b.id, b.title, b.num_tracking())
@@ -1701,20 +1723,38 @@ def show_dups(key):
 # Clean out duplicates.
 # This shouldn't be needed, but somehow, duplicates appear.
 @billtracker.route('/api/cleandups/<key>')
-def clean_dups(key):
+@billtracker.route('/api/cleandups/<key>/<yearcode>')
+def clean_dups(key, yearcode=None):
     if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
-    return "FAIL Sorry, clean_dups currently disabled as unsafe"
+    billdups = find_dups(yearcode)
+    # billdups is a list of pairs/triples/whatever of bills
+    # with the same billno and yearcode
 
-    masterbills = find_dups()
-
-    if not masterbills:
-        print("No duplicate bills in database, whew")
+    if not billdups:
+        print("No duplicate bills in database, whew", file=sys.stderr)
         return "OK"
 
-    print("masterbills:", masterbills, file=sys.stderr)
+    print("billdups:", billdups, file=sys.stderr)
 
+    for duplist in billdups:
+        # The master will be the first, the one with the smallest ID
+        min_id = min([b.id for b in duplist])
+        masterbill = Bill.query.filter_by(id=min_id).first()
+
+        print(masterbill.billno, ":", file=sys.stderr)
+        print(masterbill, " id %d tracked by:" % masterbill.id,
+              masterbill.users_tracking(), file=sys.stderr)
+        for b in duplist:
+            if b == masterbill:
+                continue
+            print("  ", b, " id %d tracked by:" % b.id, b.users_tracking(),
+                  file=sys.stderr)
+
+    return "FAIL Sorry, clean_dups currently disabled as unsafe"
+
+    '''
     # Now make a separate loop, so we're not changing the list of all bills
     # while looping over the list of all bills.
     for masterbill in masterbills:
@@ -1755,6 +1795,7 @@ def clean_dups(key):
             db.session.delete(b)
 
         db.session.add(masterbill)
+    '''
 
     if masterbills:
         db.session.commit()
