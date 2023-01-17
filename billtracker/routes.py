@@ -393,6 +393,8 @@ def track_untrack():
 
         set_session_by_request_values(values)
 
+        print("values:", values)
+
         # Loop over checkboxes to see what tracking changes are needed.
         # The form will only include checked bills; if there are any
         # that the user un-checked, those can be detected as bills
