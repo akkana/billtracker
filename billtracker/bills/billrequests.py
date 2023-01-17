@@ -26,7 +26,7 @@ import dateutil.parser
 import traceback
 
 from urllib.parse import urlparse
-from ftplib import FTP
+from ftplib import FTP, error_perm
 
 
 #
@@ -272,13 +272,17 @@ def ftp_get(server, dir, filename, outfile):
     """Fetch a file via ftp.
        Write the content to a file.
     """
-    ftp = FTP(server)
-    ftp.login()
-    ftp.cwd(dir)
+    try:
+        ftp = FTP(server)
+        ftp.login()
+        ftp.cwd(dir)
 
-    ftp.retrbinary('%s' % filename, open(outfile, 'wb').write)
+        ftp.retrbinary('%s' % filename, open(outfile, 'wb').write)
 
-    ftp.quit()
+        ftp.quit()
+
+    except error_perm as e:
+        raise FileNotFoundError(str(e))
 
 
 def get_http_dirlist(url):

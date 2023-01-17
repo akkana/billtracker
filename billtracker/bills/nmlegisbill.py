@@ -1098,21 +1098,38 @@ def get_legislator_list():
     house_sponcodes = get_sponcodes(houseurl)
     senate_sponcodes = get_sponcodes(senateurl)
 
+    # url = 'ftp://www.nmlegis.gov/Legislator%20Information/Legislators.XLS'
     cachefile = '%s/%s' % (billrequests.CACHEDIR, 'Legislators.XLS')
 
-    # Hooray, the legislators list is finally available via https
-    # instead of ftp!
-    legurl = "https://www.nmlegis.gov/Sessions/22%20Regular/Legislator%20Information/Legislators.XLS"
-    billrequests.get(legurl)
+    # As the 2023 regular session opens, there's no legislators XLS file,
+    # so updating the legislator list fails. Try to guard against that.
+    try:
+        billrequests.ftp_get('www.nmlegis.gov', 'Legislator Information',
+                             'RETR Legislators.XLS', outfile=cachefile)
+    except Exception as e:
+        print("Couldn't fetch Legislators.XLS:", e)
+        return None
+
+    print("fetched", cachefile, file=sys.stderr)
+
+    if not os.path.exists(cachefile):
+        print("Couldn't fetch Legislators.XLS")
+        return None
 
     # xlrd gives
     # WARNING *** OLE2 inconsistency: SSCS size is 0 but SSAT size is non-zero
     # but still seems to work okay.
-    wb = xlrd.open_workbook(cachefile)
-    sheet = wb.sheet_by_name(wb.sheet_names()[0])
-    if not sheet or sheet.ncols <= 0 :
-        print("Null sheet, couldn't read", cachefile, file=sys.stderr)
-        return
+    # However, it understandably won't work when ftp fetches a zero-length file.
+    try:
+        wb = xlrd.open_workbook(cachefile)
+        sheet = wb.sheet_by_name(wb.sheet_names()[0])
+        if not sheet or sheet.ncols <= 0 :
+            print("Null sheet, couldn't read", cachefile, file=sys.stderr)
+            return None
+    except Exception as e:
+        print("Couldn't read XLS file", cachefile, ": error was", e,
+              file=sys.stderr)
+        return None
 
     wanted_fields = [ "FNAME", "LNAME", "TITLE",
                       "STREET", "CITY", "STATE", "ZIP",

@@ -1038,7 +1038,12 @@ class Legislator(db.Model):
         """Long-running, fetches XLS file from website,
            should not be called in user-facing code.
         """
-        for newleg in nmlegisbill.get_legislator_list():
+        leglist = nmlegisbill.get_legislator_list()
+        if not leglist:
+            print("Couldn't update legislators list", file=sys.stderr)
+            return
+
+        for newleg in leglist:
             dbleg = Legislator.query.filter_by(sponcode=newleg['sponcode']).first()
             if (dbleg):
                 for k in newleg:
