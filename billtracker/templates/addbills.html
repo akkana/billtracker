@@ -22,6 +22,8 @@
 
 {% if user is defined and user.bills is defined and user.bills|length > 0 %}
 
+{% import "listbills.html" as listbills %}
+
 <form method="POST" action="/track_untrack">
 <input type="hidden" id="returnpage" name="returnpage" value="addbills">
 <input type="hidden" id="yearcode" name="yearcode" value="{{ session['yearcode'] }}">
@@ -38,7 +40,7 @@ You're currently tracking:
     <tr class="{{ loop.cycle('odd', 'even') }}">
       <td>{{ bill.billno }}
       <td><a href="{{ bill.bill_url() }}" target="_blank">{{ bill.title }}</a>
-      <td><input type="checkbox" name='{{bill.billno}}'">
+      <td><input type="checkbox" name='u_{{bill.billno}}'">
 
   {% endfor %}
 

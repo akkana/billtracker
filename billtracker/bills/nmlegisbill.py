@@ -1025,7 +1025,12 @@ def expand_committees(jsonsrc=None):
                     meeting["datetime"] = datetime.datetime.strptime(
                         pdfmtg["date"], "%Y-%m-%d")
 
-                except RuntimeError:
+                except ValueError:
+                    # probably bad datetime string, e.g. "2023-01-17T24:00:00"
+                    print("Problem parsing date string", meeting["datetime"],
+                          file=sys.stderr)
+
+                except Exception:
                     print("Couldn't parse meeting datetime from",
                           scheduledata[commcode], file=sys.stderr)
                     continue
