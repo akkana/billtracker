@@ -100,7 +100,9 @@ tr.odd td  { background: #fff; }
 tr.even td { background: #dfe; }
 
 /* Odd or even, hovering will highlight the entire row */
-table tr:hover td { background: #ff0; }
+table.bill_list tr:hover td, table.bill_minilist tr:hover td {
+  background: #ffa;
+}
 
 th { background: #eee; }
 
