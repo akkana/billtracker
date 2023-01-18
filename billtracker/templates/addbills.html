@@ -33,14 +33,14 @@ You're currently tracking:
 <br>
 
 <table class="bill_minilist">
-  <tr><th>Bill <th>Title <th>Untrack
+  <tr><th>Bill <th>Title <th>Track
 
   {% for bill in bill_list %}
 
     <tr class="{{ loop.cycle('odd', 'even') }}">
       <td>{{ bill.billno }}
       <td><a href="{{ bill.bill_url() }}" target="_blank">{{ bill.title }}</a>
-      <td><input type="checkbox" name='u_{{bill.billno}}'">
+      <td><input type="checkbox" name='f_{{bill.billno}}'" checked>
 
   {% endfor %}
 

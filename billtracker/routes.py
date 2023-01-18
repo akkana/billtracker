@@ -407,8 +407,6 @@ def track_untrack():
                 billno = btnno[2:]
                 if values[btnno] == 'on':
                     will_track.add(billno)
-                else:
-                    will_untrack.add(billno)
 
             elif btnno.startswith('u_'):
                 billno = btnno[2:]
@@ -416,7 +414,18 @@ def track_untrack():
                     will_untrack.add(billno)
 
         track_bills = will_track - now_tracking
-        untrack_bills = will_untrack
+        if will_untrack:    # Pages that have u_ unfollow checkboxes, if any
+            untrack_bills = will_untrack
+        else:
+            # Most pages that use this route have a single button per bill,
+            # f_billno, and if it's checked it means follow, unchecked means
+            # unfollow. But forms don't submit unchecked bill numbers, so
+            # if there are no u_billno unfollow buttons, we have to assume
+            # that anything that's not explicitly checked should be unfollowed.
+            untrack_bills = now_tracking - will_track
+
+        # print("Will track", track_bills)
+        # print("Will untrack", untrack_bills)
 
         if not track_bills and not untrack_bills:
             return redirect(url_for(returnpage))
