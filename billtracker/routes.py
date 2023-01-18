@@ -641,7 +641,7 @@ def get_all_tags(yearcode):
             for tag in bill.tags.split(','):
                 all_tags.add(tag)
 
-    return all_tags
+    return sorted(list(all_tags), key=lambda t: t.lower())
 
 
 # tags is another route that bypasses WTForms in order to have a bill list
