@@ -25,6 +25,8 @@ import shutil
 import subprocess
 import re
 from collections import OrderedDict
+import colorsys
+import hashlib
 import sys, os
 
 
@@ -271,6 +273,12 @@ def make_new_bill(billno, yearcode):
 
     bill = Bill()
     bill.set_from_parsed_page(b)
+
+    # Immediately commit, to reduce (though not entirely eliminate)
+    # race conditions
+    db.session.add(bill)
+    db.session.commit()
+
     return bill
 
 
@@ -296,6 +304,7 @@ def addbills():
         bills_followed = []
         already_followed = []
         bills_err = []
+        bills_created = []
         billnopat = re.compile("^[SH][JC]{0,1}[BMR][0-9]+$")
         for orig_billno in billno_strs:
             orig_billno = orig_billno.strip()
@@ -314,10 +323,11 @@ def addbills():
                 if bill in user.bills:
                     already_followed.append(billno)
                     continue
-            else:
+            else:    # Not in the database yet
                 try:
                     bill = make_new_bill(billno, session["yearcode"])
                     if bill:
+                        bills_created.append(bill)
                         db.session.add(bill)
 
                 except RuntimeError as e:
@@ -338,6 +348,15 @@ def addbills():
                 db.session.add(user)
                 db.session.commit()
                 bills_followed.append(billno)
+
+                # Now that it's committed, check for a dup
+                bs = Bill.query.filter_by(billno=billno,
+                                          year=session["yearcode"]).all()
+                if len(bs) > 1:
+                    print("YIKES! addbills reated a duplicate bill",
+                          file=sys.stderr)
+                    for b in bs:
+                        print("   ", b, file=sys.stderr)
             else:
                 if not billnopat.match(billno):
                     flash("'%s' doesn't look like a bill number" % orig_billno)
@@ -375,7 +394,6 @@ def track_untrack():
     """Called when the user marks bills for tracking or untracking
        via checkboxes, from either the addbills or allbills page.
     """
-    print("track_untrack")
     if request.method == 'POST' or request.method == 'GET':
         # request contains form (for POST), args (for GET),
         # and values (combined); the first two are ImmutableMultiDict,
@@ -485,6 +503,16 @@ def track_untrack():
             # We changed something. Finish up and commit.
             db.session.add(current_user)
             db.session.commit()
+ 
+        for billno in track_bills:
+            # Now that it's committed, check for a dup
+            bs = Bill.query.filter_by(billno=billno,
+                                      year=session["yearcode"]).all()
+            if len(bs) > 1:
+                print("YIKES! track_untrack created a duplicate bill",
+                      file=sys.stderr)
+                for b in bs:
+                    print("   ", b, file=sys.stderr)
 
     return redirect(url_for(returnpage))
 
@@ -766,10 +794,44 @@ def tags(tag=None):
             "Not tagged": untagged
         }
 
+    def str2color(instr):
+        """
+        Convert an arbitrary-length string to a CSS style string
+        like "background: '#0ff'".
+        Return a dictionary, { instr: css_color_code }
+        Try to keep them light, so dark text will contrast well.
+        If there are commas in the tag string, loop over them.
+        """
+        if ',' in instr:
+            pieces = instr.split(',')
+        else:
+            pieces = [ instr ]
+
+        dic = {}
+
+        for piece in pieces:
+            sixbytes = hashlib.sha256(piece.encode()).hexdigest()[:6]
+            # hue can be anything between 0 and 1
+            h = int(sixbytes[0:2], 16) / 256.
+            # lightness between .8 and .88
+            l = int(sixbytes[0:2], 16) / 2048 + .8
+            # saturation between 0 and .5
+            s = int(sixbytes[2:4], 16) / 256.
+
+            rgb = colorsys.hls_to_rgb(h, l, s)
+
+            # rgb = tuple((int((ord(c.lower())-97)*256./26) for c in s[:3]))
+            rgb = tuple((int(x * 256) for x in rgb))
+
+            dic[piece] = "#%02x%02x%02x" % rgb
+
+        return dic
+
     return render_template('tags.html', user=current_user,
                            yearcode=session["yearcode"],
                            bill_lists=bill_lists,
                            tag=tag, badtag=badtag,
+                           colorfcn=str2color,
                            alltags=get_all_tags(session["yearcode"]))
 
 
@@ -1728,11 +1790,24 @@ def show_dups(key, yearcode=None):
     print("duplicate bills:", dup_bill_lists, file=sys.stderr)
 
     retstr = "OK"
-    for dupbills in dup_bill_lists:
-        retstr += "<br>\n%s: " % dupbills[0].billno
-        for b in dupbills:
-            retstr += "<br>&nbsp;&nbsp;id %d '%s' (%d tracking) " \
-                % (b.id, b.title, b.num_tracking())
+
+    for duplist in dup_bill_lists:
+        # The master will be the first, the one with the smallest ID
+        min_id = min([b.id for b in duplist])
+        masterbill = Bill.query.filter_by(id=min_id).first()
+
+        retstr += "\n%s: id %d tracked by %s" % (
+            masterbill.billno, masterbill.id,
+            ','.join([u.username for u in masterbill.users_tracking()])
+        )
+
+        for b in duplist:
+            if b == masterbill:
+                continue
+            retstr += "\n  %s id %d tracked by (%s)" % (
+                b, b.id,
+                ','.join([u.username for u in b.users_tracking()])
+            )
 
     return retstr
 
@@ -1754,66 +1829,47 @@ def clean_dups(key, yearcode=None):
         return "OK"
 
     print("billdups:", billdups, file=sys.stderr)
+    outstr = "OK<br>\n"
 
+    def trackstr(b):
+        return ', '.join([u.username for u in b.users_tracking()])
+
+    deleted = []
     for duplist in billdups:
         # The master will be the first, the one with the smallest ID
         min_id = min([b.id for b in duplist])
         masterbill = Bill.query.filter_by(id=min_id).first()
 
-        print(masterbill.billno, ":", file=sys.stderr)
-        print(masterbill, " id %d tracked by:" % masterbill.id,
-              masterbill.users_tracking(), file=sys.stderr)
+        outstr += "<br><br>\n\n** %s: id %d, tracked by %s" % (masterbill.billno,
+                                                          masterbill.id,
+                                                          trackstr(masterbill))
         for b in duplist:
             if b == masterbill:
                 continue
-            print("  ", b, " id %d tracked by:" % b.id, b.users_tracking(),
-                  file=sys.stderr)
+            outstr += "<br>\n . . %s (id %d) tracked by %s" % (b.billno, b.id,
+                                                            trackstr(b))
+            for u in b.users_tracking():
+                u.bills.remove(b)
+                if masterbill not in u.bills:
+                    u.bills.append(masterbill)
+                    outstr += "<br>\n . . . . Moved %s to masterbill" % \
+                        u.username
 
-    return "FAIL Sorry, clean_dups currently disabled as unsafe"
-
-    '''
-    # Now make a separate loop, so we're not changing the list of all bills
-    # while looping over the list of all bills.
-    for masterbill in masterbills:
-        print("%s, master is id %d" % (masterbill.billno, masterbill.id),
-              file=sys.stderr)
-
-        bills_with_this_no = Bill.query.filter_by(billno=masterbill.billno).all()
-        print("  %d bills with this no: %s" % (len(bills_with_this_no),
-                                       [b.id for b in bills_with_this_no]),
-              file=sys.stderr)
-
-        for i, b in enumerate(bills_with_this_no):
-            if b.id == masterbill.id:
-                continue
-            users = b.users_tracking()
-            if users:
-                print("  Moving id %d's users over to id %d: %s"
-                      % (bills_with_this_no[i].id,
-                         masterbill.id,
-                         [u.username for u in users]), file=sys.stderr)
-                for u in users:
-                    if b not in u.bills:
-                        print("Eek, id %d thinks %s is tracking but %s doesn't think so" % (b.id, u.username), file=sys.stderr)
-                        continue
-                    if masterbill not in u.bills:
-                        u.bills.append(masterbill)
-                        print("    moved %s" % u.username, file=sys.stderr)
-                    else:
-                        print("    %s was already tracking %d" % (u.username,
-                                                                masterbill.id),
-                              file=sys.stderr)
-                    u.bills.remove(b)
-                    db.session.add(u)
+            if b.users_tracking():
+                print("<br> . . . EEK, failed to remove users from id %d before deleting" % b.id)
             else:
-                print("  id %d had no users" % b.i, file=sys.stderr)
+                deleted.append(b)
+                outstr += "<br>\n . . Deleting bill with id %d" % b.id
+                db.session.delete(b)
 
-            print("  Deleting bill id %d" % b.id, file=sys.stderr)
-            db.session.delete(b)
+        outstr += "<br>\n . Now master bill %d is tracked by: %s" % \
+            (masterbill.id, trackstr(masterbill))
 
-        db.session.add(masterbill)
-    '''
+    db.session.commit()
 
-    if masterbills:
-        db.session.commit()
-    return "OK"
+    outstr += "<br><br>\nAll bills to delete: %s" % \
+        ', '.join(["id %d" % b.id for b in deleted])
+
+    print(outstr, file=sys.stderr)
+    return outstr
+

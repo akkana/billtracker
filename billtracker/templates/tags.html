@@ -3,7 +3,13 @@
 {% block content %}
 
 {% if tag %}
-<h1>NM BillTracker: Edit Bills tagged &ldquo;{{ tag }}&rdquo;</h1>
+  <h1>NM BillTracker: Edit Bills tagged
+  {% if colorfcn %}
+    &ldquo;<span class="colortag" style="background: {{ colorfcn(tag)[tag] }}">{{ tag }}</span>&rdquo;
+  {% else %}
+    &ldquo;{{ tag }}&rdquo;
+  {% endif %}
+  </h1>
 {% else %}
 <h1>NM BillTracker: Bill Tags</h1>
 {% endif %}
@@ -13,7 +19,7 @@ Edit a tag:
 
 {% for t in alltags %}
   {% if t != tag %}
-    <a href="/tags/{{ t }}" class="buttonlike">{{ t }}</a>
+    <a href="/tags/{{ t }}" class="buttonlike" style="background: {{ colorfcn(t)[t] }}">{{ t }}</a>
   {% endif %}
 {% endfor %}
 
@@ -64,7 +70,7 @@ If you don't see a bill in the list below, maybe nobody is tracking it yet.
 
 {% for header in bill_lists %}
   <h2>{{ header }}</h2>
-  {{ listbills.listbills(bill_lists[header], user, extras={ "tag": tag, "popular": None }, checkverb=checkverb) }}
+  {{ listbills.listbills(bill_lists[header], user, extras={ "tag": tag, "popular": None, "colorfcn": colorfcn }, checkverb=checkverb) }}
 {% endfor %}
 
 <p>

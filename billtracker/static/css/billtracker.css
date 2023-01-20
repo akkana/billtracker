@@ -138,6 +138,18 @@ table.bordered td { padding: .3em; }
   background: #8cc;
   border: 2px inset grey;
 }
+/* hover color has to be !important to override the inline style tag colors.
+ * Would be nice to find a different override that didn't require !important.
+ */
+.buttonlike:hover {
+  background: #eff !important;
+}
+
+/* Tags in the minilist on the Tags page */
+.colortag {
+  border-radius: 4px;
+  padding-left: .4em; padding-right: .4em;
+}
 
 /* The captcha on the registration page */
 .captcha {

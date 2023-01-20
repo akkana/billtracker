@@ -47,7 +47,14 @@
       {% if "tag" in extras %}
          <td>
            {% if bill.tags %}
-             {{ bill.tags }}
+             {% if extras["colorfcn"] %}
+               {% set tag_colors = extras["colorfcn"](bill.tags) %}
+               {% for tag in tag_colors %}
+                 <span class="colortag" style="background: {{ tag_colors[tag] }}">{{ tag }}</span>
+               {% endfor %}
+             {% else %}
+               {{ bill.tags }}
+             {% endif %}
            {% else %}
              &nbsp;
            {% endif %}
