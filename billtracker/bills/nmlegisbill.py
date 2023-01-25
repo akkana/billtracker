@@ -931,7 +931,15 @@ def expand_timestr(meeting):
     # Add more to the the free-form "timestr" field.
 
     # Start with a nice human-friendly date
-    meeting["timestr"] = meeting["datetime"].strftime("%a, %b %d ")
+    if "time" in meeting and meeting["time"]:
+        meeting["timestr"] = meeting["time"]
+    elif "datetime" in meeting:
+        if meeting["datetime"].hour:
+            meeting["timestr"] = meeting["datetime"].strftime("%a, %b %d %I:%M %p")
+        else:
+            meeting["timestr"] = meeting["datetime"].strftime("%a, %b %d ")
+    else:
+        meeting["timestr"] = ""
 
     # then add the human-readable, but maybe unparseable, time.
     # For each item, check to see whether it's already
@@ -1041,6 +1049,7 @@ def expand_committees(jsonsrc=None):
 
                 committees[commcode]["meetings"].append(meeting)
 
+    # pprint(committees)
     return committees
 
 
