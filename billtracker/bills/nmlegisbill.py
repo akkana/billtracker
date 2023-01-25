@@ -914,6 +914,46 @@ def expand_committee(code):
     return ret
 
 
+def parse_date_time(dts):
+    """Parse a datetime string in ISO format, except that it may
+       or may not include a time.
+    """
+    if 'T' in dts:
+        return datetime.datetime.strptime(dts, "%Y-%m-%dT%H:%M:%S")
+
+    # There may or may not be a time; if there wasn't,
+    # parse only the date portion. H and M will be zero.
+    else:
+        return datetime.datetime.strptime(dts, "%Y-%m-%d")
+
+
+def expand_timestr(meeting):
+    # Add more to the the free-form "timestr" field.
+
+    # Start with a nice human-friendly date
+    meeting["timestr"] = meeting["datetime"].strftime("%a, %b %d ")
+
+    # then add the human-readable, but maybe unparseable, time.
+    # For each item, check to see whether it's already
+    # been added from an earlier meeting of the same committee.
+    if 'room' in meeting:
+        meeting["timestr"] += ", room: %s" \
+            % meeting['room']
+    if 'zoom' in meeting and 'zoom link' not in meeting["timestr"].lower():
+        meeting["timestr"] \
+            += ", <a href='%s' target='_blank'>zoom link</a>" \
+               % meeting['zoom']
+    elif meeting["name"] == "House" or meeting["name"] == "Senate" \
+         and 'harmony.sliq.net' not in meeting["timestr"]:
+        meeting["timestr"] \
+            += ", <a href='https://sg001-harmony.sliq.net/00293/" \
+               "harmony' target='_blank'>watch on sliq</a>"
+    if 'url' in meeting and 'PDF schedule' not in meeting["timestr"]:
+        meeting["timestr"] \
+            += ", <a href='%s' target='_blank'>PDF schedule</a>" \
+               % meeting['url']
+
+
 def expand_committees(jsonsrc=None):
     """Expand all committees that have meetings upcoming,
        updating meeting dates from the latest PDF schedules.
@@ -940,9 +980,10 @@ def expand_committees(jsonsrc=None):
     # It's run once an hour to update the indicated URL.
     if not jsonsrc:
         jsonsrc = "http://nmlegis.edsantiago.com/schedule.json"
-        # Version for the JSON schema, to tell whether something
-        # might have changed
-        jsonschema = "20210213"
+
+    # Version for the JSON schema, to tell whether something
+    # might have changed
+    JSONSCHEMA = "20230124"
 
     # XXX Eventually should check to make sure it's being kept
     # up to date and at least some dates are in the future.
@@ -957,8 +998,55 @@ def expand_committees(jsonsrc=None):
         with open(jsonsrc) as jfp:
             scheduledata = json.load(jfp)
 
+    if scheduledata["_schema"] != JSONSCHEMA:
+        # Temporary handler for the previous schema:
+        if scheduledata["_schema"] == "20220213":
+            print("*********** Using old JSON schema", file=sys.stderr)
+            return expand_committees_20220213(scheduledata)
+
+        print("*****************************************\n"
+              "**** NEW SCHEMA ON scheduledata.json ****",
+              scheduledata["_schema"], file=sys.stderr)
+        return None
+
     committees = {}
 
+    for mtgdate in scheduledata:
+        if mtgdate[0] == '_':
+            continue
+        for mtgtime in scheduledata[mtgdate]:
+            for commcode in scheduledata[mtgdate][mtgtime]:
+                # This is a dict with bills, date, datetime,
+                # mtime, name, room, time, url.
+                meeting = scheduledata[mtgdate][mtgtime][commcode]
+
+                if commcode not in committees:
+                    commdict = expand_committee(commcode)
+                    # This gives code, name, chair, members
+                    if not commdict:
+                        print("Couldn't expand committee",
+                              commdict, file=sys.stderr)
+                        continue
+
+                    committees[commcode] = commdict
+                    committees[commcode]["meetings"] = []
+
+                # Convert datetime into the Python object
+                if "datetime" in meeting:
+                    meeting["datetime"] = parse_date_time(meeting["datetime"])
+                else:
+                    meeting["datetime"] = parse_date_time(meeting["date"])
+
+                expand_timestr(meeting)
+
+                committees[commcode]["meetings"].append(meeting)
+
+    return committees
+
+
+def expand_committees_20220213(scheduledata):
+    print("Parsing the old 20220213 JSON schema", file=sys.stderr)
+    committees = {}
     for commcode in scheduledata:
         if commcode == "_schema":
             if scheduledata["_schema"] != "20220213":
