@@ -452,6 +452,7 @@ def track_untrack():
             for b in current_user.bills_by_yearcode(session["yearcode"]):
                 if b.billno in untrack_bills:
                     current_user.bills.remove(b)
+            untrack_bills.sort()
             flash("You are no longer tracking %s" % ', '.join(untrack_bills))
 
         # The hard (and slow) part: make new bills as needed.
@@ -489,6 +490,7 @@ def track_untrack():
                 else:
                     print("WARNING: make_new_bill", billno, session["yearcode"],
                           "returned None!")
+            track_bills.sort()
             flash("You are now tracking %s" % ', '.join(track_bills))
 
             # Now add all the bills to track to the user's list
@@ -1540,8 +1542,7 @@ def refresh_all_committees(key):
 
     hasmeetings = []
     nomeetings = []
-    billnos = set()
-    bills_in_multi_comm = {}
+    bills_with_committee = {}
     for comm in Committee.query.filter_by().all():
         if comm.code not in comm_mtgs or not comm_mtgs[comm.code]:
             comm.mtg_time = None
@@ -1587,17 +1588,12 @@ def refresh_all_committees(key):
             comm.mtg_time = timestr
 
             for billno in mtg["bills"]:
-                if billno in billnos:
-                    # XXX this generates a lot of lines,
-                    # might want to save which billno is in which
-                    # committees and print it out later in a
-                    # more compact format.
-                    print(billno, "is in multiple committees!")
-                    if billno in bills_in_multi_comm:
-                        bills_in_multi_comm[billno].add(billno)
-                    else:
-                        bills_in_multi_comm[billno] = set([billno])
-                billnos.add(billno)
+                if billno in bills_with_committee:
+                    if comm.code not in bills_with_committee[billno]:
+                        bills_with_committee[billno].append(comm.code)
+                else:
+                    bills_with_committee[billno] = [comm.code]
+
                 bill = Bill.query.filter_by(billno=billno,
                                             year=yearcode).first()
                 if bill:
@@ -1624,7 +1620,7 @@ def refresh_all_committees(key):
     # but no longer are (so they're not in billnos).
     unscheduled = []
     for bill in Bill.query.filter_by(year=yearcode).all():
-        if bill.billno not in billnos:
+        if bill.billno not in bills_with_committee:
             bill.scheduled_date = None
             db.session.add(bill)
             unscheduled.append(bill.billno)
@@ -1634,14 +1630,15 @@ def refresh_all_committees(key):
     # one committee. In that case, the bill's location
     # should be set from the bill's HTML page, which
     # means it should be re-parsed here.
-    for billno in bills_in_multi_comm:
-        print("***", billno, "Is in multiple committees:",
-              ' '.join(bills_in_multi_comm[billno]), file=sys.stderr)
-        # reparse bill page or something
+    for billno in bills_with_committee:
+        if billno in bills_with_committee and \
+           len(bills_with_committee[billno]) > 1:
+            print("***", billno, "is in multiple committees:",
+                  ' '.join(bills_with_committee[billno]), file=sys.stderr)
 
     db.session.commit()
 
-    billnos = sorted(list(billnos))
+    billnos = sorted(list(bills_with_committee.keys()))
     unscheduled.sort()
     return "OK\n<br>Committees meeting: " + ",".join(hasmeetings) \
         + "\n<br>No meetings, or no followed bills: " \
