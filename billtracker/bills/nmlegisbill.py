@@ -979,7 +979,7 @@ def expand_committees(jsonsrc=None):
     # way to get committee meeting times and bill lists.
     # It's run once an hour to update the indicated URL.
     if not jsonsrc:
-        jsonsrc = "http://nmlegis.edsantiago.com/schedule.json"
+        jsonsrc = "https://nmlegis.edsantiago.com/schedule.json"
 
     # Version for the JSON schema, to tell whether something
     # might have changed
