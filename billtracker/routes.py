@@ -452,7 +452,7 @@ def track_untrack():
             for b in current_user.bills_by_yearcode(session["yearcode"]):
                 if b.billno in untrack_bills:
                     current_user.bills.remove(b)
-            untrack_bills.sort()
+            untrack_bills = sorted(list(untrack_bills))
             flash("You are no longer tracking %s" % ', '.join(untrack_bills))
 
         # The hard (and slow) part: make new bills as needed.
@@ -490,7 +490,7 @@ def track_untrack():
                 else:
                     print("WARNING: make_new_bill", billno, session["yearcode"],
                           "returned None!")
-            track_bills.sort()
+            track_bills = sorted(list(track_bills))
             flash("You are now tracking %s" % ', '.join(track_bills))
 
             # Now add all the bills to track to the user's list
