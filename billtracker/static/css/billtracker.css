@@ -145,6 +145,8 @@ table.bordered td { padding: .3em; }
   background: #eff !important;
 }
 
+.buttonholder { line-height: 1.8em }
+
 /* Tags in the minilist on the Tags page */
 .colortag {
   border-radius: 4px;

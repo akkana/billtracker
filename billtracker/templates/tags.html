@@ -14,6 +14,7 @@
 <h1>NM BillTracker: Bill Tags</h1>
 {% endif %}
 
+<div class="buttonholder">
 <p>
 Edit a tag:
 
@@ -26,6 +27,7 @@ Edit a tag:
 {% if tag %}
 or <a href="/tags" class="buttonlike">View all tags</a>
 {% endif %}
+</div>
 
 <form method="POST" action="/tags">
 <input type="hidden" id="yearcode" name="yearcode" value="{{ session['yearcode'] }}">
