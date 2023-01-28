@@ -1,7 +1,7 @@
 New Mexico Bill Tracker Daily Email
 
 You can add or remove bills from your list, or change your settings,
-at: {{ url_for(/', _external=True) }}
+at: {{ url_for('index', _external=True) }}
 
 
 ==== Bills {{ recipient.username }} is tracking ====
