@@ -23,15 +23,15 @@
      #}
     {% set cururl = request.path %}
     {% set navlinks = [
-        [ '/index', 'Home', True ],
+        [ '/',         'Home',          True ],
         [ '/allbills', 'All/New Bills', True ],
-        [ '/popular', 'Popular Bills', True ],
-        [ '/tags', 'Tags', True ],
-        [ '/addbills', 'Track Bill #', False ],
-        [ '/help', 'Help', True ],
-        [ '/links', 'Links', True ],
-        [ '/settings', 'Settings', False ],
-        [ '/login', 'Login', True ],
+        [ '/popular',  'Popular Bills', True ],
+        [ '/tags',     'Tags',          True ],
+        [ '/addbills', 'Track Bill #',  False ],
+        [ '/help',     'Help',          True ],
+        [ '/links',    'Links',         True ],
+        [ '/settings', 'Settings',      False ],
+        [ '/login',    'Login',         True ],
       ] %}
 
       <ul class="mainmenu">
@@ -42,10 +42,16 @@
           {% else %}
             <i>(not logged in)</i>
           {% endif %}
-        </span></li>
+            </span></li>
 
         {% for navlink in navlinks %}
-          {% if current_user and not current_user.is_anonymous %}
+          {% if navlink[0] == '/' %}
+            {% if cururl == '/' or cururl == '/index' %}
+              <li><span class="pressed">{{ navlink[1] }}</span></li>
+            {% else %}
+              <li><a href="{{ navlink[0] }}">{{ navlink[1] }}</a></li>
+            {% endif %}
+          {% elif current_user and not current_user.is_anonymous %}
             {% if navlink[0] == '/login' %}
               <li><a href="{{ url_for('logout') }}">Logout</a></li>
             {% elif cururl.startswith(navlink[0]) %}

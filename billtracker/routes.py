@@ -69,7 +69,6 @@ sortnames = {
 }
 
 @billtracker.route('/')
-@billtracker.route('/index')
 @login_required
 def index():
     values = request.values.to_dict()
@@ -78,6 +77,12 @@ def index():
     return render_template('index.html', title='Home',
                            sortby='status', sortnames=sortnames,
                        leg_session=LegSession.by_yearcode(session["yearcode"]))
+
+
+# Make / the preferred URL; /index redirects to /
+@billtracker.route('/index')
+def index_redirect():
+    return redirect(url_for('index'))
 
 
 @billtracker.route('/status_bills')
