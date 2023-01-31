@@ -1780,38 +1780,42 @@ def find_dups(yearcode=None):
 @billtracker.route('/api/showdups/<key>')
 @billtracker.route('/api/showdups/<key>/<yearcode>')
 def show_dups(key, yearcode=None):
+    """Look for duplicate bills in a given yearcode, or all years.
+       Return JSON showing dup bills and who's tracking them.
+    """
     if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
+
+    ret_json = {}
 
     dup_bill_lists = find_dups(yearcode)
 
     if not dup_bill_lists:
-        print("No duplicate bills in database, whew")
+        print("No duplicate bills in database, whew", file=sys.stderr)
         return "OK No dups"
 
     print("duplicate bills:", dup_bill_lists, file=sys.stderr)
 
-    retstr = "OK"
-
     for duplist in dup_bill_lists:
+        ret_json[duplist[0].billno] = []
         # The master will be the first, the one with the smallest ID
         min_id = min([b.id for b in duplist])
         masterbill = Bill.query.filter_by(id=min_id).first()
 
-        retstr += "\n%s: id %d tracked by %s" % (
-            masterbill.billno, masterbill.id,
-            ','.join([u.username for u in masterbill.users_tracking()])
-        )
+        ret_json[masterbill.billno] = [ {
+            'id': masterbill.id,
+            'followers': [ u.username for u in masterbill.users_tracking() ]
+        } ]
 
         for b in duplist:
             if b == masterbill:
                 continue
-            retstr += "\n  %s id %d tracked by (%s)" % (
-                b, b.id,
-                ','.join([u.username for u in b.users_tracking()])
-            )
+            ret_json[b.billno].append({
+                'id': b.id,
+                'followers': [ u.username for u in b.users_tracking() ]
+            })
 
-    return retstr
+    return jsonify(ret_json)
 
 
 # Clean out duplicates.
@@ -1820,7 +1824,7 @@ def show_dups(key, yearcode=None):
 @billtracker.route('/api/cleandups/<key>/<yearcode>')
 def clean_dups(key, yearcode=None):
     if key != billtracker.config["SECRET_KEY"]:
-        return "FAIL Bad key\n"
+        return "{ 'error': 'FAIL Bad key' }"
 
     billdups = find_dups(yearcode)
     # billdups is a list of pairs/triples/whatever of bills
