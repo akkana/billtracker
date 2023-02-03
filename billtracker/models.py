@@ -1013,6 +1013,9 @@ class Legislator(db.Model):
     zip = db.Column(db.String(10))
 
     work_phone = db.Column(db.String(25))
+
+    # home_phone is in Legislators.XLS but not on HTML pages.
+    # It will probably be null.
     home_phone = db.Column(db.String(25))
     office_phone = db.Column(db.String(25))
     email = db.Column(db.String(50))
@@ -1030,29 +1033,39 @@ class Legislator(db.Model):
 
 
     def __repr__(self):
-        return '%s %s %s (%s)' % (self.title, self.firstname, self.lastname,
-                                  self.sponcode)
+        return '<Legislator %s %s %s (%s)>' % (self.title,
+                                               self.firstname, self.lastname,
+                                               self.sponcode)
 
     @staticmethod
     def refresh_legislators_list():
         """Long-running, fetches XLS file from website,
            should not be called in user-facing code.
+           Return True for success, else False.
         """
         leglist = nmlegisbill.get_legislator_list()
         if not leglist:
-            print("Couldn't update legislators list", file=sys.stderr)
-            return
+            print("Couldn't fetch legislators list", file=sys.stderr)
+            return False
 
         for newleg in leglist:
-            dbleg = Legislator.query.filter_by(sponcode=newleg['sponcode']).first()
-            if (dbleg):
-                for k in newleg:
+            dbleg = Legislator.query.filter_by(
+                sponcode=newleg['sponcode']).first()
+
+            if not dbleg:
+                dbleg = Legislator()
+
+            for k in newleg:
+                if hasattr(dbleg, k):
                     setattr(dbleg, k, newleg[k])
-            else:
-                dbleg = Legislator(**newleg)
+                # else:
+                #     print(newleg['sponcode'], "Skipping field", k,
+                #           file=sys.stderr)
+
             db.session.add(dbleg)
 
         db.session.commit()
+        return True
 
 
 class Committee(db.Model):

@@ -1192,8 +1192,62 @@ def get_sponcodes(url):
 
 
 def get_legislator_list():
-    """Fetches Legislators.XLS from the legislative website;
-       returns a list of dictionaries.
+    """Returns a list of dictionaries with these fields:
+       "firstname", "lastname", "title", "street", "city", "state", "zip",
+       "office_phone", "office", "work_phone", "home_phone", "email"
+       plus some extra fields that don't mirror the Legislator object.
+    """
+    legdata = None
+    try:
+        r = requests.get('https://nmlegis.edsantiago.com/legislators.json')
+        if r.status_code == 200 and  'Last-Modified' in r.headers:
+            # The last-modified date only changes when some
+            # legislator's data changes. Make sure the file
+            # isn't orphaned, has been updated this session:
+            print("Fetched legislators.json", file=sys.stderr)
+            lastmod = datetime.datetime.strptime(r.headers['Last-Modified'],
+                                                 '%a, %d %b %Y %X %Z')
+            if (datetime.datetime.now() - lastmod).days < 120:
+                legdata = r.json()
+            else:
+                print("legislators.json is too old", lastmod,
+                      file=sys.stderr)
+        else:
+            print("Didn't fetch legislators.json", file=sys.stderr)
+            print("Status:", r.status_code, ", headers:", r.headers,
+                  file=sys.stderr)
+    except Exception as e:
+        print("get_legislator_list(): exception", e, file=sys.stderr)
+
+    if not legdata or 'H' not in legdata or 'S' not in legdata:
+        print("Falling back to XLS: json was", legdata)
+        return get_legislator_list_from_XLS()
+
+    # Okay, we're using legislators.json
+    legislators = []
+    for chamber in ('H', 'S'):
+        for leg in legdata[chamber]:
+            # First entry is a null
+            if not leg:
+                continue
+            # Reconcile differences between legislators.json
+            # and the Legislator class in models.py, and make sure
+            # to remove leg['id'] since it freaks out sqlalchemy
+            leg['sponcode'] = leg.pop('id')
+            leg['work_phone'] = leg.pop('phone')
+            leg['home_phone'] = ''
+            legislators.append(leg)
+
+    return legislators
+
+
+def get_legislator_list_from_XLS():
+    """Fetches Legislators.XLS from the legislative website,
+       returning the same fields as for get_legislator_list().
+       Returns a list of dictionaries with these fields:
+       "firstname", "lastname", "title", "street", "city", "state", "zip",
+       "office_phone", "office", "work_phone", "home_phone", "email".
+       Only needed if Ed's JSON isn't there.
     """
     houseurl = 'https://www.nmlegis.gov/Members/Legislator_List?T=R'
     senateurl = 'https://www.nmlegis.gov/Members/Legislator_List?T=S'
@@ -1253,22 +1307,32 @@ def get_legislator_list():
 
         fullname = leg['firstname'] + ' ' + leg['lastname']
 
-        sponcode = None
-        for sp in senate_sponcodes:
-            if fullname == senate_sponcodes[sp]:
-                sponcode = sp
-                break
+        def find_sponcode(leg, remove_accents=False):
+            sponcode = None
+            if leg['title'].startswith('Rep'):
+                for sp in house_sponcodes:
+                    if fullname == house_sponcodes[sp]:
+                        return sp
+            elif leg['title'].startswith('Sen'):
+                for sp in senate_sponcodes:
+                    if fullname == senate_sponcodes[sp]:
+                        return sp
+
+        sponcode = find_sponcode(leg)
+
+        # If nothing matched, maybe there's an accented character that's
+        # done differently in Legislator_List vs. Legislators.XLS,
+        # like Eleanor Chavez/Eleanor Chávez
         if not sponcode:
-            for sp in house_sponcodes:
-                if fullname == house_sponcodes[sp]:
-                    sponcode = sp
-                    break
+            sponcode = find_sponcode(leg, remove_accents=True)
+
         if sponcode:
             # print("%s: %s" % (sp, fullname))
             leg['sponcode'] = sponcode
             legislators.append(leg)
         else:
-            print("**** no sponcode: %s" % (fullname), file=sys.stderr)
+            print("**** %s has no sponcode in Legislator_List" % fullname,
+                  file=sys.stderr)
 
     return legislators
 
