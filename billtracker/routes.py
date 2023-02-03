@@ -1382,14 +1382,14 @@ def bills_by_update_date():
 # lescdata = { "TARGET": "LESClink",
 #              "URL": "ftp://www.nmlegis.gov/LESCAnalysis",
 #              "YEARCODE": "19",    # optional
-#              "KEY"='...' }
+#              "KEY": '...' }
 # firdata = { "TARGET": "FIRlink", "URL": "ftp://www.nmlegis.gov/firs",
-#             "YEARCODE": "19",    # optional
-#             "KEY"='...' }
+#             "YEARCODE": "19",    # optional, default to current
+#             "KEY": '...' }
 # amenddata = { "TARGET": "amendlink",
 #               "URL": "ftp://www.nmlegis.gov/Amendments_In_Context",
 #               "YEARCODE": "19",    # optional
-#               "KEY"='...' }
+#               "KEY": '...' }
 # requests.post(posturl, xyzdata).text
 @billtracker.route("/api/refresh_legisdata", methods=['POST'])
 def refresh_legisdata():
@@ -1447,6 +1447,7 @@ def refresh_legisdata():
 
     changes = []
     not_in_db = []
+    badfilenames = []
     # index is a list of dicts with keys name, url, size, Last Modified
     for filedic in index:
         base, ext = os.path.splitext(filedic["name"])
@@ -1456,8 +1457,8 @@ def refresh_legisdata():
             match = billno_pat.match(base)
             billno = match.group(1) + match.group(3)
         except:
-            billno = base
-            print("billpat didn't patch, base is", base, file=sys.stderr)
+            badfilenames.append(base)
+            continue
 
         bill = Bill.query.filter_by(billno=billno, year=yearcode).first()
 
@@ -1469,23 +1470,37 @@ def refresh_legisdata():
             not_in_db.append(billno)
 
     if not changes:
+        print("refresh_legisdata %s: no bills updated" % target)
         return "OK but no bills updated"
 
     db.session.commit()
-    return "OK<br>\nUpdated %s for %s<br>\nNot in database: %s" \
-        % (target, ','.join(changes), ','.join(not_in_db))
+
+    retmsgs = ["Updated %s for %s" % (target, ','.join(changes))]
+    if not_in_db:
+        retmsgs.append("Has %s but not in db: %s"
+                       % (target, ','.join(not_in_db)))
+    if badfilenames:
+        retmsgs.append("Filenames that don't map to a billno: %s"
+                       % ','.join(badfilenames))
+
+    print("refresh_legisdata:", '; '.join(retmsgs))
+    return "OK " + "<br>\n".join(retmsgs)
 
 
-@billtracker.route("/api/refresh_legislators", methods=['POST'])
-def refresh_legislators():
+@billtracker.route("/api/refresh_legislators", methods=['GET', 'POST'])
+@billtracker.route("/api/refresh_legislators/<key>")
+def refresh_legislators(key=None):
     """POST data is only for specifying KEY.
     """
-    key = request.values.get('KEY')
+    if not key:
+        key = request.values.get('KEY')
     if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
-    Legislator.refresh_legislators_list()
-    return "OK Refreshed legislators"
+    if Legislator.refresh_legislators_list():
+        return "OK Refreshed legislators"
+
+    return "FAIL Couldn't refresh legislator list"
 
 
 @billtracker.route("/api/all_committees")
