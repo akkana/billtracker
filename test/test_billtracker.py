@@ -21,7 +21,7 @@ import json
 # run the test again. It will generate the files you need to copy into
 # the test/files directory to make the tests work.
 # Don't forget to set it back to False afterward.
-renew_files = False
+renew_files = True
 
 
 # The database location must be set before importing the billtracker config
@@ -70,6 +70,8 @@ from billtracker import chattycaptcha
 class TestBillTracker(unittest.TestCase):
     # Called for each test_* function.
     def setUp(self):
+        # To see large diffs, set this:
+        # self.maxDiff = None
 
         # Don't go to the actual nmlegis site
         billrequests.LOCAL_MODE = True
@@ -99,8 +101,14 @@ class TestBillTracker(unittest.TestCase):
     def setUpClass():
         # db.init_app can only be called once, so app needs to be a class var.
         __class__.app = billtracker
-        with __class__.app.app_context():
-            db.init_app(__class__.app)
+
+        # Flask being incredibly unfriendly to unittest:
+        # In 2022, db.init_app needed to be run in setUp(self).
+        # In January 2023, it needed to be run here.
+        # In February 2023, it causes:
+        # RuntimeError: A 'SQLAlchemy' instance has already been registered on this Flask app. Import and use that instance instead.
+        # with __class__.app.app_context():
+        #     db.init_app(__class__.app)
 
     def test_password_hashing(self):
         u = User(username='testuser')

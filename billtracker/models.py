@@ -3,7 +3,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import func
 
-from billtracker.bills import nmlegisbill, billutils
+from billtracker.bills import nmlegisbill, billutils, decodenmlegis
 from billtracker.emails import send_email
 from billtracker.bills.nmlegisbill import update_legislative_session_list
 
@@ -347,7 +347,8 @@ Or you can see what bills other users are tracking on the
 
 @login.user_loader
 def load_user(id):
-    return User.query.get(int(id))
+    return session.get(User, int(id))
+    # return User.query.get(int(id))
 
 
 class Bill(db.Model):
@@ -831,7 +832,7 @@ class Bill(db.Model):
                           'Action_Abbreviations"  target="_blank">Full history</a>: ' \
                           '<span class="historycode" title="%s">%s</span>' \
                           '<br />\n' \
-                              % (nmlegisbill.decode_full_history(actioncode),
+                              % (decodenmlegis.decode_full_history(actioncode),
                                  actioncode)
 
         elif self.statusHTML:
@@ -1240,10 +1241,12 @@ class LegSession(db.Model):
                 for sess in LegSession.query.all():
                     if sess.id > max_id:
                         max_id = sess.id
+
         try:
             # sqlalchemy 2.0 way:
-            return db.session.get(LegSession, last)
+            return db.session.get(LegSession, max_id)
         except:
+            # sqlalchemy 1.x way
             return LegSession.query.get(max_id)
 
     @staticmethod
