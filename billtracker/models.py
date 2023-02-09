@@ -347,8 +347,7 @@ Or you can see what bills other users are tracking on the
 
 @login.user_loader
 def load_user(id):
-    return session.get(User, int(id))
-    # return User.query.get(int(id))
+    return db.session.get(User, int(id))
 
 
 class Bill(db.Model):
@@ -797,6 +796,13 @@ class Bill(db.Model):
         else:            # No location set
             outstr += 'Location: unknown<br />'
 
+        bill_info = nmlegisbill.bill_info(self.billno, self.year)
+        # Currently, this is only used to detect tabled bills,
+        # but eventually I hope it can be used for everything.
+
+        if bill_info and "tabled" in bill_info and bill_info["tabled"]:
+            outstr += "<b>TABLED</b> "
+
         if self.last_action_date:
             outstr += highlight_if_recent(last_action, "Last action")
             outstr += '<br />'
@@ -832,7 +838,7 @@ class Bill(db.Model):
                           'Action_Abbreviations"  target="_blank">Full history</a>: ' \
                           '<span class="historycode" title="%s">%s</span>' \
                           '<br />\n' \
-                              % (decodenmlegis.decode_full_history(actioncode),
+                              % (decodenmlegis.full_history_text(actioncode),
                                  actioncode)
 
         elif self.statusHTML:
@@ -953,6 +959,13 @@ class Bill(db.Model):
 
         else:
             outstr += 'Location: unknown\n'
+
+        bill_info = nmlegisbill.bill_info(self.billno, self.year)
+        # Currently, this is only used to detect tabled bills,
+        # but eventually I hope it can be used for everything.
+
+        if bill_info["tabled"]:
+            outstr += "TABLED "
 
         if self.statustext:
             outstr += 'Status: %s\n' % self.statustext

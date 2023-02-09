@@ -29,15 +29,54 @@ import requests
 # it may be an amendment or some other supporting document.
 billno_pat = re.compile("([SH][JC]{0,1}[BMR])(0*)([1-9][0-9]*)")
 
+# Used in listing the Tabled_Reports directory (may be good for amendments too)
+amend_billno_pat = re.compile("([SH][JC]{0,1}[BMR])(0*)([1-9][0-9]*)([A-Za-z0-9]*)(\.[a-zA-Z]+)", re.IGNORECASE)
+
+house_senate_billno_pat = re.compile('.*_linkBillID_[0-9]*')
+
 # Same thing, but occurring in a file pathname,
 # so it should start with / and end with .
-bill_file_pat = re.compile(".*/([SH][JC]{0,1}[BMR])(0*)([1-9][0-9]*)\.")
+bill_file_pat = re.compile("([SH][JC]{0,1}[BMR])0*([1-9][0-9]*)\.")
+
+# Patterns used in update_allbills
+allbills_billno_pat = re.compile(
+    'MainContent_gridViewLegislation_linkBillID.*')
+title_pat = re.compile('MainContent_gridViewLegislation_lblTitle.*')
+sponsor_pat = re.compile('MainContent_gridViewLegislation_linkSponsor.*')
+sponcode_pat = re.compile('.*/Legislator\?SponCode=([A-Z]+)')
+action_pat = re.compile("MainContent_gridViewLegislation_lblActions_[0-9]")
+
+# Patterns used in parse_bill_page
+scheduled_for_pat = re.compile("Scheduled for.*on ([0-9/]*)")
+sponcode_pat = re.compile(".*[&?]SponCode\=([A-Z]+)")
+cspat = re.compile("MainContent_dataListLegislationCommitteeSubstitutes_linkSubstitute.*")
+
+
+# RE patterns needed for parsing committee pages
+tbl_bills_scheduled = re.compile("MainContent_formViewCommitteeInformation_gridViewScheduledLegislation")
+
+tbl_committee_mtg_dates = re.compile("MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_lblHearingDate_[0-9]*")
+tbl_committee_mtg_times = re.compile("MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_lblHearingTime_[0-9]*")
+tbl_committee_mtg_bills = re.compile("MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_[0-9]+")
+
+billno_cell_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_linkBillID_[0-9]*')
+
+sched_date_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_lblScheduledDate_[0-9]*')
+
+
+# Pattern for a time followed by optional am, AM, a.m. etc.
+# optionally preceded by a date or day specifier like "Tuesday & Thursday"
+mtg_datetime_pat = re.compile("(.*) *(\d{1,2}): *(\d\d) *([ap]\.?m\.?)?",
+                              flags=re.IGNORECASE)
 
 
 # XXX The URLmapper stuff should be killed, with any functionality
 # that's still needed moved into billrequests.
 url_mapper = URLmapper('https://www.nmlegis.gov',
     '%s/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s')
+
+# How long to wait before disregarding a file lock:
+LOCK_EXPIRATION_SECS = 60*5
 
 
 def yearcode_to_longURLcode(yearcode):
@@ -68,10 +107,9 @@ def bill_url(billno, yearcode):
     return 'https://www.nmlegis.gov/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s' % (chamber, billtype, number, yearcode)
 
 
-scheduled_for_pat = re.compile("Scheduled for.*on ([0-9/]*)")
-sponcode_pat = re.compile(".*[&?]SponCode\=([A-Z]+)")
-
-
+# XXX Eventually parse_bill_page should be rendered obsolete,
+# once there's a way to get bill location and status from the
+# actions code in the Legislation_List page.
 def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
     """Download and parse a bill's page on nmlegis.org.
        Yearcode is the session code, like 19 or 20s2.
@@ -201,7 +239,6 @@ def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
     # like committee substitutions.
     # This might be supplemented or overwritten later by api/refresh_legisdata.
     if "amendlink" not in billdic or not billdic["amendlink"]:
-        cspat = re.compile("MainContent_dataListLegislationCommitteeSubstitutes_linkSubstitute.*")
         cslink = soup.find("a", id=cspat)
         if cslink:
             billdic['amendlink'] = url_mapper.to_abs_link(cslink.get('href'),
@@ -358,87 +395,183 @@ def update_legislative_session_list():
 # a user hits the All Bills page.
 #
 
-g_all_bills = {}
-    # g_all_bills[yearcode][billno] = [title, url, contentslink, amendlink]
+g_allbills_schema = "20230204"
+g_allbills = { "_schema": '20230204' }
+
+# Schema 20230204:
+# g_allbills[yearcode] = {
+#    "_updated": nnn,
+#    "HB17" : {
+#      "title": "CUR TITLE",
+#      "url": "https://...",
+#      "sponsors": [],
+#      "actions": "SPREF [1] SEC/SFC-SEC",
+#      "contents" = "", "pdf" = "",
+#      "amendments" = [],
+#      "FIR": "", "LESC": "",
+#      "location": "",
+#      "status": "",
+#      "history": [ ["2023-01-30", "Introduced", "ORIGINAL TITLE"],
+#                   ["2023-02-02", "titlechanged", "CUR TITLE" ] ]
+
+# It's saved as JSON in these files (index by yearcode):
+g_allbills_cachefile = {}
 
 
-def all_bills(sessionid, yearcode, sessionname):
+def save_allbills_json(yearcode):
+    """Save g_allbills to the JSON cachefile.
+       This should be called after creating a lockfile first,
+       which should be removed/unlocked afterward.
+    """
+    if not g_allbills[yearcode]:
+        print("Can't save null g_allbills[%s]" % yearcode, file=sys.stderr)
+    if yearcode not in g_allbills_cachefile:
+        g_allbills_cachefile[yearcode] = '%s/allbills_%s.json' % (
+            billrequests.CACHEDIR, yearcode)
+
+    try:
+        tmpfile = g_allbills_cachefile[yearcode] + ".tmp"
+        with open(tmpfile, "w") as fp:
+            json.dump(g_allbills[yearcode], fp, indent=2)
+            os.rename(g_allbills_cachefile[yearcode],
+                      g_allbills_cachefile[yearcode] + ".bak")
+            os.rename(tmpfile, g_allbills_cachefile[yearcode])
+            print("Saved to", g_allbills_cachefile[yearcode], file=sys.stderr)
+    except Exception as e:
+        print("Couldn't save to allbills cache file for yearcode", yearcode,
+              ":", e, file=sys.stderr)
+
+
+def update_allbills_if_needed(yearcode, sessionid=None):
+    """Decide whether we need to re-read the allbills json file,
+       or even update that file.
+    """
+    timenow = time.time()
+
+    # Read in the allbills cachefile if needed,
+    # to seed history and sessionid if nothing else
+    if yearcode not in g_allbills_cachefile:
+        g_allbills_cachefile[yearcode] = '%s/allbills_%s.json' % (
+            billrequests.CACHEDIR, yearcode)
+
+    if yearcode not in g_allbills:
+        g_allbills[yearcode] = {}
+
+    try:
+        filetime = os.stat(g_allbills_cachefile[yearcode]).st_mtime
+
+    except FileNotFoundError:
+        print(g_allbills_cachefile[yearcode], "doesn't exist yet; creating",
+              file=sys.stderr)
+        update_allbills(yearcode, sessionid)
+        return
+
+    # Is the cachefile newer than g_allbills in memory? Read it in.
+    # Need this even if we're going to update it, because we don't
+    # want to lose the accumulated history entries.
+    # Also initialize if g_allbills hasn't been initialized yet
+    # in this session, _updated will be 0.
+    if (yearcode not in g_allbills or
+        "_updated" not in g_allbills[yearcode] or
+        filetime > g_allbills[yearcode]["_updated"]):
+        print("Refreshing g_allbills from cache file", file=sys.stderr)
+        with open(g_allbills_cachefile[yearcode]) as fp:
+            g_allbills[yearcode] = json.load(fp)
+            # This is kind of a multiple meaning for _updated:
+            # in memory, it means when it was last read from the
+            # JSON file, but in the JSON file it represents when
+            # the bill page was last fetched.
+            g_allbills[yearcode]["_updated"] = int(time.time())
+
+    # Make sure there's a sessionid
+    if sessionid:
+        g_allbills["sessionid"] = sessionid
+    else:
+        if g_allbills and yearcode in g_allbills and \
+           "_sessionid" in g_allbills[yearcode]:
+            sessionid = g_allbills[yearcode]["_sessionid"]
+        else:
+            print("ERROR: Can't update_allbills without sessionid")
+            return
+
+    if yearcode not in g_allbills or "_sessionid" not in g_allbills[yearcode]:
+        g_allbills[yearcode] = { "_sessionid": sessionid }
+
+    # Is g_allbills cachefile too old, needs to be updated?
+    if (timenow - filetime) > billrequests.CACHESECS:
+        # It's old enough to be updated. But is it locked because
+        # someone else is updating?
+        try:
+            lockfile = g_allbills_cachefile[yearcode] + ".lock"
+            os.open(lockfile, os.O_CREAT | os.O_EXCL)
+
+            print("Calling update_allbills", yearcode, file=sys.stderr)
+            update_allbills(yearcode, sessionid)
+            # Now bills and links should be up to date,
+            # as should g_allbills[yearcode]
+
+            os.unlink(lockfile)
+            return
+
+        except FileExistsError:
+            locktime = os.stat(lockfile).st_ctime
+            # Detect stuck locks: has it been locked for
+            # more than 5 minutes? If so, discard the lock.
+            print("Couldn't update allbills: file is locked",
+                  file=sys.stderr)
+            if timenow - locktime > LOCK_EXPIRATION_SECS:
+                print("Removed lock stuck for", timenow - locktime,
+                      "seconds", file=sys.stderr)
+                os.unlink(lockfile)
+            else:
+                print("lock has been there for", timenow - locktime,
+                      "seconds", file=sys.stderr)
+
+
+def bill_info(billno, yearcode):
+    """Return a dictionary for a single bill.
+       The info comes from g_allbills and should be updated as needed.
+    """
+    update_allbills_if_needed(yearcode)
+
+    try:
+        return g_allbills[yearcode][billno]
+    except:
+        return None
+
+
+def all_bills(sessionid, yearcode):
     """Get an OrderedDict of all bills in the given session.
        From https://www.nmlegis.gov/Legislation/Legislation_List?Session=NN
        sessionid a numeric ID used by nmlegis; yearcode is a string e.g. 20s2.
        Mostly this comes from cached files, but periodically those
        cached files will be updated from the Legislation_List URL.
 
-       Returns (allbills, titleschanged)
-       where allbills is an OrderedDict of
-           billno: ('TITLE', billurl, contentsurl, amendurl)
-       and titleschanged is a dict { billno: "old title" }
+       Returns g_allbills[yearcode]
     """
-    # Keep track of bills whose titles change.
-    # They'll need to be treated as new bills.
-    titleschanged = {}
+    # if yearcode not in g_leg_sessions:
+    #     g_leg_sessions[yearcode] = sessionid
 
-    # Read in the special cachefile no matter what; use it to
-    # decide what the old titles were.
-    all_bills_cachefile = '%s/all_bills_%s.txt' % (billrequests.CACHEDIR,
-                                                   yearcode)
+    update_allbills_if_needed(yearcode, sessionid)
 
-    if yearcode not in g_all_bills:
-        g_all_bills[yearcode] = OrderedDict()
-        # XXX Does the leg website ever delete bills? If so, revisit this.
-
-    def read_all_bills_cachefile():
-        with open(all_bills_cachefile) as fp:
-            for line in fp:
-                try:
-                    pieces = line.strip().split('|')
-                    if len(pieces) == 4:
-                        pieces.append("")
-                    billno, title, url, billtext, amendlink = pieces
-                    g_all_bills[yearcode][billno] = [title, url,
-                                                     billtext, amendlink]
-                except:
-                    print("Bad line in all_bills cache file:", line,
-                          file=sys.stderr)
-                    continue
-
-        # If the cachefile was only partly populated because some
-        # files were missing at the time it was updated, that case
-        # won't be detected.
-
-    try:
-        filestat = os.stat(all_bills_cachefile)
-        if (time.time() - filestat.st_mtime) <= billrequests.CACHESECS:
-            # Cache file is recent enough, no need to re-fetch.
-
-            # Is it still in memory?
-            if yearcode in g_all_bills and g_all_bills[yearcode]:
-                return g_all_bills[yearcode], titleschanged
-
-            # Not cached, but recent. Read in the cachefile and return.
-            read_all_bills_cachefile()
-
-            return g_all_bills[yearcode], titleschanged
-
-        else:
-            # The cachefile isn't recent enough, but exists.
-            # Read it to have a record of the old bill titles.
-            read_all_bills_cachefile()
+    return g_allbills[yearcode]
 
 
-    except Exception as e:
-        # cache file probably doesn't exist yet
-        print("allbills cache file %s didn't exist" % all_bills_cachefile, e,
-              file=sys.stderr)
-
-    # Populate the allbills cache file.
-    print("Refreshing the %s bill list" % yearcode, file=sys.stderr)
+def update_allbills(yearcode, sessionid):
+    """Fetch and parse Legislation_List?Session=NN (numeric session id)
+       to update the global g_allbills[yearcode]
+       and save to g_allbills_cachefile
+       (which should already be initialized with existing bills).
+    """
+    print("Updating allbills", yearcode, file=sys.stderr)
 
     baseurl = 'https://www.nmlegis.gov/Legislation'
     url = baseurl + '/Legislation_List?Session=%2d' % sessionid
 
+    todaystr = datetime.date.today().strftime("%Y-%m-%d")
+
     # re-fetch if needed. Pass a cache time that's a little less than
-    # the one we're using for the all_bills cachefile
+    # the one we're using for the allbills cachefile
     soup = billrequests.soup_from_cache_or_net(
         url, cachesecs=billrequests.CACHESECS-60)
     if not soup:
@@ -446,51 +579,80 @@ def all_bills(sessionid, yearcode, sessionname):
         return None, None
 
     footable = soup.find('table', id='MainContent_gridViewLegislation')
-    # footable is nmlegis' term for this bill table
+    # footable is nmlegis' term for this bill table. Not my fault. :-)
     if not footable:
         print("Can't read the all-bills list: no footable", file=sys.stderr)
-        return None, None
-
-    allbills_billno_pat = re.compile(
-        'MainContent_gridViewLegislation_linkBillID.*')
-    title_pat = re.compile('MainContent_gridViewLegislation_lblTitle.*')
+        return
 
     for tr in footable.findAll('tr'):
         billno_a = tr.find('a', id=allbills_billno_pat)
-        title_a = tr.find('span', id=title_pat)
-        if billno_a and title_a:
-            # Text under the link might be something like "HB  1"
-            # or might have stars, so remove spaces and stars:
-            billno_str = billno_a.text.replace(' ', '').replace('*', '')
+        title_span = tr.find('span', id=title_pat)
+        if not billno_a or not title_span:
+            continue
 
-            # Check whether it's a changed title.
-            if yearcode in g_all_bills and \
-               billno_str in g_all_bills[yearcode] and \
-               g_all_bills[yearcode][billno_str][0] != title_a.text:
-                # Title has changed!
-                print("%s: title changed to '%s', from '%s'"
-                      % (billno_str, title_a.text,
-                         g_all_bills[yearcode][billno_str][0]),
+        # Text under the link might be something like "HB  1"
+        # or might have stars, so remove spaces and stars:
+        billno_str = billno_a.text.replace(' ', '').replace('*', '')
+
+        # Add this billno and billurl to the global list if not there already.
+        # Don't know the contents or amend urls yet, so leave blank.
+        if billno_str not in g_allbills[yearcode]:
+            g_allbills[yearcode][billno_str] = {}
+
+        # Update history if title changed.
+        if "title" in g_allbills[yearcode][billno_str] and \
+           title_span.text != g_allbills[yearcode][billno_str]["title"]:
+            if "history" not in g_allbills[yearcode][billno_str]:
+                g_allbills[yearcode][billno_str]["history"] = []
+            g_allbills[yearcode][billno_str]["history"].append( [
+                todaystr, "titlechanged", title_span.text ])
+
+        g_allbills[yearcode][billno_str]["title"] = title_span.text
+
+        g_allbills[yearcode][billno_str]["url"] = \
+            baseurl + "/" + billno_a['href']
+
+        # Build sponsor list, replacing what was there before
+        # since it might have changed
+        g_allbills[yearcode][billno_str]["sponsors"] = []
+        for sponsor_a in tr.findAll("a", id=sponsor_pat):
+            try:
+                g_allbills[yearcode][billno_str]["sponsors"].append(
+                    sponcode_pat.match(sponsor_a["href"]).group(1))
+            except:
+                print("Couldn't match sponcode in", sponsor_a["href"],
                       file=sys.stderr)
-                titleschanged[billno_str] = \
-                    g_all_bills[yearcode][billno_str][0]
-                g_all_bills[yearcode][billno_str][0] = title_a.text
 
-            # Add this billno and billurl to the global list.
-            # Don't know the contents or amend urls yet, so leave blank.
-            g_all_bills[yearcode][billno_str] \
-                = [ title_a.text, baseurl + "/" + billno_a['href'],
-                    "", "" ]
+        # Action codes
+        try:
+            g_allbills[yearcode][billno_str]["actions"] = \
+                tr.find('span', id=action_pat).text
+        except:
+            print("Couldn't get actions for", billno_str,
+                  file=sys.stderr)
 
-    # Whenever the list of all bills is updated, it's a good time to
-    # update the full contents and amendments links so there are links
-    # for any new bills, to make it easier to decide what's in a bill
-    # and whether it's worth following.
-    # Rather than parse every bill page (like we do for followed bills),
-    # use the index of the directories where links are stored.
-    # Typical URL:
-    # https://www.nmlegis.gov/Sessions/20%20Special2/bills/senate/SB0001.HTML
-    # https://www.nmlegis.gov/Sessions/21%20Regular/Amendments_In_Context/SR01.pdf
+    # If there are new bills, they'll need content links too
+    update_bill_links(yearcode)
+
+    g_allbills[yearcode]["_updated"] = int(time.time())
+    save_allbills_json(yearcode)
+    return g_allbills
+
+
+# Updating the list of bills doesn't update the links to bill
+# contents and amendments links.
+# Rather than parse every bill page (like we do for followed bills),
+# use the index of the directories where links are stored.
+# Typical URL:
+# https://www.nmlegis.gov/Sessions/20%20Special2/bills/senate/SB0001.HTML
+# https://www.nmlegis.gov/Sessions/21%20Regular/Amendments_In_Context/SR01.pdf
+
+def update_bill_links(yearcode):
+    """Update all relevant bill links found as files at
+       https://www.nmlegis.gov/Sessions/23%20Regular/bills/chamber
+       where chamber is house or senate.
+       Modify g_allbills.
+    """
     if len(yearcode) == 2:
         sessionlong = "Regular"
     elif yearcode.endswith("s"):
@@ -507,71 +669,140 @@ def all_bills(sessionid, yearcode, sessionname):
             sessionlong = "?"
     elif yearcode.endswith("x"):
         sessionlong = "Extraordinary"
-    # XXX also in that dir: 11Redistricting, DIY_Redistricting,
-    # InterimCommittees ... be ready to update this if clause.
+
     baseurl = "https://www.nmlegis.gov/Sessions/%s%%20%s" \
         % (yearcode[:2], sessionlong)
-    # Under this are directories for house and senate
+    # Under this are these directories (plus a few not less relevant):
+    # These dirtypes have files directly in them.
+    # Key is dirname, value is what key to use in g_allbills.
+    dirs_direct = {
+        "firs": "FIR",
+        "LESCAnalysis": "LESC",
+        "Amendments_In_Context": "Amendments_In_Context",
+        "Floor_Amendments": "Floor_Amendments",
+    }
+    # Tabled_Reports will be dealt with specially
 
-    def update_bill_links(listingurl, allbills_index, extension):
-        """Given the URL for a place where text links or amendments are,
-           parse the HTML dir listing, find bill numbers and insert
-           each URL as the allbills_index member of that bill in g_all_bills.
+    # These dirs have subdirs house and senate:
+    dirs_by_chamber = [ "bills", "memorials", "resolutions" ]
+    chambers = [ "house", "senate" ]
+
+    def get_billno_from_filename(amendname):
+        """Extract billno from filenames like in Amendments or Tabled_Reports
+           which tend to be something like "HB0060CP1T.pdf"
+           or may just be a billno with extra zeroes, "SJR002.PDF"
         """
-        # Under this are names like SB0001.HTML,
+        if amendname.startswith('.'):
+            return ''
+        m = amend_billno_pat.match(filename)
+        if not m:
+            # print(filename, "didn't match the amend_billno_pat",
+            #       file=sys.stderr)
+            return ''
+        return m.group(1).upper() + m.group(3)
+
+    # First do the direct ones.
+    for dirtype in dirs_direct:
+        listingurl = posixpath.join(baseurl, dirtype)
+        nonexistent = set()
+
+        # Under this are filenames like SB0001.HTML,
         # which are the contents links for bills.
         # But the number of zeroes is inconsistent and unpredictable,
         # so get a listing and remove the zeros.
-        soup = billrequests.soup_from_cache_or_net(listingurl)
+        dirlist = billrequests.get_html_dirlist(listingurl)
+        if not dirlist:
+            print("No directory listing at", listingurl)
+            continue
+        for l in dirlist:
+            filename = l['name']   # These are names like 'HB0060CP1T.pdf'
+            billno = get_billno_from_filename(filename)
+            href = l['url']
 
-        for a in soup.findAll('a'):
-            href = a.get('href')
-            if not href:
+            if not billno:
                 continue
-            if not href.lower().endswith(extension):
+            if billno not in g_allbills[yearcode]:
+                nonexistent.add(billno)
                 continue
-            # href is typically something like
-            # /Sessions/21%20Regular/bills/house/HB0059.HTML
-            # Remove any initial slash:
-            while href.startswith("/"):
-                href = href[1:]
 
-            # Is it a plain bill number? Exclude amendments, etc.
-            try:
-                match = bill_file_pat.search(href)
-                # group(2) is the extraneous zeros, if any.
-                billno = match.group(1) + match.group(3)
-                # Weirdly, the web server gives absolute paths as links.
-                # So either need to prepend the server domain,
-                # or else use url + basename(href).
-                g_all_bills[yearcode][billno][allbills_index] = \
-                    "https://www.nmlegis.gov/%s" % (href)
-            except Exception as e:
-                # print("href %s didn't match a bill pat -- skipping" % href,
-                #       file=sys.stderr)
-                # print(e, file=sys.stderr)
-                pass
+            g_allbills[yearcode][billno][dirs_direct[dirtype]] = href
 
-    # Update all the places we might find bill original or amended text
-    for billtype in ("bills", "memorials", "resolutions"):
-        for chamber in ("house", "senate"):
-            url = "%s/%s/%s" % (baseurl, billtype, chamber)
-            update_bill_links(url, 2, ".html")
+        if nonexistent:
+            print("Nonexistent bills", ', '.join(nonexistent),
+                  "reffed in", listingurl, file=sys.stderr)
 
-    # Update amendments_in_context links too:
-    update_bill_links("%s/Amendments_In_Context/" % baseurl, 3, ".pdf")
+        # XXX Need a way to combine all amendments
 
-    # Write the new list back to the bill cachefile
-    with open(all_bills_cachefile, "w") as outfp:
-        for billno in g_all_bills[yearcode]:
-            print("%s|%s|%s|%s|%s" % (billno, *g_all_bills[yearcode][billno]),
-                  file=outfp)
+    # The bill/memorial/resolution dirs are a little more complicated,
+    # because they include all kinds of other weird files like committee
+    # votes, amendments that are different from Amendments_In_Context
+    # or Floor_Amendments, etc. For now, just take the ones that map
+    # to plain bill numbers, which are the original bill text in html/pdf.
+    for dirtype in dirs_by_chamber:
+        for chamber in chambers:
+            listingurl = posixpath.join(baseurl, dirtype, chamber)
+            nonexistent = set()
+            dirlist = billrequests.get_html_dirlist(listingurl)
+            for l in dirlist:
+                filename = l['name']
 
-    # Now g_all_bills[yearcode] is populated, one way or the other
-    return g_all_bills[yearcode], titleschanged
+                # We're currently only interested in the actual bill content
+                # files, not the motley collection of other files.
+                # I.e. we want SB0258.HTML, but not SB0258IC1.HTML
+                try:
+                    m = bill_file_pat.search(filename)
+                    if not m:
+                        continue
+                    billno = m.group(1) + m.group(2)
+                except:
+                    continue
 
+                if not billno:
+                    continue
 
-house_senate_billno_pat = re.compile('.*_linkBillID_[0-9]*')
+                # Sometimes there are links that are just wrong.
+                # For instance, /Sessions/23%20Regular/bills/house/
+                # includes a link HB0005.HTML (and .PDF)
+                # but there is no HB5 in 2023, and the contents of
+                # HB0005.HTML/PDF are actually for SB5.
+                if billno not in g_allbills[yearcode]:
+                    nonexistent.add(billno)
+                    continue
+
+                href = l['url']
+                hrefl = href.lower()
+
+                if hrefl.endswith(".html"):
+                    g_allbills[yearcode][billno]["contents"] = href
+                elif hrefl.endswith(".pdf"):
+                    g_allbills[yearcode][billno]["pdf"] = href
+                else:
+                    print("Not sure what to do with file type", href,
+                          file=sys.stderr)
+
+            if nonexistent:
+                print("Nonexistent bills", ', '.join(nonexistent),
+                      "reffed in", listingurl, file=sys.stderr)
+
+    # Special treatment for tabled bills
+    listingurl = posixpath.join(baseurl, "Tabled_Reports")
+    dirlist = billrequests.get_html_dirlist(listingurl)
+    nonexistent = set()
+    for l in dirlist:
+        filename = l['name']   # These are names like 'HB0060CP1T.pdf'
+        billno = get_billno_from_filename(filename)
+        if billno not in g_allbills[yearcode]:
+            nonexistent.add(billno)
+            continue
+        g_allbills[yearcode][billno]["tabled"] = True
+    if nonexistent:
+        print("Nonexistent tabled bills", ', '.join(nonexistent),
+              "reffed in", listingurl, file=sys.stderr)
+
+    # Don't save the file; assume we're called from update_allbills()
+    # which will save the JSON.
+    return g_allbills
+
 
 def expand_house_or_senate(code, cache_locally=True):
     """Return a dictionary, with keys equivalent to those of
@@ -654,24 +885,6 @@ def expand_house_or_senate(code, cache_locally=True):
         ret['meetings'][0]['bills'].append(a.text.replace(' ', '')
                                             .replace('*', ''))
     return ret
-
-
-# RE patterns needed for parsing committee pages
-tbl_bills_scheduled = re.compile("MainContent_formViewCommitteeInformation_gridViewScheduledLegislation")
-
-tbl_committee_mtg_dates = re.compile("MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_lblHearingDate_[0-9]*")
-tbl_committee_mtg_times = re.compile("MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_lblHearingTime_[0-9]*")
-tbl_committee_mtg_bills = re.compile("MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_[0-9]+")
-
-billno_cell_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_linkBillID_[0-9]*')
-
-sched_date_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_lblScheduledDate_[0-9]*')
-
-
-# Pattern for a time followed by optional am, AM, a.m. etc.
-# optionally preceded by a date or day specifier like "Tuesday & Thursday"
-mtg_datetime_pat = re.compile("(.*) *(\d{1,2}): *(\d\d) *([ap]\.?m\.?)?",
-                              flags=re.IGNORECASE)
 
 
 def expand_committee(code):

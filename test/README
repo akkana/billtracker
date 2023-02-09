@@ -1,8 +1,12 @@
 Run all tests with:
 
-python3 -m unittest
+test/run_tests
 
 (from the top level, i.e. one level above this test directory).
+
+**** IMPORTANT ****
+DON'T USE python3 -m unittest discover: it overrides values used
+for the testing database and MAY DESTROY YOUR REAL DATABASE.
 
 You can run single tests like this:
 

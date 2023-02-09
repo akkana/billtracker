@@ -47,6 +47,8 @@ LOCAL_MODE = False
 # Verbose debugging
 DEBUG = False
 
+hrefpat = re.compile('href="([^"]*)">([^<]+)<', flags=re.IGNORECASE)
+
 
 # requests.Response doesn't allow setting the text member,
 # so here's a fake class that does.
@@ -285,8 +287,8 @@ def ftp_get(server, dir, filename, outfile):
         raise FileNotFoundError(str(e))
 
 
-def get_http_dirlist(url):
-    """Read an ftp dir listing page; return the contents as a list of dics,
+def get_html_dirlist(url):
+    """Read an html dir listing page; return the contents as a list of dics,
        [ { 'name': 'SB0048SFL1.pdf, 'size': '136 KB',
            "url": "https://www.nmlegis.gov/Sessions/20%20Regular/firs/HB0004.PDF",
            'Last Modified': '1/24/19 	1:19:00 PM MST
@@ -296,41 +298,65 @@ def get_http_dirlist(url):
        Frustratingly, if you view the ftp: URL in a web server it shows
        timezones, but actually retrieving the listing via ftp drops them.
     """
+    while url.endswith('/'):
+        url = url[:-1]
     try:
-        listing = get(url).text
-    except:
-        print("No dir list at", url, file=sys.stderr)
-        return None
+        cachefile = url_to_cache_filename(url)
+        response = get(url, cachefile=cachefile)
+        listing = response.text
+    except Exception as e:
+        print("Exception getting dirlist on", url, ":", e, file=sys.stderr)
+        return []
 
     if not listing:
-        return None
+        print("No listing, cachefile was", cachefile)
+        return []
 
     ls = []
 
     # The listing is inside a <pre>, with lines separated by <br>,
     # and each line is formatted like this:
     #  1/25/2020  7:32 PM       133392 <A HREF="/Sessions/20%20Regular/firs/HB0019.PDF">HB0019.PDF</A><br>
-    listing = re.sub(".*<pre>", "", listing, flags=re.IGNORECASE|re.DOTALL)
-    listing = re.sub("</pre>.*", "", listing, flags=re.IGNORECASE|re.DOTALL)
+    # Strip off everything that's not inside <pre></pre>
+    # This is a large file, and using re on it takes forEVER.
+    # String find is much faster.
+    pre = listing.find("<pre>")
+    if pre < 0:
+        pre = listing.find("<PRE>")
+    if pre > 0:
+        listing = listing[pre+5:]
+    pre = listing.find("</pre>")
+    if pre < 0:
+        pre = listing.find("</PRE>")
+    if pre > 0:
+        listing = listing[:pre]
+
     lines = listing.split("<br>")
-    hrefpat = re.compile('HREF="([^"]*)">([^<]+)<', flags=re.IGNORECASE)
     for line in lines:
         words = line.split()
         if len(words) != 6:
             continue
         try:
             dic = {}
-            dic["size"] = int(words[3])
-            month, day, year = [int(n) for n in words[0].split("/")]
-            hour, minute = [int(n) for n in words[1].split(":")]
-            if words[2] == "PM":
-                hour += 12
-            dic["Last Modified"] = "%s\t%s %s MST" % tuple(words[0:3])
-            # words[5] looks like:
-            # 'HREF="/Sessions/20%20Regular/firs/HB0001.PDF">HB0001.PDF</A>'
-            match = hrefpat.match(words[5])
-            dic["url"] = "https://www.nmlegis.gov/" + match.group(1)
-            dic["name"] = match.group(2)
+            try:
+                dic["size"] = int(words[3])
+                month, day, year = [int(n) for n in words[0].split("/")]
+                hour, minute = [int(n) for n in words[1].split(":")]
+                if words[2] == "PM":
+                    hour += 12
+                dic["Last Modified"] = "%s\t%s %s MST" % tuple(words[0:3])
+                # words[5] looks like:
+                # 'HREF="/Sessions/20%20Regular/firs/HB0001.PDF">HB0001.PDF</A>'
+                match = hrefpat.match(words[5])
+                url = match.group(1)
+                while url.startswith('/'):
+                    url = url[1:]
+                dic["url"] = "https://www.nmlegis.gov/" + url
+                dic["name"] = match.group(2)
+            except Exception as e:
+                # print("Couldn't parse line of directory listing in", url, ":",
+                #       line, file=sys.stderr)
+                continue
 
             ls.append(dic)
         except RuntimeError as e:

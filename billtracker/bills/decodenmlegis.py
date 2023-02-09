@@ -136,12 +136,10 @@ def decode_full_history(actioncode):
     # The history code is one long line, like
     # HPREF [2] HCPAC/HJC-HCPAC [3] DNP-CS/DP-HJC [4] DP [5] PASSED/H (40-29) [8] SPAC/SJC-SPAC [17] DP-SJC [22] DP/a [23] FAILED/S (18-24).
     # Most actions start with [legislative day] but the first may not.
-    print("  decode_full_history", actioncode)
     histlist = []
     for action, legday in action_code_iter(actioncode):
         actionstring, location = decode_history_day(action, legday)
         histlist.append((int(legday), actionstring, action))
-    print("  --> histlist:", histlist)
     lasttuple = histlist[-1]
     lastaction = "Day %s: %s" % (lasttuple[0], lasttuple[1])
     # location and actionstring(=status) are taken from the last history item.
@@ -151,6 +149,12 @@ def decode_full_history(actioncode):
     # print("  lastaction:", lastaction, file=sys.stderr)
     # print("  histlist:", histlist, file=sys.stderr)
     return location, actionstring, lastaction, histlist
+
+
+def full_history_text(actioncode):
+    """Return a newline-separated string of actions for a bill"""
+    return '\n'.join([ "%d: %s" % (l[0], l[1])
+                       for l in decode_full_history(actioncode)[-1] ])
 
 
 comchange_pat = re.compile('([a-zA-Z]{3,})/([a-zA-Z]{3,})-([a-zA-Z]{3,})')

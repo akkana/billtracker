@@ -38,9 +38,10 @@ LOGFILE = '/var/log/billtracker-update.log'
 if in_session:
     email_hours = [ 21 ]
     legislator_hours = [ ]    # Should happen automatically when needed
-    FIR_hours = [ 2, 10, 17 ]
-    LESC_hours = [ 3, 11, 18 ]
-    amend_hours = [ 4, 12, 19 ]
+    # allbills now refreshes FIR, LESC and amendments
+    FIR_hours = [ ]
+    LESC_hours = [ ]
+    amend_hours = [ ]
     db_backup_hours = [ 1, 13 ]
 
     # Committees are really the important things to refresh:
@@ -53,7 +54,7 @@ if in_session:
     # page slow, so make sure it's called offline every 2 hours
     # during normal waking hours so the pages will be pre-fetched
     # and users won't have to wait.
-    allbills_hours = [ 4, 6, 9, 11, 13, 15, 17, 19, 21 ]
+    allbills_hours = [ 5, 8, 10, 12, 14, 16, 17, 18, 19, 21 ]
 
     # Bill updating is a bit more complicated since there are so many bills
     # and we want to avoid flooding the legislative website.

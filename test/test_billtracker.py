@@ -21,7 +21,7 @@ import json
 # run the test again. It will generate the files you need to copy into
 # the test/files directory to make the tests work.
 # Don't forget to set it back to False afterward.
-renew_files = True
+renew_files = False
 
 
 # The database location must be set before importing the billtracker config
@@ -33,6 +33,9 @@ DATABASE_URL = "sqlite:///%s" % dbpath
 
 # Override environment variables used to run the app while testing,
 # to ensure the test environment is independent.
+# Must be done before importing flask or billtracker files.
+if "DATABASE_URL" in os.environ:
+    del(os.environ["DATABASE_URL"])
 os.environ["DATABASE_URL"] = DATABASE_URL
 if "FLASK_APP" in os.environ:
     del(os.environ["FLASK_APP"])
@@ -85,6 +88,12 @@ class TestBillTracker(unittest.TestCase):
 
         # Uncomment to get verbose information on cache/net requests:
         # billrequests.DEBUG = True
+
+        # Make sure there's no lock file for allbills
+        try:
+            os.unlink(os.path.join(CACHEDIR, "allbills_19.json.lock"))
+        except:
+            pass
 
         self.app = __class__.app
         with self.app.app_context():

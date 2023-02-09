@@ -573,11 +573,8 @@ def allbills():
     # Do the slow part first, before any database accesses.
     # This can fail, e.g. if nmlegis isn't answering.
     try:
-        allbills, titleschanged = nmlegisbill.all_bills(
-            leg_session.id, yearcode, sessionname)
-        # allbills is an OrderedDict,
-        #   { billno: [title, url, contentslink, amendlink] }
-        # titleschanged is a dict, { billno: "old title" }
+        allbills = nmlegisbill.all_bills(leg_session.id, yearcode)
+        # allbills has the schema documented in nmlegis.g_allbills.
 
     except Exception as e:
         print("Problem fetching all_bills", file=sys.stderr)
@@ -602,36 +599,52 @@ def allbills():
         bills_seen = []
         bills_tracking = []
 
+    # The lists to pass to the HTML page
     newbills = []
     oldbills = []
+    unseen = []
+
+    today = date.today()
 
     # allbills.html expects a list of dictionaries with keys:
     # billno, title, url, contentsurl, user_tracking, num_tracking
     # [ [billno, title, link, fulltext_link, tracked_by_user ] ]
     for billno in allbills:
-        # Used to query each bill here. That was nice because we could update
-        # the bill's title and show a column for number of users tracking it;
-        # but these queries turned out to be a huge performance bottleneck,
-        # adding more than a second to page loading.
-        if len(allbills[billno]) > 3 and allbills[billno][3]:
-            contents = allbills[billno][3]
-        else:
-            contents = allbills[billno][2]
+        if billno.startswith("_"):
+            # Skip things like _updated and _schema
+            continue
+
+        # Prepare the structure expected by allbills.html
         args = { "billno": billno,
-                 "title": allbills[billno][0],
-                 "url": allbills[billno][1],
-                 "contentsurl": contents,
+                 "title": allbills[billno].get("title", ""),
+                 "url": allbills[billno].get("url", ""),
+                 "contentsurl": allbills[billno].get("contents", ""),
                  "user_tracking": billno in bills_tracking
                }
+        if "Amendments_In_Context" in allbills[billno]:
+            args["amended"] = allbills[billno]["Amendments_In_Context"]
+        elif "Floor_Amendments" in allbills[billno]:
+            args["amended"] = allbills[billno]["Floor_Amendments"]
 
-        if user and (billno not in bills_seen or billno in titleschanged):
-            newbills.append(args)
+        if user and billno not in bills_seen:
+            unseen.append(args)
+        elif "history" in allbills[billno] and allbills[billno]["history"]:
+            lastmod = datetime.strptime(allbills[billno]["history"][-1][0],
+                                        "%Y-%m-%d").date()
+            # print(billno, "lastmod:", lastmod, "diff", today - lastmod)
+            if today - lastmod <= timedelta(days=2):
+                newbills.append(args)
+            else:
+                oldbills.append(args)
         else:
+            # print("No history in", billno)
             oldbills.append(args)
 
     # Update user's bills seen, so they won't show up as new next time.
     if user:
-        user.update_bills_seen(','.join(allbills.keys()), yearcode)
+        user.update_bills_seen(','.join([ b for b in allbills.keys()
+                                          if not b.startswith('_')]),
+                               yearcode)
 
     # Now sort both dicts; the allbills page will display the order
     # passed in, in each case.
@@ -644,15 +657,22 @@ def allbills():
 
     newbills.sort(key=dic_to_key)
     oldbills.sort(key=dic_to_key)
+    unseen.sort(key=dic_to_key)
 
-    bill_lists = [ { 'thelist': newbills,
-                     'header': """<h2>Recently Filed Bills:</h2>
+    bill_lists = [ { 'thelist': unseen,
+                     'header': """<h2>Bills You Haven't Seen Before:</h2>
 <p>
 These are the new or changed bills since the last time you checked this page.
 <br />
 (Warning: that means that if you leave this page and load it again later,
 or reload the page, these bills will no longer be listed as new.)""",
                      'alt': "Nothing new since you last looked."
+                   },
+                  { 'thelist': newbills,
+                    'header': """<h2>Recently Filed Bills:</h2>
+<p>
+These are bills filed or changed in the past day""",
+                    'alt': "Nothing changed in the past day."
                    },
                    { 'thelist': oldbills,
                      'header': "<h2>Older bills</h2>",
@@ -1436,7 +1456,7 @@ def refresh_legisdata():
         if url.startswith("ftp:"):
             index = billrequests.ftp_url_index(url)
         else:
-            index = billrequests.get_http_dirlist(url)
+            index = billrequests.get_html_dirlist(url)
     except Exception as e:
         print("Couldn't fetch", url, file=sys.stderr)
         print(e, file=sys.stderr)

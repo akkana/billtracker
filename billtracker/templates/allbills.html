@@ -59,6 +59,9 @@ Please try again later.
       {% else %}
         <td>&nbsp;
       {% endif %}
+      {% if bill_line["amended"] %}
+        | <a href="{{ bill_line["amended"] }}" target="_blank">amended</a>
+      {% endif %}
 
       {% if showtags %}
         <td class="tagcell">
