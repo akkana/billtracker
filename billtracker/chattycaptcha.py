@@ -128,7 +128,7 @@ class ChattyCaptcha:
                   file=sys.stderr)
             return False
 
-        return ans.lower() in self.QandA[question]
+        return ans.strip().lower() in self.QandA[question]
 
     def read_question_file(self):
         """Initialize the questions and their answers.
