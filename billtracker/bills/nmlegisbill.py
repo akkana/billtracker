@@ -23,6 +23,7 @@ import traceback
 # like everything else.
 import requests
 
+
 # A bill pattern, allowing for any number of extra leading zeros
 # like the FIR/LESC links randomly add.
 # If there are other letters or a different pattern,
@@ -442,7 +443,7 @@ def save_allbills_json(yearcode):
               ":", e, file=sys.stderr)
 
 
-def update_allbills_if_needed(yearcode, sessionid=None):
+def update_allbills_if_needed(yearcode, sessionid=None, do_update=False):
     """Decide whether we need to re-read the allbills json file,
        or even update that file.
     """
@@ -498,7 +499,7 @@ def update_allbills_if_needed(yearcode, sessionid=None):
         g_allbills[yearcode] = { "_sessionid": sessionid }
 
     # Is g_allbills cachefile too old, needs to be updated?
-    if (timenow - filetime) > billrequests.CACHESECS:
+    if do_update or (timenow - filetime) > billrequests.CACHESECS:
         # It's old enough to be updated. But is it locked because
         # someone else is updating?
         try:

@@ -54,7 +54,7 @@ if in_session:
     # page slow, so make sure it's called offline every 2 hours
     # during normal waking hours so the pages will be pre-fetched
     # and users won't have to wait.
-    allbills_hours = [ 5, 8, 10, 12, 14, 16, 17, 18, 19, 21 ]
+    allbills_hours = [ 4, 6, 7, 9, 11, 13, 15, 16, 17, 18, 19, 21 ]
 
     # Bill updating is a bit more complicated since there are so many bills
     # and we want to avoid flooding the legislative website.
@@ -117,8 +117,9 @@ def main():
                                               data={ 'KEY': KEY })
 
         print("Updating allbills files")
-        allbills = requests.get('%s/allbills' % (BASEURL)).text
-        print("allbills returned:", allbills)
+        allbills = requests.get('%s/api/refresh_allbills/%s' % (BASEURL,
+                                                                key)).text
+        print("refresh_allbills returned:", allbills, file=sys.stderr)
 
     if now.hour in committee_hours:
         print("refresh_all_committees:")

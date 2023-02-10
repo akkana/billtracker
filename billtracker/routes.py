@@ -1232,6 +1232,30 @@ def mailto(username, key):
     return "OK Mail sent to %s %s\n" % (username, user.email)
 
 
+@billtracker.route("/api/refresh_allbills/<key>")
+def refresh_allbills(key):
+    """Refresh the data needed for the allbills page for the current session
+    """
+    if key != billtracker.config["SECRET_KEY"]:
+        print("FAIL refresh_allbills: bad key %s" % key, file=sys.stderr)
+        return "FAIL Bad key\n"
+
+    yearcode = LegSession.current_yearcode()
+    leg_session = LegSession.by_yearcode(yearcode)
+    if not leg_session:
+        print("refresh_allbills: first need to refresh the session list",
+              file=sys.stderr)
+        LegSession.update_session_list()
+        leg_session = LegSession.by_yearcode(yearcode)
+    if not leg_session:
+        return "FAIL Couldn't get legislative session list"
+
+    print("Updating allbills data", file=sys.stderr)
+    nmlegisbill.update_allbills_if_needed(yearcode, leg_session.id,
+                                          do_update=True)
+    return "OK Refreshed allbills"
+
+
 #
 # Background bill updating:
 #
