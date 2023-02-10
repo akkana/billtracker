@@ -1232,6 +1232,22 @@ def mailto(username, key):
     return "OK Mail sent to %s %s\n" % (username, user.email)
 
 
+#
+# Background bill updating:
+#
+# These are queries intended to be called from an update script,
+# not from user action, to update bills and other information
+# from their respective legislative website pages in the background.
+#
+# It would be nice to be able to spawn off a separate thread for
+# updates, but there doesn't seem to be a way to do that in Flask with
+# sqlite3 that's either documented or reliable (it tends to hit
+# "database is locked" errors). But WSGI in Apache uses multiple
+# threads and that sort of threading does work with Flask, so one of
+# those threads will be used for refresh queries.
+#
+
+
 @billtracker.route("/api/refresh_allbills/<key>")
 def refresh_allbills(key):
     """Refresh the data needed for the allbills page for the current session
@@ -1254,22 +1270,6 @@ def refresh_allbills(key):
     nmlegisbill.update_allbills_if_needed(yearcode, leg_session.id,
                                           do_update=True)
     return "OK Refreshed allbills"
-
-
-#
-# Background bill updating:
-#
-# These are queries intended to be called from an update script,
-# not from user action, to update bills and other information
-# from their respective legislative website pages in the background.
-#
-# It would be nice to be able to spawn off a separate thread for
-# updates, but there doesn't seem to be a way to do that in Flask with
-# sqlite3 that's either documented or reliable (it tends to hit
-# "database is locked" errors). But WSGI in Apache uses multiple
-# threads and that sort of threading does work with Flask, so one of
-# those threads will be used for refresh queries.
-#
 
 #
 # Test with:

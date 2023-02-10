@@ -118,7 +118,7 @@ abbreviations = {
    'SPREF': 'Senate Pre-file',
    'STBL': 'Senate Table',
    'SZLM': 'In Limbo (Senate)',
-    # 'T': 'On the Speaker’s table by rule (temporary calendar)',
+    'T': 'On the Speaker’s table by rule (temporary calendar)',
    'tbld': 'Tabled temporarily by motion.',
    'TBLD INDEF.': 'Tabled indefinitely.',
    'VETO(Mar.7).': 'Vetoed by the Governor and date.',
