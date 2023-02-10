@@ -118,8 +118,8 @@ def main():
 
         print("Updating allbills files")
         allbills = requests.get('%s/api/refresh_allbills/%s' % (BASEURL,
-                                                                key)).text
-        print("refresh_allbills returned:", allbills, file=sys.stderr)
+                                                                KEY)).text
+        print("refresh_allbills returned:", allbills)
 
     if now.hour in committee_hours:
         print("refresh_all_committees:")

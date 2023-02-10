@@ -971,7 +971,7 @@ class Bill(db.Model):
         # Currently, this is only used to detect tabled bills,
         # but eventually I hope it can be used for everything.
 
-        if bill_info["tabled"]:
+        if "tabled" in bill_info and bill_info["tabled"]:
             outstr += "TABLED "
 
         if self.statustext:
