@@ -53,7 +53,7 @@ Please try again later.
   {% for bill_line in bill_list['thelist'] %}
     <tr class="{{ loop.cycle('odd', 'even') }}">
       <td>{{ bill_line["billno"] }}
-      <td><a href="{{ bill_line["url"] }}" target="_blank">{{ bill_line["title"] }}</a>
+      <td><a href="{{ bill_line["url"] }}" target="_blank">{{ bill_line["title"] | safe }}</a>
       {% if bill_line["contentsurl"] %}
         <td><a href="{{ bill_line["contentsurl"] }}" target="_blank">{{ bill_line["billno"] }} text</a>
       {% else %}

@@ -30,6 +30,11 @@ import hashlib
 import sys, os
 
 
+# How recently did a bill have to change to be on the "new"
+# list on the allbills page?
+DAYS_CONSIDERED_NEW = 2
+
+
 # filenames are e.g. HB000032.PDF with a random number of zeros.
 # Remove all zeros -- but not in the middle of a number, like 103.
 billno_pat = re.compile("([A-Z]*)(0*)([1-9][0-9]*)")
@@ -629,11 +634,18 @@ def allbills():
         if user and billno not in bills_seen:
             unseen.append(args)
         elif "history" in allbills[billno] and allbills[billno]["history"]:
-            lastmod = datetime.strptime(allbills[billno]["history"][-1][0],
-                                        "%Y-%m-%d").date()
+            lasthist = allbills[billno]["history"][-1]
+            lastmod = datetime.strptime(lasthist[0], "%Y-%m-%d").date()
             # print(billno, "lastmod:", lastmod, "diff", today - lastmod)
-            if today - lastmod <= timedelta(days=2):
+            if today - lastmod <= timedelta(days=DAYS_CONSIDERED_NEW):
                 newbills.append(args)
+
+                # Handle title changes
+                if lasthist[1] == "titlechanged" and \
+                   len(allbills[billno]["history"]) > 1:
+                    oldtitle = allbills[billno]["history"][-2][2]
+                    args["title"] += " <b>&larr; TITLE CHANGED FROM</b> " \
+                        + oldtitle
             else:
                 oldbills.append(args)
         else:
