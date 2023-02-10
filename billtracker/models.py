@@ -347,7 +347,14 @@ Or you can see what bills other users are tracking on the
 
 @login.user_loader
 def load_user(id):
-    return db.session.get(User, int(id))
+    # Some package related to flask sqlalchemy is very sensitive to
+    # how to get a db object by id. With the same version of both
+    # sqlalchemy and flask-sqlalchemy, one machine needs the first
+    # syntax, another needs the second.
+    try:
+        return db.session.get(User, int(id))
+    except AttributeError:
+        return User.query.get(int(id))
 
 
 class Bill(db.Model):
@@ -1236,12 +1243,13 @@ class LegSession(db.Model):
            (the session with the highest id).
         """
         try:
-            # for sqlalchemy 2.0
+            # for later sqlalchemy:
             max_id = db.session.execute(db.select(
                 func.max(LegSession.id))).scalar()
         except:    #  sqlalchemy.exc.ArgumentError
             # the error raised by sqlalchemy 1.4.46 and presumably earlier
             try:
+                # worked on earlier versions
                 max_id = db.session.query(func.max(LegSession.id)).scalar()
                 if max_id is None:
                     print("Eek, max_id for sessions is None", file=sys.stderr)
