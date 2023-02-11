@@ -506,7 +506,6 @@ def update_allbills_if_needed(yearcode, sessionid=None, do_update=False):
             lockfile = g_allbills_cachefile[yearcode] + ".lock"
             os.open(lockfile, os.O_CREAT | os.O_EXCL)
 
-            print("Calling update_allbills", yearcode, file=sys.stderr)
             update_allbills(yearcode, sessionid)
             # Now bills and links should be up to date,
             # as should g_allbills[yearcode]

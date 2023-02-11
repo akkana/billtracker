@@ -683,7 +683,7 @@ or reload the page, these bills will no longer be listed as new.)""",
                   { 'thelist': newbills,
                     'header': """<h2>Recently Filed Bills:</h2>
 <p>
-These are bills filed or changed in the past day""",
+These are bills filed or changed in the past few days""",
                     'alt': "Nothing changed in the past day."
                    },
                    { 'thelist': oldbills,
