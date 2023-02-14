@@ -845,8 +845,8 @@ class Bill(db.Model):
                           'Action_Abbreviations"  target="_blank">Full history</a>: ' \
                           '<span class="historycode" title="%s">%s</span>' \
                           '<br />\n' \
-                              % (decodenmlegis.full_history_text(actioncode),
-                                 actioncode)
+                          % (decodenmlegis.full_history_text(actioncode),
+                             actioncode)
 
         elif self.statusHTML:
             outstr += 'Status: %s<br />\n' % self.statusHTML

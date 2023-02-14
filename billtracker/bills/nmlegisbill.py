@@ -114,6 +114,7 @@ def bill_url(billno, yearcode):
 def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
     """Download and parse a bill's page on nmlegis.org.
        Yearcode is the session code, like 19 or 20s2.
+
        Return a dictionary containing:
        chamber, billtype, number, year, title,
        sponsor, sponsorlink, location.
@@ -125,7 +126,7 @@ def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
        Will try to read back from cache if the cache file isn't more
        than 2 hours old.
 
-       Does *not* save the fetched bill back to the database.
+       Does *not* save anything to the flask database.
     """
     billdic = { 'billno': billno }
     (billdic['chamber'], billdic['billtype'], billdic['number']) \
@@ -1026,7 +1027,7 @@ def expand_committees(jsonsrc=None):
     # the strftime format is "%a, %d %b %Y %H:%M:%S GMT"
     # but billrequests doesn't yet handle head() properly.
     if jsonsrc.startswith("http") and ':' in jsonsrc:
-        r = requests.get(jsonsrc)
+        r = billrequests.get(jsonsrc)
         scheduledata = r.json()
     else:
         with open(jsonsrc) as jfp:
@@ -1068,6 +1069,15 @@ def expand_committees(jsonsrc=None):
                 # Convert datetime into the Python object
                 if "datetime" in meeting:
                     meeting["datetime"] = parse_date_time(meeting["datetime"])
+
+                    # Some committees have "time" field set to something like
+                    # "After the Floor Session", which typically means
+                    # 1pm or so. Set those to 11:00 so they don't sort
+                    # before morning meetings.
+                    if (meeting["datetime"].hour == 0 and
+                        meeting["time"].lower().startswith("after")):
+                        meeting["datetime"] = \
+                            meeting["datetime"].replace(hour=11)
                 else:
                     meeting["datetime"] = parse_date_time(meeting["date"])
 

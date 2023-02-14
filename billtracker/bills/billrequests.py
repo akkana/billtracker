@@ -20,6 +20,7 @@ import requests
 
 import re
 from bs4 import BeautifulSoup
+import json
 import os, sys
 import time
 import dateutil.parser
@@ -57,6 +58,11 @@ class FakeResponse:
         self.status_code = 404
         self.text = None
 
+    def json(self):
+        if not self.text:
+            return ""
+        return json.loads(self.text)
+
 
 #
 # Override the three important requests module functions
@@ -81,6 +87,8 @@ def get(url, params=None, **kwargs):
         cachefile = kwargs['cachefile']
     else:
         cachefile = url_to_cache_filename(url)
+    if DEBUG:
+        print("cachefile:", cachefile)
 
     if 'cachesecs' in kwargs:
         cachesecs = kwargs['cachesecs']
