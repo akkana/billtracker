@@ -107,6 +107,11 @@ class TestBillTracker(unittest.TestCase):
         with self.app.app_context():
             db.drop_all()
 
+        try:
+            os.unlink(os.path.join(CACHEDIR, 'allbills_19.json.bak'))
+        except:
+            pass
+
     def setUpClass():
         # db.init_app can only be called once, so app needs to be a class var.
         __class__.app = billtracker
