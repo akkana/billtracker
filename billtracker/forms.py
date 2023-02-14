@@ -15,6 +15,13 @@ from billtracker.models import User
 from billtracker import chattycaptcha
 from billtracker import billtracker
 
+import re
+
+
+# Billno pattern used in the addbills form
+addbills_billno_pat = re.compile('^([SH][JC]{0,1}[BMR])(0*)([1-9][0-9]*)$',
+                                 re.IGNORECASE)
+
 
 import sys
 
@@ -104,17 +111,30 @@ class RegistrationForm(FlaskForm):
 class AddBillsForm(FlaskForm):
     billno = StringField('Bill Designation (e.g. SB21)',
                           validators=[DataRequired()])
+    # This is actually multiple billnos.
+    # Tried Regexp("([SH][JC]{0,1}[BMR][0-9]+,? ?)+")
+    # and Regexp("[HSJCBMR0-9, ]*")
+    # but they don't screen out nefarious characters like :
+    # which people seem to like to type in this field.
+
     submit = SubmitField('Track Bills')
     billhelp = "Tip: You can enter multiple bill numbers" \
-        " separated by commas, e.g. SB21, HR17"
+        " separated by commas, e.g. SB21,HR17"
 
     def validate_billno(self, billno):
-        designation = billno.data
-        designation = designation.upper()
-        if designation[0] not in ['S', 'H', 'J']:
-            raise ValidationError('Bills should start with S, H or J.')
+        billnos = billno.data.split(',')
+        invalid = []
+        for bn in billnos:
+            bn = bn.strip()
+            if not addbills_billno_pat.match(bn):
+                invalid.append(bn)
 
-        billno.data = designation
+        if invalid:
+            if len(invalid) == 1:
+                raise ValidationError("'%s' doesn't look like a bill number"
+                                      % invalid[0])
+            raise ValidationError("These don't look like bill numbers: %s"
+                                  % (", ".join(invalid)))
 
 
 class UserSettingsForm(FlaskForm):

@@ -8,13 +8,14 @@
 {{ form.hidden_tag() }}
 
 {{ form.billno.label }}   {{ form.billno(size=15, autofocus=true) }}
-{{ form.submit() }}</p>
-{{ form.billhelp }}
-
+{{ form.submit() }}
 <br>
   {% for error in form.billno.errors %}
-      <span style="color: red;">[{{ error }}]</span>
+      <span style="color: red;">{{ error }}</span>
   {% endfor %}
+
+<p>
+{{ form.billhelp }}
 
 </form>
 

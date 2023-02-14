@@ -474,9 +474,14 @@ class Bill(db.Model):
 
         # return [ Bill.a2order(c) for c in re.split('(\d+)', text) ]
 
-        for i, c in enumerate(billno):
-            if c.isdigit():
-                return '%s%05d' % (billno[:i], int(billno[i:]))
+        try:
+            letters, zeroes, num = nmlegisbill.billno_pat.match(billno).groups()
+            number = int(num)
+            return '%s%05d' % (letters, number)
+
+        except Exception as e:
+           print("billno", billno, "didn't match billno_pat:", e)
+           return 'z' + billno
 
         # No digits, which shouldn't happen
         return billno
