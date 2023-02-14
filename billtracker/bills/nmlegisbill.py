@@ -598,7 +598,9 @@ def update_allbills(yearcode, sessionid):
         # Add this billno and billurl to the global list if not there already.
         # Don't know the contents or amend urls yet, so leave blank.
         if billno_str not in g_allbills[yearcode]:
-            g_allbills[yearcode][billno_str] = {}
+            g_allbills[yearcode][billno_str] = {
+                "history": [ todaystr, "introduced", title_span.text ]
+            }
 
         # Update history if title changed.
         if "title" in g_allbills[yearcode][billno_str] and \

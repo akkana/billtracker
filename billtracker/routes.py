@@ -644,8 +644,7 @@ def allbills():
                 if lasthist[1] == "titlechanged" and \
                    len(allbills[billno]["history"]) > 1:
                     oldtitle = allbills[billno]["history"][-2][2]
-                    args["title"] += " <b>&larr; TITLE CHANGED FROM</b> " \
-                        + oldtitle
+                    args["oldtitle"] = oldtitle
             else:
                 oldbills.append(args)
         else:
@@ -681,10 +680,10 @@ or reload the page, these bills will no longer be listed as new.)""",
                      'alt': "Nothing new since you last looked."
                    },
                   { 'thelist': newbills,
-                    'header': """<h2>Recently Filed Bills:</h2>
+                    'header': """<h2>Recent Bills:</h2>
 <p>
 These are bills filed or changed in the past few days""",
-                    'alt': "Nothing changed in the past day."
+                    'alt': "Nothing changed recently."
                    },
                    { 'thelist': oldbills,
                      'header': "<h2>Older bills</h2>",

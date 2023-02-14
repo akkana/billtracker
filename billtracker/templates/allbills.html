@@ -54,6 +54,9 @@ Please try again later.
     <tr class="{{ loop.cycle('odd', 'even') }}">
       <td>{{ bill_line["billno"] }}
       <td><a href="{{ bill_line["url"] }}" target="_blank">{{ bill_line["title"] | safe }}</a>
+        {% if bill_line["oldtitle"] %}
+          <b class="titlechange">&larr; TITLE CHANGED FROM</b> {{ bill_line["oldtitle"] }}
+        {% endif %}
       {% if bill_line["contentsurl"] %}
         <td><a href="{{ bill_line["contentsurl"] }}" target="_blank">{{ bill_line["billno"] }} text</a>
       {% else %}
