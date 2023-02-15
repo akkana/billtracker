@@ -428,17 +428,27 @@ def save_allbills_json(yearcode):
     if not g_allbills[yearcode]:
         print("Can't save null g_allbills[%s]" % yearcode, file=sys.stderr)
     if yearcode not in g_allbills_cachefile:
-        g_allbills_cachefile[yearcode] = '%s/allbills_%s.json' % (
-            billrequests.CACHEDIR, yearcode)
+        g_allbills_cachefile[yearcode] = os.path.join(
+            billrequests.CACHEDIR, 'allbills_%s.json' % (yearcode))
+
+    # Cache a daily history. If yesterday's file isn't saved yet,
+    # save it.
+    yesterdaystr = (datetime.date.today()
+                    - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+    histfile = os.path.join(billrequests.CACHEDIR,
+                            'allbills_%s.json' % yesterdaystr)
+    if not os.path.exists(histfile):
+        backfile = histfile
+    else:
+        backfile = g_allbills_cachefile[yearcode] + ".bak"
 
     try:
         tmpfile = g_allbills_cachefile[yearcode] + ".tmp"
         with open(tmpfile, "w") as fp:
             json.dump(g_allbills[yearcode], fp, indent=2)
-            os.rename(g_allbills_cachefile[yearcode],
-                      g_allbills_cachefile[yearcode] + ".bak")
-            os.rename(tmpfile, g_allbills_cachefile[yearcode])
-            print("Saved to", g_allbills_cachefile[yearcode], file=sys.stderr)
+        os.rename(g_allbills_cachefile[yearcode], backfile)
+        os.rename(tmpfile, g_allbills_cachefile[yearcode])
+        print("Saved to", g_allbills_cachefile[yearcode], file=sys.stderr)
     except Exception as e:
         print("Couldn't save to allbills cache file for yearcode", yearcode,
               ":", e, file=sys.stderr)

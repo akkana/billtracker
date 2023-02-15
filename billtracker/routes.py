@@ -878,6 +878,53 @@ def tags(tag=None):
                            alltags=get_all_tags(session["yearcode"]))
 
 
+@billtracker.route("/history/")
+@billtracker.route("/history/<billno>")
+@billtracker.route("/history/<billno>/<yearcode>")
+@login_required
+def showhistory(billno=None, yearcode=None):
+    """Show title change history for a bill, or for all bills in a session.
+       Can also use "all" to indicate all bills, e.g. /history/all/23
+       Currently no UI for it.
+    """
+    if not yearcode:
+        yearcode = LegSession.current_yearcode()
+    print("billno:", billno, "yearcode", yearcode)
+
+    legsession = LegSession.by_yearcode(yearcode)
+    sessionid = legsession.id
+    print("sessionid:", sessionid)
+    allbillinfo = nmlegisbill.all_bills(sessionid, yearcode)
+
+    ret_html = "<h1>%d %s Session Bill Title History</h1>" % (
+        legsession.year, legsession.typename)
+
+    def show_hist_for_billno(billno):
+        nonlocal ret_html
+        info = allbillinfo[billno]
+        history = []
+        ret_html += "<h3>%s: %s</h3>" % (billno, info["title"])
+        if "history" in info:
+            for h in info["history"]:
+                if h[1] == "introduced":
+                    ret_html += "<p>%s: Introduced as %s" % (h[0], h[2])
+                elif h[1] == "titlechanged":
+                    ret_html += "<p>%s: Title changed to %s" % (h[0], h[2])
+        else:
+            ret_html += "<p>No history"
+
+    if billno and billno != "all":
+        show_hist_for_billno(billno)
+
+    else:
+        for billno in allbillinfo:
+            if billno.startswith("_"):
+                continue
+            show_hist_for_billno(billno)
+
+    return ret_html
+
+
 @billtracker.route("/config")
 @login_required
 def config():
