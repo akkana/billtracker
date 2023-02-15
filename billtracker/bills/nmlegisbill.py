@@ -599,7 +599,7 @@ def update_allbills(yearcode, sessionid):
         # Don't know the contents or amend urls yet, so leave blank.
         if billno_str not in g_allbills[yearcode]:
             g_allbills[yearcode][billno_str] = {
-                "history": [ todaystr, "introduced", title_span.text ]
+                "history": [ [ todaystr, "introduced", title_span.text ] ]
             }
 
         # Update history if title changed.

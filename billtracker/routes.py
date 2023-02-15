@@ -32,7 +32,7 @@ import sys, os
 
 # How recently did a bill have to change to be on the "new"
 # list on the allbills page?
-DAYS_CONSIDERED_NEW = 2
+DAYS_CONSIDERED_NEW = 1.2
 
 
 # filenames are e.g. HB000032.PDF with a random number of zeros.
@@ -635,17 +635,22 @@ def allbills():
             unseen.append(args)
         elif "history" in allbills[billno] and allbills[billno]["history"]:
             lasthist = allbills[billno]["history"][-1]
-            lastmod = datetime.strptime(lasthist[0], "%Y-%m-%d").date()
-            # print(billno, "lastmod:", lastmod, "diff", today - lastmod)
-            if today - lastmod <= timedelta(days=DAYS_CONSIDERED_NEW):
-                newbills.append(args)
+            try:
+                lastmod = datetime.strptime(lasthist[0], "%Y-%m-%d").date()
+                # print(billno, "lastmod:", lastmod, "diff", today - lastmod)
+                if today - lastmod <= timedelta(days=DAYS_CONSIDERED_NEW):
+                    newbills.append(args)
 
-                # Handle title changes
-                if lasthist[1] == "titlechanged" and \
-                   len(allbills[billno]["history"]) > 1:
-                    oldtitle = allbills[billno]["history"][-2][2]
-                    args["oldtitle"] = oldtitle
-            else:
+                    # Handle title changes
+                    if lasthist[1] == "titlechanged" and \
+                       len(allbills[billno]["history"]) > 1:
+                        oldtitle = allbills[billno]["history"][-2][2]
+                        args["oldtitle"] = oldtitle
+                else:
+                    oldbills.append(args)
+            except Exception as e:
+                print("** Can't parse date in first element of", lasthist,
+                      file=sys.stderr)
                 oldbills.append(args)
         else:
             # print("No history in", billno)
