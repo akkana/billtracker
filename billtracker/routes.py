@@ -1633,7 +1633,8 @@ def refresh_all_committees(key):
     """
     if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
-    print("Refreshing all committees", file=sys.stderr)
+
+    print("api/refresh_all_committees", file=sys.stderr)
 
     set_session_by_request_values()
     yearcode = session["yearcode"]
@@ -1665,8 +1666,6 @@ def refresh_all_committees(key):
             # Now it should be safe to refresh
             newcomm.refresh()
 
-    print("api/refresh_all_committees", file=sys.stderr)
-
     hasmeetings = []
     nomeetings = []
     bills_with_committee = {}
@@ -1695,6 +1694,7 @@ def refresh_all_committees(key):
         # like "1:30 PM  (or 15 minutes following the floor session)"
         timestrings = []
         updated_comm = False
+        today = datetime.now() - timedelta(hours=4)
         for mtg in comm_mtgs[comm.code]["meetings"]:
             # Ignore any meeting without datetime or bills field.
             if "datetime" not in mtg:
@@ -1726,11 +1726,27 @@ def refresh_all_committees(key):
                 if bill:
                     bill.location = comm.code
                     if mtg['datetime']:
-                        bill.scheduled_date = mtg['datetime']
-                        updated_comm = True
+                        # Only overwrite the current scheduled_date
+                        # if the new one is earlier or if the current
+                        # datetime is more than a few hours old.
+                        if (not bill.scheduled_date or
+                            bill.scheduled_date < today or
+                            mtg['datetime'] < bill.scheduled_date):
+                            bill.scheduled_date = mtg['datetime']
+                            updated_comm = True
+                        elif mtg['datetime'] < bill.scheduled_date:
+                            print("CONFLICT:", billno, "scheduled for",
+                                  bill.scheduled_date, "but also for",
+                                  mtg['datetime'], file=sys.stderr)
                     else:
                         bill.scheduled_date = None
+                        print("Warning:", bill,
+                              "listed in meeting with no date", mtg,
+                              file=sys.stderr)
+
                     db.session.add(bill)
+                elif billno == "HB91":
+                    print("No bill object for", billno)
 
         if updated_comm:
             hasmeetings.append(comm.code)
