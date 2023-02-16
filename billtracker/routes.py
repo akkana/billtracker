@@ -705,14 +705,21 @@ These are bills filed or changed in the past few days""",
                            showtags=False)
 
 
+# All tags, by yearcode
+g_all_tags = {}
+
 def get_all_tags(yearcode):
+    if yearcode in g_all_tags:
+        return g_all_tags[yearcode]
+
     all_tags = set()
     for bill in Bill.query.filter_by(year=yearcode).all():
         if bill.tags:
             for tag in bill.tags.split(','):
                 all_tags.add(tag)
 
-    return sorted(list(all_tags), key=lambda t: t.lower())
+    g_all_tags[yearcode] = sorted(list(all_tags), key=lambda t: t.lower())
+    return g_all_tags[yearcode]
 
 
 # tags is another route that bypasses WTForms in order to have a bill list
@@ -742,7 +749,22 @@ def tags(tag=None):
     # the current tag. Figure out which path the user followed:
     if current_user and not current_user.is_anonymous:
         if "update" in request.form:
+            print("values:", values)
             tag = values["tag"]
+            checkedboxes = {}
+            for val in values:
+                if val.startswith("f_"):
+                    billno = val[2:]
+                    if billno not in checkedboxes:
+                        checkedboxes[billno] = []
+                    checkedboxes[billno].append(tag)
+                elif val.startswith(billno) and val.endswith("-name"):
+                    billno, tagname, blah = val.split('-')
+                    if billno not in checkedboxes:
+                        checkedboxes[billno] = []
+                    checkedboxes[billno].append(tagname)
+
+            XXXXXX LEFT OFF HERE
             if not is_legal_tag(tag):
                 flash("'%s' isn't a legal tag name" % tag)
             else:
@@ -787,6 +809,9 @@ def tags(tag=None):
                           % tag)
                     print(current_user, "removed all '%s' tags" % tag,
                           file=sys.stderr)
+
+            # Tag values have changed. Recompute the all_tags list
+            get_all_tags(session["yearcode"])
 
         elif "submitnewtag" in request.form:
             if values["newtag"]:
@@ -844,9 +869,13 @@ def tags(tag=None):
         Return a dictionary, { instr: css_color_code }
         Try to keep them light, so dark text will contrast well.
         If there are commas in the tag string, loop over them.
+        If the tag string is "all", return a dictionary of colors
+        for all known tags.
         """
         if ',' in instr:
             pieces = instr.split(',')
+        elif instr == "all":
+            pieces = get_all_tags(session["yearcode"])
         else:
             pieces = [ instr ]
 
@@ -870,7 +899,7 @@ def tags(tag=None):
 
         return dic
 
-    return render_template('tags.html', user=current_user,
+    return render_template('tags.html', title="Tags", user=current_user,
                            yearcode=session["yearcode"],
                            bill_lists=bill_lists,
                            tag=tag, badtag=badtag,
@@ -1322,6 +1351,7 @@ def refresh_allbills(key):
                                           do_update=True)
     return "OK Refreshed allbills"
 
+
 #
 # Test with:
 # requests.post('%s/api/refresh_one_bill' % baseurl,
@@ -1362,6 +1392,7 @@ def refresh_one_bill():
     newbill = Bill.query.filter_by(billno=billno, year=yearcode).first()
 
     return "OK Updated %s" % billno
+
 
 # Test with:
 # requests.post('%s/api/refresh_percent_of_bills' % baseurl,
@@ -1643,7 +1674,6 @@ def refresh_all_committees(key):
     Legislator.refresh_legislators_list()
 
     known_committees = Committee.query.all()
-    # known_commcodes = [ c.code for c in known_committees ]
 
     comm_mtgs = nmlegisbill.expand_committees()
 

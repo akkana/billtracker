@@ -1,0 +1,157 @@
+/* * { box-sizing: border-box; } */
+
+.popup-holder {
+  position: relative;
+  display: inline;
+}
+
+/* The initial button that is clicked to bring up the popup,
+   but also the trough behind the button and label
+ */
+.popup-holder label {
+/*
+  background: linear-gradient(#eee, #ccc);
+  margin: .3em;
+  text-align: center;
+*/
+  position: relative;
+}
+
+/* The .buttonlike hover rule only covers part of the label.
+ * To make hover work over the whole label it has to be on
+ * the containing popup-holder.
+ */
+.popup-holder:hover label {
+  background: #eff;
+}
+
+/*
+.popup-holder label i {
+  color: pink;
+  position: absolute;
+  right: 18px;
+  top: 12px;
+}
+*/
+
+.popup-holder [type="radio"] {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  margin: 0;
+  z-index: 1;
+}
+
+/* The content inside each button */
+.content {
+  position: absolute;
+  top: 100%;
+  opacity: 0;
+  right: 0;
+  background: linear-gradient(#eee, #ccc);  /* whole popup background */
+  color: black;   /* foreground for text in popup */
+  padding: 10px;
+  /* Haven't found a way to get it to size to content
+   * without breaking the line between the button and its label.
+   */
+  width: 16em;
+}
+
+[type="radio"]:checked ~ label {
+  z-index: 2;
+}
+[type="radio"]:checked ~ label ~ .content {
+  z-index: 1;
+  opacity: 1;
+}
+
+/* The label that replaces the original button when the content is popped up */
+.close-tab {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* The "Done" button to pop the popup back down */
+.close-tab label {
+  background: #333;
+  color: white;
+}
+[type="radio"]:checked ~ label ~ .close-tab {
+  z-index: 3;
+}
+
+/* Toggles inside the popups */
+
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
+}
+
+.toggle {
+  cursor: pointer;
+  display: inline-block;
+}
+
+/* The toggle switch slider trough */
+.toggle-switch {
+  display: inline-block;
+  background: #bbb;
+  width: 3em;
+  height: 1.5em;
+  border-radius: 14px;
+  width: 42px;
+  height: 22px;
+  position: relative;
+  vertical-align: middle;
+  transition: background 0.25s;
+}
+.toggle-switch:before, .toggle-switch:after {
+  content: "";
+}
+.toggle-switch:before {
+  display: block;
+  background: linear-gradient(to bottom, #fff 0%, #eee 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+  width: 1em;
+  height: 1em;
+/*
+*/
+  width: 18px;
+  height: 18px;
+  transition: left 0.25s;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+}
+.toggle:hover .toggle-switch:before {
+  background: linear-gradient(to bottom, #fff 0%, #fff 100%);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+.toggle-checkbox:checked + .toggle-switch {
+  background: #25f;
+}
+.toggle-checkbox:checked + .toggle-switch:before {
+  left: 25px;
+}
+
+.toggle-checkbox {
+  position: absolute;
+  visibility: hidden;
+}
+
+.toggle-label {
+  margin-left: 5px;
+  position: relative;
+  top: 2px;
+  height: 1em;
+  margin: .2em .5em;
+}

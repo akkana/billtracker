@@ -7,6 +7,8 @@
    (only logged-in users will see checkboxes).
  #}
 
+{% import "edit_tags_button.html" as edit_tags_button %}
+
 {% macro listbills(bill_list, user, extras={}, checkverb="") %}
 
 <table class="bill_minilist">
@@ -57,6 +59,10 @@
              {% endif %}
            {% else %}
              &nbsp;
+           {% endif %}
+           {% set alltags = [ "health", "voting", "environment" ] %}
+           {% if alltags %}
+           {{ edit_tags_button.edit_tags_button(bill, extras["colorfcn"]) }}
            {% endif %}
          </td>
       {% endif %}

@@ -1,0 +1,44 @@
+{% macro edit_tags_button(bill, colorfcn) %}
+
+  <div class="popup-holder">
+    <input type="radio" id="tab-2" name="tab-group-1" />
+    <label for="tab-2" class="buttonlike">Edit</label>
+    <div class="popup-holder close-tab">
+      <input type="radio" id="tab-close" name="tab-group-1" />
+      <label for="tab-close">Done</label>
+    </div>
+
+    <div class="content">
+      Tags:<br>
+
+{# For now, tag colors aren't used for the checkboxes
+   because I haven't figured out how to make them work.
+   But colorfcn("all") is still a good way of getting all tags.
+ #}
+{% set alltagcolors = colorfcn("all") %}
+{% if bill.tags %}
+  {% set billtags = bill.tags.split(',') %}
+{% else %}
+  {% set billtags = [] %}
+{% endif %}
+
+{% for tag in alltagcolors %}
+  {% set togglename = bill.billno + "-" + tag %}
+
+  <label class="toggle">
+    <input type="checkbox" class="toggle-checkbox"
+    {% if tag in billtags %}
+           checked
+    {% endif %}
+           id="{{ togglename }}-id" name="{{ togglename }}-name">
+    <span class="toggle-switch"></span>
+    <span class="toggle-label">{{ tag }}</span>
+  </label>
+  <br>
+
+{% endfor %}
+
+    </div>
+  </div>
+
+{% endmacro %}

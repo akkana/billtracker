@@ -16,7 +16,11 @@
 
 <div class="buttonholder">
 <p>
+{% if alltags %}
 Edit a tag:
+{% else %}
+No tags yet. You can be the first to create one!
+{% endif %}
 
 {% for t in alltags %}
   {% if t != tag %}
@@ -73,15 +77,15 @@ If you don't see a bill in the list below, maybe nobody is tracking it yet.
 
 {% for header in bill_lists %}
   <h2>{{ header }}</h2>
-  {{ listbills.listbills(bill_lists[header], user, extras={ "tag": tag, "popular": None, "colorfcn": colorfcn }, checkverb=checkverb) }}
+  {{ listbills.listbills(bill_lists[header], user, extras={ "tag": tag, "popular": None, "alltags": alltags, "colorfcn": colorfcn }, checkverb=checkverb) }}
 {% endfor %}
 
 <p>
 {% if tag %}
 <input type=submit name="update" value="Update bills with tag '{{ tag }}'">
+{% endif %}
 
 </form>
-{% endif %}
 
 {% endblock %}
 
