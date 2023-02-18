@@ -24,13 +24,6 @@ import traceback
 import requests
 
 
-# Time zone to be used for everything.
-# The following line assumes that the flask server is in the right
-# time zone for the legislature being followed.
-# If it isn't, you can hard-wire it here.
-gTimezone = datetime.datetime.now().astimezone().tzinfo
-
-
 # A bill pattern, allowing for any number of extra leading zeros
 # like the FIR/LESC links randomly add.
 # If there are other letters or a different pattern,
@@ -212,8 +205,7 @@ def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
         if scheduled_for:
             schedstr = scheduled_for.group(1)
             try:
-                billdic['scheduled_date'] = \
-                    dateutil.parser.parse(schedstr).astimezone(gTimezone)
+                billdic['scheduled_date'] = dateutil.parser.parse(schedstr)
             except:
                 print("Couldn't parse scheduled date", schedstr,
                       "from '%s'" % curloc_text)
@@ -313,7 +305,7 @@ def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
     billdic['FIRlink'] = None
     billdic['LESClink'] = None
 
-    billdic['update_date'] = datetime.datetime.now().astimezone(gTimezone)
+    billdic['update_date'] = datetime.datetime.now()
     billdic['mod_date'] = None
 
     return billdic
@@ -966,13 +958,12 @@ def parse_date_time(dts):
        or may not include a time.
     """
     if 'T' in dts:
-        return datetime.datetime.strptime(dts,
-                        "%Y-%m-%dT%H:%M:%S").astimezone(gTimezone)
+        return datetime.datetime.strptime(dts, "%Y-%m-%dT%H:%M:%S")
 
     # There may or may not be a time; if there wasn't,
     # parse only the date portion. H and M will be zero.
     else:
-        return datetime.datetime.strptime(dts, "%Y-%m-%d").astimezone(gTimezone)
+        return datetime.datetime.strptime(dts, "%Y-%m-%d")
 
 
 def expand_timestr(meeting):
@@ -1158,8 +1149,7 @@ def expand_committees_20220213(scheduledata):
                 try:
                     if 'T' in pdfmtg["datetime"]:
                         meeting["datetime"] = datetime.datetime.strptime(
-                            pdfmtg["datetime"],
-                            "%Y-%m-%dT%H:%M:%S").astimezone(gTimezone)
+                            pdfmtg["datetime"], "%Y-%m-%dT%H:%M:%S")
                         if not meeting["timestr"]:
                             meeting["timestr"] \
                                 = meeting["datetime"].strftime("%H:%M")
@@ -1167,8 +1157,7 @@ def expand_committees_20220213(scheduledata):
                     # parse only the date portion. H and M will be zero.
                     else:
                         meeting["datetime"] = datetime.datetime.strptime(
-                            pdfmtg["datetime"],
-                            "%Y-%m-%d").astimezone(gTimezone)
+                            pdfmtg["datetime"], "%Y-%m-%d")
 
                 except KeyError:
                     # No datetime, fall back on date
@@ -1177,7 +1166,7 @@ def expand_committees_20220213(scheduledata):
                               file=sys.stderr)
                         continue
                     meeting["datetime"] = datetime.datetime.strptime(
-                        pdfmtg["date"], "%Y-%m-%d").astimezone(gTimezone)
+                        pdfmtg["date"], "%Y-%m-%d")
 
                 except ValueError:
                     # probably bad datetime string, e.g. "2023-01-17T24:00:00"
@@ -1263,8 +1252,8 @@ def get_legislator_list():
             # isn't orphaned, has been updated this session:
             print("Fetched legislators.json", file=sys.stderr)
             lastmod = datetime.datetime.strptime(r.headers['Last-Modified'],
-                                   '%a, %d %b %Y %X %Z').astimezone(gTimezone)
-            if ((datetime.datetime.now().astimezone(gTimezone) - lastmod).days
+                                   '%a, %d %b %Y %X %Z')
+            if ((datetime.datetime.now() - lastmod).days
                 < 120):
                 legdata = r.json()
             else:

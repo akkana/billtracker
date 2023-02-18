@@ -254,7 +254,7 @@ accept our apologies, and don't click the confirmation link.
 
 
     def update_last_check(self):
-        self.last_check = datetime.now().astimezone(nmlegisbill.gTimezone)
+        self.last_check = datetime.now()
         db.session.commit()
         # So this can be called from a template:
         return ''
@@ -318,7 +318,7 @@ accept our apologies, and don't click the confirmation link.
             # In a table sorted by last_action, inclue separators
             # between days.
             if sort_type == "action_date" and bill.last_action_date:
-                newday = bill.last_action_date.astimezone().date()
+                newday = bill.last_action_date.date()
                 if newday != curday:
                     curday = newday
                     outstr += "<tr %s><th>Last action: %s\n" \
@@ -420,7 +420,9 @@ class Bill(db.Model):
     # Link to amendments PDF, if any
     amendlink = db.Column(db.String(150))
 
-    # Is the bill scheduled to come up for debate? A datetime.
+    # Is the bill scheduled to come up for debate? An unaware datetime.
+    # Needs to be unaware because attempting to store the local tz
+    # in the database doesn't work reliably.
     scheduled_date = db.Column(db.DateTime)
 
     # Tags: defined by users, comma separated
@@ -640,21 +642,22 @@ class Bill(db.Model):
            earlier than that, it's in the future.
            (Figuring not many committees meet later than 6pm.)
         """
-        now = datetime.now().astimezone(nmlegisbill.gTimezone)
+        now = datetime.now()
         nowdate = now.date()
         if now.hour >= 18:
             nowdate += timedelta(days=1)
 
+
         if self.scheduled_date:
-            scheddate = self.scheduled_date.date()
-            if scheddate >= nowdate:
+            # self.scheduled_date is actually a datetime, despite the name
+            if self.scheduled_date.date() >= nowdate:
                 return True
 
     def set_from_parsed_page(self, b):
         """b is a bill dictionary coming from nmlegisbill.parse_bill_page().
            Set this Bill's values according to what was on the page.
         """
-        now = datetime.now().astimezone(nmlegisbill.gTimezone)
+        now = datetime.now()
 
         # If the name changes, it was probably a dummy bill.
         # But don't worry about updating bills_seen: that should
@@ -714,18 +717,16 @@ class Bill(db.Model):
         if user:
             if not self.last_action_date:
                 return False
-            self.last_action_date = self.last_action_date.astimezone(
-                nmlegisbill.gTimezone)
+            self.last_action_date = self.last_action_date
             if not user.last_check:
                 return True
             if not user.last_check:
                 return True
-            user.last_check = user.last_check.astimezone(nmlegisbill.gTimezone)
+            user.last_check = user.last_check
             if self.last_action_date > user.last_check:
                 return True
 
-        if datetime.now().astimezone(nmlegisbill.gTimezone) \
-                - self.last_action_date < RECENT:
+        if datetime.now() - self.last_action_date < RECENT:
             return True
 
         return False
@@ -746,8 +747,8 @@ class Bill(db.Model):
         # The date to show is the most recent of last_action_date
         # or scheduled_date.
         last_action = self.last_action_date
-        if last_action and last_action.hour:
-            last_action = last_action.astimezone()
+        if last_action:
+            last_action = last_action
 
         def highlight_if_recent(adate, pre_string):
             if adate and adate.tzinfo and \
@@ -768,18 +769,13 @@ class Bill(db.Model):
             else:        # A location that has no committee entry
                 outstr += 'Location: %s<br />' % self.location
 
-            now = datetime.now().astimezone(nmlegisbill.gTimezone)
+            now = datetime.now()
             today = now.date()
 
             if self.scheduled_date:
-                # We (try to) always store tz-aware datetimes to the db,
-                # but when it comes back out of the db it doesn't
-                # necessarily retain that info.
-                self.scheduled_date = \
-                    self.scheduled_date.astimezone(nmlegisbill.gTimezone)
+                sched_date = self.scheduled_date.date()
 
                 future = self.scheduled_in_future()
-                sched_date = self.scheduled_date.date()
 
                 # If the bill is scheduled in the future, bold it:
                 if future:
@@ -807,16 +803,14 @@ class Bill(db.Model):
 
                 # otherwise show the most recent of scheduled or last_action,
                 # and highlight it if it's recent.
-                else:
-                    if self.last_action_date:
-                        # Should already be converted to have a timezone
-                        if self.last_action_date > self.scheduled_date:
-                            outstr += highlight_if_recent(last_action,
-                                                          "Last action")
-                        else:
-                            outstr += highlight_if_recent(last_action,
-                                                          "Last scheduled")
-                        outstr += '<br />'
+                elif last_action:
+                    if last_action > self.scheduled_date:
+                        outstr += highlight_if_recent(last_action,
+                                                      "Last action")
+                    else:
+                        outstr += highlight_if_recent(last_action,
+                                                      "Last scheduled")
+                    outstr += '<br />'
 
         else:            # No location set
             outstr += 'Location: unknown<br />'
@@ -949,15 +943,16 @@ class Bill(db.Model):
 
             # The date to show is the most recent of last_action_date
             # or scheduled_date.
-            last_action = \
-                self.last_action_date.astimezone(nmlegisbill.gTimezone)
+            last_action = self.last_action_date
 
             if self.scheduled_date:
-                # We (try to) always store tz-aware datetimes to the db,
-                # but when it comes back out of the db it doesn't
-                # necessarily retain that info.
+                # postgres stores a dummy timezone to unaware datetimes,
+                # ... and if you try to store a datetime with a local
+                # timezone, it replaces it with the dummy without
+                # adjusting the hour. Strip any bogus timezone here,
+                # just in case.
                 self.scheduled_date = \
-                    self.scheduled_date.astimezone(nmlegisbill.gTimezone)
+                    self.scheduled_date.replace(tzinfo=None)
 
                 future = self.scheduled_in_future()
                 sched_date = self.scheduled_date.date()
@@ -1219,7 +1214,7 @@ class Committee(db.Model):
                     # billno isn't in the database
                     not_updated_bills.append(sched_pair[0])
 
-        self.last_check = datetime.now().astimezone(nmlegisbill.gTimezone)
+        self.last_check = datetime.now()
 
         db.session.add(self)
         db.session.commit()

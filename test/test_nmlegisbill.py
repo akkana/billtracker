@@ -160,7 +160,7 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
            'name': 'House Agriculture, Acequias And Water Resources'},
  'HCEDC': {'code': 'HCEDC',
            'meetings': [{'bills': ['HB228'],
-                         'datetime': datetime.datetime(2022, 2, 11, 13, 30, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200), 'MST')),
+                         'datetime': datetime.datetime(2022, 2, 11, 13, 30),
                          'timestr': '1:30 PM, room: 317, <a '
                                     "href='https://us02web.zoom.us/j/88683384400' "
                                     "target='_blank'>zoom link</a>, <a "
@@ -179,14 +179,14 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
  'HEC': {'chair': 'HROMA',
          'code': 'HEC',
          'meetings': [{'bills': ['HM43', 'HM48', 'SB1', 'SB36'],
-                       'datetime': datetime.datetime(2022, 2, 12, 9, 0, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200), 'MST')),
+                       'datetime': datetime.datetime(2022, 2, 12, 9, 0),
                        'timestr': '9:00 AM, room: 309, <a '
                                   "href='https://us02web.zoom.us/j/85200397115' "
                                   "target='_blank'>zoom link</a>, <a "
                                   "href='https://nmlegis.gov/Agendas/Standing/hSched021222.pdf' "
                                   "target='_blank'>PDF schedule</a>"},
                       {'bills': ['HM43', 'HM48', 'SB1', 'SB36'],
-                       'datetime': datetime.datetime(2022, 2, 12, 9, 0, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200), 'MST')),
+                       'datetime': datetime.datetime(2022, 2, 12, 9, 0),
                        'timestr': '9:00 AM, room: 309, <a '
                                   "href='https://us02web.zoom.us/j/85200397115' "
                                   "target='_blank'>zoom link</a>, <a "
@@ -209,14 +209,14 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
  'HGEIC': {'chair': 'HLOUI',
            'code': 'HGEIC',
            'meetings': [{'bills': ['HB181', 'HB193', 'HB6', 'HJM3', 'HJR14'],
-                         'datetime': datetime.datetime(2022, 2, 12, 12, 0, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200), 'MST')),
+                         'datetime': datetime.datetime(2022, 2, 12, 12, 0),
                          'timestr': '12:00 PM, room: 305, <a '
                                     "href='https://us02web.zoom.us/j/88201222358' "
                                     "target='_blank'>zoom link</a>, <a "
                                     "href='https://nmlegis.gov/Agendas/Standing/hSched021222.pdf' "
                                     "target='_blank'>PDF schedule</a>"},
                         {'bills': ['HB181', 'HB193', 'HB6', 'HJM3', 'HJR14'],
-                         'datetime': datetime.datetime(2022, 2, 12, 12, 0, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200), 'MST')),
+                         'datetime': datetime.datetime(2022, 2, 12, 12, 0),
                          'timestr': '12:00 PM, room: 305, <a '
                                     "href='https://us02web.zoom.us/j/88201222358' "
                                     "target='_blank'>zoom link</a>, <a "
@@ -235,7 +235,7 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
  'HHHC': {'chair': 'HARMS',
           'code': 'HHHC',
           'meetings': [{'bills': ['HB239', 'SB138', 'SB38', 'SB40'],
-                        'datetime': datetime.datetime(2022, 2, 11, 8, 30, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200), 'MST')),
+                        'datetime': datetime.datetime(2022, 2, 11, 8, 30),
                         'timestr': '8:30 AM, room: 315, <a '
                                    "href='https://us02web.zoom.us/j/84182969724' "
                                    "target='_blank'>zoom link</a>, <a "
@@ -265,7 +265,7 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
                                  'SB4',
                                  'SB43',
                                  'SJR3'],
-                       'datetime': datetime.datetime(2022, 2, 12, 9, 0, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200), 'MST')),
+                       'datetime': datetime.datetime(2022, 2, 12, 9, 0),
                        'timestr': '9:00 AM, room: 317, <a '
                                   "href='https://us02web.zoom.us/j/83315484306' "
                                   "target='_blank'>zoom link</a>, <a "
@@ -281,7 +281,7 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
                                  'SB4',
                                  'SB43',
                                  'SJR3'],
-                       'datetime': datetime.datetime(2022, 2, 12, 9, 0, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200), 'MST')),
+                       'datetime': datetime.datetime(2022, 2, 12, 9, 0),
                        'timestr': '9:00 AM, room: 317, <a '
                                   "href='https://us02web.zoom.us/j/83315484306' "
                                   "target='_blank'>zoom link</a>, <a "
@@ -303,7 +303,7 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
  'HLVMC': {'chair': 'HALCO',
            'code': 'HLVMC',
            'meetings': [{'bills': ['HB243'],
-                         'datetime': datetime.datetime(2022, 2, 12, 8, 30, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200), 'MST')),
+                         'datetime': datetime.datetime(2022, 2, 12, 8, 30),
                          'timestr': '8:30 AM, room: 315, <a '
                                     "href='https://us02web.zoom.us/j/87484114766' "
                                     "target='_blank'>zoom link</a>, <a "
@@ -323,7 +323,7 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
  'HTPWC': {'chair': 'HRUBI',
            'code': 'HTPWC',
            'meetings': [{'bills': ['SB174'],
-                         'datetime': datetime.datetime(2022, 2, 15, 9, 0, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200), 'MST')),
+                         'datetime': datetime.datetime(2022, 2, 15, 9, 0),
                          'timestr': '9:00 AM, room: 305, <a '
                                     "href='https://us02web.zoom.us/j/84841772756' "
                                     "target='_blank'>zoom link</a>, <a "
@@ -350,7 +350,7 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
                                   'HB194',
                                   'HB213',
                                   'SB134'],
-                        'datetime': datetime.datetime(2022, 2, 12, 12, 30, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200), 'MST')),
+                        'datetime': datetime.datetime(2022, 2, 12, 12, 30),
                         'timestr': '12:30 PM, room: 317, <a '
                                    "href='https://us02web.zoom.us/j/83787833093' "
                                    "target='_blank'>zoom link</a>, <a "
@@ -363,7 +363,7 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
                                   'HB194',
                                   'HB213',
                                   'SB134'],
-                        'datetime': datetime.datetime(2022, 2, 12, 12, 30, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200), 'MST')),
+                        'datetime': datetime.datetime(2022, 2, 12, 12, 30),
                         'timestr': '12:30 PM, room: 317, <a '
                                    "href='https://us02web.zoom.us/j/83787833093' "
                                    "target='_blank'>zoom link</a>, <a "
@@ -391,7 +391,7 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
                                  'SB202',
                                  'SB243',
                                  'SB69'],
-                       'datetime': datetime.datetime(2022, 2, 12, 10, 0, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200), 'MST')),
+                       'datetime': datetime.datetime(2022, 2, 12, 10, 0),
                        'timestr': '10:00 AM or Call of Chair, room: 322, <a '
                                   "href='https://us02web.zoom.us/j/81679647964' "
                                   "target='_blank'>zoom link</a>, <a "
@@ -403,7 +403,7 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
                                  'SB202',
                                  'SB243',
                                  'SB69'],
-                       'datetime': datetime.datetime(2022, 2, 12, 10, 0, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200), 'MST')),
+                       'datetime': datetime.datetime(2022, 2, 12, 10, 0),
                        'timestr': '10:00 AM or Call of Chair, room: 322, <a '
                                   "href='https://us02web.zoom.us/j/81679647964' "
                                   "target='_blank'>zoom link</a>, <a "
@@ -424,7 +424,7 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
  'SHPAC': {'chair': 'SORTI',
            'code': 'SHPAC',
            'meetings': [{'bills': ['HB22', 'HB56', 'HB81'],
-                         'datetime': datetime.datetime(2022, 2, 11, 13, 30, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200), 'MST')),
+                         'datetime': datetime.datetime(2022, 2, 11, 13, 30),
                          'timestr': '1:30 PM or 1/2 hr after session, room: '
                                     '311, <a '
                                     "href='https://us02web.zoom.us/j/87967039414' "
@@ -443,7 +443,7 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
  'SIRC': {'chair': 'SPINS',
           'code': 'SIRC',
           'meetings': [{'bills': ['HB15'],
-                        'datetime': datetime.datetime(2022, 2, 11, 13, 30, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200), 'MST')),
+                        'datetime': datetime.datetime(2022, 2, 11, 13, 30),
                         'timestr': '1:30 PM or 1/2 hr after, room: 303, <a '
                                    "href='https://us02web.zoom.us/j/84137686373' "
                                    "target='_blank'>zoom link</a>, <a "
@@ -463,7 +463,7 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
                                  'SB42',
                                  'SB54',
                                  'SJR7'],
-                       'datetime': datetime.datetime(2022, 2, 12, 10, 0, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200), 'MST')),
+                       'datetime': datetime.datetime(2022, 2, 12, 10, 0),
                        'timestr': '10:00 AM, room: 311, <a '
                                   "href='https://us02web.zoom.us/j/83347538157' "
                                   "target='_blank'>zoom link</a>, <a "
@@ -479,7 +479,7 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
                                  'SB42',
                                  'SB54',
                                  'SJR7'],
-                       'datetime': datetime.datetime(2022, 2, 12, 10, 0, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200), 'MST')),
+                       'datetime': datetime.datetime(2022, 2, 12, 10, 0),
                        'timestr': '10:00 AM, room: 311, <a '
                                   "href='https://us02web.zoom.us/j/83347538157' "
                                   "target='_blank'>zoom link</a>, <a "
@@ -512,7 +512,7 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
  'STBTC': {'chair': 'SSHEN',
            'code': 'STBTC',
            'meetings': [{'bills': ['HB47', 'HB71', 'HB82', 'HB95', 'SB198'],
-                         'datetime': datetime.datetime(2022, 2, 12, 9, 0, tzinfo=datetime.timezone(datetime.timedelta(days=-1, seconds=61200), 'MST')),
+                         'datetime': datetime.datetime(2022, 2, 12, 9, 0),
                          'timestr': '9:00 AM, room: 321, <a '
                                     "href='https://us02web.zoom.us/j/84895112616' "
                                     "target='_blank'>zoom link</a>, <a "
