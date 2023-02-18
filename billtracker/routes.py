@@ -363,10 +363,10 @@ def addbills():
                 bs = Bill.query.filter_by(billno=billno,
                                           year=session["yearcode"]).all()
                 if len(bs) > 1:
-                    print("YIKES! addbills reated a duplicate bill",
+                    print("YIKES! addbills created a duplicate bill", billno,
                           file=sys.stderr)
                     for b in bs:
-                        print("   ", b, file=sys.stderr)
+                        print("   addbills dup", b, file=sys.stderr)
             else:
                 if not billnopat.match(billno):
                     flash("'%s' doesn't look like a bill number" % orig_billno)
@@ -524,7 +524,7 @@ def track_untrack():
                 print("YIKES! track_untrack created a duplicate bill",
                       file=sys.stderr)
                 for b in bs:
-                    print("   ", b, file=sys.stderr)
+                    print("   track_untrack dup", b, file=sys.stderr)
 
     return redirect(url_for(returnpage))
 
@@ -889,11 +889,9 @@ def showhistory(billno=None, yearcode=None):
     """
     if not yearcode:
         yearcode = LegSession.current_yearcode()
-    print("billno:", billno, "yearcode", yearcode)
 
     legsession = LegSession.by_yearcode(yearcode)
     sessionid = legsession.id
-    print("sessionid:", sessionid)
     allbillinfo = nmlegisbill.all_bills(sessionid, yearcode)
 
     ret_html = "<h1>%d %s Session Bill Title History</h1>" % (
@@ -1074,7 +1072,8 @@ def appinfo(key):
     if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
-    infostr = "<br>\nBillTracker at " + str(datetime.now())
+    infostr = "<br>\nBillTracker at " \
+        + str(datetime.now().astimezone(nmlegisbill.gTimezone))
 
     infostr += "<p>\nSQLALCHEMY_DATABASE_URI: " \
         + billtracker.config["SQLALCHEMY_DATABASE_URI"]
@@ -1276,7 +1275,7 @@ def mailto(username, key):
         return "FAIL couldn't send email to %s" % username
 
     # Update the user's last_check time and commit it to the database:
-    user.last_check = datetime.now()
+    user.last_check = datetime.now().astimezone(nmlegisbill.gTimezone)
     db.session.add(user)
     db.session.commit()
 
@@ -1317,7 +1316,6 @@ def refresh_allbills(key):
     if not leg_session:
         return "FAIL Couldn't get legislative session list"
 
-    print("Updating allbills data", file=sys.stderr)
     nmlegisbill.update_allbills_if_needed(yearcode, leg_session.id,
                                           do_update=True)
     return "OK Refreshed allbills"
@@ -1694,7 +1692,8 @@ def refresh_all_committees(key):
         # like "1:30 PM  (or 15 minutes following the floor session)"
         timestrings = []
         updated_comm = False
-        today = datetime.now() - timedelta(hours=4)
+        today = datetime.now().astimezone().astimezone(nmlegisbill.gTimezone) \
+            - timedelta(hours=4)
         for mtg in comm_mtgs[comm.code]["meetings"]:
             # Ignore any meeting without datetime or bills field.
             if "datetime" not in mtg:
@@ -1729,6 +1728,16 @@ def refresh_all_committees(key):
                         # Only overwrite the current scheduled_date
                         # if the new one is earlier or if the current
                         # datetime is more than a few hours old.
+
+                        # Ideally all the times in the db have the local
+                        # timezone, but that's not reliable so force it here.
+                        if bill.scheduled_date:
+                            bill.scheduled_date = bill.scheduled_date.astimezone(
+                                nmlegisbill.gTimezone)
+                        if not mtg['datetime'].tzinfo:
+                            print("*********** mtg from expand_committees "
+                                  "has no tzinfo!",
+                                  mtg, file=sys.stderr)
                         if (not bill.scheduled_date or
                             bill.scheduled_date < today or
                             mtg['datetime'] < bill.scheduled_date):
@@ -1844,7 +1853,7 @@ def db_backup():
     db_uri = billtracker.config['SQLALCHEMY_DATABASE_URI']
     print("db URI:", db_uri, file=sys.stderr)
 
-    now = datetime.now()
+    now = datetime.now().astimezone(nmlegisbill.gTimezone)
     backupdir = os.path.join(billrequests.CACHEDIR, "db")
 
     db_orig = db_uri[9:]
