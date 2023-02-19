@@ -746,12 +746,10 @@ class Bill(db.Model):
 
         # The date to show is the most recent of last_action_date
         # or scheduled_date.
-        last_action = self.last_action_date
-        if last_action:
-            last_action = last_action
+        last_action = self.last_action_date.replace(tzinfo=None)
 
         def highlight_if_recent(adate, pre_string):
-            if adate and adate.tzinfo and \
+            if adate and \
                ((now - adate) < timedelta(hours=30)):
                 return "<b>%s %s</b>" % (pre_string,
                                          adate.strftime('%a %m/%d/%Y'))
