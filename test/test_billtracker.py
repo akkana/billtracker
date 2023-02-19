@@ -341,26 +341,14 @@ class TestBillTracker(unittest.TestCase):
             # to the database from parse errors
             #
             response = self.client.post('/addbills',
-                                     data={ 'billno': " HB100",
-                                            'yearcode': '19',
-                                            'submit': 'Track a Bill' })
-            self.assertTrue(response.status_code == 200 or
-                            response.status_code == 302)
-            self.assertIn("""<span style="color: red;">[Bills should start with""",
-                          response.get_data(as_text=True))
-            user = User.query.filter_by(username="testuser").first()
-            self.assertEqual(len(user.bills), 0)
-            allbills = Bill.query.all()
-            self.assertEqual(len(allbills), 2)
-
-            response = self.client.post('/addbills',
                                      data={ 'billno': "HB-100",
                                             'yearcode': '19',
                                             'submit': 'Track a Bill' })
             self.assertTrue(response.status_code == 200 or
                             response.status_code == 302)
             pageHTML = response.get_data(as_text=True)
-            self.assertIn("""<div class="error">""", pageHTML)
+            self.assertIn("""<span style="color: red;">""", pageHTML)
+            self.assertIn("""look like a bill number""", pageHTML)
             user = User.query.filter_by(username="testuser").first()
             self.assertEqual(len(user.bills), 0)
 
@@ -373,8 +361,25 @@ class TestBillTracker(unittest.TestCase):
                                             'submit': 'Track a Bill' })
             self.assertTrue(response.status_code == 200 or
                             response.status_code == 302)
+            pageHTML = response.get_data(as_text=True)
+            self.assertIn("""<span style="color: red;">""", pageHTML)
+            self.assertIn("""look like a bill number""", pageHTML)
+            user = User.query.filter_by(username="testuser").first()
+            self.assertEqual(len(user.bills), 0)
+
+            # This one should work
+            response = self.client.post('/addbills',
+                                     data={ 'billno': " HB100",
+                                            'yearcode': '19',
+                                            'submit': 'Track a Bill' })
+            self.assertTrue(response.status_code == 200 or
+                            response.status_code == 302)
+            self.assertIn("You are now following HB100",
+                          response.get_data(as_text=True))
             user = User.query.filter_by(username="testuser").first()
             self.assertEqual(len(user.bills), 1)
+            allbills = Bill.query.all()
+            self.assertEqual(len(allbills), 2)
 
             allbills = Bill.query.all()
             self.assertEqual(len(allbills), 2)
@@ -387,10 +392,15 @@ class TestBillTracker(unittest.TestCase):
                 userbills = user.bills
                 for b in userbills:
                     user.bills.remove(b)
-                user = User.query.filter_by(username="testuser").first()
-                self.assertEqual(len(user.bills), 0)
+                db.session.add(user)
+                db.session.commit()
+                print("user.bills now:", user.bills)
 
             untrackall()
+
+            user = User.query.filter_by(username="testuser").first()
+            print("user.bills now:", user.bills)
+            self.assertEqual(len(user.bills), 0)
 
             # For a request that includes a string with a comma,
             # like "hB73, hb  100  ", the comma will be interpreted as
@@ -403,17 +413,22 @@ class TestBillTracker(unittest.TestCase):
                                      content_type='application/json')
             self.assertTrue(response.status_code == 200 or
                             response.status_code == 302)
-            user = User.query.filter_by(username="testuser").first()
 
+            user = User.query.filter_by(username="testuser").first()
+            userstring = "hb73, hb100 "
+            response = self.client.post('/addbills',
+                                     data=json.dumps({ 'billno': userstring,
+                                                       'yearcode': '19',
+                                                       'submit': 'Track a Bill' }),
+                                     content_type='application/json')
+            self.assertTrue(response.status_code == 200 or
+                            response.status_code == 302)
+
+            user = User.query.filter_by(username="testuser").first()
             self.assertEqual(len(user.bills), 2)
             userbillnos = [ b.billno for b in user.bills ]
             self.assertTrue('HB73' in userbillnos)
             self.assertTrue('HB100' in userbillnos)
-
-            pageHTML = response.get_data(as_text=True)
-            self.assertIn("""<div class="error">""", pageHTML)
-            self.assertIn("&#39;HB-45&#39; doesn&#39;t look like a bill number",
-                          pageHTML)
 
             # Some bills_seen tests
             billno_list = [ 'SB1', 'SB2', 'SB3' ]

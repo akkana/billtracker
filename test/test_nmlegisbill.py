@@ -29,10 +29,18 @@ class TestNMlegisbill(unittest.TestCase):
 
         # Uncomment to get verbose information on cache/net requests:
         # billrequests.DEBUG = True
-        billrequests.CACHEDIR = 'test/cache'
 
     def tearDown(self):
-        pass
+        try:
+            jsonbackup = "test/cache/allbills_%s.json" \
+                % (datetime.datetime.now()
+                   - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+            print("jsonbackup:", jsonbackup)
+            os.system("ls -l " + jsonbackup)
+            os.unlink(jsonbackup)
+            os.system("ls -l " + jsonbackup)
+        except Exception as e:
+            print("Couldn't unlink", jsonbackup, ":", e)
 
     def test_parse_bills(self):
         # To see large diffs, set this:
@@ -117,6 +125,9 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
         })
 
     def test_parse_json_schedules(self):
+        # To see large diffs, set this:
+        # self.maxDiff = None
+
         codelist = [ "HAAWC", "HCEDC", "HEC", "HGEIC", "HJC",
                      "HLVMC", "HTRC", "SFC", "SHPAC", "SIRC",
                      "SJC", "SRC", "STBTC"
@@ -131,8 +142,11 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
             for meeting in committee_sched[committee]['meetings']:
                 meeting['bills'].sort()
 
+        # from pprint import pprint
+        # with open("/tmp/sched.json", "w") as fp:
+        #     pprint(committee_sched, stream=fp)
         self.assertEqual(committee_sched, {
-'HAAWC': {'chair': 'HLENT',
+ 'HAAWC': {'chair': 'HLENT',
            'code': 'HAAWC',
            'meetings': [],
            'members': ['HLENT',
@@ -514,5 +528,5 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
                        'SSANJ',
                        'STALL',
                        'SWIRT'],
-           'name': 'Senate Tax, Business & Transportation'}}
-)
+           'name': 'Senate Tax, Business & Transportation'}
+})

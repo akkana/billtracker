@@ -363,10 +363,10 @@ def addbills():
                 bs = Bill.query.filter_by(billno=billno,
                                           year=session["yearcode"]).all()
                 if len(bs) > 1:
-                    print("YIKES! addbills reated a duplicate bill",
+                    print("YIKES! addbills created a duplicate bill", billno,
                           file=sys.stderr)
                     for b in bs:
-                        print("   ", b, file=sys.stderr)
+                        print("   addbills dup", b, file=sys.stderr)
             else:
                 if not billnopat.match(billno):
                     flash("'%s' doesn't look like a bill number" % orig_billno)
@@ -524,7 +524,7 @@ def track_untrack():
                 print("YIKES! track_untrack created a duplicate bill",
                       file=sys.stderr)
                 for b in bs:
-                    print("   ", b, file=sys.stderr)
+                    print("   track_untrack dup", b, file=sys.stderr)
 
     return redirect(url_for(returnpage))
 
@@ -918,11 +918,9 @@ def showhistory(billno=None, yearcode=None):
     """
     if not yearcode:
         yearcode = LegSession.current_yearcode()
-    print("billno:", billno, "yearcode", yearcode)
 
     legsession = LegSession.by_yearcode(yearcode)
     sessionid = legsession.id
-    print("sessionid:", sessionid)
     allbillinfo = nmlegisbill.all_bills(sessionid, yearcode)
 
     ret_html = "<h1>%d %s Session Bill Title History</h1>" % (
@@ -1103,7 +1101,8 @@ def appinfo(key):
     if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
-    infostr = "<br>\nBillTracker at " + str(datetime.now())
+    infostr = "<br>\nBillTracker at " \
+        + str(datetime.now())
 
     infostr += "<p>\nSQLALCHEMY_DATABASE_URI: " \
         + billtracker.config["SQLALCHEMY_DATABASE_URI"]
@@ -1124,8 +1123,7 @@ def appinfo(key):
     for user in allusers:
         if user.last_check:
             print(user, "'s last check:", user.last_check, file=sys.stderr)
-            if now - user.last_check.astimezone(timezone.utc) \
-               < timedelta(days=1):
+            if now - user.last_check < timedelta(days=1):
                 checked_in_last_day += 1
         else:
             never_checked.append(user)
@@ -1346,7 +1344,6 @@ def refresh_allbills(key):
     if not leg_session:
         return "FAIL Couldn't get legislative session list"
 
-    print("Updating allbills data", file=sys.stderr)
     nmlegisbill.update_allbills_if_needed(yearcode, leg_session.id,
                                           do_update=True)
     return "OK Refreshed allbills"
@@ -1664,7 +1661,8 @@ def refresh_all_committees(key):
     """
     if key != billtracker.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
-    print("Refreshing all committees", file=sys.stderr)
+
+    print("api/refresh_all_committees", file=sys.stderr)
 
     set_session_by_request_values()
     yearcode = session["yearcode"]
@@ -1695,12 +1693,10 @@ def refresh_all_committees(key):
             # Now it should be safe to refresh
             newcomm.refresh()
 
-    print("api/refresh_all_committees", file=sys.stderr)
-
     hasmeetings = []
     nomeetings = []
     bills_with_committee = {}
-    for comm in Committee.query.filter_by().all():
+    for comm in Committee.query.all():
         if comm.code not in comm_mtgs or not comm_mtgs[comm.code]:
             comm.mtg_time = None
             nomeetings.append(comm.code)
@@ -1725,6 +1721,7 @@ def refresh_all_committees(key):
         # like "1:30 PM  (or 15 minutes following the floor session)"
         timestrings = []
         updated_comm = False
+        today = datetime.now() - timedelta(hours=4)
         for mtg in comm_mtgs[comm.code]["meetings"]:
             # Ignore any meeting without datetime or bills field.
             if "datetime" not in mtg:
@@ -1753,14 +1750,42 @@ def refresh_all_committees(key):
 
                 bill = Bill.query.filter_by(billno=billno,
                                             year=yearcode).first()
-                if bill:
-                    bill.location = comm.code
-                    if mtg['datetime']:
+                if not bill:
+                    continue
+
+                bill.location = comm.code
+                if not mtg['datetime']:
+                    bill.scheduled_date = None
+                    print("Warning:", bill,
+                          "listed in meeting with no date", mtg,
+                          file=sys.stderr)
+                    continue
+
+                if not bill.scheduled_date:
+                    bill.scheduled_date = mtg['datetime']
+                    updated_comm = True
+
+                # Only overwrite an existing scheduled_date
+                # if the new one is earlier or if the current
+                # datetime is more than a few hours old.
+                # Do all comparisons with unaware datetimes
+                # because storing local timezone in the database
+                # doesn't work reliably. That means the bogus tz
+                # postgres automatically adds has to be stripped.
+                else:
+                    mtg['datetime'].replace(tzinfo=None)
+                    sched_time = bill.scheduled_date.replace(tzinfo=None)
+                    if sched_time < today or mtg['datetime'] < sched_time:
                         bill.scheduled_date = mtg['datetime']
-                        updated_comm = True
-                    else:
-                        bill.scheduled_date = None
-                    db.session.add(bill)
+
+                    if mtg['datetime'] < sched_time:
+                        print("CONFLICT:", billno, "scheduled for",
+                              bill.scheduled_date, "but also for",
+                              mtg['datetime'], file=sys.stderr)
+
+                    updated_comm = True
+
+                db.session.add(bill)
 
         if updated_comm:
             hasmeetings.append(comm.code)

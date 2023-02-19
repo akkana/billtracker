@@ -1149,8 +1149,7 @@ def expand_committees_20220213(scheduledata):
                 try:
                     if 'T' in pdfmtg["datetime"]:
                         meeting["datetime"] = datetime.datetime.strptime(
-                            pdfmtg["datetime"],
-                            "%Y-%m-%dT%H:%M:%S")
+                            pdfmtg["datetime"], "%Y-%m-%dT%H:%M:%S")
                         if not meeting["timestr"]:
                             meeting["timestr"] \
                                 = meeting["datetime"].strftime("%H:%M")
@@ -1158,8 +1157,7 @@ def expand_committees_20220213(scheduledata):
                     # parse only the date portion. H and M will be zero.
                     else:
                         meeting["datetime"] = datetime.datetime.strptime(
-                            pdfmtg["datetime"],
-                            "%Y-%m-%d")
+                            pdfmtg["datetime"], "%Y-%m-%d")
 
                 except KeyError:
                     # No datetime, fall back on date
@@ -1254,8 +1252,9 @@ def get_legislator_list():
             # isn't orphaned, has been updated this session:
             print("Fetched legislators.json", file=sys.stderr)
             lastmod = datetime.datetime.strptime(r.headers['Last-Modified'],
-                                                 '%a, %d %b %Y %X %Z')
-            if (datetime.datetime.now() - lastmod).days < 120:
+                                   '%a, %d %b %Y %X %Z')
+            if ((datetime.datetime.now() - lastmod).days
+                < 120):
                 legdata = r.json()
             else:
                 print("legislators.json is too old", lastmod,
