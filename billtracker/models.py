@@ -656,6 +656,7 @@ class Bill(db.Model):
     def set_from_parsed_page(self, b):
         """b is a bill dictionary coming from nmlegisbill.parse_bill_page().
            Set this Bill's values according to what was on the page.
+           Calls bill_info which may update the allbills JSON.
         """
         now = datetime.now()
 
@@ -699,7 +700,25 @@ class Bill(db.Model):
             if self.__getattribute__(k) != b[k]:
                 setattr(self, k, b[k])
 
+            # Supplement those with fields from the allbills JSON
+            self.update_links_from_allbills()
+
         self.update_date = now
+
+
+    def update_links_from_allbills(self):
+        # Update fields that might be in the allbills JSON (bill_info)
+        # and not in the bill's actual page.
+        bill_info = nmlegisbill.bill_info(self.billno, self.year)
+
+        if 'FIR' in bill_info:
+            self.FIRlink = bill_info['FIR']
+        if 'LESC' in bill_info:
+            self.LESClink = bill_info['LESC']
+        if 'Amendments_In_Context' in bill_info:
+            self.amendlink = bill_info['Amendments_In_Context']
+        elif 'Floor_Amendments' in bill_info:
+            self.amendlink = bill_info['Floor_Amendments']
 
 
     def recent_activity(self, user=None):
@@ -816,6 +835,7 @@ class Bill(db.Model):
         bill_info = nmlegisbill.bill_info(self.billno, self.year)
         # Currently, this is only used to detect tabled bills,
         # but eventually I hope it can be used for everything.
+        # XXX Tabled info should be in the database somehow.
 
         if bill_info and "tabled" in bill_info and bill_info["tabled"]:
             outstr += "<b>TABLED</b> "
