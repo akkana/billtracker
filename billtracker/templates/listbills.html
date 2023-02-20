@@ -2,30 +2,25 @@
    bill_list is a list of Bill objects (so this macro isn't suitable
    for allbills, where many bills don't have a db object yet).
 
-   Extras is a dictionary with things like "tag": tag
-   If checkverb is set, each bill will have a checkbox labeled with that verb
-   (only logged-in users will see checkboxes).
+   Extras is a dictionary with keys like "track", "popular", "tag".
+   Only logged-in users will see checkboxes or tag edit buttons.
  #}
 
 {% import "edit_tags_button.html" as edit_tags_button %}
 
-{% macro listbills(bill_list, user, extras={}, checkverb="") %}
+{% macro listbills(bill_list, user, extras={}) %}
 
 <table class="bill_minilist">
  <thead>
     <tr><th>Bill</th> <th>Title</th> <th>Bill text</th>
     {% if "popular" in extras %}
       <th># Users
-      {% endif %}
-    {% if user and not user.is_anonymous %}
-      {% if "tag" in extras %}
-        <th>Tags</th>
-      {% elif "popular" in extras or "track" in extras %}
-        <th>Track</th>
-      {% endif %}
-      {% if checkverb %}
-        <th>{{ checkverb }}
-      {% endif %}
+    {% endif %}
+    {% if user and not user.is_anonymous and "track" in extras %}
+      <th>Track</th>
+    {% endif %}
+    {% if "tag" in extras %}
+      <th>Tags</th>
     {% endif %}
  </thead>
 
@@ -46,6 +41,13 @@
       {% if "popular" in extras %}
         <td>{{ bill.num_tracking() }}</td>
       {% endif %}
+      {% if user and not user.is_anonymous and "track" in extras %}
+        <td><input type="checkbox" class="track"
+        {% if bill in user.bills %}
+                   checked
+        {% endif %}
+                   name="f_{{ bill.billno }}"></td>
+      {% endif %}
       {% if "tag" in extras %}
          <td>
            {% if bill.tags %}
@@ -60,32 +62,12 @@
            {% else %}
              &nbsp;
            {% endif %}
-           {% set alltags = [ "health", "voting", "environment" ] %}
-           {% if alltags %}
-           {{ edit_tags_button.edit_tags_button(bill, extras["colorfcn"]) }}
+           {% if extras["alltags"] %}
+           {{ edit_tags_button.edit_tags_button(bill, extras["alltags"], extras["colorfcn"]) }}
+           {% else %}
+              alltags wasn't set
            {% endif %}
          </td>
-      {% endif %}
-      {% if user and not user.is_anonymous %}
-        {% if "tag" in extras and extras["tag"] %}
-          <td><input type="checkbox" class="track"
-          {% if bill.tags and extras["tag"] in bill.tags %}
-                     checked
-          {% endif %}
-                     name="f_{{ bill.billno }}"></td>
-        {% elif "track" in extras and "tag" not in extras  %}
-          <td><input type="checkbox" class="track"
-          {% if bill in user.bills %}
-                     checked
-          {% endif %}
-
-        {% elif "popular" in extras and "tag" not in extras  %}
-          <td><input type="checkbox" class="track"
-          {% if bill in user.bills %}
-                     checked
-          {% endif %}
-                     name="f_{{ bill.billno }}"></td>
-        {% endif %}
       {% endif %}
     </tr>
   {% endfor %}

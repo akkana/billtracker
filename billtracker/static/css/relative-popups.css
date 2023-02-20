@@ -78,11 +78,16 @@
   height: 100%;
 }
 
-/* The "Done" button to pop the popup back down */
+/* The "Done" button to pop the popup back down, when focus is elsewhere */
 .close-tab label {
-  background: #333;
-  color: white;
+  background: #fa7;
+  color: black;
+  font-weight: bold;
 }
+.close-tab:hover {
+  background: #f77;
+}
+
 [type="radio"]:checked ~ label ~ .close-tab {
   z-index: 3;
 }

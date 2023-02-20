@@ -9,7 +9,7 @@ except:
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, \
     TextAreaField
 from wtforms.validators import ValidationError, DataRequired, Email, \
-    EqualTo, Optional
+    EqualTo, Optional, Length
 
 from billtracker.models import User
 from billtracker import chattycaptcha
@@ -135,6 +135,19 @@ class AddBillsForm(FlaskForm):
                                       % invalid[0])
             raise ValidationError("These don't look like bill numbers: %s"
                                   % (", ".join(invalid)))
+
+
+class NewTagsForm(FlaskForm):
+    newtagname = StringField('newtag', validators=[Length(min=3, max=15)])
+    submit = SubmitField('Create a new tag')
+
+    def validate_newtagname(self, newtagname):
+        tagname = newtagname.data
+        if not re.match('^[A-Za-z0-9_\-]+$', tagname):
+            raise ValidationError("Tags can only contain letters, digits, "
+                                  "underscores and dashes")
+        return False
+
 
 
 class UserSettingsForm(FlaskForm):
