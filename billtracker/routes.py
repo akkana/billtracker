@@ -722,8 +722,6 @@ def get_all_tags(yearcode):
     return g_all_tags[yearcode]
 
 
-# tags is another route that bypasses WTForms in order to have a bill list
-# with checkboxes.
 @billtracker.route("/tags", defaults={'tag': None}, methods=['GET', 'POST'])
 @billtracker.route("/tags/<tag>", methods=['GET', 'POST'])
 def tags(tag=None):

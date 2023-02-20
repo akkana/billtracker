@@ -34,28 +34,33 @@ or <a href="/tags" class="buttonlike">View all tags</a>
 {% endif %}
 </div>
 
+{% if user and not user.is_anonymous %}
+  <form method="POST" action="/tags">
+    {{ form.hidden_tag() }}
+    <input type="hidden" id="yearcode" name="yearcode" value="{{ session['yearcode'] }}">
+
+    Create a new tag:
+    {{ form.newtagname(size=15) }}
+    {{ form.submit() }}
+
+    <i>(Only letters, numbers, dash, underscore, 15 characters max)</i><br />
+
+    {% for error in form.newtagname.errors %}
+      <span style="color: red;">[{{ error }}]</span>
+    {% endfor %}
+
+    <p>
+    Note: <strong>tags are public</strong>.
+    Anyone can see and change anyone else's tags.
+    </p>
+  </form>
+{% endif %}
+
+{% if tag %}
+<form method="POST" action="/tags/{{ tag }}">
+{% else %}
 <form method="POST" action="/tags">
-  {{ form.hidden_tag() }}
-  <input type="hidden" id="yearcode" name="yearcode" value="{{ session['yearcode'] }}">
-
-  Create a new tag:
-  {{ form.newtagname(size=15) }}
-
-  {{ form.submit() }}
-
-  <i>(Only letters, numbers, dash, underscore, 15 characters max)</i><br />
-
-  {% for error in form.newtagname.errors %}
-    <span style="color: red;">[{{ error }}]</span>
-  {% endfor %}
-
-  <p>
-  Note: <strong>tags are public</strong>.
-  Anyone can see and change anyone else's tags.
-  </p>
-</form>
-
-<form method="POST" action="/tags">
+{% endif %}
 
 <p>
 Tags can only apply to bills users are tracking.

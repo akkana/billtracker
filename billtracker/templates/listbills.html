@@ -30,14 +30,18 @@
       <td>{{ bill.billno }}</td>
       <td><a href="{{ bill.bill_url() }}" target="_blank">{{ bill.title }}</a></td>
       {% if bill.contentslink %}
-        <td><a href="{{ bill.contentslink }}" target="_blank">text</a>,
+        <td><a href="{{ bill.contentslink }}" target="_blank">text</a>
         {% set pdflink = bill.get_PDF_link() %}
         {% if pdflink %}
-            <a href="{{ pdflink }}" target="_blank">PDF</a></td>
+            &bull; <a href="{{ pdflink }}" target="_blank">PDF</a>
+        {% endif %}
+        {% if bill.amendlink %}
+            &bull; <a href="{{ bill.amendlink }}" target="_blank">amended</a>
         {% endif %}
       {% else %}
-        <td>&nbsp;</td>
+        <td>&nbsp;
       {% endif %}
+        </td>
       {% if "popular" in extras %}
         <td>{{ bill.num_tracking() }}</td>
       {% endif %}
@@ -62,10 +66,8 @@
            {% else %}
              &nbsp;
            {% endif %}
-           {% if extras["alltags"] %}
-           {{ edit_tags_button.edit_tags_button(bill, extras["alltags"], extras["colorfcn"]) }}
-           {% else %}
-              alltags wasn't set
+           {% if extras["alltags"] and user and not user.is_anonymous %}
+             {{ edit_tags_button.edit_tags_button(bill, extras["alltags"], extras["colorfcn"]) }}
            {% endif %}
          </td>
       {% endif %}
