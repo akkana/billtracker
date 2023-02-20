@@ -539,11 +539,11 @@ def update_allbills_if_needed(yearcode, sessionid=None, do_update=False):
                       "seconds", file=sys.stderr)
 
 
-def bill_info(billno, yearcode):
+def bill_info(billno, yearcode, sessionid):
     """Return a dictionary for a single bill.
        The info comes from g_allbills and should be updated as needed.
     """
-    update_allbills_if_needed(yearcode)
+    update_allbills_if_needed(yearcode, sessionid)
 
     try:
         return g_allbills[yearcode][billno]

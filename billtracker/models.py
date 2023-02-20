@@ -700,8 +700,8 @@ class Bill(db.Model):
             if self.__getattribute__(k) != b[k]:
                 setattr(self, k, b[k])
 
-            # Supplement those with fields from the allbills JSON
-            self.update_links_from_allbills()
+        # Supplement those with fields from the allbills JSON
+        self.update_links_from_allbills()
 
         self.update_date = now
 
@@ -709,7 +709,12 @@ class Bill(db.Model):
     def update_links_from_allbills(self):
         # Update fields that might be in the allbills JSON (bill_info)
         # and not in the bill's actual page.
-        bill_info = nmlegisbill.bill_info(self.billno, self.year)
+        leg_session = LegSession.by_yearcode(self.year)
+        if not leg_session:
+            print("Couldn't get session by yearcode", self.year)
+            return
+        bill_info = nmlegisbill.bill_info(self.billno, self.year,
+                                          leg_session.id)
 
         if 'FIR' in bill_info:
             self.FIRlink = bill_info['FIR']
@@ -832,7 +837,8 @@ class Bill(db.Model):
         else:            # No location set
             outstr += 'Location: unknown<br />'
 
-        bill_info = nmlegisbill.bill_info(self.billno, self.year)
+        bill_info = nmlegisbill.bill_info(self.billno, self.year,
+                                          LegSession.by_yearcode(self.year).id)
         # Currently, this is only used to detect tabled bills,
         # but eventually I hope it can be used for everything.
         # XXX Tabled info should be in the database somehow.
@@ -1005,7 +1011,8 @@ class Bill(db.Model):
         else:
             outstr += 'Location: unknown\n'
 
-        bill_info = nmlegisbill.bill_info(self.billno, self.year)
+        bill_info = nmlegisbill.bill_info(self.billno, self.year,
+                                          LegSession.by_yearcode(self.year).id)
         # Currently, this is only used to detect tabled bills,
         # but eventually I hope it can be used for everything.
 
