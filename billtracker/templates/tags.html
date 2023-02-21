@@ -1,4 +1,11 @@
-{% extends "base.html" %}
+<html>
+  <head>
+    {% include "std-headers.html" %}
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/relative-popups.css') }}">
+  </head>
+  <body>
+
+    {% include "banner.html" %}
 
 {% block content %}
 
@@ -90,3 +97,8 @@ If you don't see a bill in the lists below, maybe nobody is tracking it yet.
 
 {% endblock %}
 
+
+    {% include "footer.html" %}
+
+  </body>
+</html>

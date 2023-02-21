@@ -770,7 +770,9 @@ class Bill(db.Model):
 
         # The date to show is the most recent of last_action_date
         # or scheduled_date.
-        last_action = self.last_action_date.replace(tzinfo=None)
+        last_action = self.last_action_date
+        if last_action:
+            last_action = last_action.replace(tzinfo=None)
 
         def highlight_if_recent(adate, pre_string):
             if adate and \
