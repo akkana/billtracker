@@ -728,13 +728,6 @@ def tags(tag=None):
     values = request.values.to_dict()
     set_session_by_request_values()
 
-    print("tag =", tag)
-
-    from pprint import pprint
-    # print("Values:")
-    # pprint(values)
-    # print()
-
     form = NewTagsForm()
     # Only used for entering a new tag;
     # changing tags on bills uses a second form that isn't a WTF
@@ -743,11 +736,6 @@ def tags(tag=None):
     bill_list.sort()
 
     new_tags = []
-
-    # if "tag" in values:
-    #     tag = values["tag"]   # The tag being shown
-    # else:
-    #     tag = None
 
     badtag = None
     something_changed = False
@@ -773,7 +761,6 @@ def tags(tag=None):
                       file=sys.stderr)
 
         elif "update" in values:
-            print("Updating tags")
             checkedboxes = {}
             followchecks = []
             for val in values:
@@ -786,9 +773,6 @@ def tags(tag=None):
                         checkedboxes[billno] = set()
                     checkedboxes[billno].add(tagname)
 
-            print("** checked boxes:")
-            pprint(checkedboxes)
-            print("followchecks:", followchecks)
             # Should be empty, there are currently no followboxes on this page
 
             alloldtags = set()
@@ -808,10 +792,6 @@ def tags(tag=None):
                         remove_tags = billtags - checkedboxes[bill.billno]
                         bill.tags = ','.join(sorted(checkedboxes[bill.billno]))
                         db.session.add(bill)
-                        print(bill.billno, "has checkedboxes",
-                              checkedboxes[bill.billno])
-                        print(bill.billno, "ORing", checkedboxes[bill.billno],
-                              "-->", allnewtags)
                         something_changed = True
 
                         for t in add_tags:
@@ -840,8 +820,6 @@ def tags(tag=None):
                 db.session.commit()
 
             # Any tags removed?
-            print("alloldtags:", alloldtags)
-            print("allnewtags:", allnewtags)
             newtags = allnewtags - alloldtags
             if newtags:    # should be only one
                 flash("New tag created: " + ','.join(sorted(list(newtags))))
@@ -854,7 +832,6 @@ def tags(tag=None):
                       % (', '.join(bills_with_removed_tags[t]), t))
 
             removedtags = alloldtags - allnewtags
-            print("removedtags:", removedtags)
             if len(removedtags) == 1:
                 flash("Removed tag " + list(removedtags)[0])
             elif len(removedtags) > 1:
@@ -862,18 +839,15 @@ def tags(tag=None):
 
             # The tags list may have to be recalculated
             if newtags or removedtags:
-                print("Recomputing the tags list:")
                 g_all_tags.pop(session["yearcode"])
 
             # Tag values have changed. Recompute the all_tags list
             get_all_tags(session["yearcode"])
-            print("New tags list:", g_all_tags)
 
     # Now any retagging is finished. Group bills according to whether
     # they're tagged with the current tag, if any.
     tagged = []
     untagged = []
-    print("Looping over bill lists; tag =", tag)
     for bill in bill_list:
         if not bill.num_tracking():
             continue
@@ -941,7 +915,6 @@ def tags(tag=None):
 
         return dic
 
-    print("Calling render_template with tag =", tag)
     return render_template('tags.html', title="Tags", user=current_user,
                            tag=tag,
                            form=form,
