@@ -34,6 +34,20 @@
 }
 */
 
+.editbutton {
+  color: black;
+  background: #cfe;
+  border: 1px outset grey;
+  padding: 1px 3px;
+  border-radius: 6px;
+  text-decoration: none;
+}
+.editbutton.pressed {
+  color: white;
+  /* background: green; /* Invisible because it's covered by the Done button */
+  border: 1px inset grey;
+}
+
 .popup-holder [type="radio"] {
   position: absolute;
   top: 0;
