@@ -3,7 +3,7 @@
 {% block content %}
 
 {% if tag %}
-  <h1>NM BillTracker: Edit Bills tagged
+  <h1>NM BillTracker: Bills tagged
   {% if colorfcn %}
     &ldquo;<span class="colortag" style="background: {{ colorfcn(tag)[tag] }}">{{ tag }}</span>&rdquo;
   {% else %}
@@ -16,7 +16,11 @@
 
 <div class="buttonholder">
 <p>
-Edit a tag:
+{% if alltags %}
+View tagged bills:
+{% else %}
+No tags yet. You can be the first to create one!
+{% endif %}
 
 {% for t in alltags %}
   {% if t != tag %}
@@ -30,58 +34,59 @@ or <a href="/tags" class="buttonlike">View all tags</a>
 {% endif %}
 </div>
 
-<form method="POST" action="/tags">
-<input type="hidden" id="yearcode" name="yearcode" value="{{ session['yearcode'] }}">
+{% if user and not user.is_anonymous %}
+  <form method="POST" action="/tags">
+    {{ form.hidden_tag() }}
+    <input type="hidden" id="yearcode" name="yearcode" value="{{ session['yearcode'] }}">
 
-<p>
-Create a new tag:
-{% if badtag %}
-<input type="text" name="newtag" id="newtag" size="12" value="{{ badtag }}">
-{% else %}
-<input type="text" name="newtag" id="newtag" size="12">
+    Create a new tag:
+    {{ form.newtagname(size=15) }}
+    {{ form.submit() }}
+
+    <i>(Only letters, numbers, dash, underscore, 15 characters max)</i><br />
+
+    {% for error in form.newtagname.errors %}
+      <span style="color: red;">[{{ error }}]</span>
+    {% endfor %}
+
+    <p>
+    Note: <strong>tags are public</strong>.
+    Anyone can see and change anyone else's tags.
+    </p>
+  </form>
 {% endif %}
-
-<input type=submit name="submitnewtag" value="Create new tag">
-
-<i>(Only letters, numbers, dash, 15 characters max)</i>
-</p>
-
-<p>
-Note: <strong>tags are public</strong>.
-Anyone can see and change anyone else's tags.
-
-<p>
-Tags only apply to bills users are tracking.
-If you don't see a bill in the list below, maybe nobody is tracking it yet.
-</p>
 
 {% if tag %}
-<p>
-<input type=submit name="update" value="Update bills with tag '{{ tag }}'">
-</p>
+<form method="POST" action="/tags/{{ tag }}">
+{% else %}
+<form method="POST" action="/tags">
 {% endif %}
+
+<p>
+Tags can only apply to bills users are tracking.
+If you don't see a bill in the lists below, maybe nobody is tracking it yet.
+</p>
+
+<p>
+<input type=submit name="update" value="Update tags">
+</p>
 
 {% import "listbills.html" as listbills %}
 
 <input type="hidden" id="tag" name="tag" value="{{ tag }}">
 
-{% if tag and user and not user.is_anonymous %}
-{% set checkverb = "Tag" %}
-{% else %}
-{% set checkverb = "" %}
-{% endif %}
-
 {% for header in bill_lists %}
   <h2>{{ header }}</h2>
-  {{ listbills.listbills(bill_lists[header], user, extras={ "tag": tag, "popular": None, "colorfcn": colorfcn }, checkverb=checkverb) }}
+  {{ listbills.listbills(bill_lists[header], user,
+                         extras={ "tag": tag, "popular": None, "track": None,
+                                  "alltags": alltags, "colorfcn": colorfcn }) }}
 {% endfor %}
 
 <p>
-{% if tag %}
-<input type=submit name="update" value="Update bills with tag '{{ tag }}'">
+<input type=submit name="update" value="Update tags">
+</p>
 
 </form>
-{% endif %}
 
 {% endblock %}
 

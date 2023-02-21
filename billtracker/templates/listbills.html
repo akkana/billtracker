@@ -2,28 +2,25 @@
    bill_list is a list of Bill objects (so this macro isn't suitable
    for allbills, where many bills don't have a db object yet).
 
-   Extras is a dictionary with things like "tag": tag
-   If checkverb is set, each bill will have a checkbox labeled with that verb
-   (only logged-in users will see checkboxes).
+   Extras is a dictionary with keys like "track", "popular", "tag".
+   Only logged-in users will see checkboxes or tag edit buttons.
  #}
 
-{% macro listbills(bill_list, user, extras={}, checkverb="") %}
+{% import "edit_tags_button.html" as edit_tags_button %}
+
+{% macro listbills(bill_list, user, extras={}) %}
 
 <table class="bill_minilist">
  <thead>
     <tr><th>Bill</th> <th>Title</th> <th>Bill text</th>
     {% if "popular" in extras %}
       <th># Users
-      {% endif %}
-    {% if user and not user.is_anonymous %}
-      {% if "tag" in extras %}
-        <th>Tags</th>
-      {% elif "popular" in extras or "track" in extras %}
-        <th>Track</th>
-      {% endif %}
-      {% if checkverb %}
-        <th>{{ checkverb }}
-      {% endif %}
+    {% endif %}
+    {% if user and not user.is_anonymous and "track" in extras %}
+      <th>Track</th>
+    {% endif %}
+    {% if "tag" in extras %}
+      <th>Tags</th>
     {% endif %}
  </thead>
 
@@ -33,16 +30,27 @@
       <td>{{ bill.billno }}</td>
       <td><a href="{{ bill.bill_url() }}" target="_blank">{{ bill.title }}</a></td>
       {% if bill.contentslink %}
-        <td><a href="{{ bill.contentslink }}" target="_blank">text</a>,
+        <td><a href="{{ bill.contentslink }}" target="_blank">text</a>
         {% set pdflink = bill.get_PDF_link() %}
         {% if pdflink %}
-            <a href="{{ pdflink }}" target="_blank">PDF</a></td>
+            &bull; <a href="{{ pdflink }}" target="_blank">PDF</a>
+        {% endif %}
+        {% if bill.amendlink %}
+            &bull; <a href="{{ bill.amendlink }}" target="_blank">amended</a>
         {% endif %}
       {% else %}
-        <td>&nbsp;</td>
+        <td>&nbsp;
       {% endif %}
+        </td>
       {% if "popular" in extras %}
         <td>{{ bill.num_tracking() }}</td>
+      {% endif %}
+      {% if user and not user.is_anonymous and "track" in extras %}
+        <td><input type="checkbox" class="track"
+        {% if bill in user.bills %}
+                   checked
+        {% endif %}
+                   name="f_{{ bill.billno }}"></td>
       {% endif %}
       {% if "tag" in extras %}
          <td>
@@ -58,28 +66,10 @@
            {% else %}
              &nbsp;
            {% endif %}
+           {% if extras["alltags"] and user and not user.is_anonymous %}
+             {{ edit_tags_button.edit_tags_button(bill, extras["alltags"], extras["colorfcn"]) }}
+           {% endif %}
          </td>
-      {% endif %}
-      {% if user and not user.is_anonymous %}
-        {% if "tag" in extras and extras["tag"] %}
-          <td><input type="checkbox" class="track"
-          {% if bill.tags and extras["tag"] in bill.tags %}
-                     checked
-          {% endif %}
-                     name="f_{{ bill.billno }}"></td>
-        {% elif "track" in extras and "tag" not in extras  %}
-          <td><input type="checkbox" class="track"
-          {% if bill in user.bills %}
-                     checked
-          {% endif %}
-
-        {% elif "popular" in extras and "tag" not in extras  %}
-          <td><input type="checkbox" class="track"
-          {% if bill in user.bills %}
-                     checked
-          {% endif %}
-                     name="f_{{ bill.billno }}"></td>
-        {% endif %}
       {% endif %}
     </tr>
   {% endfor %}

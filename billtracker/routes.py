@@ -7,7 +7,7 @@ from werkzeug.urls import url_parse
 from billtracker import billtracker, db
 from billtracker import chattycaptcha
 from billtracker.forms import LoginForm, RegistrationForm, AddBillsForm, \
-    UserSettingsForm, PasswordResetForm, EmailBlastForm
+    NewTagsForm, UserSettingsForm, PasswordResetForm, EmailBlastForm
 from billtracker.models import User, Bill, Legislator, Committee, LegSession
 from billtracker.bills import nmlegisbill, billutils, billrequests
 from .emails import daily_user_email, send_email
@@ -24,7 +24,7 @@ import traceback
 import shutil
 import subprocess
 import re
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import colorsys
 import hashlib
 import sys, os
@@ -705,106 +705,175 @@ These are bills filed or changed in the past few days""",
                            showtags=False)
 
 
+# All tags, by yearcode
+g_all_tags = {}
+
 def get_all_tags(yearcode):
+    if yearcode in g_all_tags:
+        return g_all_tags[yearcode]
+
     all_tags = set()
     for bill in Bill.query.filter_by(year=yearcode).all():
         if bill.tags:
             for tag in bill.tags.split(','):
                 all_tags.add(tag)
 
-    return sorted(list(all_tags), key=lambda t: t.lower())
+    g_all_tags[yearcode] = sorted(list(all_tags), key=lambda t: t.lower())
+    return g_all_tags[yearcode]
 
 
-# tags is another route that bypasses WTForms in order to have a bill list
-# with checkboxes.
 @billtracker.route("/tags", defaults={'tag': None}, methods=['GET', 'POST'])
 @billtracker.route("/tags/<tag>", methods=['GET', 'POST'])
 def tags(tag=None):
     values = request.values.to_dict()
     set_session_by_request_values()
 
+    print("tag =", tag)
+
+    from pprint import pprint
+    # print("Values:")
+    # pprint(values)
+    # print()
+
+    form = NewTagsForm()
+    # Only used for entering a new tag;
+    # changing tags on bills uses a second form that isn't a WTF
+
     bill_list = Bill.query.filter_by(year=session["yearcode"]).all()
     bill_list.sort()
 
-    def is_legal_tag(tagname):
-        """Is tagname a legal tag name?"""
-        if len(tagname) > 15:
-            return False
-        if re.match('^[A-Za-z0-9\-]+$', tagname):
-            return True
-        return False
+    new_tags = []
+
+    # if "tag" in values:
+    #     tag = values["tag"]   # The tag being shown
+    # else:
+    #     tag = None
 
     badtag = None
+    something_changed = False
+
+    # For the flash messages at the end: these will be tagname: [billnos]
+    bills_with_added_tags = defaultdict(list)
+    bills_with_removed_tags = defaultdict(list)
 
     # Was this a form submittal?
     # The form has two submit buttons, with names "submitnewtag" for
     # the new tag input field and "update" to update the buttons for
     # the current tag. Figure out which path the user followed:
     if current_user and not current_user.is_anonymous:
-        if "update" in request.form:
-            tag = values["tag"]
-            if not is_legal_tag(tag):
-                flash("'%s' isn't a legal tag name" % tag)
-            else:
-                bills_added = []
-                bills_removed = []
-                bills_tagged = 0
+        if 'submit' in values and values['submit'] == 'Create a new tag' \
+           and form.validate_on_submit() \
+           and 'newtagname' in values and values['newtagname']:
+                tag = values["newtagname"]
+                new_tags = [tag]
 
-                for bill in bill_list:
-                    if bill.tags:
-                        billtags = bill.tags.split(',')
-                    else:
-                        billtags = []
+                flash("Now choose some bills to tag with new tag '%s'"
+                      % tag)
+                print(current_user, "suggested tag '%s'" % tag,
+                      file=sys.stderr)
 
-                    # Newly checked?
-                    if tag not in billtags and "f_%s" % bill.billno in values:
-                        billtags.append(tag)
-                        bill.tags = ','.join(billtags)
-                        db.session.add(bill)
-                        bills_added.append(bill.billno)
+        elif "update" in values:
+            print("Updating tags")
+            checkedboxes = {}
+            followchecks = []
+            for val in values:
+                if val.startswith("f_"):
+                    billno = val[2:]
+                    followchecks.append(billno)
+                elif val.endswith("-name"):
+                    billno, tagname, dummy = val.split('-')
+                    if billno not in checkedboxes:
+                        checkedboxes[billno] = set()
+                    checkedboxes[billno].add(tagname)
 
-                    # Newly unchecked?
-                    elif tag in billtags and "f_%s" % bill.billno not in values:
-                        billtags.remove(tag)
-                        bill.tags = ','.join(billtags)
-                        db.session.add(bill)
-                        bills_removed.append(bill.billno)
+            print("** checked boxes:")
+            pprint(checkedboxes)
+            print("followchecks:", followchecks)
+            # Should be empty, there are currently no followboxes on this page
 
-                    if tag in billtags:
-                        bills_tagged += 1
+            alloldtags = set()
+            allnewtags = set()
 
-                if bills_added:
-                    flash(','.join(bills_added) + " now tagged '%s'" % tag)
-                if bills_removed:
-                    flash(','.join(bills_removed) + " no longer tagged '%s'" % tag)
-                if bills_added or bills_removed:
-                    print(current_user.username, "tagged", len(bills_added),
-                          "and untagged", len(bills_removed), "as", tag,
-                          file=sys.stderr)
-                    db.session.commit()
-                if not bills_tagged:
-                    flash("No remaining bills tagged '%s': tag has been removed"
-                          % tag)
-                    print(current_user, "removed all '%s' tags" % tag,
-                          file=sys.stderr)
-
-        elif "submitnewtag" in request.form:
-            if values["newtag"]:
-                if is_legal_tag(values["newtag"]):
-                    tag = values["newtag"]
-                    flash("Now choose some bills to tag with new tag '%s'"
-                          % tag)
-                    print(current_user, "created tag '%s'" % tag,
-                          file=sys.stderr)
+            for bill in bill_list:
+                if bill.tags:
+                    billtags = set(bill.tags.split(','))
+                    alloldtags |= billtags
                 else:
-                    tag = None
-                    badtag = values["newtag"]
-                    flash("%s' isn't a legal tag name. Only letters, numbers, dash, 15 characters max" % badtag)
+                    billtags = set()
 
-    # Now retagging is finished. Group bills according to whether
-    # they're tagged with the current tag (or at all).
+                # Are any boxes checked?
+                if bill.billno in checkedboxes:
+                    if checkedboxes[bill.billno] != billtags:
+                        add_tags = checkedboxes[bill.billno] - billtags
+                        remove_tags = billtags - checkedboxes[bill.billno]
+                        bill.tags = ','.join(sorted(checkedboxes[bill.billno]))
+                        db.session.add(bill)
+                        print(bill.billno, "has checkedboxes",
+                              checkedboxes[bill.billno])
+                        print(bill.billno, "ORing", checkedboxes[bill.billno],
+                              "-->", allnewtags)
+                        something_changed = True
+
+                        for t in add_tags:
+                            bills_with_added_tags[t].append(bill.billno)
+                        for t in remove_tags:
+                            bills_with_removed_tags[t].append(bill.billno)
+
+                    # Make sure all the checked tags are in allnewtags
+                    for t in checkedboxes[bill.billno]:
+                        allnewtags |= checkedboxes[bill.billno]
+
+                elif bill.tags:  # bill *had* tags but all boxes now unchecked
+                    print("Removing all tags from", bill.billno,
+                          file=sys.stderr)
+                    remove_tags = billtags
+                    for t in remove_tags:
+                        bills_with_removed_tags[t].append(bill.billno)
+                    bill.tags = ""
+                    db.session.add(bill)
+                    something_changed = True
+
+                # if "f_%s" % bill.billno in values:
+                #     print("Follow button is checked on", bill.billno)
+
+            if something_changed:
+                db.session.commit()
+
+            # Any tags removed?
+            print("alloldtags:", alloldtags)
+            print("allnewtags:", allnewtags)
+            newtags = allnewtags - alloldtags
+            if newtags:    # should be only one
+                flash("New tag created: " + ','.join(sorted(list(newtags))))
+
+            for t in bills_with_added_tags:
+                flash("Tagged %s with '%s'"
+                      % (', '.join(bills_with_added_tags[t]), t))
+            for t in bills_with_removed_tags:
+                flash("Un-tagged %s with '%s'"
+                      % (', '.join(bills_with_removed_tags[t]), t))
+
+            removedtags = alloldtags - allnewtags
+            print("removedtags:", removedtags)
+            if len(removedtags) == 1:
+                flash("Removed tag " + list(removedtags)[0])
+            elif len(removedtags) > 1:
+                flash("Removed tags " + ', '.join(sorted(list(removedtags))))
+
+            # The tags list may have to be recalculated
+            if newtags or removedtags:
+                print("Recomputing the tags list:")
+                g_all_tags.pop(session["yearcode"])
+
+            # Tag values have changed. Recompute the all_tags list
+            get_all_tags(session["yearcode"])
+            print("New tags list:", g_all_tags)
+
+    # Now any retagging is finished. Group bills according to whether
+    # they're tagged with the current tag, if any.
     tagged = []
     untagged = []
+    print("Looping over bill lists; tag =", tag)
     for bill in bill_list:
         if not bill.num_tracking():
             continue
@@ -814,8 +883,7 @@ def tags(tag=None):
 
         billtags = bill.tags.split(',')
 
-        # If this page is for all tags, show bills that have any tag,
-        # but no untagged bills.
+        # If this page is for all tags, there's no grouping.
         if not tag:
             tagged.append(bill)
 
@@ -833,8 +901,7 @@ def tags(tag=None):
         }
     else:
         bill_lists = {
-            "Bills with tags": tagged,
-            "Not tagged": untagged
+            "Bills": tagged,
         }
 
     def str2color(instr):
@@ -844,9 +911,13 @@ def tags(tag=None):
         Return a dictionary, { instr: css_color_code }
         Try to keep them light, so dark text will contrast well.
         If there are commas in the tag string, loop over them.
+        If the tag string is "all", return a dictionary of colors
+        for all known tags.
         """
         if ',' in instr:
             pieces = instr.split(',')
+        elif instr == "all":
+            pieces = get_all_tags(session["yearcode"])
         else:
             pieces = [ instr ]
 
@@ -870,12 +941,15 @@ def tags(tag=None):
 
         return dic
 
-    return render_template('tags.html', user=current_user,
+    print("Calling render_template with tag =", tag)
+    return render_template('tags.html', title="Tags", user=current_user,
+                           tag=tag,
+                           form=form,
                            yearcode=session["yearcode"],
                            bill_lists=bill_lists,
-                           tag=tag, badtag=badtag,
+                           badtag=badtag,
                            colorfcn=str2color,
-                           alltags=get_all_tags(session["yearcode"]))
+                           alltags=new_tags+get_all_tags(session["yearcode"]))
 
 
 @billtracker.route("/history/")
@@ -1319,6 +1393,7 @@ def refresh_allbills(key):
                                           do_update=True)
     return "OK Refreshed allbills"
 
+
 #
 # Test with:
 # requests.post('%s/api/refresh_one_bill' % baseurl,
@@ -1359,6 +1434,7 @@ def refresh_one_bill():
     newbill = Bill.query.filter_by(billno=billno, year=yearcode).first()
 
     return "OK Updated %s" % billno
+
 
 # Test with:
 # requests.post('%s/api/refresh_percent_of_bills' % baseurl,
@@ -1641,7 +1717,6 @@ def refresh_all_committees(key):
     Legislator.refresh_legislators_list()
 
     known_committees = Committee.query.all()
-    # known_commcodes = [ c.code for c in known_committees ]
 
     comm_mtgs = nmlegisbill.expand_committees()
 
