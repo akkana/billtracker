@@ -828,7 +828,7 @@ class Bill(db.Model):
                 # otherwise show the most recent of scheduled or last_action,
                 # and highlight it if it's recent.
                 elif last_action:
-                    if last_action > self.scheduled_date:
+                    if last_action > self.scheduled_date.replace(tzinfo=None):
                         outstr += highlight_if_recent(last_action,
                                                       "Last action")
                     else:
