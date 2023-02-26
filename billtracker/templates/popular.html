@@ -10,7 +10,7 @@
 
 {% import "listbills.html" as listbills %}
 
-{{ listbills.listbills(bill_list, user, extras=["popular"]) }}
+{{ listbills.listbills(bill_list, user, extras=["popular", "track"]) }}
 
 <input type=submit name="update" value="Track/Untrack Bills">
 
