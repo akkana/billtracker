@@ -804,7 +804,7 @@ def tags(tag=None):
                         allnewtags |= checkedboxes[bill.billno]
 
                 elif bill.tags:  # bill *had* tags but all boxes now unchecked
-                    print("Removing all tags from", bill.billno,
+                    print(current_user, "removed all tags from", bill.billno,
                           file=sys.stderr)
                     remove_tags = billtags
                     for t in remove_tags:
@@ -825,17 +825,26 @@ def tags(tag=None):
                 flash("New tag created: " + ','.join(sorted(list(newtags))))
 
             for t in bills_with_added_tags:
-                flash("Tagged %s with '%s'"
-                      % (', '.join(bills_with_added_tags[t]), t))
+                msg = "Tagged %s with '%s'" \
+                    % (', '.join(bills_with_added_tags[t]), t)
+                print(current_user, msg, file=sys.stderr)
+                flash(msg)
             for t in bills_with_removed_tags:
-                flash("Un-tagged %s with '%s'"
-                      % (', '.join(bills_with_removed_tags[t]), t))
+                msg = "Un-tagged %s with '%s'" \
+                    % (', '.join(bills_with_removed_tags[t]), t)
+                print(current_user, msg, file=sys.stderr)
+                flash(msg)
 
             removedtags = alloldtags - allnewtags
             if len(removedtags) == 1:
-                flash("Removed tag " + list(removedtags)[0])
+                msg = "Removed tag " + list(removedtags)[0]
             elif len(removedtags) > 1:
-                flash("Removed tags " + ', '.join(sorted(list(removedtags))))
+                msg ="Removed tags " + ', '.join(sorted(list(removedtags)))
+            else:
+                msg = None
+            if msg:
+                print(current_user, msg, file=sys.stderr)
+                flash(msg)
 
             # The tags list may have to be recalculated
             if newtags or removedtags:
@@ -1797,6 +1806,9 @@ def refresh_all_committees(key):
                         bill.scheduled_date = mtg['datetime']
 
                     if mtg['datetime'] < sched_time:
+                        # XXX Somehow, this message isn't really picking up
+                        # mtg['datetime']; it's printing the earlier
+                        # meeting time both times.
                         print("CONFLICT:", billno, "scheduled for",
                               bill.scheduled_date, "but also for",
                               mtg['datetime'], file=sys.stderr)
