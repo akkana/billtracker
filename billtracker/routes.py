@@ -866,9 +866,12 @@ def tags(tag=None):
 
         billtags = bill.tags.split(',')
 
-        # If this page is for all tags, there's no grouping.
+        # If this page is for all tags, show bills with any tags.
         if not tag:
-            tagged.append(bill)
+            if bill.tags:
+                tagged.append(bill)
+            else:
+                untagged.append(bill)
 
         # If the page is showing a specific tag,
         # group bills according to whether they have that tag.
@@ -884,7 +887,8 @@ def tags(tag=None):
         }
     else:
         bill_lists = {
-            "Bills": tagged,
+            "Bills with tags:": tagged,
+            "No tags:": untagged
         }
 
     def str2color(instr):
