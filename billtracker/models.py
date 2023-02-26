@@ -845,16 +845,17 @@ class Bill(db.Model):
         # but eventually I hope it can be used for everything.
         # XXX Tabled info should be in the database somehow.
 
-        if bill_info and "tabled" in bill_info and bill_info["tabled"]:
-            outstr += "<b>TABLED</b> "
-
         if self.last_action_date:
             outstr += highlight_if_recent(last_action, "Last action")
-            outstr += '<br />'
 
         # Bills don't have action dates on signing:
         elif not self.statustext or not self.statustext.startswith('Signed'):
-            outstr += " No action yet.<br />"
+            outstr += " No action yet."
+
+        if bill_info and "tabled" in bill_info and bill_info["tabled"]:
+            outstr += " <b>MAY BE TABLED</b> "
+
+        outstr += '<br />'
 
         if self.statustext:
             # statusHTML is full of crap this year, so prefer statustext
