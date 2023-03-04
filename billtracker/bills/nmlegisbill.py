@@ -257,43 +257,50 @@ def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
     # which could be decoded to show the bill's entire history.
     # Capture that as the last line of the actiontext.
     # XXX Eventually, make it a separate item in the database.
-    actioncode = soup.find(id='MainContent_tabContainerLegislation_tabPanelActions_formViewActionText_lblActionText').text
+    try:
+        actioncode = soup.find(id='MainContent_tabContainerLegislation_tabPanelActions_formViewActionText_lblActionText').text
 
-    # The all-important part: what was the most recent action?
-    actiontable = soup.find("table",
-      id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions")
+        # The all-important part: what was the most recent action?
+        actiontable = soup.find("table",
+          id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions")
 
-    actions = actiontable.findAll('span', class_="list-group-item")
-    if actions:
-        lastaction = actions[-1]
+        actions = actiontable.findAll('span', class_="list-group-item")
+        if actions:
+            lastaction = actions[-1]
 
-        # Try to parse the most recent modification date from it:
-        actiontext = lastaction.text
-        match = re.search('Calendar Day: (\d\d/\d\d/\d\d\d\d)', actiontext)
-        if match:
-            last_action_date = dateutil.parser.parse(match.group(1))
-        else:
-            last_action_date = None
-        billdic['last_action_date'] = last_action_date
+            # Try to parse the most recent modification date from it:
+            actiontext = lastaction.text
+            match = re.search('Calendar Day: (\d\d/\d\d/\d\d\d\d)', actiontext)
+            if match:
+                last_action_date = dateutil.parser.parse(match.group(1))
+            else:
+                last_action_date = None
+            billdic['last_action_date'] = last_action_date
 
-        # nmlegis erroneously uses <br>blah</br><strong> and
-        # apparently assumes browsers will put a break at the </br>.
-        # Since that's illegal HTML, BS doesn't parse it that way.
-        # But if we don't compensate, the status looks awful.
-        # So try to mitigate that by inserting a <br> before <strong>.
-        billdic["statusHTML"] = re.sub('<strong>', '<br><strong>',
-                                       str(lastaction))
+            # nmlegis erroneously uses <br>blah</br><strong> and
+            # apparently assumes browsers will put a break at the </br>.
+            # Since that's illegal HTML, BS doesn't parse it that way.
+            # But if we don't compensate, the status looks awful.
+            # So try to mitigate that by inserting a <br> before <strong>.
+            billdic["statusHTML"] = re.sub('<strong>', '<br><strong>',
+                                           str(lastaction))
 
-        # Clean up the text in a similar way, adding spaces and line breaks.
-        while actiontext.startswith('\n'):
-            actiontext = actiontext[1:]
-        actiontext = '    ' + actiontext
-        actiontext = re.sub('(Legislative Day: [0-9]*)', '\\1\n    ',
-                            actiontext)
-        actiontext = re.sub('(Calendar Day: ../../....)', '\\1\n    ',
-                            actiontext)
-        actiontext = re.sub('\n\n*', '\n', actiontext)
-        billdic["statustext"] = actiontext.strip() + '\n' + actioncode.strip()
+            # Clean up the text in a similar way, adding spaces and line breaks.
+            while actiontext.startswith('\n'):
+                actiontext = actiontext[1:]
+            actiontext = '    ' + actiontext
+            actiontext = re.sub('(Legislative Day: [0-9]*)', '\\1\n    ',
+                                actiontext)
+            actiontext = re.sub('(Calendar Day: ../../....)', '\\1\n    ',
+                                actiontext)
+            actiontext = re.sub('\n\n*', '\n', actiontext)
+            billdic["statustext"] = actiontext.strip() + '\n' + actioncode.strip()
+    except Exception as e:
+        print("** Exception trying to read action table on bill",
+              billdic['billno'], ":", e, file=sys.stderr)
+        # billdic['last_action_date'] = None
+        # billdic['statustext'] = None
+        # billdic['statusHTML'] = None
 
     # The bill's page has other useful info, like votes, analysis etc.
     # but unfortunately that's all filled in later with JS and Ajax so
