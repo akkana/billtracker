@@ -577,6 +577,8 @@ def allbills():
 
     # Do the slow part first, before any database accesses.
     # This can fail, e.g. if nmlegis isn't answering.
+    # But hopefully it's been updated recently by the systemd script,
+    # so the user won't have to wait for it.
     try:
         allbills = nmlegisbill.all_bills(leg_session.id, yearcode)
         # allbills has the schema documented in nmlegis.g_allbills.
@@ -630,6 +632,8 @@ def allbills():
             args["amended"] = allbills[billno]["Amendments_In_Context"]
         elif "Floor_Amendments" in allbills[billno]:
             args["amended"] = allbills[billno]["Floor_Amendments"]
+        elif "amend" in allbills[billno] and allbills[billno]["amend"]:
+            args["amended"] = allbills[billno]["amend"][-1]
 
         if user and billno not in bills_seen:
             unseen.append(args)
@@ -638,8 +642,11 @@ def allbills():
             try:
                 lastmod = datetime.strptime(lasthist[0], "%Y-%m-%d").date()
                 # print(billno, "lastmod:", lastmod, "diff", today - lastmod)
-                if today - lastmod <= timedelta(days=DAYS_CONSIDERED_NEW):
+                if (today - lastmod <= timedelta(days=DAYS_CONSIDERED_NEW)
+                    and lasthist[1] != "dummyfiled"):
                     newbills.append(args)
+                    if billno == "HB16":
+                        print("HB16 lasthist[1]:", lasthist[1])
 
                     # Handle title changes
                     if lasthist[1] == "titlechanged" and \

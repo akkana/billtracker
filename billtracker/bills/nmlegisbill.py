@@ -64,11 +64,14 @@ billno_cell_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewS
 
 sched_date_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_lblScheduledDate_[0-9]*')
 
-
 # Pattern for a time followed by optional am, AM, a.m. etc.
 # optionally preceded by a date or day specifier like "Tuesday & Thursday"
 mtg_datetime_pat = re.compile("(.*) *(\d{1,2}): *(\d\d) *([ap]\.?m\.?)?",
                               flags=re.IGNORECASE)
+
+# Pattern to detect dummy bills from their actions
+dummy_pat = re.compile("^\[[0-9]+\] *not prntd")
+dummy_plus_pat = re.compile("^\[[0-9]+\] *not prntd.*\[[0-9]+\]")
 
 
 # XXX The URLmapper stuff should be killed, with any functionality
@@ -645,8 +648,35 @@ def update_allbills(yearcode, sessionid):
 
         # Action codes
         try:
-            g_allbills[yearcode][billno_str]["actions"] = \
-                tr.find('span', id=action_pat).text
+            actions = tr.find('span', id=action_pat).text
+            g_allbills[yearcode][billno_str]["actions"] = actions
+
+            # Try to determine if this is a dummy bill.
+            # Dummy bills generally start with "not prntd" as the first action.
+            # Dummy bills that are actually being used may not have a title
+            # yet, and we can't find out whether they have a committee sub
+            # for content without loading their bill page, but we can tell
+            # if they've had any actions, like being assigned to a committee.
+            # In g_allbills, new dummies have "dummy": True;
+            # dummies that have been activated (have had actions)
+            # have "dummy" set to the date they became active.
+
+            # Is it a new dummy bill?
+            if ("dummy" not in g_allbills[yearcode][billno_str] and
+                dummy_pat.match(actions)):
+                g_allbills[yearcode][billno_str]["dummy"] = True
+                g_allbills[yearcode][billno_str]["history"].append(
+                    [ todaystr, "dummyfiled",
+                      g_allbills[yearcode][billno_str]["title"] ])
+
+            # Now see if it's an active dummy bill, one with real actions.
+            if ("dummy" in g_allbills[yearcode][billno_str] and
+                g_allbills[yearcode][billno_str]["dummy"] == True and
+                dummy_plus_pat.match(actions)):
+                g_allbills[yearcode][billno_str]["dummy"] = todaystr
+                g_allbills[yearcode][billno_str]["history"].append(
+                    [ todaystr, "dummyactivated", actions ])
+
         except:
             print("Couldn't get actions for", billno_str,
                   file=sys.stderr)
@@ -714,10 +744,8 @@ def update_bill_links(yearcode):
         """
         if amendname.startswith('.'):
             return ''
-        m = amend_billno_pat.match(filename)
+        m = amend_billno_pat.match(amendname)
         if not m:
-            # print(filename, "didn't match the amend_billno_pat",
-            #       file=sys.stderr)
             return ''
         return m.group(1).upper() + m.group(3)
 
@@ -732,8 +760,9 @@ def update_bill_links(yearcode):
         # so get a listing and remove the zeros.
         dirlist = billrequests.get_html_dirlist(listingurl)
         if not dirlist:
-            print("No directory listing at", listingurl)
+            print("No directory listing at", listingurl, file=sys.stderr)
             continue
+
         for l in dirlist:
             filename = l['name']   # These are names like 'HB0060CP1T.pdf'
             billno = get_billno_from_filename(filename)
@@ -751,8 +780,6 @@ def update_bill_links(yearcode):
             print("Nonexistent bills", ', '.join(nonexistent),
                   "reffed in", listingurl, file=sys.stderr)
 
-        # XXX Need a way to combine all amendments
-
     # The bill/memorial/resolution dirs are a little more complicated,
     # because they include all kinds of other weird files like committee
     # votes, amendments that are different from Amendments_In_Context
@@ -763,42 +790,67 @@ def update_bill_links(yearcode):
             listingurl = posixpath.join(baseurl, dirtype, chamber)
             nonexistent = set()
             dirlist = billrequests.get_html_dirlist(listingurl)
+
             for l in dirlist:
+                billno = None
+
                 filename = l['name']
 
-                # We're currently only interested in the actual bill content
-                # files, not the motley collection of other files.
-                # I.e. we want SB0258.HTML, but not SB0258IC1.HTML
+                # The actual bill content is in files like SB0258.HTML;
+                # names like SB0258IC1.HTML are likely amendments.
                 try:
                     m = bill_file_pat.search(filename)
-                    if not m:
+                    if m:
+                        billno = m.group(1) + m.group(2)
+                except Exception as e:
+                    print("Exception trying to match bill_file_pat:",
+                          filename, e, file=sys.stderr)
+
+                if billno:
+                    # It's bill original content
+
+                    # Sometimes there are links that are just wrong.
+                    # For instance, /Sessions/23%20Regular/bills/house/
+                    # includes a link HB0005.HTML (and .PDF)
+                    # but there is no HB5 in 2023, and the contents of
+                    # HB0005.HTML/PDF are actually for SB5.
+                    if billno not in g_allbills[yearcode]:
+                        nonexistent.add(billno)
                         continue
-                    billno = m.group(1) + m.group(2)
-                except:
-                    continue
 
-                if not billno:
-                    continue
+                    href = l['url']
+                    hrefl = href.lower()
 
-                # Sometimes there are links that are just wrong.
-                # For instance, /Sessions/23%20Regular/bills/house/
-                # includes a link HB0005.HTML (and .PDF)
-                # but there is no HB5 in 2023, and the contents of
-                # HB0005.HTML/PDF are actually for SB5.
-                if billno not in g_allbills[yearcode]:
-                    nonexistent.add(billno)
-                    continue
+                    if hrefl.endswith(".html"):
+                        g_allbills[yearcode][billno]["contents"] = href
+                    elif hrefl.endswith(".pdf"):
+                        g_allbills[yearcode][billno]["pdf"] = href
+                    else:
+                        print("Not sure what to do with file type", href,
+                              file=sys.stderr)
 
-                href = l['url']
-                hrefl = href.lower()
-
-                if hrefl.endswith(".html"):
-                    g_allbills[yearcode][billno]["contents"] = href
-                elif hrefl.endswith(".pdf"):
-                    g_allbills[yearcode][billno]["pdf"] = href
                 else:
-                    print("Not sure what to do with file type", href,
-                          file=sys.stderr)
+                    # It's not the main content for a billno, but it might
+                    # be an amendment or committee sub since those are
+                    # in the same directory with names like SB0520COS.pdf
+                    billno = get_billno_from_filename(filename)
+                    if billno:
+                        if billno not in g_allbills[yearcode]:
+                            print("Found possible committee sub", filename,
+                                  "for as yet nonexistent bill", billno,
+                                  file=sys.stderr)
+                            nonexistent.add(billno)
+                        else:
+                            if "amend" not in g_allbills[yearcode][billno]:
+                                g_allbills[yearcode][billno]["amend"] = []
+                            if l['url'] not in \
+                               g_allbills[yearcode][billno]['amend']:
+                                g_allbills[yearcode][billno]['amend'].append(
+                                    l['url'])
+                    else:
+                        print(filename, "is neither a bill nor comm sub",
+                              file=sys.stderr)
+                    continue
 
             if nonexistent:
                 print("Nonexistent bills", ', '.join(nonexistent),
@@ -1093,7 +1145,10 @@ def expand_committees(jsonsrc=None):
                     # "After the Floor Session", which typically means
                     # 1pm or so. Set those to 11:00 so they don't sort
                     # before morning meetings.
-                    if (meeting["datetime"].hour == 0 and
+                    if 'time' not in meeting:
+                        print("No 'time' in", commcode, "meeting:", meeting,
+                              file=sys.stderr)
+                    elif (meeting["datetime"].hour == 0 and
                         meeting["time"].lower().startswith("after")):
                         meeting["datetime"] = \
                             meeting["datetime"].replace(hour=11)
