@@ -675,7 +675,7 @@ def update_allbills(yearcode, sessionid):
                 dummy_plus_pat.match(actions)):
                 g_allbills[yearcode][billno_str]["dummy"] = todaystr
                 g_allbills[yearcode][billno_str]["history"].append(
-                    [ todaystr, "dummyactivated", actions ])
+                    [ todaystr, "dummyactivated", title_span.text ])
 
         except:
             print("Couldn't get actions for", billno_str,
