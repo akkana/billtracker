@@ -42,14 +42,16 @@ Sort by:
 
 {% endif %}
 
-{% if not current_user.is_anonymous %}
-<p>
-{% if current_user.last_check is not defined or not current_user.last_check %}
-This is your first check.
-{% else %}
-You last checked at {{ current_user.last_check.strftime('%H:%M %m/%d/%Y') }}.
-{% endif %}
-{{ current_user.update_last_check() }}
+{% if not tag %}
+  {% if not current_user.is_anonymous %}
+    <p>
+    {% if current_user.last_check is not defined or not current_user.last_check %}
+      This is your first check.
+    {% else %}
+      You last checked at {{ current_user.last_check.strftime('%H:%M %m/%d/%Y') }}.
+    {% endif %}
+    {{ current_user.update_last_check() }}
+  {% endif %}
 {% endif %}
 
 {% if bill_table %}
