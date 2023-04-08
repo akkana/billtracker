@@ -18,11 +18,6 @@ import json
 import xlrd
 import traceback
 
-# XXX Requests is only needed temporarily while introducing Ed's PDF
-# calendar parser. Eventually we should get that via billrequests
-# like everything else.
-import requests
-
 
 # A bill pattern, allowing for any number of extra leading zeros
 # like the FIR/LESC links randomly add.
@@ -407,7 +402,6 @@ def update_legislative_session_list():
 # a user hits the All Bills page.
 #
 
-g_allbills_schema = "20230204"
 g_allbills = { "_schema": '20230204' }
 
 # Schema 20230204:
@@ -833,23 +827,31 @@ def update_bill_links(yearcode):
                     # It's not the main content for a billno, but it might
                     # be an amendment or committee sub since those are
                     # in the same directory with names like SB0520COS.pdf
-                    billno = get_billno_from_filename(filename)
-                    if billno:
-                        if billno not in g_allbills[yearcode]:
-                            print("Found possible committee sub", filename,
-                                  "for as yet nonexistent bill", billno,
-                                  file=sys.stderr)
-                            nonexistent.add(billno)
-                        else:
-                            if "amend" not in g_allbills[yearcode][billno]:
-                                g_allbills[yearcode][billno]["amend"] = []
-                            if l['url'] not in \
-                               g_allbills[yearcode][billno]['amend']:
-                                g_allbills[yearcode][billno]['amend'].append(
-                                    l['url'])
-                    else:
-                        print(filename, "is neither a bill nor comm sub",
-                              file=sys.stderr)
+                    # XXX Many of those files aren't actually amendments,
+                    # though, but instead reports of passage. Even when
+                    # they are amendments, they're floor amendents from
+                    # committee and may not have been adopted.
+                    # Better to leave them out, for now.
+                    # billno = get_billno_from_filename(filename)
+                    # if billno:
+                    #     if billno not in g_allbills[yearcode]:
+                    #         print("Found possible committee sub", filename,
+                    #               "for as yet nonexistent bill", billno,
+                    #               file=sys.stderr)
+                    #         nonexistent.add(billno)
+                    #     else:
+                    #         if "amend" not in g_allbills[yearcode][billno]:
+                    #             g_allbills[yearcode][billno]["amend"] = []
+                    #         if l['url'] not in \
+                    #            g_allbills[yearcode][billno]['amend']:
+                    #             g_allbills[yearcode][billno]['amend'].append(
+                    #                 l['url'])
+                    # else:
+                    #     print(filename, "is neither a bill nor comm sub",
+                    #           file=sys.stderr)
+
+                    # print("Skipping possible committee sub", filename,
+                    #       "for", billno)
                     continue
 
             if nonexistent:
@@ -1307,7 +1309,7 @@ def get_legislator_list():
     """
     legdata = None
     try:
-        r = requests.get('https://nmlegis.edsantiago.com/legislators.json')
+        r = billrequests.get('https://nmlegis.edsantiago.com/legislators.json')
         if r.status_code == 200 and  'Last-Modified' in r.headers:
             # The last-modified date only changes when some
             # legislator's data changes. Make sure the file

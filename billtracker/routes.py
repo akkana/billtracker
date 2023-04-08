@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, url_for, request, jsonify
+from flask import render_template, flash, redirect, url_for, request
 from flask import session
 from flask import request
 from flask_login import login_user, logout_user, current_user, login_required
@@ -10,10 +10,11 @@ from billtracker.forms import LoginForm, RegistrationForm, AddBillsForm, \
     NewTagsForm, UserSettingsForm, PasswordResetForm, EmailBlastForm
 from billtracker.models import User, Bill, Legislator, Committee, LegSession
 from billtracker.bills import nmlegisbill, billutils, billrequests
-from .emails import daily_user_email, send_email
+from .routeutils import BILLNO_PAT, html_bill_table, make_new_bill, \
+    g_all_tags, get_all_tags, group_bills_by_tag, set_session_by_request_values
 from config import ADMINS
 
-from datetime import datetime, timedelta, timezone, date
+from datetime import datetime, timedelta, date
 
 import json
 import requests
@@ -35,36 +36,8 @@ import sys, os
 DAYS_CONSIDERED_NEW = 1.2
 
 
-# filenames are e.g. HB000032.PDF with a random number of zeros.
-# Remove all zeros -- but not in the middle of a number, like 103.
-billno_pat = re.compile("([A-Z]*)(0*)([1-9][0-9]*)")
-
-
-def set_session_by_request_values(values=None):
-    """Set the session's yearcode and sessionname according to
-       values passed into a requested page.
-    """
-    if values and "yearcode" in values:
-        session["yearcode"] = values["yearcode"]
-        session["sessionname"] = \
-            LegSession.by_yearcode(session["yearcode"]).sessionname()
-    elif "sessionname" not in session:
-        leg_session = LegSession.current_leg_session()
-        if not leg_session:
-            print("Eek! No LegSessions defined. Fetching them...",
-                  file=sys.stderr)
-            LegSession.update_session_list()
-            leg_session = LegSession.current_leg_session()
-            if not leg_session:
-                print("Double-eek! Couldn't fetch leg sessions",
-                      file=sys.stderr)
-                return
-        session["yearcode"] = leg_session.yearcode
-        session["sessionname"] = leg_session.sessionname()
-
-
 #
-# index.html can be called with a variety of sort views.
+# bills.html can be called with a variety of sort views.
 # Set sortby to one of (status, action_date, passed)
 #
 sortnames = {
@@ -73,13 +46,18 @@ sortnames = {
     'passed': 'Passed'
 }
 
+
 @billtracker.route('/')
 @login_required
-def index():
+def slash():
     values = request.values.to_dict()
     set_session_by_request_values(values)
 
-    return render_template('index.html', title='Home',
+    bill_list= current_user.bills_by_yearcode(session["yearcode"])
+    bill_table = html_bill_table(bill_list, sortby="status",
+                                 yearcode=session["yearcode"])
+
+    return render_template('bills.html', title='Home', bill_table=bill_table,
                            sortby='status', sortnames=sortnames,
                        leg_session=LegSession.by_yearcode(session["yearcode"]))
 
@@ -87,13 +65,29 @@ def index():
 # Make / the preferred URL; /index redirects to /
 @billtracker.route('/index')
 def index_redirect():
-    return redirect(url_for('index'))
+    return redirect(url_for('bills'))
+
+
+@billtracker.route('/bills')
+@billtracker.route('/bills/<sortby>')
+@login_required
+def bills(sortby=None):
+    values = request.values.to_dict()
+    set_session_by_request_values(values)
+
+    bill_list= current_user.bills_by_yearcode(session["yearcode"])
+    bill_table = html_bill_table(bill_list, sortby=sortby,
+                                 yearcode=session["yearcode"])
+
+    return render_template('bills.html', title='Home', bill_table=bill_table,
+                           sortby=sortby, sortnames=sortnames,
+                       leg_session=LegSession.by_yearcode(session["yearcode"]))
 
 
 @billtracker.route('/status_bills')
 @login_required
 def statusbills():
-    return redirect(url_for('index'))
+    return redirect(url_for('bills', sortby='status'))
 
 
 @billtracker.route('/action_date_bills')
@@ -102,7 +96,11 @@ def activebills():
     values = request.values.to_dict()
     set_session_by_request_values(values)
 
-    return render_template('index.html', title='Home',
+    bill_list= current_user.bills_by_yearcode(session["yearcode"])
+    bill_table = html_bill_table(bill_list, sortby='action_date',
+                                 yearcode=session["yearcode"])
+
+    return render_template('bills.html', title='Home', bill_table=bill_table,
                            sortby='action_date', sortnames=sortnames,
                        leg_session=LegSession.by_yearcode(session["yearcode"]))
 
@@ -113,15 +111,38 @@ def passedbills():
     values = request.values.to_dict()
     set_session_by_request_values(values)
 
-    return render_template('index.html', title='Home',
+    bill_list= current_user.bills_by_yearcode(session["yearcode"])
+    bill_table = html_bill_table(bill_list, sortby='passed',
+                                 yearcode=session["yearcode"])
+
+    return render_template('bills.html', title='Home', bill_table=bill_table,
                            sortby='passed', sortnames=sortnames,
+                       leg_session=LegSession.by_yearcode(session["yearcode"]))
+
+
+@billtracker.route('/tagged_bills/<tag>')
+@billtracker.route('/tagged_bills/<tag>/<sortby>')
+def taggededbills(tag, sortby="status"):
+    if not tag:
+        return redirect(url_for('bills', sortby=sortby))
+
+    values = request.values.to_dict()
+    set_session_by_request_values(values)
+
+    bill_list = Bill.query.filter_by(year=session["yearcode"]).all()
+    tagged, untagged = group_bills_by_tag(bill_list, tag)
+    bill_table = html_bill_table(tagged, sortby=sortby)
+
+    return render_template('bills.html', title='Bills tagged "%s"' % tag,
+                           bill_table=bill_table, tag=tag,
+                           sortby=sortby, sortnames=sortnames,
                        leg_session=LegSession.by_yearcode(session["yearcode"]))
 
 
 @billtracker.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(url_for('bills'))
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
@@ -131,7 +152,7 @@ def login():
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
-            next_page = url_for('index')
+            next_page = url_for('bills')
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
 
@@ -156,7 +177,7 @@ def initialize_captcha():
 @billtracker.route('/newaccount', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(url_for('bills'))
 
     initialize_captcha()
 
@@ -254,44 +275,6 @@ def links():
     return render_template('links.html', title='Links for NM Bill Tracking')
 
 
-def make_new_bill(billno, yearcode):
-    """Create a new Bill object, not previously in the database,
-       by fetching and parsing its page.
-       Don't actually add it to the database, just return the Bill object.
-    """
-    if not yearcode:
-        yearcode = LegSession.current_yearcode()
-
-    # Make sure the bill doesn't already exist.
-    # This happens sometimes, maybe due to a race condition
-    # but I haven't tracked it down yet.
-    bills = Bill.query.filter_by(billno=billno, year=yearcode).all()
-    if bills:
-        print(traceback.format_exc(), file=sys.stderr)
-        print("**** Warning: make_new_bill called for bill that already existed",
-              file=sys.stderr)
-        for b in bills:
-            print("    %s (id %d)" % (str(bill), bill.id), file=sys.stderr)
-        print("See preceding traceback", file=sys.stderr)
-
-        return bills[0]
-
-    b = nmlegisbill.parse_bill_page(billno, yearcode=yearcode,
-                                    cache_locally=True)
-    if not b:
-        return None
-
-    bill = Bill()
-    bill.set_from_parsed_page(b)
-
-    # Immediately commit, to reduce (though not entirely eliminate)
-    # race conditions
-    db.session.add(bill)
-    db.session.commit()
-
-    return bill
-
-
 @billtracker.route('/addbills', methods=['GET', 'POST'])
 @login_required
 def addbills():
@@ -315,7 +298,6 @@ def addbills():
         already_followed = []
         bills_err = []
         bills_created = []
-        billnopat = re.compile("^[SH][JC]{0,1}[BMR][0-9]+$")
         for orig_billno in billno_strs:
             orig_billno = orig_billno.strip()
 
@@ -368,7 +350,7 @@ def addbills():
                     for b in bs:
                         print("   addbills dup", b, file=sys.stderr)
             else:
-                if not billnopat.match(billno):
+                if not BILLNO_PAT.match(billno):
                     flash("'%s' doesn't look like a bill number" % orig_billno)
                     # Don't append to bills_err, flashing once is enough
                 else:
@@ -672,7 +654,7 @@ def allbills():
     # Now sort both dicts; the allbills page will display the order
     # passed in, in each case.
     def dic_to_key(dic):
-        match = re.match(billno_pat, dic["billno"])
+        match = re.match(BILLNO_PAT, dic["billno"])
         if not match:
             return "X" + billno
         billtype, zeros, num = match.groups()
@@ -712,26 +694,9 @@ These are bills filed or changed in the past few days""",
                            showtags=False)
 
 
-# All tags, by yearcode
-g_all_tags = {}
-
-def get_all_tags(yearcode):
-    if yearcode in g_all_tags:
-        return g_all_tags[yearcode]
-
-    all_tags = set()
-    for bill in Bill.query.filter_by(year=yearcode).all():
-        if bill.tags:
-            for tag in bill.tags.split(','):
-                all_tags.add(tag)
-
-    g_all_tags[yearcode] = sorted(list(all_tags), key=lambda t: t.lower())
-    return g_all_tags[yearcode]
-
-
 @billtracker.route("/tags", defaults={'tag': None}, methods=['GET', 'POST'])
 @billtracker.route("/tags/<tag>", methods=['GET', 'POST'])
-def tags(tag=None):
+def tags(tag=None, sort=None):
     values = request.values.to_dict()
     set_session_by_request_values()
 
@@ -862,30 +827,7 @@ def tags(tag=None):
 
     # Now any retagging is finished. Group bills according to whether
     # they're tagged with the current tag, if any.
-    tagged = []
-    untagged = []
-    for bill in bill_list:
-        if not bill.num_tracking():
-            continue
-        if not bill.tags:
-            untagged.append(bill)
-            continue
-
-        billtags = bill.tags.split(',')
-
-        # If this page is for all tags, show bills with any tags.
-        if not tag:
-            if bill.tags:
-                tagged.append(bill)
-            else:
-                untagged.append(bill)
-
-        # If the page is showing a specific tag,
-        # group bills according to whether they have that tag.
-        elif tag in billtags:
-            tagged.append(bill)
-        else:
-            untagged.append(bill)
+    tagged, untagged = group_bills_by_tag(bill_list, tag)
 
     if tag:
         bill_lists = {
@@ -1126,974 +1068,4 @@ def password_reset():
     return render_template('passwd_reset.html', title='Password Reset',
                            form=form)
 
-
-#
-# API calls, not meant to be visited directly by users:
-#
-
-
-@billtracker.route("/api/appinfo/<key>")
-def appinfo(key):
-    """Display info about the app and the database.
-    """
-    if key != billtracker.config["SECRET_KEY"]:
-        return "FAIL Bad key\n"
-
-    infostr = "<br>\nBillTracker at " \
-        + str(datetime.now())
-
-    infostr += "<p>\nSQLALCHEMY_DATABASE_URI: " \
-        + billtracker.config["SQLALCHEMY_DATABASE_URI"]
-    infostr += '<br>\nDatabase: ' + str(db.session.get_bind())
-
-    allusers = User.query.all()
-    infostr += "<p>\n%d users registered." % len(allusers)
-
-    # How active are the users?
-    now = datetime.now(timezone.utc)
-    yearcode = LegSession.current_yearcode()
-    checked_in_last_day = 0
-    never_checked = []
-    no_bills = []
-    has_current_year_bills = 0
-    totbills = 0
-    spacer = '&nbsp;&nbsp;&nbsp;&nbsp;'
-    for user in allusers:
-        if user.last_check:
-            print(user, "'s last check:", user.last_check, file=sys.stderr)
-            if now - user.last_check < timedelta(days=1):
-                checked_in_last_day += 1
-        else:
-            never_checked.append(user)
-
-        numbills = len(user.bills)
-        if numbills:
-            totbills += numbills
-            for bill in user.bills:
-                if bill.year == yearcode:
-                    has_current_year_bills += 1
-                    break
-        else:
-            no_bills.append(user)
-
-    infostr += "<br>\n%swith bills from this session: %d" % (spacer,
-                                                      has_current_year_bills)
-    infostr += "<br>\n%schecked in past day: %d" % (spacer,
-                                                    checked_in_last_day)
-    infostr += "<br>\n%snever checked: %d" % (spacer, len(never_checked))
-    for user in never_checked:
-        infostr += " " + user.username
-
-    infostr += "<br>\n%sno bills in any session: %d" % (spacer, len(no_bills))
-    for user in no_bills:
-        infostr += " " + user.username
-
-    infostr += "<br>\nAverage bills per user: %d" % (totbills / len(allusers))
-
-    return "OK " + infostr
-
-
-@billtracker.route("/api/all_daily_emails/<key>")
-@billtracker.route("/api/all_daily_emails/<key>/<justpreview>")
-def all_daily_emails(key, justpreview=False):
-    """Send out daily emails to all users with an email address registered.
-       A cron job will visit this URL once a day.
-       To test the email system, pass any string as a second parameter.
-    """
-    if key != billtracker.config["SECRET_KEY"]:
-        return "FAIL Bad key\n"
-
-    if justpreview:
-        print("Preview of daily emails, not actually sending")
-
-    recipients = []
-    skipped = []
-
-    # Get the current date. Bills' last action dates are just dates,
-    # with the time set to 00:00:00. We'll consider a bill active if
-    # its date is today or yesterday.
-    today = date.today()
-
-    for user in User.query.all():
-        if not user.email:
-            print("%s doesn't have an email address: not sending email"
-                  % user.username, file=sys.stderr)
-            continue
-
-        if not user.email_confirmed():
-            print("%s has an unconfirmed email address: not sending."
-                  % user.username, file=sys.stderr)
-            continue
-
-        # Get this user's bills for the current yearcode.
-        yearcode = LegSession.current_yearcode()
-
-        bills = user.bills_by_yearcode(yearcode)
-
-        if not bills:
-            print("%s doesn't have any bills in this session: not emailing"
-                  % user.username, file=sys.stderr)
-            continue
-
-        # slightly less than one day, in seconds
-        oneday = 60*60*23.5
-        sendmail = False
-        for b in bills:
-            # Bill last action dates are just dates, time is 00:00:00
-            # so timezone is somewhat arbitrary. Use the local one.
-            if b.last_action_date:
-                lastaction = b.last_action_date.date()
-                if today - lastaction <= timedelta(days=1):
-                    sendmail = True
-                    break
-
-            if b.scheduled_in_future():
-                sendmail = True
-                break
-
-        if sendmail:
-            recipients.append('"%s" <%s>' % (user.username, user.email))
-            if justpreview:
-                print("Would send to", user.username, user.email,
-                      file=sys.stderr)
-            else:
-                mailto(user.username, key)
-        else:
-            skipped.append('"%s" <%s>' % (user.username, user.email))
-            print("Not emailing %s (%s): no active bills" % (user.username,
-                                                             user.email),
-                  file=sys.stderr)
-
-    def userstring(userlist):
-        if not userlist:
-            return "<none>"
-        return ', '.join(userlist)
-
-    return "OK %s %s; Skipping %s" % \
-        ("Testing, would email" if justpreview else "Emailing",
-         userstring(recipients), userstring(skipped))
-
-
-@billtracker.route("/api/blastemail/<key>", methods=['GET', 'POST'])
-def blast_email(key):
-    """Blast an email to all registered billtracker users"""
-
-    if key != billtracker.config["SECRET_KEY"]:
-        return "FAIL Bad key\n"
-
-    form = EmailBlastForm()
-
-    if form.validate_on_submit():
-        print("form validated")
-        # This shouldn't be possible because the form should have already
-        # validated the key, but let's be extra cautious with email blasts:
-        if form.key.data != billtracker.config["SECRET_KEY"]:
-            return "FAIL Bad key\n"
-
-        # Build list of recipients
-        recipients = []
-        for user in User.query.all():
-            if not user.email:
-                print("%s doesn't have an email address: not sending email"
-                      % user.username, file=sys.stderr)
-                continue
-
-            if not user.email_confirmed():
-                print("%s has an unconfirmed email address: not sending."
-                      % user.username, file=sys.stderr)
-                continue
-
-            recipients.append([user.username, user.email])
-
-        # Actually send the email
-        subject = "New Mexico BillTracker"
-        for username, email in recipients:
-            body = "Hi, %s,\n\n" % username + form.body.data
-            send_email(subject, "noreply@nmbilltracker.com",
-                       [email], body, None)
-
-        return("OK Sent email to %s" % ' '.join([r[1] for r in recipients]))
-
-    return render_template("blastemail.html", form=form)
-
-
-@billtracker.route('/api/mailto/<username>/<key>')
-def mailto(username, key):
-    if key != billtracker.config["SECRET_KEY"]:
-        return "FAIL Bad key\n"
-
-    user = User.query.filter_by(username=username).first()
-    if not user:
-        return "FAIL Couldn't get user for %s\n" % username
-
-    if not user.email:
-        return "FAIL %s doesn't have an email address registered.\n" % username
-
-    print("** Sending email to %s (%s)" % (user.username, user.email),
-          file=sys.stderr)
-    try:
-        daily_user_email(user)
-    except Exception as e:
-        print("Error, couldn't send email to %s (%s)" % (username, user.email),
-              file=sys.stderr)
-        print(e, file=sys.stderr)
-        print(traceback.format_exc(), file=sys.stderr)
-        return "FAIL couldn't send email to %s" % username
-
-    # Update the user's last_check time and commit it to the database:
-    user.last_check = datetime.now()
-    db.session.add(user)
-    db.session.commit()
-
-    return "OK Mail sent to %s %s\n" % (username, user.email)
-
-
-#
-# Background bill updating:
-#
-# These are queries intended to be called from an update script,
-# not from user action, to update bills and other information
-# from their respective legislative website pages in the background.
-#
-# It would be nice to be able to spawn off a separate thread for
-# updates, but there doesn't seem to be a way to do that in Flask with
-# sqlite3 that's either documented or reliable (it tends to hit
-# "database is locked" errors). But WSGI in Apache uses multiple
-# threads and that sort of threading does work with Flask, so one of
-# those threads will be used for refresh queries.
-#
-
-
-@billtracker.route("/api/refresh_allbills/<key>")
-def refresh_allbills(key):
-    """Refresh the data needed for the allbills page for the current session
-    """
-    if key != billtracker.config["SECRET_KEY"]:
-        print("FAIL refresh_allbills: bad key %s" % key, file=sys.stderr)
-        return "FAIL Bad key\n"
-
-    yearcode = LegSession.current_yearcode()
-    leg_session = LegSession.by_yearcode(yearcode)
-    if not leg_session:
-        print("refresh_allbills: first need to refresh the session list",
-              file=sys.stderr)
-        LegSession.update_session_list()
-        leg_session = LegSession.by_yearcode(yearcode)
-    if not leg_session:
-        return "FAIL Couldn't get legislative session list"
-
-    nmlegisbill.update_allbills_if_needed(yearcode, leg_session.id,
-                                          do_update=True)
-    return "OK Refreshed allbills"
-
-
-#
-# Test with:
-# requests.post('%s/api/refresh_one_bill' % baseurl,
-#               { "BILLNO": billno, "YEARCODE": yearcode, "KEY": key }).text
-#
-# XXX PROBLEM: they've started putting bill text in filenames like
-# SJR03.html, so now we'll have to look for bill text the same way
-# as in refresh_legisdata.
-@billtracker.route("/api/refresh_one_bill", methods=['POST'])
-def refresh_one_bill():
-    """Fetch the page for a bill and update it in the db.
-       Send BILLNO, YEARCODE and the app KEY in POST data.
-    """
-    key = request.values.get('KEY')
-    if key != billtracker.config["SECRET_KEY"]:
-        print("FAIL refresh_one_bill: bad key %s" % key, file=sys.stderr)
-        return "FAIL Bad key\n"
-    billno = request.values.get('BILLNO')
-
-    yearcode = request.values.get('YEARCODE')
-    if not yearcode:
-        yearcode = LegSession.current_yearcode()
-
-    b = nmlegisbill.parse_bill_page(billno, yearcode, cache_locally=True)
-    if not b:
-        print("FAIL refresh_one_bill: Couldn't fetch %s bill page" % billno,
-              file=sys.stderr)
-        return "FAIL Couldn't fetch %s bill page" % billno
-
-    bill = Bill.query.filter_by(billno=billno, year=yearcode).first()
-    if not bill:
-        bill = Bill()
-    bill.set_from_parsed_page(b)
-
-    db.session.add(bill)
-    db.session.commit()
-
-    newbill = Bill.query.filter_by(billno=billno, year=yearcode).first()
-
-    return "OK Updated %s" % billno
-
-
-# Test with:
-# requests.post('%s/api/refresh_percent_of_bills' % baseurl,
-#               { "PERCENT": percent, "YEAR": year, "KEY": key }).text
-# requests.post('%s/api/refresh_percent_of_bills' % baseurl,
-#               { "PERCENT": percent, "YEARCODE": yearcode, "KEY": key }).text
-@billtracker.route("/api/refresh_percent_of_bills", methods=['GET', 'POST'])
-def refresh_percent_of_bills():
-    """Refresh a given percentage of the bill list
-       for a specified yearcode or year.
-       If a year is given, refresh that percentage of bills
-       within all yearcodes from that year.
-       This is necessary because a special session may be called
-       before all the bills from the previous session have been signed.
-       If neither yearcode nor year is specified, refresh the current year.
-    """
-    key = request.values.get('KEY')
-    if key != billtracker.config["SECRET_KEY"]:
-        print("FAIL refresh_one_bill: bad key %s" % key, file=sys.stderr)
-        return "FAIL Bad key\n"
-
-    percent = request.values.get("PERCENT")
-    if percent:
-        try:
-            percent = int(percent)
-        except ValueError:
-            return "FAIL: Don't understand '%s' PERCENT" % percent
-
-    yearcode = request.values.get('YEARCODE')
-    if yearcode:
-        yearcode_list = [ yearcode ]
-    else:
-        year = request.values.get('YEAR')
-        if not year:
-            yearcode = LegSession.current_yearcode()
-            if len(yearcode) < 2:
-                return "FAIL Can't get current yearcode"
-            year = yearcode[:2]
-        yearcode_list = []
-        allsessions = LegSession.query.order_by(LegSession.id).all()
-        for ls in allsessions:
-            yc = ls.yearcode
-            if yc.startswith(year):
-                yearcode_list.append(yc)
-
-    # Now yearcode_list is a list of session names (yearcodes)
-    retstr = "OK Refreshed %d%% of bills:" % percent
-    for yearcode in yearcode_list:
-        allbills = Bill.query.filter_by(year=yearcode) \
-                             .order_by(Bill.update_date).all()
-        if not allbills:
-            print("No bills in", yearcode, file=sys.stderr)
-            continue
-
-        num2update = len(allbills) * percent // 100
-        if not num2update:
-            num2update = 1
-
-        bill_list = allbills[:num2update]
-        print("Updating %d%% of bills in %s (%s bills): %s"
-              % (percent, yearcode, num2update,
-                 ', '.join([b.billno for b in bill_list])),
-              file=sys.stderr)
-
-        updated_bills = []
-        failed_updates = []
-        for bill in bill_list:
-            b = nmlegisbill.parse_bill_page(bill.billno, yearcode)
-            if not b:
-                print("Failed to refresh:", bill, file=sys.stderr)
-                failed_updates.append(bill.billno)
-                continue
-            bill.set_from_parsed_page(b)
-            updated_bills.append(bill)
-            db.session.add(bill)
-
-        retstr += "\n%4s: Updated %s" % (
-            yearcode, ' '.join([b.billno for b in updated_bills]))
-        if failed_updates:
-            retstr += "\n      Failed to update: %s" % (
-            ' '.join([str(b) for b in failed_updates]))
-
-    db.session.commit()
-    return retstr
-
-
-# Test:
-# SERVERURL/api/refresh_session_list?KEY=KEY
-# requests.post('%s/api/refresh_session_list' % baseurl, { "KEY": KEY }).text
-@billtracker.route("/api/refresh_session_list", methods=['POST', 'GET'])
-def refresh_session_list():
-    """Fetch Legislation_List (the same file that's used for allbills)
-       and check the menu of sessions to see if there's a new one.
-    """
-    key = request.values.get('KEY')
-    if key != billtracker.config["SECRET_KEY"]:
-        print("FAIL refresh_session_list: bad key %s" % key, file=sys.stderr)
-        return "FAIL Bad key\n"
-
-    LegSession.update_session_list()
-    return "OK Refreshed list of legislative sessions"
-
-
-@billtracker.route("/api/bills_by_update_date", methods=['GET', 'POST'])
-def bills_by_update_date():
-    """Return a list of bills in the current legislative yearcode,
-       sorted by how recently they've been updated, oldest first.
-       No key required.
-    """
-    yearcode = request.values.get('yearcode')
-    if not yearcode:
-        yearcode = LegSession.current_yearcode()
-
-    bill_list = Bill.query.filter_by(year=yearcode) \
-                          .order_by(Bill.update_date).all()
-
-    return ','.join([ bill.billno for bill in bill_list ])
-
-
-# Update LESC, FIR, amendments
-# (relatively long-running, see comment above re threads).
-#
-# Test with:
-# posturl = '%s/api/refresh_legisdata' % baseurl
-# lescdata = { "TARGET": "LESClink",
-#              "URL": "ftp://www.nmlegis.gov/LESCAnalysis",
-#              "YEARCODE": "19",    # optional
-#              "KEY": '...' }
-# firdata = { "TARGET": "FIRlink", "URL": "ftp://www.nmlegis.gov/firs",
-#             "YEARCODE": "19",    # optional, default to current
-#             "KEY": '...' }
-# amenddata = { "TARGET": "amendlink",
-#               "URL": "ftp://www.nmlegis.gov/Amendments_In_Context",
-#               "YEARCODE": "19",    # optional
-#               "KEY": '...' }
-# requests.post(posturl, xyzdata).text
-@billtracker.route("/api/refresh_legisdata", methods=['POST'])
-def refresh_legisdata():
-    """Fetch a specific file from the legislative website in a separate thread,
-       which will eventually update a specific field in the bills database.
-       This is used for refreshing things like FIR, LESC, amendment links.
-       POST data required:
-         TARGET is the field to be changed (e.g. FIRlink);
-         URL is the ftp index for that link, e.g. ftp://www.nmlegis.gov/firs/
-         KEY is the app key.
-    """
-    # XXX the nmlegis parts of this function should move to bills/nmlegisbill
-    key = request.values.get('KEY')
-    if key != billtracker.config["SECRET_KEY"]:
-        return "FAIL Bad key\n"
-
-    yearcode = request.values.get('YEARCODE')
-    if not yearcode:
-        yearcode = LegSession.current_yearcode()
-
-    target = request.values.get('TARGET')
-
-    url = request.values.get('URL')
-    if not url:
-        url = "https://www.nmlegis.gov/Sessions/%s/" \
-            % nmlegisbill.yearcode_to_longURLcode(yearcode)
-        if target == "LESClink":
-            url += "LESCAnalysis"
-        elif target == "FIRlink":
-            url += "firs"
-        elif target == "amendlink":
-            url += "Amendments_In_Context"
-        else:
-            errstr = \
-                "refresh_legisdata: unknown target %s and no URL specified" \
-                % target
-            print(errstr, file=sys.stderr)
-            return "FAIL " + errstr
-
-    print("refresh_legisdata %s from %s" % (target, url), file=sys.stderr)
-
-    try:
-        # XXX Warning: the ftp stuff hasn't been tested recently.
-        if url.startswith("ftp:"):
-            index = billrequests.ftp_url_index(url)
-        else:
-            index = billrequests.get_html_dirlist(url)
-    except Exception as e:
-        print("Couldn't fetch", url, file=sys.stderr)
-        print(e, file=sys.stderr)
-        print(traceback.format_exc(), file=sys.stderr)
-        return "FAIL Couldn't fetch %s" % url
-
-    # Slow part is done. Now it's okay to access the database.
-
-    changes = []
-    not_in_db = []
-    badfilenames = []
-    # index is a list of dicts with keys name, url, size, Last Modified
-    for filedic in index:
-        base, ext = os.path.splitext(filedic["name"])
-
-        try:
-            # Remove those extra zeros
-            match = billno_pat.match(base)
-            billno = match.group(1) + match.group(3)
-        except:
-            badfilenames.append(base)
-            continue
-
-        bill = Bill.query.filter_by(billno=billno, year=yearcode).first()
-
-        if bill:
-            setattr(bill, target, filedic["url"])
-            db.session.add(bill)
-            changes.append(billno)
-        else:
-            not_in_db.append(billno)
-
-    if not changes:
-        print("refresh_legisdata %s: no bills updated" % target)
-        return "OK but no bills updated"
-
-    db.session.commit()
-
-    retmsgs = ["Updated %s for %s" % (target, ','.join(changes))]
-    if not_in_db:
-        retmsgs.append("Has %s but not in db: %s"
-                       % (target, ','.join(not_in_db)))
-    if badfilenames:
-        retmsgs.append("Filenames that don't map to a billno: %s"
-                       % ','.join(badfilenames))
-
-    print("refresh_legisdata:", '; '.join(retmsgs))
-    return "OK " + "<br>\n".join(retmsgs)
-
-
-@billtracker.route("/api/refresh_legislators", methods=['GET', 'POST'])
-@billtracker.route("/api/refresh_legislators/<key>")
-def refresh_legislators(key=None):
-    """POST data is only for specifying KEY.
-    """
-    if not key:
-        key = request.values.get('KEY')
-    if key != billtracker.config["SECRET_KEY"]:
-        return "FAIL Bad key\n"
-
-    if Legislator.refresh_legislators_list():
-        return "OK Refreshed legislators"
-
-    return "FAIL Couldn't refresh legislator list"
-
-
-@billtracker.route("/api/all_committees")
-def list_committees():
-    """List all committee codes in the db, in no particular order.
-       No key required.
-    """
-    all_committees = Committee.query.all()
-    if not all_committees:
-        print("No committees were set! Should refresh all of them.",
-              file=sys.stderr)
-        # refresh_all_committees(billtracker.config["SECRET_KEY"])
-        # all_committees = Committee.query.all()
-        return "FAIL no committees in db"
-
-    return ','.join([ c.code for c in all_committees ])
-
-
-@billtracker.route("/api/refresh_all_committees/<key>")
-def refresh_all_committees(key):
-    """Update all committees based on the latest list of upcoming
-       committee meetings. Update bills' scheduled_date.
-    """
-    if key != billtracker.config["SECRET_KEY"]:
-        return "FAIL Bad key\n"
-
-    print("api/refresh_all_committees", file=sys.stderr)
-
-    set_session_by_request_values()
-    yearcode = session["yearcode"]
-    thisyear = date.today().year
-
-    # First update the legislators list:
-    Legislator.refresh_legislators_list()
-
-    known_committees = Committee.query.all()
-
-    comm_mtgs = nmlegisbill.expand_committees()
-
-    # Are there any new committees in comm_mtgs not yet in the database?
-    for commcode in comm_mtgs:
-        comm = Committee.query.filter_by(code=commcode).first()
-        if not comm:
-            newcomm = Committee()
-            newcomm.code = commcode
-
-            # Need to add the new committee to the database before refreshing,
-            # to avoid sqlite3.IntegrityError: UNIQUE constraint failed
-            db.session.add(newcomm)
-            db.session.commit()
-            # except that even after this,
-            # Committee.query.filter_by(code=commcode).first()
-            # sometimes returns None. Sigh.
-
-            # Now it should be safe to refresh
-            newcomm.refresh()
-
-    hasmeetings = []
-    nomeetings = []
-    bills_with_committee = {}
-    for comm in Committee.query.all():
-        if comm.code not in comm_mtgs or not comm_mtgs[comm.code]:
-            comm.mtg_time = None
-            nomeetings.append(comm.code)
-            continue
-
-        if "meetings" not in comm_mtgs[comm.code]:
-            nomeetings.append(comm.code)
-            continue
-
-        # XXX Currently the Committee database object can only
-        # handle one meeting at once, and this code doesn't yet
-        # try to handle multiple meetings.
-
-        # Sort this committee's by datetime. Items missing time will have
-        # time of 00:00 and so will come before items with a
-        # time on the same day.
-        # comm_mtgs[comm.code]["meetings"].sort(
-        #     key=lambda m: m["datetime"] if "datetime" in m else "zzz")
-
-        # Now update the committee's comm.mtg_time (a string) to show
-        # meeting time and details. mtg["timestr"] is a free-form string
-        # like "1:30 PM  (or 15 minutes following the floor session)"
-        timestrings = []
-        updated_comm = False
-        today = datetime.now() - timedelta(hours=4)
-        for mtg in comm_mtgs[comm.code]["meetings"]:
-            # Ignore any meeting without datetime or bills field.
-            if "datetime" not in mtg:
-                nomeetings.append(comm.code)
-                continue
-            if "bills" not in mtg:
-                nomeetings.append(comm.code)
-                continue
-
-            if "timestr" in mtg:
-                timestr = mtg["timestr"]
-                # May include other details like zoom and schedule links
-            elif type(mtg["datetime"]) is datetime and mtg["datetime"].hour:
-                timestr = mtg["datetime"].strftime("%H:%M")
-            else:
-                timestr = ""
-
-            comm.mtg_time = timestr
-
-            for billno in mtg["bills"]:
-                if billno in bills_with_committee:
-                    if comm.code not in bills_with_committee[billno]:
-                        bills_with_committee[billno].append(comm.code)
-                else:
-                    bills_with_committee[billno] = [comm.code]
-
-                bill = Bill.query.filter_by(billno=billno,
-                                            year=yearcode).first()
-                if not bill:
-                    continue
-
-                bill.location = comm.code
-                if not mtg['datetime']:
-                    bill.scheduled_date = None
-                    print("Warning:", bill,
-                          "listed in meeting with no date", mtg,
-                          file=sys.stderr)
-                    continue
-
-                if not bill.scheduled_date:
-                    bill.scheduled_date = mtg['datetime']
-                    updated_comm = True
-
-                # Only overwrite an existing scheduled_date
-                # if the new one is earlier or if the current
-                # datetime is more than a few hours old.
-                # Do all comparisons with unaware datetimes
-                # because storing local timezone in the database
-                # doesn't work reliably. That means the bogus tz
-                # postgres automatically adds has to be stripped.
-                else:
-                    mtg['datetime'].replace(tzinfo=None)
-                    sched_time = bill.scheduled_date.replace(tzinfo=None)
-                    if sched_time < today or mtg['datetime'] < sched_time:
-                        bill.scheduled_date = mtg['datetime']
-
-                    if mtg['datetime'] < sched_time:
-                        # XXX Somehow, this message isn't really picking up
-                        # mtg['datetime']; it's printing the earlier
-                        # meeting time both times.
-                        print("CONFLICT:", billno, "scheduled for",
-                              bill.scheduled_date, "but also for",
-                              mtg['datetime'], file=sys.stderr)
-
-                    updated_comm = True
-
-                db.session.add(bill)
-
-        if updated_comm:
-            hasmeetings.append(comm.code)
-            db.session.add(comm)
-        else:
-            nomeetings.append(comm.code)
-
-        db.session.add(comm)
-
-    # Having looped through all the meetings, now clean up any bills
-    # that aren't scheduled any longer.
-
-    # Remove any bills that used to be assigned to this committee
-    # but no longer are (so they're not in billnos).
-    unscheduled = []
-    for bill in Bill.query.filter_by(year=yearcode).all():
-        if bill.billno not in bills_with_committee:
-            bill.scheduled_date = None
-            db.session.add(bill)
-            unscheduled.append(bill.billno)
-
-    # XXX Sometimes there are joint committee meetings,
-    # in which case a bill may be listed for more than
-    # one committee. In that case, the bill's location
-    # should be set from the bill's HTML page, which
-    # means it should be re-parsed here.
-    for billno in bills_with_committee:
-        if billno in bills_with_committee and \
-           len(bills_with_committee[billno]) > 1:
-            print("***", billno, "is in multiple committees:",
-                  ' '.join(bills_with_committee[billno]), file=sys.stderr)
-
-    db.session.commit()
-
-    billnos = sorted(list(bills_with_committee.keys()))
-    unscheduled.sort()
-    return "OK\n<br>Committees meeting: " + ",".join(hasmeetings) \
-        + "\n<br>No meetings, or no followed bills: " \
-        + ",".join(nomeetings) \
-        + "\n<br>" \
-        + "\n<br>Bills updated: " + " ".join(billnos) \
-        + "\n<br>Bills not scheduled: " + " ".join(unscheduled)
-
-
-def refresh_one_committee(comcode):
-    newcom = nmlegisbill.expand_committee(comcode)
-    if not newcom:
-        print("Couldn't expand committee %s" % comcode, file=sys.stderr)
-        return "FAIL Couldn't expand committee %s" % comcode
-
-    com = Committee.query.filter_by(code=comcode).first()
-    if not com:
-        com = Committee()
-        com.code = comcode
-
-    com.update_from_parsed_page(newcom)
-
-    db.session.add(com)
-    db.session.commit()
-
-    return "OK Updated committee %s" % comcode
-
-
-@billtracker.route("/api/refresh_committee/<comcode>/<key>")
-def refresh_committee(comcode, key):
-    """Long-running API: update a committee from its website.
-       POST data includes COMCODE and KEY.
-    """
-    # key = request.values.get('KEY')
-    # if key != billtracker.config["SECRET_KEY"]:
-    #     return "FAIL Bad key\n"
-
-    # comcode = request.values.get('COMCODE')
-    # if not comcode:
-    #     return "FAIL No COMCODE\n"
-
-    return refresh_one_committee(comcode)
-
-
-@billtracker.route("/api/db_backup", methods=['GET', 'POST'])
-def db_backup():
-    """Make a backup copy of the database.
-       POST data is only for KEY.
-    """
-
-    values = request.values.to_dict()
-
-    try:
-        key = values['KEY']
-        if key != billtracker.config["SECRET_KEY"]:
-            return "FAIL Bad key\n"
-    except KeyError:
-        return "FAIL No key"
-
-    db_uri = billtracker.config['SQLALCHEMY_DATABASE_URI']
-    print("db URI:", db_uri, file=sys.stderr)
-
-    now = datetime.now()
-    backupdir = os.path.join(billrequests.CACHEDIR, "db")
-
-    db_orig = db_uri[9:]
-
-    if not os.path.exists(backupdir):
-        try:
-            os.mkdir(backupdir)
-        except Exception as e:
-            return "FAIL Couldn't create backupdir %s: %s" % (backupdir, str(e))
-
-    if not os.path.exists(backupdir):
-        return "FAIL No backupdir %s" % (backupdir)
-
-    if db_uri.startswith('sqlite://'):
-        db_new = os.path.join(backupdir,
-                              now.strftime('billtracker-%Y-%m-%d_%H:%M.db'))
-        shutil.copyfile(db_orig, db_new)
-
-    elif db_uri.startswith('postgresql://'):
-        db_new = os.path.join(backupdir,
-            now.strftime('billtracker-%Y-%m-%d_%H:%M.psql'))
-        # pg_dump dbname > dbname-backup.pg
-        with open(db_new, 'w') as fp:
-            subprocess.call(["pg_dump", "nmbilltracker"], stdout=fp)
-            print("Backed up to", db_new, file=sys.stderr)
-
-    else:
-        return "FAIL db URI doesn't start with sqlite:// or postgresql://"
-
-    return "OK Backed up database to '%s'" % (db_new)
-
-
-def find_dups(yearcode=None):
-    """Return a list of all bills that have duplicate entries in the db:
-       multiple bills for the same billno and year.
-       Return a list of lists of bills.
-       Return only the master bill for each billno.
-    """
-
-    # A list of all bills that have duplicates, same billno and year.
-    dup_bill_lists = []
-    bill_ids_seen = set()
-
-    if yearcode:
-        bills = Bill.query.filter_by(year=yearcode).all()
-    else:
-        bills = Bill.query.all()
-
-    for bill in bills:
-        # Already seen because it was a dup of something else?
-        if bill.id in bill_ids_seen:
-            continue
-
-        bill_ids_seen.add(bill.id)
-
-        bills_with_this_no = Bill.query.filter_by(billno=bill.billno,
-                                                  year=bill.year) \
-                                       .order_by(Bill.id).all()
-        if len(bills_with_this_no) == 1:
-            continue
-
-        # There are multiple bills with this billno.
-        dup_bill_lists.append(bills_with_this_no)
-
-        for dupbill in bills_with_this_no:
-            bill_ids_seen.add(dupbill.id)
-
-    return dup_bill_lists
-
-
-@billtracker.route('/api/showdups/<key>')
-@billtracker.route('/api/showdups/<key>/<yearcode>')
-def show_dups(key, yearcode=None):
-    """Look for duplicate bills in a given yearcode, or all years.
-       Return JSON showing dup bills and who's tracking them.
-    """
-    if key != billtracker.config["SECRET_KEY"]:
-        return "FAIL Bad key\n"
-
-    ret_json = {}
-
-    dup_bill_lists = find_dups(yearcode)
-
-    if not dup_bill_lists:
-        print("No duplicate bills in database, whew", file=sys.stderr)
-        return "OK No dups"
-
-    print("duplicate bills:", dup_bill_lists, file=sys.stderr)
-
-    for duplist in dup_bill_lists:
-        ret_json[duplist[0].billno] = []
-        # The master will be the first, the one with the smallest ID
-        min_id = min([b.id for b in duplist])
-        masterbill = Bill.query.filter_by(id=min_id).first()
-
-        ret_json[masterbill.billno] = [ {
-            'id': masterbill.id,
-            'followers': [ u.username for u in masterbill.users_tracking() ]
-        } ]
-
-        for b in duplist:
-            if b == masterbill:
-                continue
-            ret_json[b.billno].append({
-                'id': b.id,
-                'followers': [ u.username for u in b.users_tracking() ]
-            })
-
-    return jsonify(ret_json)
-
-
-# Clean out duplicates.
-# This shouldn't be needed, but somehow, duplicates appear.
-@billtracker.route('/api/cleandups/<key>')
-@billtracker.route('/api/cleandups/<key>/<yearcode>')
-def clean_dups(key, yearcode=None):
-    if key != billtracker.config["SECRET_KEY"]:
-        return "{ 'error': 'FAIL Bad key' }"
-
-    billdups = find_dups(yearcode)
-    # billdups is a list of pairs/triples/whatever of bills
-    # with the same billno and yearcode
-
-    if not billdups:
-        print("No duplicate bills in database, whew", file=sys.stderr)
-        return "OK"
-
-    print("billdups:", billdups, file=sys.stderr)
-    outstr = "OK<br>\n"
-
-    def trackstr(b):
-        return ', '.join([u.username for u in b.users_tracking()])
-
-    deleted = []
-    for duplist in billdups:
-        # The master will be the first, the one with the smallest ID
-        min_id = min([b.id for b in duplist])
-        masterbill = Bill.query.filter_by(id=min_id).first()
-
-        outstr += "<br><br>\n\n** %s: id %d, tracked by %s" % (masterbill.billno,
-                                                          masterbill.id,
-                                                          trackstr(masterbill))
-        for b in duplist:
-            if b == masterbill:
-                continue
-            outstr += "<br>\n . . %s (id %d) tracked by %s" % (b.billno, b.id,
-                                                            trackstr(b))
-            for u in b.users_tracking():
-                u.bills.remove(b)
-                if masterbill not in u.bills:
-                    u.bills.append(masterbill)
-                    outstr += "<br>\n . . . . Moved %s to masterbill" % \
-                        u.username
-
-            if b.users_tracking():
-                print("<br> . . . EEK, failed to remove users from id %d before deleting" % b.id)
-            else:
-                deleted.append(b)
-                outstr += "<br>\n . . Deleting bill with id %d" % b.id
-                db.session.delete(b)
-
-        outstr += "<br>\n . Now master bill %d is tracked by: %s" % \
-            (masterbill.id, trackstr(masterbill))
-
-    db.session.commit()
-
-    outstr += "<br><br>\nAll bills to delete: %s" % \
-        ', '.join(["id %d" % b.id for b in deleted])
-
-    print(outstr, file=sys.stderr)
-    return outstr
 

@@ -8,6 +8,9 @@
 {{ form.csrf_token }}
 
 <p>
+{{ form.subject.label }}: {{ form.subject(size=55) }}
+
+<p>
 {{ form.body.label }}:
 <br>
 {{ form.body(cols=75, rows=15) }}
@@ -16,7 +19,7 @@
 {% endfor %}
 
 <p>
-{{ form.key.label }}: {{ form.key() }}
+{{ form.key.label }}: {{ form.key(size=50) }}
 {% for error in form.key.errors %}
   <span style="color: red;">[{{ error }}]</span>
 {% endfor %}

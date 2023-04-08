@@ -284,67 +284,6 @@ accept our apologies, and don't click the confirmation link.
         return bill_list
 
 
-    def show_bill_table(self, sort_type=None, yearcode=None, inline=False):
-        """Return an HTML string showing status for a list of bills
-           as HTML table rows.
-           Does not inclue the enclosing <table> or <tbody> tags.
-           If inline==True, add table row colors as inline CSS
-           since email can't use stylesheets.
-        """
-        if not yearcode:
-            yearcode = LegSession.current_yearcode()
-
-        sort_key = Bill.get_sort_key(sort_type)
-        bill_list = self.bills_by_yearcode(yearcode)
-        if sort_key:
-            bill_list.sort(key=sort_key)
-
-        # Make the table rows alternate color.
-        # This is done through CSS on the website,
-        # but through inline styles in email.
-        if inline:
-            rowstyles = [ 'style="background: white;"',
-                          'style="background: #cfd; "' ]
-            cellstyle = ' style="padding: .5em;"'
-        else:
-            rowstyles = [ 'class="even"',
-                          'class="odd"' ]
-            cellstyle = ""
-
-        outstr = ''
-        parity = 1
-        curday = None
-        for bill in bill_list:
-            # In a table sorted by last_action, inclue separators
-            # between days.
-            if sort_type == "action_date" and bill.last_action_date:
-                newday = bill.last_action_date.date()
-                if newday != curday:
-                    curday = newday
-                    outstr += "<tr %s><th>Last action: %s\n" \
-                        % (rowstyles[0], newday.strftime('%a %m/%d/%Y'))
-
-            parity = 1 - parity
-            outstr += '<tr %s><td id="%s"%s>%s\n' % (rowstyles[parity],
-                                                     bill.billno,
-                                                     cellstyle,
-                                                     bill.show_html())
-
-        if not outstr:
-            outstr = """You're not tracking any bills in this session.
-<p>
-You can see a list of all bills filed during this session on the
-<b><a href="/allbills">All Bills</a></b> page.
-<p>
-If you know the number of a bill you want to follow,
-you can track it on the <b><a href="/addbills">Track Bill by #</a></b> page.
-<p>
-Or you can see what bills other users are tracking on the
-<b><a href="/popular">Popular Bills</a></b> page."""
-
-        return outstr
-
-
 @login.user_loader
 def load_user(id):
     # Some package related to flask sqlalchemy is very sensitive to

@@ -22,8 +22,13 @@
        url_for fails if there are any values that need specifying
      #}
     {% set cururl = request.path %}
+    {% if current_user and not current_user.is_anonymous %}
+      {% set homename = "My Bills" %}
+    {% else %}
+      {% set homename = "Home" %}
+    {% endif %}
     {% set navlinks = [
-        [ '/',         'Home',          True ],
+        [ '/',         homename,        True ],
         [ '/allbills', 'All/New Bills', True ],
         [ '/popular',  'Popular Bills', True ],
         [ '/tags',     'Tags',          True ],

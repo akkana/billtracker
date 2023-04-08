@@ -29,4 +29,4 @@ login.login_view = 'login'
 from flask_mail import Mail
 mail = Mail(billtracker)
 
-from billtracker import routes, models
+from billtracker import routes, models, api, mailapi

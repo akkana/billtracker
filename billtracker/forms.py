@@ -12,16 +12,11 @@ from wtforms.validators import ValidationError, DataRequired, Email, \
     EqualTo, Optional, Length
 
 from billtracker.models import User
+from billtracker.routeutils import BILLNO_PAT
 from billtracker import chattycaptcha
 from billtracker import billtracker
 
 import re
-
-
-# Billno pattern used in the addbills form
-addbills_billno_pat = re.compile('^([SH][JC]{0,1}[BMR])(0*)([1-9][0-9]*)$',
-                                 re.IGNORECASE)
-
 
 import sys
 
@@ -126,7 +121,7 @@ class AddBillsForm(FlaskForm):
         invalid = []
         for bn in billnos:
             bn = bn.strip()
-            if not addbills_billno_pat.match(bn):
+            if not BILLNO_PAT.match(bn):
                 invalid.append(bn)
 
         if invalid:
@@ -189,6 +184,8 @@ class PasswordResetForm(FlaskForm):
 
 
 class EmailBlastForm(FlaskForm):
+    subject = StringField("Subject", validators=[DataRequired()],
+                          default="NM BillTracker: alert")
     body = TextAreaField("Email body", validators=[DataRequired()])
     key = StringField("Secret Key", validators=[DataRequired()])
     submit = SubmitField('Send Email to All Users')

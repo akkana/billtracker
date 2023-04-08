@@ -156,7 +156,8 @@ class TestBillTracker(unittest.TestCase):
                 # Do this first, many things depend on current_leg_session()
                 response = self.client.post("/api/refresh_session_list",
                                             data={ 'KEY': KEY })
-                self.assertTrue(response.get_data(as_text=True).startswith('OK'))
+                self.assertTrue(
+                    response.get_data(as_text=True).startswith('OK'))
 
                 # Set up form and session variables that will be
                 # used later to create a user.

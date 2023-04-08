@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if current_user.email and not current_user.email_confirmed() %}
+<p class="error">
+Warning: Your email hasn't been confirmed yet.
+Go to <a href="/settings">Settings</a> to request another confirmation message.
+</p>
+{% endif %}
+
+{% if tag %}
+<h1>Bills Tagged "{{ tag }}"</h1>
+{% else %}
+<h1>Bills {{ current_user.username }} is tracking:</h1>
+{% endif %}
+
+{% if bill_table %}
+
+{% set baseurl = request.path %}
+{% if baseurl == '/' %}
+  {% set baseurl = "/bills" %}
+{% endif %}
+
+{% set parts = baseurl.split('/') %}
+{% if parts[-1] in sortnames %}
+  {% set baseurl = '/'.join(parts[:-1]) %}
+{% endif %}
+
+<div class="rightalign">
+Sort by:
+
+{% for btnname in sortnames %}
+  {% if btnname == sortby %}
+    <span class="active">{{ sortnames[btnname] }}</span>
+  {% else %}
+    <span class="selectable"><a href="{{ baseurl }}/{{ btnname }}">{{ sortnames[btnname] }}</a></span>
+  {% endif %}
+{% endfor %}
+
+</div>
+
+{% endif %}
+
+{% if not current_user.is_anonymous %}
+<p>
+{% if current_user.last_check is not defined or not current_user.last_check %}
+This is your first check.
+{% else %}
+You last checked at {{ current_user.last_check.strftime('%H:%M %m/%d/%Y') }}.
+{% endif %}
+{{ current_user.update_last_check() }}
+{% endif %}
+
+{% if bill_table %}
+
+<table id="bills" class="bill_list">
+
+{{ bill_table | safe }}
+
+</tbody>
+</table>
+
+{% elif tag %}
+
+<p>
+No bills tagged "{{ tag }}".
+
+{% elif not current_user.is_anonymous  %}
+
+You're not tracking any bills in this session.
+<p>
+You can see a list of all bills filed during this session on the
+<b><a href="/allbills">All Bills</a></b> page.
+<p>
+If you know the number of a bill you want to follow,
+you can track it on the <b><a href="/addbills">Track Bill by #</a></b> page.
+<p>
+Or you can see what bills other users are tracking on the
+<b><a href="/popular">Popular Bills</a></b> page.
+
+{% endif %}
+
+{% endblock %}
