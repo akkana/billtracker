@@ -24,7 +24,27 @@
 <div class="buttonholder">
 <p>
 {% if alltags %}
-View tagged bills:
+View status of tagged bills:
+{% else %}
+No tags yet. You can be the first to create one!
+{% endif %}
+
+{% for t in alltags %}
+  {% if t != tag %}
+    <a href="/tagged_bills/{{ t }}" class="buttonlike" style="background: {{ colorfcn(t)[t] }}">{{ t }}</a>
+  {% endif %}
+{% endfor %}
+
+{% if tag %}
+<br>
+or <a href="/tags" class="buttonlike">View all tags</a>
+{% endif %}
+</div>
+
+<div class="buttonholder">
+<p>
+{% if alltags %}
+Add or change tags here, or focus on a specific tag:
 {% else %}
 No tags yet. You can be the first to create one!
 {% endif %}

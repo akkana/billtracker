@@ -7,7 +7,7 @@ from werkzeug.urls import url_parse
 from billtracker import billtracker, db
 from billtracker import chattycaptcha
 from billtracker.forms import LoginForm, RegistrationForm, AddBillsForm, \
-    NewTagsForm, UserSettingsForm, PasswordResetForm, EmailBlastForm
+    NewTagsForm, UserSettingsForm, PasswordResetForm
 from billtracker.models import User, Bill, Legislator, Committee, LegSession
 from billtracker.bills import nmlegisbill, billutils, billrequests
 from .routeutils import BILLNO_PAT, html_bill_table, make_new_bill, \
