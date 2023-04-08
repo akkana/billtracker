@@ -874,8 +874,9 @@ class Bill(db.Model):
             leg = Legislator.query.filter_by(sponcode=sponcode).first()
             if leg:
                 if html:
-                    sponlinks.append('<a href="https://www.nmlegis.gov/Members/Legislator?SponCode=%s" target="_blank">%s</a>'
-                                     % (leg.sponcode, leg.lastname))
+                    sponlinks.append('<a href="https://www.nmlegis.gov/Members/Legislator?SponCode=%s" title="%s" target="_blank">%s</a>'
+                                     % (leg.sponcode, leg.get_summary(),
+                                        leg.lastname))
                 else:
                     sponlinks.append('%s <%s>' % (leg.lastname, leg.sponcode))
 
@@ -1024,7 +1025,6 @@ class Legislator(db.Model):
 
     # home_phone is in Legislators.XLS but not on HTML pages.
     # It will probably be null.
-    home_phone = db.Column(db.String(25))
     office_phone = db.Column(db.String(25))
     email = db.Column(db.String(50))
     office = db.Column(db.String(8))
@@ -1032,18 +1032,29 @@ class Legislator(db.Model):
     # Comma-separated list of commmittees this legislator chairs:
     chairships = db.Column(db.String(25))
 
-    # Things we don't care about yet, but are available in the XLS:
-    # party = db.Column(db.String(1))
+    party = db.Column(db.String(1))
+    county = db.Column(db.String(15))
+
+    # Things we don't care about yet, but are available in the XLS;
+    # some, like district, aren't in Ed's Legislators.json, though.
     # district = db.Column(db.String(4))
-    # county = db.Column(db.String(15))
     # lead_posi = db.Column(db.String(5))
     # start_year = db.Column(db.String(4))
 
 
     def __repr__(self):
-        return '<Legislator %s %s %s (%s)>' % (self.title,
-                                               self.firstname, self.lastname,
-                                               self.sponcode)
+        return '<Legislator %s: %s %s %s (%s, %s)>' % (
+            self.title, self.sponcode,
+            self.firstname, self.lastname,
+            self.party, self.county
+        )
+
+    def get_summary(self):
+        return "%s %s %s (%s, %s): %s" % (self.title,
+                                         self.firstname, self.lastname,
+                                         self.party, self.county,
+                                         self.sponcode)
+
 
     @staticmethod
     def refresh_legislators_list():

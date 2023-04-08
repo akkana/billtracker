@@ -1,4 +1,4 @@
-"""empty message
+"""Add a tags field to Bills
 
 Revision ID: a2d704c13d1e
 Revises: 60f58c090263
