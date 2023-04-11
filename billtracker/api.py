@@ -112,7 +112,7 @@ def refresh_allbills(key):
         return "FAIL Couldn't get legislative session list"
 
     nmlegisbill.update_allbills_if_needed(yearcode, leg_session.id,
-                                          do_update=True)
+                                          force_update=True)
     return "OK Refreshed allbills"
 
 

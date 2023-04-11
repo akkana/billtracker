@@ -16,6 +16,7 @@ from collections import OrderedDict
 from bs4 import BeautifulSoup
 import json
 import xlrd
+import threading
 import traceback
 
 
@@ -76,6 +77,7 @@ url_mapper = URLmapper('https://www.nmlegis.gov',
 
 # How long to wait before disregarding a file lock:
 LOCK_EXPIRATION_SECS = 60*5
+g_allbills_lockfile = {}    # keyed by yearcode
 
 
 def yearcode_to_longURLcode(yearcode):
@@ -426,7 +428,7 @@ g_allbills_cachefile = {}
 
 def save_allbills_json(yearcode):
     """Save g_allbills to the JSON cachefile.
-       This should be called after creating a lockfile first,
+       This should be called after creating g_allbills_lockfile first,
        which should be removed/unlocked afterward.
     """
     if not g_allbills[yearcode]:
@@ -458,14 +460,15 @@ def save_allbills_json(yearcode):
               ":", e, file=sys.stderr)
 
 
-def update_allbills_if_needed(yearcode, sessionid=None, do_update=False):
+def update_allbills_if_needed(yearcode, sessionid=None, force_update=False):
     """Decide whether we need to re-read the allbills json file,
-       or even update that file.
+       or update that file.
+       Normally returns immediately, scheduling an update in another
+       thread if needed; will not wait unless force_update == True.
     """
+    # print(traceback.format_exc(), file=sys.stderr)
     timenow = time.time()
 
-    # Read in the allbills cachefile if needed,
-    # to seed history and sessionid if nothing else
     if yearcode not in g_allbills_cachefile:
         g_allbills_cachefile[yearcode] = '%s/allbills_%s.json' % (
             billrequests.CACHEDIR, yearcode)
@@ -476,71 +479,92 @@ def update_allbills_if_needed(yearcode, sessionid=None, do_update=False):
     try:
         filetime = os.stat(g_allbills_cachefile[yearcode]).st_mtime
 
+        # Is the cachefile newer than g_allbills in memory? Read it in.
+        # Need this even if we're going to update it, because we don't
+        # want to lose the accumulated history entries.
+        # Also initialize if g_allbills hasn't been initialized yet
+        # in this session, _updated will be 0.
+        if (yearcode not in g_allbills or
+            "_updated" not in g_allbills[yearcode] or
+            filetime > g_allbills[yearcode]["_updated"]):
+            print("Refreshing g_allbills from cache file", file=sys.stderr)
+            with open(g_allbills_cachefile[yearcode]) as fp:
+                g_allbills[yearcode] = json.load(fp)
+                # This is kind of a multiple meaning for _updated:
+                # in memory, it means when it was last read from the
+                # JSON file, but in the JSON file it represents when
+                # the bill page was last fetched.
+                g_allbills[yearcode]["_updated"] = int(time.time())
+
     except FileNotFoundError:
-        print(g_allbills_cachefile[yearcode], "doesn't exist yet; creating",
+        # There's no cachefile. Hopefully we can schedule its creation.
+        print(g_allbills_cachefile[yearcode], "doesn't exist yet",
               file=sys.stderr)
-        update_allbills(yearcode, sessionid)
+        filetime = 0
+
+    # Now g_allbills[yearcode] contains the most recent list of bills.
+
+    # Make sure there's a sessionid either as an argument or in
+    # g_allbills. If neither, return.
+    try:
+        if not sessionid:
+            sessionid = g_allbills[yearcode]["_sessionid"]
+        elif "_sessionid" not in g_allbills[yearcode]:
+            g_allbills[yearcode]["_sessionid"] = sessionid
+    except KeyError:
+        print("ERROR: Can't update_allbills without sessionid",
+              file=sys.stderr)
         return
 
-    # Is the cachefile newer than g_allbills in memory? Read it in.
-    # Need this even if we're going to update it, because we don't
-    # want to lose the accumulated history entries.
-    # Also initialize if g_allbills hasn't been initialized yet
-    # in this session, _updated will be 0.
-    if (yearcode not in g_allbills or
-        "_updated" not in g_allbills[yearcode] or
-        filetime > g_allbills[yearcode]["_updated"]):
-        print("Refreshing g_allbills from cache file", file=sys.stderr)
-        with open(g_allbills_cachefile[yearcode]) as fp:
-            g_allbills[yearcode] = json.load(fp)
-            # This is kind of a multiple meaning for _updated:
-            # in memory, it means when it was last read from the
-            # JSON file, but in the JSON file it represents when
-            # the bill page was last fetched.
-            g_allbills[yearcode]["_updated"] = int(time.time())
+    # Is g_allbills cachefile too old and needs to be updated?
+    # Or is force_update specified?
+    if not force_update and ((timenow - filetime) <= billrequests.CACHESECS):
+        # Cache is recent enough, return what was read from it.
+        # print("Cache is recent enough, returning", file=sys.stderr)
+        return
 
-    # Make sure there's a sessionid
-    if sessionid:
-        g_allbills["sessionid"] = sessionid
-    else:
-        if g_allbills and yearcode in g_allbills and \
-           "_sessionid" in g_allbills[yearcode]:
-            sessionid = g_allbills[yearcode]["_sessionid"]
-        else:
-            print("ERROR: Can't update_allbills without sessionid")
-            return
+    # It's old enough to be updated. But is it locked because
+    # someone else started an update?
+    print("allbills needs an update", file=sys.stderr)
+    try:
+        # Open g_allbills_lockfile. Only update_allbills should remove it.
+        g_allbills_lockfile[yearcode] = g_allbills_cachefile[yearcode] + ".lck"
+        os.open(g_allbills_lockfile[yearcode], os.O_CREAT | os.O_EXCL)
+        print("Opened the lockfile", g_allbills_lockfile[yearcode],
+              file=sys.stderr)
 
-    if yearcode not in g_allbills or "_sessionid" not in g_allbills[yearcode]:
-        g_allbills[yearcode] = { "_sessionid": sessionid }
-
-    # Is g_allbills cachefile too old, needs to be updated?
-    if do_update or (timenow - filetime) > billrequests.CACHESECS:
-        # It's old enough to be updated. But is it locked because
-        # someone else is updating?
-        try:
-            lockfile = g_allbills_cachefile[yearcode] + ".lock"
-            os.open(lockfile, os.O_CREAT | os.O_EXCL)
-
-            update_allbills(yearcode, sessionid)
-            # Now bills and links should be up to date,
-            # as should g_allbills[yearcode]
-
-            os.unlink(lockfile)
-            return
-
-        except FileExistsError:
-            locktime = os.stat(lockfile).st_ctime
-            # Detect stuck locks: has it been locked for
-            # more than 5 minutes? If so, discard the lock.
-            print("Couldn't update allbills: file is locked",
+        # If there isn't already a g_allbills[yearcode],
+        # then we have to wait until it's created.
+        # But if there is one, start an update in the background.
+        if g_allbills[yearcode]:
+            print("Updating all_bills in the background ...",
                   file=sys.stderr)
-            if timenow - locktime > LOCK_EXPIRATION_SECS:
-                print("Removed lock stuck for", timenow - locktime,
-                      "seconds", file=sys.stderr)
-                os.unlink(lockfile)
-            else:
-                print("lock has been there for", timenow - locktime,
-                      "seconds", file=sys.stderr)
+            thread = threading.Thread(
+                target=lambda: update_allbills(yearcode, sessionid))
+            thread.start()
+            print("Started thread", file=sys.stderr)
+        else:
+            print("No allbills for", yearcode,
+                  "yet; updating in foreground", file=sys.stderr)
+            update_allbills(yearcode, sessionid)
+
+        print("Returning from update_allbills_if_needed()",
+              file=sys.stderr)
+        return
+
+    except FileExistsError:
+        locktime = os.stat(g_allbills_lockfile[yearcode]).st_ctime
+        # Detect stuck locks: has it been locked for
+        # more than 5 minutes? If so, discard the lock.
+        print("Couldn't update allbills: file is locked",
+              g_allbills_lockfile[yearcode], file=sys.stderr)
+        if timenow - locktime > LOCK_EXPIRATION_SECS:
+            print("Removed lock stuck for", timenow - locktime,
+                  "seconds", file=sys.stderr)
+            os.unlink(g_allbills_lockfile[yearcode])
+        else:
+            print("lock has been there for", timenow - locktime,
+                  "seconds", file=sys.stderr)
 
 
 def bill_info(billno, yearcode, sessionid):
@@ -680,6 +704,12 @@ def update_allbills(yearcode, sessionid):
 
     g_allbills[yearcode]["_updated"] = int(time.time())
     save_allbills_json(yearcode)
+
+    # Now bills and links should be up to date,
+    # as should g_allbills[yearcode]
+    print("Finished updating allbills; clearing lockfile", file=sys.stderr)
+    os.unlink(g_allbills_lockfile[yearcode])
+
     return g_allbills
 
 
@@ -1310,13 +1340,15 @@ def get_legislator_list():
     legdata = None
     try:
         r = billrequests.get('https://nmlegis.edsantiago.com/legislators.json')
-        if r.status_code == 200 and  'Last-Modified' in r.headers:
+        if r.status_code == 200 and 'Last-Modified' in r.headers:
             # The last-modified date only changes when some
             # legislator's data changes. Make sure the file
             # isn't orphaned, has been updated this session:
             print("Fetched legislators.json", file=sys.stderr)
+            print("last mod header is", r.headers['Last-Modified'])
             lastmod = datetime.datetime.strptime(r.headers['Last-Modified'],
                                    '%a, %d %b %Y %X %Z')
+            print("lastmod:", lastmod)
             if ((datetime.datetime.now() - lastmod).days
                 < 120):
                 legdata = r.json()

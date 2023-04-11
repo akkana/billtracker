@@ -1032,8 +1032,8 @@ class Legislator(db.Model):
     # Comma-separated list of commmittees this legislator chairs:
     chairships = db.Column(db.String(25))
 
-    party = db.Column(db.String(1))
-    county = db.Column(db.String(15))
+    party = db.Column(db.String(10))
+    county = db.Column(db.String(40))
 
     # Things we don't care about yet, but are available in the XLS;
     # some, like district, aren't in Ed's Legislators.json, though.
@@ -1078,12 +1078,17 @@ class Legislator(db.Model):
                 if hasattr(dbleg, k):
                     setattr(dbleg, k, newleg[k])
                 # else:
-                #     print(newleg['sponcode'], "Skipping field", k,
+                #     print("  ", newleg['sponcode'], "Skipping field", k,
                 #           file=sys.stderr)
 
             db.session.add(dbleg)
+            # Was getting obscure alembic errors,
+            # psycopg2.DataError: value too long for type character varying(40)
+            # which later went away; committing after each legislator
+            # shouldn't be related or necessary, but I guess it doesn't hurt.
+            db.session.commit()
 
-        db.session.commit()
+        # db.session.commit()
         return True
 
 

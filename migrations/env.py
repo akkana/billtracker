@@ -12,10 +12,23 @@ config = context.config
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-config.set_main_option(
-    'sqlalchemy.url',
-    str(current_app.extensions['migrate'].db.get_engine().url).replace(
-        '%', '%%'))
+
+# This works on newer flask but dies on older with
+# TypeError: get_engine() missing 1 required positional argument: 'app'
+# Apparently they've changed whether app needs to be passed in,
+# with no fallback, so you just have to try both ways.
+try:
+    config.set_main_option(
+        'sqlalchemy.url',
+        str(current_app.extensions['migrate'].db.get_engine().url).replace(
+            '%', '%%'))
+except TypeError:
+    print("Old flask? Adding app to db.get_engine()")
+    config.set_main_option(
+        'sqlalchemy.url',
+        str(current_app.extensions['migrate'].db.get_engine(current_app).url).replace(
+            '%', '%%'))
+
 target_db = current_app.extensions['migrate'].db
 
 # other values from the config, defined by the needs of env.py,
@@ -67,7 +80,11 @@ def run_migrations_online():
                 directives[:] = []
                 logger.info('No changes in schema detected.')
 
-    connectable = current_app.extensions['migrate'].db.get_engine()
+    # See explanation above
+    try:
+        connectable = current_app.extensions['migrate'].db.get_engine()
+    except TypeError:
+        connectable = current_app.extensions['migrate'].db.get_engine(current_app)
 
     with connectable.connect() as connection:
         context.configure(

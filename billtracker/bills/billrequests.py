@@ -57,6 +57,7 @@ class FakeResponse:
     def __init__(self):
         self.status_code = 404
         self.text = None
+        self.headers = {}
 
     def json(self):
         if not self.text:
@@ -128,6 +129,9 @@ def get(url, params=None, **kwargs):
             with open(cachefile) as fp:
                 response.text = fp.read()
                 response.status_code = 200
+                response.headers['Last-Modified'] = \
+                    time.strftime('%a, %d %b %Y %X %Z',
+                                  time.localtime(filestat.st_mtime))
                 return response
 
     # The cachefile doesn't exist or was too old. Fetch from the net

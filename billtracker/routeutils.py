@@ -59,7 +59,6 @@ def html_bill_table(bill_list, sortby=None, yearcode=None, inline=False):
     sort_key = Bill.get_sort_key(sortby)
     if sort_key:
         bill_list.sort(key=sort_key)
-        print("sorted bill list by", sort_key)
 
     # Make the table rows alternate color.
     # This is done through CSS on the website,
