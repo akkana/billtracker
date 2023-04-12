@@ -437,26 +437,23 @@ def save_allbills_json(yearcode):
         g_allbills_cachefile[yearcode] = os.path.join(
             billrequests.CACHEDIR, 'allbills_%s.json' % (yearcode))
 
-    # Cache a daily history. If yesterday's file isn't saved yet,
-    # save it.
-    yesterdaystr = (datetime.date.today()
-                    - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+    # Save a daily history.
+    todaystr = datetime.date.today().strftime("%Y-%m-%d")
     histfile = os.path.join(billrequests.CACHEDIR,
-                            'allbills_%s.json' % yesterdaystr)
-    if not os.path.exists(histfile):
-        backfile = histfile
-    else:
-        backfile = g_allbills_cachefile[yearcode] + ".bak"
-
+                            'allbills_%s.json' % todaystr)
     try:
         tmpfile = g_allbills_cachefile[yearcode] + ".tmp"
         with open(tmpfile, "w") as fp:
             json.dump(g_allbills[yearcode], fp, indent=2)
-        os.rename(g_allbills_cachefile[yearcode], backfile)
+        if os.path.exists(g_allbills_cachefile[yearcode]):
+            os.rename(g_allbills_cachefile[yearcode], histfile)
+        else:
+            print(g_allbills_cachefile[yearcode], "didn't exist before",
+                  file=sys.stderr)
         os.rename(tmpfile, g_allbills_cachefile[yearcode])
         print("Saved to", g_allbills_cachefile[yearcode], file=sys.stderr)
     except Exception as e:
-        print("Couldn't save to allbills cache file for yearcode", yearcode,
+        print("*** Problem saving allbills cache file for yearcode", yearcode,
               ":", e, file=sys.stderr)
 
 
@@ -699,16 +696,21 @@ def update_allbills(yearcode, sessionid):
             print("Couldn't get actions for", billno_str,
                   file=sys.stderr)
 
-    # If there are new bills, they'll need content links too
-    update_bill_links(yearcode)
-
+    # Now bills and links should be up to date,
+    # as should g_allbills[yearcode]
     g_allbills[yearcode]["_updated"] = int(time.time())
     save_allbills_json(yearcode)
 
-    # Now bills and links should be up to date,
-    # as should g_allbills[yearcode]
     print("Finished updating allbills; clearing lockfile", file=sys.stderr)
     os.unlink(g_allbills_lockfile[yearcode])
+
+    # If there are new bills, they'll need content links too.
+    # Update them in the background since it involves a lot of fetching
+    # from nmlegis, and so will hang for a while when nmlegis goes down.
+    print("Starting background process to update bill links", file=sys.stderr)
+    thread = threading.Thread(
+        target=lambda: update_bill_links(yearcode))
+    thread.start()
 
     return g_allbills
 
