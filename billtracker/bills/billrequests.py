@@ -145,7 +145,9 @@ def get(url, params=None, **kwargs):
     try:
         response = requests.get(url, params, **kwargs)
         if response.status_code == 200:
-            with open(cachefile, "w") as cachefp:
+            # encoding is supposed to default to utf-8, but sometimes
+            # it defaults to ascii despite all reason. Force it:
+            with open(cachefile, "w", encoding='utf-8') as cachefp:
                 cachefp.write(response.text)
         else:
             print("*** NETWORK ERROR fetching %s: status code was %d"
