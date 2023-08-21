@@ -45,7 +45,10 @@ def appinfo(key):
         if user.last_check:
             print(user, "'s last check:", user.last_check, file=sys.stderr)
             print("now", now, "last_check", user.last_check)
-            if now - user.last_check < timedelta(days=1):
+            # Despite herculean efforts, sometimes user.last_check is
+            # sometimes coming out tz-aware, which datetime.now() isn't,
+            # which causes an exception. Force unaware:
+            if now - user.last_check.replace(tzinfo=None) < timedelta(days=1):
                 checked_in_last_day += 1
         else:
             never_checked.append(user)
