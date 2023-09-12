@@ -1399,22 +1399,25 @@ def get_legislator_list_from_XLS():
     house_sponcodes = get_sponcodes(houseurl)
     senate_sponcodes = get_sponcodes(senateurl)
 
-    # url = 'ftp://www.nmlegis.gov/Legislator%20Information/Legislators.XLS'
     cachefile = '%s/%s' % (billrequests.CACHEDIR, 'Legislators.XLS')
 
-    # As the 2023 regular session opens, there's no legislators XLS file,
-    # so updating the legislator list fails. Try to guard against that.
+    # The legislator XLS file is no longer on an ftp server, but in the
+    # directory for the current session, e.g.
+    # https://www.nmlegis.gov/Sessions/23%20Regular/Legislator%20Information/Legislators.XLS
+    # No yearcode is passed in, so just fetch the one for this year.
+    # XXX This only picks up the one from this year's regular session.
+    # If there are any changes in special sessions, this won't get it.
+    year2digit = datetime.date.today().strftime("%y")
+    legurl = "https://www.nmlegis.gov/Sessions/%s%%20Regular/Legislator%%20Information/Legislators.XLS" % (year2digit)
     try:
-        billrequests.ftp_get('www.nmlegis.gov', 'Legislator Information',
-                             'RETR Legislators.XLS', outfile=cachefile)
-    except Exception as e:
-        print("Couldn't fetch Legislators.XLS:", e)
-        return None
-
-    print("fetched", cachefile, file=sys.stderr)
-
-    if not os.path.exists(cachefile):
-        print("Couldn't fetch Legislators.XLS")
+        r = billrequests.get(legurl)
+        if r.status_code == 200:
+            cachefile = '%s/%s' % (billrequests.CACHEDIR, 'Legislators.XLS')
+            with open(cachefile, "wb") as fp:
+                fp.write(r.content)
+            print("Successfully updated from Legislators.XLS", file=sys.stderr)
+    except:
+        print("Couldn't fetch", legurl, file=sys.stderr)
         return None
 
     # xlrd gives
