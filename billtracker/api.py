@@ -12,7 +12,7 @@ from flask import session, request, jsonify
 
 from datetime import date, datetime, timezone, timedelta
 
-import sys
+import sys, os
 
 
 @billtracker.route("/api/appinfo/<key>")
