@@ -5,13 +5,13 @@
 from billtracker import billtracker, db
 from billtracker.models import User, Bill, Legislator, Committee, LegSession
 from billtracker.routeutils import BILLNO_PAT
-from billtracker.bills import nmlegisbill
+from billtracker.bills import nmlegisbill, billrequests
 from .routeutils import set_session_by_request_values
 
 from flask import session, request, jsonify
 
 from datetime import date, datetime, timezone, timedelta
-
+import subprocess
 import sys, os
 
 
@@ -44,7 +44,6 @@ def appinfo(key):
     for user in allusers:
         if user.last_check:
             print(user, "'s last check:", user.last_check, file=sys.stderr)
-            print("now", now, "last_check", user.last_check)
             # Despite herculean efforts, sometimes user.last_check is
             # sometimes coming out tz-aware, which datetime.now() isn't,
             # which causes an exception. Force unaware:
@@ -639,19 +638,20 @@ def refresh_committee(comcode, key):
 
 
 @billtracker.route("/api/db_backup", methods=['GET', 'POST'])
-def db_backup():
+@billtracker.route('/api/db_backup/<key>', methods=['GET', 'POST'])
+def db_backup(key=None):
     """Make a backup copy of the database.
-       POST data is only for KEY.
     """
 
     values = request.values.to_dict()
 
-    try:
-        key = values['KEY']
-        if key != billtracker.config["SECRET_KEY"]:
-            return "FAIL Bad key\n"
-    except KeyError:
-        return "FAIL No key"
+    if not key:
+        try:
+            key = values['KEY']
+            if key != billtracker.config["SECRET_KEY"]:
+                return "FAIL Bad key\n"
+        except KeyError:
+            return "FAIL No key"
 
     db_uri = billtracker.config['SQLALCHEMY_DATABASE_URI']
     print("db URI:", db_uri, file=sys.stderr)
