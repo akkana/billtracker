@@ -1076,6 +1076,12 @@ class Legislator(db.Model):
 
             for k in newleg:
                 if hasattr(dbleg, k):
+                    # XXX HACK: in 2024, leg id 56 has
+                    # 'county': 'Colfax, Mora, Rio Arriba, San Miguel & Taos'
+                    # which exceeds the 40 chars allocated for it
+                    # so until we can do a db migration, truncate it:
+                    if k == 'county' and len(newleg[k]) > 40:
+                        newleg[k] = newleg[k][:40]
                     setattr(dbleg, k, newleg[k])
                 # else:
                 #     print("  ", newleg['sponcode'], "Skipping field", k,
