@@ -10,6 +10,7 @@ from billtracker.forms import LoginForm, RegistrationForm, AddBillsForm, \
     NewTagsForm, UserSettingsForm, PasswordResetForm
 from billtracker.models import User, Bill, Legislator, Committee, LegSession
 from billtracker.bills import nmlegisbill, billutils, billrequests
+from billtracker.emails import send_email
 from .routeutils import BILLNO_PAT, html_bill_table, make_new_bill, \
     g_all_tags, get_all_tags, group_bills_by_tag, set_session_by_request_values
 from config import ADMINS
