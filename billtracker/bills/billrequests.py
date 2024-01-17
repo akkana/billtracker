@@ -127,12 +127,23 @@ def get(url, params=None, **kwargs):
             if DEBUG:
                 print("Already cached:", url, '->', cachefile, file=sys.stderr)
             with open(cachefile) as fp:
-                response.text = fp.read()
-                response.status_code = 200
-                response.headers['Last-Modified'] = \
-                    time.strftime('%a, %d %b %Y %X %Z',
-                                  time.localtime(filestat.st_mtime))
-                return response
+                try:
+                    response.text = fp.read()
+                    response.status_code = 200
+                    response.headers['Last-Modified'] = \
+                        time.strftime('%a, %d %b %Y %X %Z',
+                                      time.localtime(filestat.st_mtime))
+                    return response
+                except UnicodeDecodeError as e:
+                    # This is most likely to happen due to apache2
+                    # defaulting to ascii. See note in README.
+                    print("UnicodeDecodeError", e, file=sys.stderr)
+                    print("url was", url, file=sys.stderr)
+                    print("Was reading cachefile", cachefile, file=sys.stderr)
+                    print("preferred encoding is",
+                          locale.getpreferredencoding(), file=sys.stderr)
+                    print("system encoding is",
+                          sys.getfilesystemencoding(), file=sys.stderr)
 
     # The cachefile doesn't exist or was too old. Fetch from the net
     # and write to the cachefile.
