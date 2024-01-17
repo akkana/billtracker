@@ -42,7 +42,22 @@ flask run
 
 When you're satisfied, use whatever production wsgi server you prefer.
 The FlaskNotes file in this directory has some notes I made while
-learning how to run WSGI on Apache2.
+setting up WSGI on Apache2.
+
+If you do use Apache2, note that apache2 by default uses the ascii encoding.
+If you're sure you're using a specific encoding, like UTF-8, everywhere,
+you can use AddDefaultCharset to change apache2's default
+https://httpd.apache.org/docs/2.2/en/mod/core.html#adddefaultcharset
+(on Debian, a good place to put this is /etc/apache2/conf-enabled/charset.conf).
+Or if you have multiple sites configured in apache2 and only want UTF-8
+for one flask app, edit the sites-enabled file and add
+locale='C.UTF-8'
+to the WSGIDaemonProcess line.
+Or it might work to edit /etc/apache2/envvars and uncomment the
+```
+. /etc/default/locale
+```
+line.
 
 
 ## Unit Tests
