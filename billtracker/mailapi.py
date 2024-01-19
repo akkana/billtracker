@@ -12,7 +12,7 @@ from flask import render_template
 
 import sys
 import traceback
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 
 @billtracker.route("/api/all_daily_emails/<key>")
