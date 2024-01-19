@@ -499,7 +499,8 @@ def update_allbills_if_needed(yearcode, sessionid=None, force_update=False):
               file=sys.stderr)
         filetime = 0
 
-    # Now g_allbills[yearcode] contains the most recent list of bills.
+    # Now g_allbills[yearcode] contains the most recent list of bills
+    # as of whenever the cache file was last written.
 
     # Make sure there's a sessionid either as an argument or in
     # g_allbills. If neither, return.
@@ -533,20 +534,25 @@ def update_allbills_if_needed(yearcode, sessionid=None, force_update=False):
         # If there isn't already a g_allbills[yearcode],
         # then we have to wait until it's created.
         # But if there is one, start an update in the background.
+        # XXX Doing the update in the background was leading to the
+        # information never propagating out to the saved allbills cache
+        # file. The background process needs to be able to rewrite
+        # the cache file, or otherwise it should run in the foreground.
         if g_allbills[yearcode]:
-            print("Updating all_bills in the background ...",
-                  file=sys.stderr)
-            thread = threading.Thread(
-                target=lambda: update_allbills(yearcode, sessionid))
-            thread.start()
-            print("Started thread", file=sys.stderr)
+            print("Updating allbills in the FOREGROUND", file=sys.stderr)
+            update_allbills(yearcode, sessionid)
+
+            # print("Updating all_bills in the background ...",
+            #       file=sys.stderr)
+            # thread = threading.Thread(
+            #     target=lambda: update_allbills(yearcode, sessionid))
+            # thread.start()
+            # print("Started thread", file=sys.stderr)
         else:
             print("No allbills for", yearcode,
                   "yet; updating in foreground", file=sys.stderr)
             update_allbills(yearcode, sessionid)
 
-        print("Returning from update_allbills_if_needed()",
-              file=sys.stderr)
         return
 
     except FileExistsError:
@@ -696,6 +702,21 @@ def update_allbills(yearcode, sessionid):
             print("Couldn't get actions for", billno_str,
                   file=sys.stderr)
 
+    # If there are new bills, they'll need content links too.
+    # Update them in the background since it involves a lot of fetching
+    # from nmlegis, and so will hang for a while when nmlegis goes down.
+    # print("Starting background process to update bill links", file=sys.stderr)
+    # thread = threading.Thread(
+    #     target=lambda: update_bill_links(yearcode))
+    # thread.start()
+    # XXX Doing the update in the background was leading to the
+    # information never propagating out to the saved allbills cache
+    # file. The background process needs to be able to rewrite
+    # the cache file, or otherwise it should run in the foreground.
+    # XXX To avoid all the fetching, the html dirlists should be cached locally.
+    print("Updating bill links in FOREGROUND", file=sys.stderr)
+    update_bill_links(yearcode)
+
     # Now bills and links should be up to date,
     # as should g_allbills[yearcode]
     g_allbills[yearcode]["_updated"] = int(time.time())
@@ -703,14 +724,6 @@ def update_allbills(yearcode, sessionid):
 
     print("Finished updating allbills; clearing lockfile", file=sys.stderr)
     os.unlink(g_allbills_lockfile[yearcode])
-
-    # If there are new bills, they'll need content links too.
-    # Update them in the background since it involves a lot of fetching
-    # from nmlegis, and so will hang for a while when nmlegis goes down.
-    print("Starting background process to update bill links", file=sys.stderr)
-    thread = threading.Thread(
-        target=lambda: update_bill_links(yearcode))
-    thread.start()
 
     return g_allbills
 

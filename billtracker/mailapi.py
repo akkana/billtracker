@@ -4,7 +4,7 @@
 
 
 from billtracker import billtracker, db
-from billtracker.models import User
+from billtracker.models import User, LegSession
 from billtracker.forms import EmailBlastForm
 from .emails import daily_user_email, send_email
 

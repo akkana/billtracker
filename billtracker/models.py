@@ -655,14 +655,17 @@ class Bill(db.Model):
         bill_info = nmlegisbill.bill_info(self.billno, self.year,
                                           leg_session.id)
 
-        if 'FIR' in bill_info:
-            self.FIRlink = bill_info['FIR']
-        if 'LESC' in bill_info:
-            self.LESClink = bill_info['LESC']
-        if 'Amendments_In_Context' in bill_info:
-            self.amendlink = bill_info['Amendments_In_Context']
-        elif 'Floor_Amendments' in bill_info:
-            self.amendlink = bill_info['Floor_Amendments']
+        if bill_info:
+            if 'FIR' in bill_info:
+                self.FIRlink = bill_info['FIR']
+            if 'LESC' in bill_info:
+                self.LESClink = bill_info['LESC']
+            if 'Amendments_In_Context' in bill_info:
+                self.amendlink = bill_info['Amendments_In_Context']
+            elif 'Floor_Amendments' in bill_info:
+                self.amendlink = bill_info['Floor_Amendments']
+        else:
+            print("no bill_info, billno =", self.billno, file=sys.stderr)
 
 
     def recent_activity(self, user=None):
