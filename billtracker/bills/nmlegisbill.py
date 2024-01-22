@@ -1096,11 +1096,11 @@ def expand_timestr(meeting):
         meeting["timestr"] \
             += ", <a href='%s' target='_blank'>zoom link</a>" \
                % meeting['zoom']
-    elif meeting["name"] == "House" or meeting["name"] == "Senate" \
-         and 'harmony.sliq.net' not in meeting["timestr"]:
+    # Make sure all meetings have the sliq link
+    if 'harmony.sliq.net' not in meeting["timestr"]:
         meeting["timestr"] \
-            += ", <a href='https://sg001-harmony.sliq.net/00293/" \
-               "harmony' target='_blank'>watch on sliq</a>"
+            += ", <a href='https://sg001-harmony.sliq.net/00293/harmony'" \
+               " target='_blank'>watch on sliq</a>"
     if 'url' in meeting and 'PDF schedule' not in meeting["timestr"]:
         meeting["timestr"] \
             += ", <a href='%s' target='_blank'>PDF schedule</a>" \
