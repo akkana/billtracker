@@ -56,11 +56,20 @@ hrefpat = re.compile('href="([^"]*)">([^<]+)<', flags=re.IGNORECASE)
 class FakeResponse:
     def __init__(self):
         self.status_code = 404
-        self.text = None
+        self.content = None    # bytes
         self.headers = {}
 
+    # self.text (a string) is a property generated from self.content
+    def get_text(self):
+        return self.content.decode()
+
+    def set_text(self, s):
+        self.content = s.encode()
+
+    text = property(get_text, set_text)
+
     def json(self):
-        if not self.text:
+        if not self.content:
             return ""
         return json.loads(self.text)
 
@@ -103,8 +112,8 @@ def get(url, params=None, **kwargs):
         if os.path.exists(cachefile):
             if DEBUG:
                 print("LOCAL_MODE: Fetching from cachefile:", cachefile)
-            with open(cachefile) as fp:
-                response.text = fp.read()
+            with open(cachefile, 'rb') as fp:
+                response.content = fp.read()
                 response.status_code = 200
                 return response
             print("Eek, cachefile existed but didn't return?")
@@ -115,7 +124,7 @@ def get(url, params=None, **kwargs):
                   "cachefile %s doesn't exist" % cachefile)
             print("  for URL", url)
         response.status_code = 404
-        response.text = None
+        response.content = b''
         return response
 
     if DEBUG:
@@ -126,9 +135,9 @@ def get(url, params=None, **kwargs):
         if (time.time() - filestat.st_mtime) < cachesecs or cachesecs < 0:
             if DEBUG:
                 print("Already cached:", url, '->', cachefile, file=sys.stderr)
-            with open(cachefile) as fp:
+            with open(cachefile, 'rb') as fp:
                 try:
-                    response.text = fp.read()
+                    response.conetnt = fp.read()
                     response.status_code = 200
                     response.headers['Last-Modified'] = \
                         time.strftime('%a, %d %b %Y %X %Z',
@@ -157,9 +166,10 @@ def get(url, params=None, **kwargs):
         response = requests.get(url, params, **kwargs)
         if response.status_code == 200:
             # encoding is supposed to default to utf-8, but sometimes
-            # it defaults to ascii despite all reason. Force it:
-            with open(cachefile, "w", encoding='utf-8') as cachefp:
-                cachefp.write(response.text)
+            # it defaults to ascii despite all reason. If so, add
+            # encoding='utf-8' to this open.
+            with open(cachefile, "wb") as cachefp:
+                cachefp.write(response.content)
         else:
             print("*** NETWORK ERROR fetching %s: status code was %d"
                   % (url, response.status_code), file=sys.stderr)
@@ -194,23 +204,28 @@ def head(url, **kwargs):
     # The response that will be returned
     response = FakeResponse()
 
-    if LOCAL_MODE:
-        if DEBUG:
-            print("head LOCAL MODE:", url, "->", cachefile)
-        if os.path.exists(cachefile):
-            response.status_code = 200
-        else:
-            response.status_code = 404
-        return response
-
-    if DEBUG:
-        print("**** billrequests.head: NOT LOCAL MODE")
-
     if os.path.exists(cachefile):
+        print("cache file", cachefile, "exists, returning fake header",
+              file=sys.stderr)
         filestat = os.stat(cachefile)
         if (time.time() - filestat.st_mtime) < cachesecs or cachesecs < 0:
             response.status_code = 200
+            response.headers = {
+                'Content-Length': filestat.st_size,
+                # nmlegis, at least, gives timestamps in format
+                # 'Thu, 25 Jan 2024 00:47:23 GMT'
+                # Note that it's in GMT, whereas
+                # datetime.fromtimestamp(filestat.st_mtime) is in unaware
+                # localtime, so need to convert
+                'Last-Modified': datetime.utcfromtimestamp(filestat.st_mtime) \
+                    .strftime("%a, %d %b %Y %H:%M:%S GMT")
+            }
             return response
+
+    elif LOCAL_MODE:
+        print("head LOCAL MODE:", url, "->", cachefile, file=sys.stderr)
+        response.status_code = 404
+        return response
 
     return requests.head(url, **kwargs)
 

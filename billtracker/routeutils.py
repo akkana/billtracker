@@ -119,6 +119,7 @@ def make_new_bill(billno, yearcode):
 
         return bills[0]
 
+    # Populate the new bill by parsing the bill page
     b = nmlegisbill.parse_bill_page(billno, yearcode=yearcode,
                                     cache_locally=True)
     if not b:
@@ -127,7 +128,15 @@ def make_new_bill(billno, yearcode):
     bill = Bill()
     bill.set_from_parsed_page(b)
 
-    # Immediately commit, to reduce (though not entirely eliminate)
+    # New way: just make a bill with billno and year,
+    # to be filled in from the accdb.
+    # But there's a lot of info that won't be picked up in that case,
+    # so it's really better to initialize a bill from the bill page.
+    # bill = Bill()
+    # bill.billno = billno
+    # bill.year = yearcode
+
+    # Immediately commit, to reduce (though not entirely eliminate, sigh)
     # race conditions
     db.session.add(bill)
     db.session.commit()

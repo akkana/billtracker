@@ -59,8 +59,10 @@ def action_code_iter(actioncode):
         yield action, leg_day
 
 
+# The raw abbreviations dict
+# from https://www.nmlegis.gov/Legislation/Action_Abbreviations
 abbreviations = {
-   '*': 'Emergency clause',
+   '\*': 'Emergency clause',
    'API.': 'Action postponed indefinitely',
    'CC': 'Conference committee (Senate and House fail to agree)',
    'CS': 'Committee substitute',
@@ -126,12 +128,24 @@ abbreviations = {
    'w/o rec': 'WITHOUT RECOMMENDATION committee report adopted.',
 }
 
+# A list of compiled regexps from the abbreviations list,
+# with word boundaries around them.
+# This is needed because, for example, T is an abbreviation
+# for 'On the Speaker’s table' but we can't just replace every T,
+# there are committees (and expansions of other abbreviations)
+# that include T.
+# And using \b as the word delimiter doesn't work, because - might
+# come after T but re considers - to be part of a word.
+abbrev_re = [ (re.compile(r'\b%s\b' % key), abbreviations[key])
+              for key in abbreviations.keys() ]
+
 
 def decode_full_history(actioncode):
     """Decode a bill's full history according to the code specified in
        https://www.nmlegis.gov/Legislation/Action_Abbreviations
-       Returns location, status, histlist, lastaction
-         where histlist is a list of (day, actionstring, actioncode) tuples.
+       Returns location, status (action string), histlist
+         where histlist is a list of (day, actionstring, actioncode, location)
+         tuples.
     """
     # The history code is one long line, like
     # HPREF [2] HCPAC/HJC-HCPAC [3] DNP-CS/DP-HJC [4] DP [5] PASSED/H (40-29) [8] SPAC/SJC-SPAC [17] DP-SJC [22] DP/a [23] FAILED/S (18-24).
@@ -139,16 +153,16 @@ def decode_full_history(actioncode):
     histlist = []
     for action, legday in action_code_iter(actioncode):
         actionstring, location = decode_history_day(action, legday)
-        histlist.append((int(legday), actionstring, action))
+        histlist.append((int(legday), actionstring, action, location))
     lasttuple = histlist[-1]
-    lastaction = "Day %s: %s" % (lasttuple[0], lasttuple[1])
+    lastaction = "Legislative Day %s: %s" % (lasttuple[0], lasttuple[1])
     # location and actionstring(=status) are taken from the last history item.
 
     # print("  Location:", location, file=sys.stderr)
     # print("  actionstring:", actionstring, file=sys.stderr)
     # print("  lastaction:", lastaction, file=sys.stderr)
     # print("  histlist:", histlist, file=sys.stderr)
-    return location, actionstring, lastaction, histlist
+    return location, lastaction, histlist
 
 
 def full_history_text(actioncode):
@@ -169,14 +183,14 @@ def decode_history_day(actioncode, legday):
        where actionstring tries to be a human-readable string,
        and location is our best guess at where the bill is now.
     """
-    # Look for a location.
     location = None
 
     # If the full day's description ends with -COMCODE,
     # that committee is the new location.
     m = end_comcode_pat.search(actioncode)
     if m:
-        location
+        location = m.group(1)
+        actioncode = actioncode[:m.span()[0]] + " Sent to " + location
 
     # Committee changes are listed as NEWCOMM/COMM{,-COMM}
     # where the comms after the slash may be the old committee,
@@ -197,10 +211,9 @@ def decode_history_day(actioncode, legday):
     # It's not obvious how to get location, so just take the
     # whole decoded last action.
     actionstr = actioncode
-    for code in abbreviations.keys():
-        if code in actionstr:
-            actionstr = actionstr.replace(code, abbreviations[code])
-    return (actionstr, actionstr)
+    for pat, expanded in abbrev_re:
+        actionstr = pat.sub(expanded, actionstr)
+    return (actionstr, location)
 
 
 if __name__ == '__main__':

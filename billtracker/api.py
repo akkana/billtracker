@@ -5,7 +5,7 @@
 from billtracker import billtracker, db
 from billtracker.models import User, Bill, Legislator, Committee, LegSession
 from billtracker.routeutils import BILLNO_PAT
-from billtracker.bills import nmlegisbill, billrequests
+from billtracker.bills import nmlegisbill, billrequests, accdb
 from .routeutils import set_session_by_request_values
 
 from flask import session, request, jsonify
@@ -116,6 +116,31 @@ def refresh_allbills(key):
     nmlegisbill.update_allbills_if_needed(yearcode, leg_session.id,
                                           force_update=True)
     return "OK Refreshed allbills"
+
+
+@billtracker.route("/api/refresh_from_legdb/<key>")
+@billtracker.route("/api/refresh_from_legdb/<key>/bill_list")
+def refresh_from_accdb(key, bill_list=None):
+    """Fetch a new accdb, if one is available,
+       and update the indicated bill list (comma separated) from it.
+       If no bill list, update all bills in the database.
+    """
+    if key != billtracker.config["SECRET_KEY"]:
+        print("FAIL refresh_from_db: bad key %s" % key, file=sys.stderr)
+        return "FAIL Bad key\n"
+
+    yearcode = LegSession.current_yearcode()
+
+    if bill_list:
+        bill_list = [ Bill.query.filter_by(billno=n, year=yearcode).first()
+                      for n in bill_list.split(',') ]
+    else:
+        # all bills in the db
+        bill_list = Bill.query.filter_by(year=yearcode).all()
+
+    accdb.update_bills(bill_list)
+
+    return "OK Refreshed from accdb"
 
 
 #

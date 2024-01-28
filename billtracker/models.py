@@ -683,7 +683,6 @@ class Bill(db.Model):
         if user:
             if not self.last_action_date:
                 return False
-            self.last_action_date = self.last_action_date
             if not user.last_check:
                 return True
             if not user.last_check:
@@ -791,8 +790,8 @@ class Bill(db.Model):
             outstr += highlight_if_recent(last_action, "Last action")
 
         # Bills don't have action dates on signing:
-        elif not self.statustext or not self.statustext.startswith('Signed'):
-            outstr += " No action yet."
+        # elif not self.statustext or not self.statustext.startswith('Signed'):
+        #     outstr += " No action yet."
 
         if bill_info and "tabled" in bill_info and bill_info["tabled"]:
             outstr += " <b>MAY BE TABLED</b> "
@@ -819,17 +818,26 @@ class Bill(db.Model):
                 statustext = self.statustext.strip()
                 actioncode = ''
 
+            statustext = statustext.strip()
+            if actioncode and not statustext:
+                # A bill updated from the accdb will have an action code,
+                # but no status text. Take statustext from the last day
+                # of the action code.
+                full_history = decodenmlegis.decode_full_history(actioncode)
+                statustext = full_history[1]
             if statustext:
                 outstr += 'Status: %s<br />\n' % statustext
             if actioncode:
+
                 outstr += '<a href="https://www.nmlegis.gov/Legislation/' \
-                          'Action_Abbreviations"  target="_blank">Full history</a>: ' \
+                          'Action_Abbreviations" target="_blank">Full history</a>: ' \
                           '<span class="historycode" title="%s">%s</span>' \
                           '<br />\n' \
                           % (decodenmlegis.full_history_text(actioncode),
                              actioncode)
 
         elif self.statusHTML:
+            # not likely to be used, to have statusHTML but no statustext
             outstr += 'Status: %s<br />\n' % self.statusHTML
 
         contents = []
@@ -896,8 +904,8 @@ class Bill(db.Model):
                 self.last_action_date.strftime('%a %m/%d/%Y')
         # Bills don't have action dates on signing:
         elif not self.statustext or not self.statustext.startswith('Signed'):
-            print(self.billno, "NO STATUSTEXT!")
-            outstr += "No action yet.\n"
+            print(self.billno, "NO STATUSTEXT!", file=sys.stderr)
+            # outstr += "No action yet.\n"
 
         if self.location:
             # If it's on the House or Senate floor, highlight that:

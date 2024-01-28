@@ -435,8 +435,8 @@ def track_untrack():
             # that anything that's not explicitly checked should be unfollowed.
             untrack_bills = now_tracking - will_track
 
-        # print("Will track", track_bills)
-        # print("Will untrack", untrack_bills)
+        # print("Will track", track_bills, file=sys.stderr)
+        # print("Will untrack", untrack_bills, file=sys.stderr)
 
         if not track_bills and not untrack_bills:
             return redirect(url_for(returnpage))
@@ -450,7 +450,7 @@ def track_untrack():
 
         # The hard (and slow) part: make new bills as needed.
         # Can't really do this asynchronously (unless it's with AJAX)
-        # since the user is waiting.
+        # since the user expects to see the new bills.
         # However, querying Bill.query.filter_by apparently holds
         # the database locked open, keeping anyone else from writing it
         # while make_new_bill fetches info.
@@ -483,6 +483,13 @@ def track_untrack():
                 else:
                     print("WARNING: make_new_bill", billno, session["yearcode"],
                           "returned None!")
+
+            # Now fill them in from the accdb.
+            # But sadly, that's not a good idea for new bills,
+            # because there's too much information missing from the accdb.
+            # print("Updating", new_bills, "from the accdb", sys.stderr)
+            # accdb.update_bills(new_bills)
+
             track_bills = sorted(list(track_bills))
             flash("You are now tracking %s" % ', '.join(track_bills))
 
