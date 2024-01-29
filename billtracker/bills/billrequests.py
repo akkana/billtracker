@@ -53,7 +53,7 @@ hrefpat = re.compile('href="([^"]*)">([^<]+)<', flags=re.IGNORECASE)
 
 # requests.Response doesn't allow setting the text member,
 # so here's a fake class that does.
-class FakeResponse:
+class CustomResponse:
     def __init__(self):
         self.status_code = 404
         self.content = None    # bytes
@@ -106,7 +106,7 @@ def get(url, params=None, **kwargs):
         cachesecs = CACHESECS
 
     # The response that will be returned
-    response = FakeResponse()
+    response = CustomResponse()
 
     if LOCAL_MODE:
         if os.path.exists(cachefile):
@@ -137,7 +137,7 @@ def get(url, params=None, **kwargs):
                 print("Already cached:", url, '->', cachefile, file=sys.stderr)
             with open(cachefile, 'rb') as fp:
                 try:
-                    response.conetnt = fp.read()
+                    response.content = fp.read()
                     response.status_code = 200
                     response.headers['Last-Modified'] = \
                         time.strftime('%a, %d %b %Y %X %Z',
@@ -202,7 +202,7 @@ def head(url, **kwargs):
         cachesecs = CACHESECS
 
     # The response that will be returned
-    response = FakeResponse()
+    response = CustomResponse()
 
     if os.path.exists(cachefile):
         print("cache file", cachefile, "exists, returning fake header",
