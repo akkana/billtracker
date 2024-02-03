@@ -35,10 +35,9 @@ class TestNMlegisbill(unittest.TestCase):
             jsonbackup = "test/cache/allbills_%s.json" \
                 % (datetime.datetime.now()
                    - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-            print("jsonbackup:", jsonbackup)
-            os.system("ls -l " + jsonbackup)
-            os.unlink(jsonbackup)
-            os.system("ls -l " + jsonbackup)
+            if os.path.exists(jsonbackup):
+                # os.system("ls -l " + jsonbackup)
+                os.unlink(jsonbackup)
         except Exception as e:
             print("Couldn't unlink", jsonbackup, ":", e)
 
@@ -529,4 +528,8 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
                        'STALL',
                        'SWIRT'],
            'name': 'Senate Tax, Business & Transportation'}
-})
+        })
+
+    def test_get_legislators(self):
+        nmlegisbill.get_legislator_list_from_XLS()
+        print("Fetched legislator list")
