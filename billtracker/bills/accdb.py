@@ -307,9 +307,13 @@ def read_table_lines(dbfilename, tablename):
        mdb-json doesn't actually print json; it prints a list of lines
        each of which is a json dictionary.
     """
-    for line in subprocess.check_output([ "mdb-json",
-                                          dbfilename, tablename ]).splitlines():
-        yield line
+    try:
+        for line in subprocess.check_output([
+                "mdb-json",
+                dbfilename, tablename ]).splitlines():
+            yield line
+    except FileNotFoundError as e:
+        raise RuntimeError("Can't run mdb-json") from e
 
 
 if __name__ == '__main__':

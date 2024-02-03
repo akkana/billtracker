@@ -138,7 +138,12 @@ def refresh_from_accdb(key, bill_list=None):
         # all bills in the db
         bill_list = Bill.query.filter_by(year=yearcode).all()
 
-    accdb.update_bills(bill_list)
+    try:
+        accdb.update_bills(bill_list)
+    except RuntimeError as e:
+        print("****** Can't run mdb-json, please install mdbtools *******",
+              file=sys.stderr)
+        return "FAIL Can't run mdb-json, please install mdbtools"
 
     return "OK Refreshed from accdb"
 

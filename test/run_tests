@@ -8,4 +8,6 @@
 
 python3 -m unittest \
     test.test_billtracker \
-    test.test_nmlegisbill
+    test.test_nmlegisbill \
+    test.test_decodenmlegis \
+    test.test_accdb \
