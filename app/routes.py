@@ -51,7 +51,6 @@ sortnames = {
 @app.route('/')
 @login_required
 def slash():
-    print("SSSSSLLLLLAAAAASSSSSHHHHH")
     values = request.values.to_dict()
     set_session_by_request_values(values)
 
