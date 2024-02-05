@@ -3,9 +3,9 @@
 """BillTracker APIs related to email"""
 
 
-from billtracker import billtracker, db
-from billtracker.models import User, LegSession
-from billtracker.forms import EmailBlastForm
+from app import app, db
+from app.models import User, LegSession
+from app.forms import EmailBlastForm
 from .emails import daily_user_email, send_email
 
 from flask import render_template
@@ -15,14 +15,14 @@ import traceback
 from datetime import datetime, date, timedelta
 
 
-@billtracker.route("/api/all_daily_emails/<key>")
-@billtracker.route("/api/all_daily_emails/<key>/<justpreview>")
+@app.route("/api/all_daily_emails/<key>")
+@app.route("/api/all_daily_emails/<key>/<justpreview>")
 def all_daily_emails(key, justpreview=False):
     """Send out daily emails to all users with an email address registered.
        A cron job will visit this URL once a day.
        To test the email system, pass any string as a second parameter.
     """
-    if key != billtracker.config["SECRET_KEY"]:
+    if key != app.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
     if justpreview:
@@ -98,11 +98,11 @@ def all_daily_emails(key, justpreview=False):
          userstring(recipients), userstring(skipped))
 
 
-@billtracker.route("/api/blastemail/<key>", methods=['GET', 'POST'])
+@app.route("/api/blastemail/<key>", methods=['GET', 'POST'])
 def blast_email(key):
     """Blast an email to all billtracker users with email addresses"""
 
-    if key != billtracker.config["SECRET_KEY"]:
+    if key != app.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
     form = EmailBlastForm()
@@ -110,7 +110,7 @@ def blast_email(key):
     if form.validate_on_submit():
         # This shouldn't be possible because the form should have already
         # validated the key, but let's be extra cautious with email blasts:
-        if form.key.data != billtracker.config["SECRET_KEY"]:
+        if form.key.data != app.config["SECRET_KEY"]:
             return "FAIL Bad key\n"
 
         # Build list of recipients
@@ -140,9 +140,9 @@ def blast_email(key):
     return render_template("blastemail.html", form=form)
 
 
-@billtracker.route('/api/mailto/<username>/<key>')
+@app.route('/api/mailto/<username>/<key>')
 def mailto(username, key):
-    if key != billtracker.config["SECRET_KEY"]:
+    if key != app.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
     user = User.query.filter_by(username=username).first()

@@ -3,9 +3,9 @@
 """Utilities needed by routes, possibly used other places as well"""
 
 
-from billtracker import billtracker, db
-from billtracker.models import User, Bill, Legislator, Committee, LegSession
-from billtracker.bills import nmlegisbill
+from app import app, db
+from app.models import User, Bill, Legislator, Committee, LegSession
+from app.bills import nmlegisbill
 
 from flask import session
 

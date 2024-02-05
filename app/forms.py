@@ -11,10 +11,10 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField, \
 from wtforms.validators import ValidationError, DataRequired, Email, \
     EqualTo, Optional, Length
 
-from billtracker.models import User
-from billtracker.routeutils import BILLNO_PAT
-from billtracker import chattycaptcha
-from billtracker import billtracker
+from app.models import User
+from app.routeutils import BILLNO_PAT
+from app import chattycaptcha
+from app import app
 
 import re
 
@@ -191,6 +191,6 @@ class EmailBlastForm(FlaskForm):
     submit = SubmitField('Send Email to All Users')
 
     def validate_key(self, keyfield):
-        if keyfield.data != billtracker.config["SECRET_KEY"]:
+        if keyfield.data != app.config["SECRET_KEY"]:
             raise ValidationError("Bad key")
         print("validate_key: it was ok")

@@ -4,13 +4,13 @@ from flask import request
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.urls import url_parse
 
-from billtracker import billtracker, db
-from billtracker import chattycaptcha
-from billtracker.forms import LoginForm, RegistrationForm, AddBillsForm, \
+from app import app, db
+from app import chattycaptcha
+from app.forms import LoginForm, RegistrationForm, AddBillsForm, \
     NewTagsForm, UserSettingsForm, PasswordResetForm
-from billtracker.models import User, Bill, Legislator, Committee, LegSession
-from billtracker.bills import nmlegisbill, billutils, billrequests
-from billtracker.emails import send_email
+from app.models import User, Bill, Legislator, Committee, LegSession
+from app.bills import nmlegisbill, billutils, billrequests
+from app.emails import send_email
 from .routeutils import BILLNO_PAT, html_bill_table, make_new_bill, \
     g_all_tags, get_all_tags, group_bills_by_tag, set_session_by_request_values
 from config import ADMINS
@@ -48,9 +48,10 @@ sortnames = {
 }
 
 
-@billtracker.route('/')
+@app.route('/')
 @login_required
 def slash():
+    print("SSSSSLLLLLAAAAASSSSSHHHHH")
     values = request.values.to_dict()
     set_session_by_request_values(values)
 
@@ -64,13 +65,13 @@ def slash():
 
 
 # Make / the preferred URL; /index redirects to /
-@billtracker.route('/index')
+@app.route('/index')
 def index_redirect():
     return redirect(url_for('bills'))
 
 
-@billtracker.route('/bills')
-@billtracker.route('/bills/<sortby>')
+@app.route('/bills')
+@app.route('/bills/<sortby>')
 @login_required
 def bills(sortby=None):
     values = request.values.to_dict()
@@ -85,13 +86,13 @@ def bills(sortby=None):
                        leg_session=LegSession.by_yearcode(session["yearcode"]))
 
 
-@billtracker.route('/status_bills')
+@app.route('/status_bills')
 @login_required
 def statusbills():
     return redirect(url_for('bills', sortby='status'))
 
 
-@billtracker.route('/action_date_bills')
+@app.route('/action_date_bills')
 @login_required
 def activebills():
     values = request.values.to_dict()
@@ -106,7 +107,7 @@ def activebills():
                        leg_session=LegSession.by_yearcode(session["yearcode"]))
 
 
-@billtracker.route('/passed_bills')
+@app.route('/passed_bills')
 @login_required
 def passedbills():
     values = request.values.to_dict()
@@ -121,8 +122,8 @@ def passedbills():
                        leg_session=LegSession.by_yearcode(session["yearcode"]))
 
 
-@billtracker.route('/tagged_bills/<tag>')
-@billtracker.route('/tagged_bills/<tag>/<sortby>')
+@app.route('/tagged_bills/<tag>')
+@app.route('/tagged_bills/<tag>/<sortby>')
 def taggededbills(tag, sortby="status"):
     if not tag:
         return redirect(url_for('bills', sortby=sortby))
@@ -140,7 +141,7 @@ def taggededbills(tag, sortby="status"):
                        leg_session=LegSession.by_yearcode(session["yearcode"]))
 
 
-@billtracker.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('bills'))
@@ -158,7 +159,7 @@ def login():
     return render_template('login.html', title='Sign In', form=form)
 
 
-@billtracker.route('/logout')
+@app.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('login'))
@@ -175,7 +176,7 @@ def initialize_captcha():
 # The mega tutorial called this /register,
 # but flask seems to have a problem calling anything /register.
 # As long as it's named something else, this works.
-@billtracker.route('/newaccount', methods=['GET', 'POST'])
+@app.route('/newaccount', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('bills'))
@@ -240,7 +241,7 @@ def register():
     return redirect(url_for('login'))
 
 
-@billtracker.route('/confirm_email/<auth>')
+@app.route('/confirm_email/<auth>')
 def confirm_email(auth):
     if auth == User.AUTH_CODE_CONFIRMED:
         flash("Bad auth code: Please contact an administrator")
@@ -261,22 +262,22 @@ def confirm_email(auth):
     return redirect(url_for('login'))
 
 
-@billtracker.route('/about')
+@app.route('/about')
 def about():
     return render_template('about.html', title='About NMBillTracker')
 
 
-@billtracker.route('/help')
+@app.route('/help')
 def help():
     return render_template('help.html', title='Help for the NMBillTracker')
 
 
-@billtracker.route('/links')
+@app.route('/links')
 def links():
     return render_template('links.html', title='Links for NM Bill Tracking')
 
 
-@billtracker.route('/addbills', methods=['GET', 'POST'])
+@app.route('/addbills', methods=['GET', 'POST'])
 @login_required
 def addbills():
     """The name is misleading. This is for either tracking or untracking:
@@ -381,7 +382,7 @@ def addbills():
 # WTForms doesn't have any way to allow adding variable
 # numbers of checkboxes, so this is an old-school form.
 #
-@billtracker.route('/track_untrack', methods=['GET', 'POST'])
+@app.route('/track_untrack', methods=['GET', 'POST'])
 @login_required
 def track_untrack():
     """Called when the user marks bills for tracking or untracking
@@ -522,9 +523,9 @@ def track_untrack():
 # XXX Tried to allow specifying year (preferably optionally), but keep getting
 # werkzeug.routing.BuildError: Could not build url for endpoint 'popular'. Did you forget to specify values ['year']?
 # when visiting http://127.0.0.1:5000/popular/2020.
-# @billtracker.route('/popular/<yearcode>')
+# @app.route('/popular/<yearcode>')
 
-@billtracker.route('/popular')
+@app.route('/popular')
 def popular():
     """Show all bills in the database for a given yearcode,
        and how many people are tracking each one.
@@ -541,7 +542,7 @@ def popular():
                            bill_list=bill_list)
 
 
-@billtracker.route('/allbills')
+@app.route('/allbills')
 def allbills():
     """Show all bills that have been filed in the given session,
        with titles and links,
@@ -702,8 +703,8 @@ These are bills filed or changed in the past few days""",
                            showtags=False)
 
 
-@billtracker.route("/tags", defaults={'tag': None}, methods=['GET', 'POST'])
-@billtracker.route("/tags/<tag>", methods=['GET', 'POST'])
+@app.route("/tags", defaults={'tag': None}, methods=['GET', 'POST'])
+@app.route("/tags/<tag>", methods=['GET', 'POST'])
 def tags(tag=None, sort=None):
     values = request.values.to_dict()
     set_session_by_request_values()
@@ -895,9 +896,9 @@ def tags(tag=None, sort=None):
                            alltags=new_tags+get_all_tags(session["yearcode"]))
 
 
-@billtracker.route("/history/")
-@billtracker.route("/history/<billno>")
-@billtracker.route("/history/<billno>/<yearcode>")
+@app.route("/history/")
+@app.route("/history/<billno>")
+@app.route("/history/<billno>/<yearcode>")
 @login_required
 def showhistory(billno=None, yearcode=None):
     """Show title change history for a bill, or for all bills in a session.
@@ -940,7 +941,7 @@ def showhistory(billno=None, yearcode=None):
     return ret_html
 
 
-@billtracker.route("/config")
+@app.route("/config")
 @login_required
 def config():
     if current_user.email not in ADMINS:
@@ -950,7 +951,7 @@ def config():
     return render_template('config.html', users=User.query.all())
 
 
-@billtracker.route("/changesession")
+@app.route("/changesession")
 def changesession():
     cursession = None
     if "yearcode" in session:
@@ -970,7 +971,7 @@ def changesession():
     return render_template("changesession.html", sessionlist=sessionlist)
 
 
-@billtracker.route("/settings", methods=['GET', 'POST'])
+@app.route("/settings", methods=['GET', 'POST'])
 @login_required
 def user_settings():
     form = UserSettingsForm(obj=current_user)
@@ -1013,7 +1014,7 @@ def user_settings():
     return render_template('settings.html', form=form)
 
 
-@billtracker.route("/password_reset", methods=['GET', 'POST'])
+@app.route("/password_reset", methods=['GET', 'POST'])
 def password_reset():
     form = PasswordResetForm()
 
