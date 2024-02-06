@@ -25,6 +25,9 @@ def initialize_flask_session():
 
     print(">>>>>>>>>>>>> initializing db etc. <<<<<<<<<<<<<<<<")
     if app and db:
+        # The database can only be initialized once.
+        # Unit tests may try to re-initialize.
+        print("Already initialized, returning")
         return app, db
 
     SQLALCHEMY_DATABASE_URI = os.environ["DATABASE_URL"]

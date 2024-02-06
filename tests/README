@@ -1,0 +1,9 @@
+The pytests can't be run in one go (e.g. pytest tests/)
+because pytest uses one process to run all the tests sequentially,
+meaning the database will accumulate cruft from previous tests.
+I haven't found a way to reset the database between tests;
+all the db-clearing methods require a session, and the
+test_client.session_transaction isn't the right kind to make
+sqlalchemy happy.
+
+So use tests/run_tests instead.

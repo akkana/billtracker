@@ -158,6 +158,7 @@ class TestBillTracker(unittest.TestCase):
             # the "with", will only add to a local copy and won't
             # be copied into the outside-visible session.
             with self.client.session_transaction() as session:
+
                 session["yearcode"] = '19'
 
                 # Fetch the list of legislative sessions.

@@ -1,0 +1,6 @@
+#!/bin/sh
+
+pytest \
+    tests/test_billtracker.py \
+    tests/test_nmlegisbill.py \
+    tests/test_accdb.py
