@@ -2,7 +2,9 @@
 
 from tests import setup_flask
 
-setup_flask.initialize_flask_session()
+from app import initialize_flask_session, clear_flask_session
+
+initialize_flask_session()
 
 from app import app, db
 from app.models import Bill
@@ -10,6 +12,9 @@ from app.bills import billrequests, accdb
 
 import shutil
 import os
+
+# import sys
+# print("test_accdb: sys.modules =", sys.modules)
 
 STORED_ACCDBLOC = "test/files/LegInfo-24-01-24T14.accdb"
 ACCDBLOC = "test/cache/LegInfo.accdb"
@@ -75,3 +80,6 @@ def test_accdb():
 
     os.unlink(ACCDBLOC)
     os.unlink(LEGISLOC)
+
+    print("******** Calling clear_flask_session() from test_accdb")
+    clear_flask_session()

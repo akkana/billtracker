@@ -47,6 +47,4 @@ billrequests.LOCAL_MODE = True
 # If we successfully switch to pytest, remember to move it to tests/.
 billrequests.CACHEDIR = CACHEDIR
 
-from app import initialize_flask_session
 
-# initialize_flask_session()
