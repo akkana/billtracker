@@ -23,17 +23,25 @@ if "FLASK_APP" in os.environ:
 
 # Now it's safe (I hope) to import the flask stuff
 from flask import Flask, session
-from billtracker import billtracker, db
-from billtracker.models import Bill
-from billtracker.bills import billrequests, accdb
+from app import app, db, initialize_flask_session
+
+# Even though we just imported app and db, they won't match the
+# globals of that name from __init.py__ once it initializes them,
+# so the initialize function must return them:
+app, db = initialize_flask_session()
+
+# Now it should be safe to import other flask objects
+from app.models import Bill
+from app.bills import billrequests, accdb
 
 from config import Config, basedir
 
 KEY = 'TESTING_NOT_SO_SECRET_KEY'
-billtracker.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + dbpath
-billtracker.config['TESTING'] = True
-billtracker.config['SECRET_KEY'] = KEY
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + dbpath
+app.config['TESTING'] = True
+app.config['SECRET_KEY'] = KEY
 
+from app import routes, models, api, mailapi
 
 class TestAccdb(unittest.TestCase):
     # Called for each test_* function.
@@ -56,10 +64,13 @@ class TestAccdb(unittest.TestCase):
 
         self.app = __class__.app
         with self.app.app_context():
+            print("db is", db)
             db.create_all()
+            print("after create_all, db is", db)
+            print("Table?", db.Table)
             self.client = self.app.test_client()
             print("SQLALCHEMY_DATABASE_URI:",
-                  billtracker.config['SQLALCHEMY_DATABASE_URI'])
+                  app.config['SQLALCHEMY_DATABASE_URI'])
 
         # Copy to test/cache/LegInfo.accdb
         copyfile("test/files/LegInfo-24-01-24T14.accdb",
@@ -89,14 +100,14 @@ class TestAccdb(unittest.TestCase):
 
     def setUpClass():
         # db.init_app can only be called once, so app needs to be a class var.
-        __class__.app = billtracker
+        __class__.app = app
 
     def test_accdb_bills(self):
         # Make sure the json file is there
         self.assertTrue(os.path.exists("test/cache/Legislation.json"))
 
         # Seems to be required for accessing db
-        with billtracker.test_request_context():
+        with app.test_request_context():
             # See long comment in test_billtracker.py
             with self.client.session_transaction() as session:
                 session["yearcode"] = '24'

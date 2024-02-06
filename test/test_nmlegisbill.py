@@ -16,7 +16,7 @@ import unittest
 import sys, os
 sys.path.insert(1, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from billtracker.bills import nmlegisbill, billutils, billrequests
+from app.bills import nmlegisbill, billutils, billrequests
 
 import datetime
 
