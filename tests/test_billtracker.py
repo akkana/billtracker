@@ -5,7 +5,7 @@
 """
 
 from tests import setup_flask
-from app import initialize_flask_session, clear_flask_session
+from app import initialize_flask_session
 
 initialize_flask_session()
 
@@ -463,7 +463,4 @@ def test_billtracker():
             response_html = response.get_data(as_text=True)
 
     os.unlink(setup_flask.TEST_DB)
-
-    print("******** Calling clear_flask_session() from test_billtracker")
-    clear_flask_session()
 

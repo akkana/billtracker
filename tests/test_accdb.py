@@ -2,7 +2,7 @@
 
 from tests import setup_flask
 
-from app import initialize_flask_session, clear_flask_session
+from app import initialize_flask_session
 
 initialize_flask_session()
 
@@ -81,5 +81,3 @@ def test_accdb():
     os.unlink(ACCDBLOC)
     os.unlink(LEGISLOC)
 
-    print("******** Calling clear_flask_session() from test_accdb")
-    clear_flask_session()
