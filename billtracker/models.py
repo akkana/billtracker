@@ -931,6 +931,9 @@ class Bill(db.Model):
                 # just in case.
                 self.scheduled_date = \
                     self.scheduled_date.replace(tzinfo=None)
+                if self.last_action_date:
+                    self.last_action_date = \
+                        self.last_action_date.replace(tzinfo=None)
 
                 future = self.scheduled_in_future()
                 sched_date = self.scheduled_date.date()

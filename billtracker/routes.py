@@ -635,8 +635,6 @@ def allbills():
                 if (today - lastmod <= timedelta(days=DAYS_CONSIDERED_NEW)
                     and lasthist[1] != "dummyfiled"):
                     newbills.append(args)
-                    if billno == "HB16":
-                        print("HB16 lasthist[1]:", lasthist[1])
 
                     # Handle title changes
                     if lasthist[1] == "titlechanged" and \
