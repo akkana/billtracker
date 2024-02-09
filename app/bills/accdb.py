@@ -50,6 +50,7 @@ def update_bills(bill_list):
         billtable = json.load(jfp)
 
     changed = False
+    changedbills = []
     firstbill = None
     now = datetime.now()
     for bill in bill_list:
@@ -128,15 +129,14 @@ def update_bills(bill_list):
             billchanged = True
 
         if billchanged:
+            changedbills.append(bill)
             bill.update_date = now
             db.session.add(bill)
             changed = True
-            print(bill, "changed", file=sys.stderr)
-        else: print(bill, "didn't change", file=sys.stderr)
 
     if changed:
         db.session.commit()
-        print("Committed changes", file=sys.stderr)
+        print("Committed changes to bills:", changedbills, file=sys.stderr)
     else:
         print("Nothing changed", file=sys.stderr)
 
