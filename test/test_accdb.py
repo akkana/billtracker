@@ -72,7 +72,7 @@ class TestAccdb(unittest.TestCase):
             db.drop_all()
 
         try:
-            os.uanlink("test/cache/LegInfo.accdb")
+            os.unlink("test/cache/LegInfo.accdb")
         except:
             pass
         try:

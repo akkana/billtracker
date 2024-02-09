@@ -162,7 +162,7 @@ def fetch_accdb_if_needed(localdir):
         if os.path.exists(jsoncache):
             return jsoncache
         else:
-            raise FileNotFoundError(localdbfile)
+            raise FileNotFoundError(jsoncache)
     try:
         filetime = datetime.fromtimestamp(
             os.stat(jsoncache).st_mtime).astimezone()
