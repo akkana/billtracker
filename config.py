@@ -17,13 +17,8 @@ class Config(object):
     # and you might want to rename it.
     # To use something else, change it in the run script, e.g.
     # os.environ["SQLALCHEMY_DATABASE_URI"] = "postgresql:///dbname"
-    # SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-    #     'sqlite:///' + os.path.join(basedir, 'billtracker.db')
-    # Defining it here as billtracker.db causes too many problems,
-    # like with the unit tests mysteriously stomping the database,
-    # so now it must be defined in the environment.
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
-
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'sqlite:///' + os.path.join(basedir, 'billtracker.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # To watch queries:

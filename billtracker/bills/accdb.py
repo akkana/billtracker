@@ -39,15 +39,14 @@ LOCKED_TOO_LONG = 60
 def update_bills(bill_list):
     """Update a list of bills in the flask database based on any changes
        to the accdb.
-       bill_list is a list of Bill objects from models.py,
-       possibly the list of all bills in the database.
-       This will typically be called periodically from an API,
-       not in response to user action.
+       bill_list is a list of Bill objects from models.py.
     """
+    print("****** Will try to update:", bill_list)
     accdbfile = fetch_accdb_if_needed(billrequests.CACHEDIR)
 
-    with open(os.path.join(billrequests.CACHEDIR, "Legislation.json")) as jfp:
-        billtable = json.load(jfp)
+    # XXX Might it be faster to formulate a query that uses mdb-sql?
+    # It would certainly use less memory.
+    billtable = read_bill_table(accdbfile)
 
     changed = False
     firstbill = None
@@ -97,7 +96,6 @@ def update_bills(bill_list):
         # Sadly, the accdb doesn't have contentslink, FIRlink etc.
 
         # ScheduledDate is something like '01/26/24 00:00:00'
-        # (time may be nonzero, but is always bogus)
         # so we have to ignore the time.
         # HearingTime is a free-form string, could be '8:30 AM' or
         # '1:30 PM or 1/2 hour after floor session'.
@@ -132,7 +130,7 @@ def update_bills(bill_list):
             db.session.add(bill)
             changed = True
             print(bill, "changed", file=sys.stderr)
-        else: print(bill, "didn't change", file=sys.stderr)
+        else: print("Bill", bill, "didn't change", file=sys.stderr)
 
     if changed:
         db.session.commit()
@@ -143,57 +141,59 @@ def update_bills(bill_list):
 
 def fetch_accdb_if_needed(localdir):
     """Fetch the LegInfoYY.zip file from nmlegis.gov if web headers
-       say it's newer than our cached Legislation.json file.
-       Unzip it, extract and cache the Legislation table.
-       Return the path to Legislation.json.
-
-       The db is typically updated daily in the early afternoon (3:30-4)
-       but sometimes gets smaller updates later in the evening or other times.
+       say it's newer than our cached file.
+       Unzip it and cache the .accdb file.
+       Return the full path to the unzipped file.
+       This db is typically updated daily in the early afternoon (3:30-4)
+       but sometimes gets smaller updates later in the evening.
     """
     now = datetime.now()
     yearcode = now.strftime("%y")
-    url = 'https://nmlegis.gov/Sessions/%s%%20Regular/other/LegInfo%s.zip' \
+    remote = 'https://nmlegis.gov/Sessions/%s%%20Regular/other/LegInfo%s.zip' \
         % (yearcode, yearcode)
+    accdbname = None
+    # localfile = now.strftime("LegInfo-%y-%m-%dT%H.accdb")
+    localfile = "LegInfo.accdb"
 
-    # localdbfile = now.strftime("LegInfo-%y-%m-%dT%H.accdb")
-    jsoncache = os.path.join(localdir, "Legislation.json")
+    return fetch_remote_if_needed(remote, os.path.join(localdir, localfile))
 
-    if billrequests.LOCAL_MODE:
-        if os.path.exists(jsoncache):
-            return jsoncache
-        else:
-            raise FileNotFoundError(localdbfile)
-    try:
-        filetime = datetime.fromtimestamp(
-            os.stat(jsoncache).st_mtime).astimezone()
-    except:
-        filetime = None
 
-    # How recently has the URL been updated?
+def fetch_remote_if_needed(url, localfile):
+    """
+    Fetch from url to a file (full path) named localfile
+    only if the last modified date of the url is newer than localfile.
+    Return localfile.
+    """
     urltime = None
-    if filetime:
-        try:
-            head = billrequests.head(url)
-            if 'Last-Modified' in head.headers:
-                urltime = parsedate(head.headers['Last-Modified']).astimezone()
-                if filetime >= urltime:
-                    print(jsoncache, "is already new enough, not fetching",
-                          file=sys.stderr)
-                    return jsoncache
-                print("accdb URL last mod date parsed to", urltime,
-                      "needs a refresh", file=sys.stderr)
+    if os.path.exists(localfile):
+        print("localfile", localfile, "exists")
+        if billrequests.LOCAL_MODE:
+            print("LOCAL_MODE and file exists", file=sys.stderr)
+            return localfile
 
-            else:
-                print("No last-modified in headers", file=sys.stderr)
-                print(head.headers, file=sys.stderr)
-        except Exception as e:
-            print("Exception trying to get URL time", e, file=sys.stderr)
+        head = billrequests.head(url)
+        if 'Last-Modified' in head.headers:
+            urltime = parsedate(head.headers['Last-Modified']).astimezone()
+            print("URL last mod date parsed to", urltime)
+            filetime = datetime.fromtimestamp(os.stat(localfile).st_mtime).astimezone()
+            if filetime >= urltime:
+                print(localfile, "is already new enough, not fetching",
+                      file=sys.stderr)
+                return localfile
 
-    # For whatever reason, we need to download a new accdb
-    localdbfile = os.path.join(localdir, "LegInfo.accdb")
+        else:
+            print("No last-modified in headers")
+            print(head.headers)
+    else:
+        print("localfile", localfile, "doesn't exist", file=sys.stderr)
+
+    # At this point fetching a new file is needed.
+    # But that's incompatible with LOCAL_MODE.
+    if billrequests.LOCAL_MODE:
+        raise FileNotFoundError(localfile)
 
     # Open a lockfile.
-    lockfile = localdbfile + ".lck"
+    lockfile = localfile + ".lck"
     try:
         os.open(lockfile, os.O_CREAT | os.O_EXCL)
         print("Opened the lockfile", lockfile, file=sys.stderr)
@@ -201,21 +201,21 @@ def fetch_accdb_if_needed(localdir):
         # There's already a lock file. If it hasn't been there long,
         # and there's a local file, just use the local file.
         filestat = os.stat(lockfile)
-        if os.path.exists(jsoncache) and \
+        if os.path.exists(localfile) and \
            time.time() - filestat.st_mtime < LOCKED_TOO_LONG:
-            return jsoncache
+            return localfile
 
-        # If no localdbfile, but the lock hasn't been there long,
+        # If no localfile, but the lock hasn't been there long,
         # try waiting a bit for the lock to clear:
-        while os.path.exists(lockfile) and not os.path.exists(localdbfile) \
-              and time.time() - filestat.st_mtime < LOCKED_TOO_LONG:
+        while os.path.exists(lockfile) and not os.path.exists(localfile) and \
+              time.time() - filestat.st_mtime < LOCKED_TOO_LONG:
             time.sleep(1)
             try:
                 filestat = os.stat(lockfile)
             except FileNotFoundError:
                 # lockfile is gone!
-                if os.path.exists(localdbfile):
-                    return localdbfile
+                if os.path.exists(localfile):
+                    return localfile
                 break
 
     print("Fetching", url, "last mod date", urltime, file=sys.stderr)
@@ -223,8 +223,7 @@ def fetch_accdb_if_needed(localdir):
     with zipfile.ZipFile(BytesIO(r.content)) as zip:
         names = zip.namelist()
         if len(names) > 1:
-            print("Too many names in zip archive:", ' '.join(names),
-                  file=sys.stderr)
+            print("Too many names in zip archive:", ' '.join(names))
         for name in names:
             if name.endswith('.accdb'):
                 accdbname = name
@@ -235,22 +234,32 @@ def fetch_accdb_if_needed(localdir):
             raise RuntimeError("No zipfile in %s" % url)
 
         # Rename accdbname to the new file path
-        newfile = localdbfile + ".new"
+        newfile = localfile + ".new"
         zip.getinfo(accdbname).filename = newfile
         # then extract it
         zip.extract(accdbname)
+        print("Should have extracted", newfile)
 
-        # Move the new file into place
+        # Back up the old file, move the new into place
         # and then remove the lockfile
-        os.rename(newfile, localdbfile)
+        try:
+            if filetime:
+                base, ext = os.path.splitext(localfile)
+                backupfile = "%s%s%s" % (base,
+                                         filetime.strftime("%y-%m-%dT%H"),
+                                         ext)
+            else:
+                backupfile = localfile + ".bak"
+            print("Backing up", localfile, "to", backupfile, file=sys.stderr)
+            os.rename(localfile, backupfile)
+        except Exception as e:
+            print("Couldn't back up", localfile, e, file=sys.stderr)
+
+        print("Downloaded new", localfile, file=sys.stderr)
+        os.rename(newfile, localfile)
         os.unlink(lockfile)
 
-    # Now the localdbfile is presumed to exist
-    cache_bill_table(localdbfile, jsoncache)
-
-    # For now, save the last .accdb, but eventually it should be removed
-    # once the jsoncache is in place:
-    # os.unlink(localdbfile)
+    return localfile
 
 
 def list_tables(dbfilename):
@@ -261,11 +270,10 @@ def list_tables(dbfilename):
              if tbl ]
 
 
-def cache_bill_table(dbfilename, jsoncache):
-    """Read the table named 'Legislation', and turn it into
-       a dictionary of dictionaries indexed by billno:
+def read_bill_table(dbfilename):
+    """Read the table named 'Legislation', and return a dictionary
+       of dictionaries indexed by billno:
        { billno: accdb_dictionary }
-       Cache that dictionary in the indicated file.
     """
     billtable = {}
     for line in read_table_lines(dbfilename, 'Legislation'):
@@ -277,29 +285,7 @@ def cache_bill_table(dbfilename, jsoncache):
             + bill['LegNo'].strip()
         billtable[billno] = bill
 
-    # update the json cache, backing up the old version
-    path, filename = os.path.split(jsoncache)
-    base, ext = os.path.splitext(filename)
-    newcache = jsoncache + ".new"
-    archivedir = os.path.join(path, 'Archive')
-    if not os.path.isdir(archivedir):
-        os.mkdir(archivedir)
-    with open(newcache, 'w') as jfp:
-        json.dump(billtable, jfp, indent=2)
-    try:
-        filetime = datetime.fromtimestamp(
-            os.stat(jsoncache).st_mtime).astimezone()
-        backupfile = os.path.join(
-            archivedir, base + filetime.strftime("%y-%m-%dT%H") + ext)
-        os.rename(jsoncache, backupfile)
-    except FileNotFoundError:
-        print("No %s to back up yet" % jsoncache, file=sys.stderr)
-    except Exception as e:
-        print("Couldn't rename", jsoncache, "to", backupfile, ":", e,
-              file=sys.stderr)
-
-    os.rename(newcache, jsoncache)
-    print("cached new", jsoncache, file=sys.stderr)
+    return billtable
 
 
 def read_table_lines(dbfilename, tablename):
@@ -318,6 +304,9 @@ def read_table_lines(dbfilename, tablename):
 
 if __name__ == '__main__':
     accdbfile = fetch_accdb_if_needed('.')
+    if not os.path.exists(accdbfile):
+        print("Fetching a new", LOCALFILE)
+        fetch_remote()
 
     # tables = list_tables(accdbfile)
     # for tbl in tables:

@@ -66,9 +66,6 @@ class TestAccdb(unittest.TestCase):
                  "test/cache/LegInfo.accdb")
         print("Copied to test/cache/LegInfo.accdb")
 
-        accdb.cache_bill_table("test/cache/LegInfo.accdb",
-                               "test/cache/Legislation.json")
-
     # Called for each test_* function.
     def tearDown(self):
         with self.app.app_context():
@@ -82,24 +79,32 @@ class TestAccdb(unittest.TestCase):
             os.unlink("test/cache/LegInfo.accdb.bak")
         except:
             pass
-        try:
-            os.unlink("test/cache/Legislation.json")
-        except:
-            pass
 
     def setUpClass():
         # db.init_app can only be called once, so app needs to be a class var.
         __class__.app = billtracker
 
-    def test_accdb_bills(self):
-        # Make sure the json file is there
-        self.assertTrue(os.path.exists("test/cache/Legislation.json"))
+        # Flask being incredibly unfriendly to unittest:
+        # In 2022, db.init_app needed to be run in setUp(self).
+        # In January 2023, it needed to be run here.
+        # In February 2023, it causes:
+        # RuntimeError: A 'SQLAlchemy' instance has already been registered on this Flask app. Import and use that instance instead.
+        # with __class__.app.app_context():
+        #     db.init_app(__class__.app)
 
+    def test_accdb_bills(self):
         # Seems to be required for accessing db
         with billtracker.test_request_context():
             # See long comment in test_billtracker.py
             with self.client.session_transaction() as session:
                 session["yearcode"] = '24'
+
+                # # Fetch the list of legislative sessions.
+                # # Do this first, many things depend on current_leg_session()
+                # response = self.client.post("/api/refresh_session_list",
+                #                             data={ 'KEY': KEY })
+                # self.assertTrue(
+                #     response.get_data(as_text=True).startswith('OK'))
 
             # Add a couple of empty bills
             hjr7 = Bill()
@@ -114,7 +119,6 @@ class TestAccdb(unittest.TestCase):
             db.session.commit()
 
             allbills = Bill.query.all()
-            print("Allbills:", allbills)
             self.assertEqual(len(allbills), 2)
 
             hjr7 = Bill.query.filter_by(billno="HJR7").first()
