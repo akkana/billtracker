@@ -9,7 +9,5 @@
 python3 -m unittest \
     test.test_billtracker \
     test.test_nmlegisbill \
+    test.test_accdb \
     test.test_decodenmlegis
-
-# Hold off on test_accdb, there's a working test in the pytest-renaming branch.
-#     test.test_accdb \

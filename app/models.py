@@ -1,11 +1,12 @@
-from billtracker import db, login
+
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import func
 
-from billtracker.bills import nmlegisbill, billutils, decodenmlegis
-from billtracker.emails import send_email
-from billtracker.bills.nmlegisbill import update_legislative_session_list
+from app import db, login
+from app.bills import nmlegisbill, billutils, decodenmlegis
+from app.emails import send_email
+from app.bills.nmlegisbill import update_legislative_session_list
 
 from datetime import datetime, date, timedelta, timezone
 import dateutil.parser

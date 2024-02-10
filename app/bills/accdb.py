@@ -24,12 +24,12 @@ from io import BytesIO
 import os
 import sys
 
-from billtracker import db
-from billtracker.models import Bill
+from app import db
+from app.models import Bill
 
 # The main accdb file is downloaded with the regular requests module,
 # but billrequests is used for things like the cachedir
-from billtracker.bills import billrequests
+from app.bills import billrequests
 
 # How long is too long to wait for a lock file while downloading the accdb?
 # Let's say 1 minute (this is in seconds).

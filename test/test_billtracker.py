@@ -49,25 +49,33 @@ os.environ["MAIL_SUPPRESS_SEND"] = "True"
 
 # Now it's safe (I hope) to import the flask stuff
 from flask import Flask, session
-from billtracker import billtracker, db
-from billtracker.models import User, Bill, LegSession
-from billtracker.bills import billrequests
+
+from app import app, db, initialize_flask_session
+
+# Even though we just imported app and db, they won't match the
+# globals of that name from __init.py__ once it initializes them,
+# so the initialize function must return them:
+app, db = initialize_flask_session()
+
+# Now it should be safe to import other flask objects
+from app.models import User, Bill, LegSession
+from app.bills import billrequests
 
 from config import Config, basedir
 
 KEY = 'TESTING_NOT_SO_SECRET_KEY'
-billtracker.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + dbpath
-billtracker.config['TESTING'] = True
-billtracker.config['SECRET_KEY'] = KEY
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + dbpath
+app.config['TESTING'] = True
+app.config['SECRET_KEY'] = KEY
 
 # To help with submitting form data from tests
 # -- but form.validate_on_submit still returns False.
-billtracker.config['WTF_CSRF_ENABLED'] = False
+app.config['WTF_CSRF_ENABLED'] = False
 
 # Needed for captcha validation
-from billtracker.forms import RegistrationForm
-from billtracker.routes import initialize_captcha
-from billtracker import chattycaptcha
+from app.forms import RegistrationForm
+from app.routes import initialize_captcha
+from app import chattycaptcha
 
 
 class TestBillTracker(unittest.TestCase):
@@ -100,7 +108,7 @@ class TestBillTracker(unittest.TestCase):
             db.create_all()
             self.client = self.app.test_client()
             print("SQLALCHEMY_DATABASE_URI:",
-                  billtracker.config['SQLALCHEMY_DATABASE_URI'])
+                  app.config['SQLALCHEMY_DATABASE_URI'])
 
     # Called for each test_* function.
     def tearDown(self):
@@ -114,7 +122,7 @@ class TestBillTracker(unittest.TestCase):
 
     def setUpClass():
         # db.init_app can only be called once, so app needs to be a class var.
-        __class__.app = billtracker
+        __class__.app = app
 
         # Flask being incredibly unfriendly to unittest:
         # In 2022, db.init_app needed to be run in setUp(self).
@@ -137,7 +145,7 @@ class TestBillTracker(unittest.TestCase):
         # need to be combined in the same test.
 
         # Seems to be required for accessing db
-        with billtracker.test_request_context():
+        with app.test_request_context():
 
             # Empirically, the way flask 2.2 works is that
             # "with self.client.session_transaction()"
@@ -150,6 +158,7 @@ class TestBillTracker(unittest.TestCase):
             # the "with", will only add to a local copy and won't
             # be copied into the outside-visible session.
             with self.client.session_transaction() as session:
+
                 session["yearcode"] = '19'
 
                 # Fetch the list of legislative sessions.
@@ -244,7 +253,7 @@ class TestBillTracker(unittest.TestCase):
             db.session.commit()
 
             # Needed to test WTForms to test any POSTs:
-            billtracker.config['WTF_CSRF_ENABLED'] = False
+            app.config['WTF_CSRF_ENABLED'] = False
 
             response = self.client.post("/newaccount",
                                      data={ 'username': USERNAME,

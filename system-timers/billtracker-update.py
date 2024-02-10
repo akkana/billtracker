@@ -44,6 +44,8 @@ if in_session:
     amend_hours = [ ]
     db_backup_hours = [ 1, 13 ]
 
+    legdb_hours = [ 3, 16, 18, 21 ]
+
     # Committees are really the important things to refresh:
     # they're the only way to find out when bills are scheduled,
     # and their schedules are updated randomly and sometimes frequently.
@@ -79,6 +81,7 @@ else:
     amend_hours = [ ]
     db_backup_hours = [ 4 ]
     committee_hours = [ ]
+    legdb_hours = [ ]
 
     allbills_hours = [ 1 ]
 
@@ -106,6 +109,12 @@ def main():
         posturl = '%s/api/db_backup' % (BASEURL)
         postdata = { "KEY": KEY }
         res = requests.post(posturl, postdata)
+
+    if now.hour in legdb_hours:
+        print("refresh_from_legdb:")
+        comout = requests.get('%s/api/refresh_from_legdb/%s'
+                              % (BASEURL, KEY)).text
+        print(comout)
 
     # allbills isn't part of the API, but it updates lots of files.
     # This is done even when off-session.

@@ -1,6 +1,6 @@
 
 from flask_mail import Message
-from billtracker import billtracker, mail
+from app import app, mail
 
 from flask import render_template
 from config import ADMINS
@@ -8,8 +8,8 @@ from config import ADMINS
 from threading import Thread
 
 
-def send_async_email(billtracker, msg):
-    with billtracker.app_context():
+def send_async_email(app, msg):
+    with app.app_context():
         mail.send(msg)
 
 
@@ -20,7 +20,7 @@ def send_email(subject, sender, recipients, text_body, html_body=None):
     msg.body = text_body
     if html_body:
         msg.html = html_body
-    thr = Thread(target=send_async_email, args=[billtracker, msg])
+    thr = Thread(target=send_async_email, args=[app, msg])
     thr.start()
 
 

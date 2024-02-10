@@ -2,10 +2,10 @@
 
 """BillTracker API calls, not meant to be visited directly by users"""
 
-from billtracker import billtracker, db
-from billtracker.models import User, Bill, Legislator, Committee, LegSession
-from billtracker.routeutils import BILLNO_PAT
-from billtracker.bills import nmlegisbill, billrequests, accdb
+from app import app, db
+from app.models import User, Bill, Legislator, Committee, LegSession
+from app.routeutils import BILLNO_PAT
+from app.bills import nmlegisbill, billrequests, accdb
 from .routeutils import set_session_by_request_values
 
 from flask import session, request, jsonify
@@ -15,18 +15,18 @@ import subprocess
 import sys, os
 
 
-@billtracker.route("/api/appinfo/<key>")
+@app.route("/api/appinfo/<key>")
 def appinfo(key):
     """Display info about the app and the database.
     """
-    if key != billtracker.config["SECRET_KEY"]:
+    if key != app.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
     infostr = "<br>\nBillTracker at " \
         + str(datetime.now())
 
     infostr += "<p>\nSQLALCHEMY_DATABASE_URI: " \
-        + billtracker.config["SQLALCHEMY_DATABASE_URI"]
+        + app.config["SQLALCHEMY_DATABASE_URI"]
     infostr += '<br>\nDatabase: ' + str(db.session.get_bind())
 
     allusers = User.query.all()
@@ -95,11 +95,11 @@ def appinfo(key):
 #
 
 
-@billtracker.route("/api/refresh_allbills/<key>")
+@app.route("/api/refresh_allbills/<key>")
 def refresh_allbills(key):
     """Refresh the data needed for the allbills page for the current session
     """
-    if key != billtracker.config["SECRET_KEY"]:
+    if key != app.config["SECRET_KEY"]:
         print("FAIL refresh_allbills: bad key %s" % key, file=sys.stderr)
         return "FAIL Bad key\n"
 
@@ -118,14 +118,14 @@ def refresh_allbills(key):
     return "OK Refreshed allbills"
 
 
-@billtracker.route("/api/refresh_from_legdb/<key>")
-@billtracker.route("/api/refresh_from_legdb/<key>/bill_list")
+@app.route("/api/refresh_from_legdb/<key>")
+@app.route("/api/refresh_from_legdb/<key>/bill_list")
 def refresh_from_accdb(key, bill_list=None):
     """Fetch a new accdb, if one is available,
        and update the indicated bill list (comma separated) from it.
        If no bill list, update all bills in the database.
     """
-    if key != billtracker.config["SECRET_KEY"]:
+    if key != app.config["SECRET_KEY"]:
         print("FAIL refresh_from_db: bad key %s" % key, file=sys.stderr)
         return "FAIL Bad key\n"
 
@@ -156,13 +156,13 @@ def refresh_from_accdb(key, bill_list=None):
 # XXX PROBLEM: they've started putting bill text in filenames like
 # SJR03.html, so now we'll have to look for bill text the same way
 # as in refresh_legisdata.
-@billtracker.route("/api/refresh_one_bill", methods=['POST'])
+@app.route("/api/refresh_one_bill", methods=['POST'])
 def refresh_one_bill():
     """Fetch the page for a bill and update it in the db.
        Send BILLNO, YEARCODE and the app KEY in POST data.
     """
     key = request.values.get('KEY')
-    if key != billtracker.config["SECRET_KEY"]:
+    if key != app.config["SECRET_KEY"]:
         print("FAIL refresh_one_bill: bad key %s" % key, file=sys.stderr)
         return "FAIL Bad key\n"
     billno = request.values.get('BILLNO')
@@ -195,7 +195,7 @@ def refresh_one_bill():
 #               { "PERCENT": percent, "YEAR": year, "KEY": key }).text
 # requests.post('%s/api/refresh_percent_of_bills' % baseurl,
 #               { "PERCENT": percent, "YEARCODE": yearcode, "KEY": key }).text
-@billtracker.route("/api/refresh_percent_of_bills", methods=['GET', 'POST'])
+@app.route("/api/refresh_percent_of_bills", methods=['GET', 'POST'])
 def refresh_percent_of_bills():
     """Refresh a given percentage of the bill list
        for a specified yearcode or year.
@@ -206,7 +206,7 @@ def refresh_percent_of_bills():
        If neither yearcode nor year is specified, refresh the current year.
     """
     key = request.values.get('KEY')
-    if key != billtracker.config["SECRET_KEY"]:
+    if key != app.config["SECRET_KEY"]:
         print("FAIL refresh_one_bill: bad key %s" % key, file=sys.stderr)
         return "FAIL Bad key\n"
 
@@ -278,13 +278,13 @@ def refresh_percent_of_bills():
 # Test:
 # SERVERURL/api/refresh_session_list?KEY=KEY
 # requests.post('%s/api/refresh_session_list' % baseurl, { "KEY": KEY }).text
-@billtracker.route("/api/refresh_session_list", methods=['POST', 'GET'])
+@app.route("/api/refresh_session_list", methods=['POST', 'GET'])
 def refresh_session_list():
     """Fetch Legislation_List (the same file that's used for allbills)
        and check the menu of sessions to see if there's a new one.
     """
     key = request.values.get('KEY')
-    if key != billtracker.config["SECRET_KEY"]:
+    if key != app.config["SECRET_KEY"]:
         print("FAIL refresh_session_list: bad key %s" % key, file=sys.stderr)
         return "FAIL Bad key\n"
 
@@ -292,7 +292,7 @@ def refresh_session_list():
     return "OK Refreshed list of legislative sessions"
 
 
-@billtracker.route("/api/bills_by_update_date", methods=['GET', 'POST'])
+@app.route("/api/bills_by_update_date", methods=['GET', 'POST'])
 def bills_by_update_date():
     """Return a list of bills in the current legislative yearcode,
        sorted by how recently they've been updated, oldest first.
@@ -325,7 +325,7 @@ def bills_by_update_date():
 #               "YEARCODE": "19",    # optional
 #               "KEY": '...' }
 # requests.post(posturl, xyzdata).text
-@billtracker.route("/api/refresh_legisdata", methods=['POST'])
+@app.route("/api/refresh_legisdata", methods=['POST'])
 def refresh_legisdata():
     """Fetch a specific file from the legislative website in a separate thread,
        which will eventually update a specific field in the bills database.
@@ -337,7 +337,7 @@ def refresh_legisdata():
     """
     # XXX the nmlegis parts of this function should move to bills/nmlegisbill
     key = request.values.get('KEY')
-    if key != billtracker.config["SECRET_KEY"]:
+    if key != app.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
     yearcode = request.values.get('YEARCODE')
@@ -421,14 +421,14 @@ def refresh_legisdata():
     return "OK " + "<br>\n".join(retmsgs)
 
 
-@billtracker.route("/api/refresh_legislators", methods=['GET', 'POST'])
-@billtracker.route("/api/refresh_legislators/<key>")
+@app.route("/api/refresh_legislators", methods=['GET', 'POST'])
+@app.route("/api/refresh_legislators/<key>")
 def refresh_legislators(key=None):
     """POST data is only for specifying KEY.
     """
     if not key:
         key = request.values.get('KEY')
-    if key != billtracker.config["SECRET_KEY"]:
+    if key != app.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
     if Legislator.refresh_legislators_list():
@@ -437,7 +437,7 @@ def refresh_legislators(key=None):
     return "FAIL Couldn't refresh legislator list"
 
 
-@billtracker.route("/api/all_committees")
+@app.route("/api/all_committees")
 def list_committees():
     """List all committee codes in the db, in no particular order.
        No key required.
@@ -446,19 +446,19 @@ def list_committees():
     if not all_committees:
         print("No committees were set! Should refresh all of them.",
               file=sys.stderr)
-        # refresh_all_committees(billtracker.config["SECRET_KEY"])
+        # refresh_all_committees(app.config["SECRET_KEY"])
         # all_committees = Committee.query.all()
         return "FAIL no committees in db"
 
     return ','.join([ c.code for c in all_committees ])
 
 
-@billtracker.route("/api/refresh_all_committees/<key>")
+@app.route("/api/refresh_all_committees/<key>")
 def refresh_all_committees(key):
     """Update all committees based on the latest list of upcoming
        committee meetings. Update bills' scheduled_date.
     """
-    if key != billtracker.config["SECRET_KEY"]:
+    if key != app.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
     print("api/refresh_all_committees", file=sys.stderr)
@@ -651,13 +651,13 @@ def refresh_one_committee(comcode):
     return "OK Updated committee %s" % comcode
 
 
-@billtracker.route("/api/refresh_committee/<comcode>/<key>")
+@app.route("/api/refresh_committee/<comcode>/<key>")
 def refresh_committee(comcode, key):
     """Long-running API: update a committee from its website.
        POST data includes COMCODE and KEY.
     """
     # key = request.values.get('KEY')
-    # if key != billtracker.config["SECRET_KEY"]:
+    # if key != app.config["SECRET_KEY"]:
     #     return "FAIL Bad key\n"
 
     # comcode = request.values.get('COMCODE')
@@ -667,8 +667,8 @@ def refresh_committee(comcode, key):
     return refresh_one_committee(comcode)
 
 
-@billtracker.route("/api/db_backup", methods=['GET', 'POST'])
-@billtracker.route('/api/db_backup/<key>', methods=['GET', 'POST'])
+@app.route("/api/db_backup", methods=['GET', 'POST'])
+@app.route('/api/db_backup/<key>', methods=['GET', 'POST'])
 def db_backup(key=None):
     """Make a backup copy of the database.
     """
@@ -678,12 +678,12 @@ def db_backup(key=None):
     if not key:
         try:
             key = values['KEY']
-            if key != billtracker.config["SECRET_KEY"]:
+            if key != app.config["SECRET_KEY"]:
                 return "FAIL Bad key\n"
         except KeyError:
             return "FAIL No key"
 
-    db_uri = billtracker.config['SQLALCHEMY_DATABASE_URI']
+    db_uri = app.config['SQLALCHEMY_DATABASE_URI']
     print("db URI:", db_uri, file=sys.stderr)
 
     now = datetime.now()
@@ -757,13 +757,13 @@ def find_dups(yearcode=None):
     return dup_bill_lists
 
 
-@billtracker.route('/api/showdups/<key>')
-@billtracker.route('/api/showdups/<key>/<yearcode>')
+@app.route('/api/showdups/<key>')
+@app.route('/api/showdups/<key>/<yearcode>')
 def show_dups(key, yearcode=None):
     """Look for duplicate bills in a given yearcode, or all years.
        Return JSON showing dup bills and who's tracking them.
     """
-    if key != billtracker.config["SECRET_KEY"]:
+    if key != app.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
 
     ret_json = {}
@@ -800,10 +800,10 @@ def show_dups(key, yearcode=None):
 
 # Clean out duplicates.
 # This shouldn't be needed, but somehow, duplicates appear.
-@billtracker.route('/api/cleandups/<key>')
-@billtracker.route('/api/cleandups/<key>/<yearcode>')
+@app.route('/api/cleandups/<key>')
+@app.route('/api/cleandups/<key>/<yearcode>')
 def clean_dups(key, yearcode=None):
-    if key != billtracker.config["SECRET_KEY"]:
+    if key != app.config["SECRET_KEY"]:
         return "{ 'error': 'FAIL Bad key' }"
 
     billdups = find_dups(yearcode)

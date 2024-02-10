@@ -143,10 +143,10 @@ os.environ["DATABASE_URL"] = "postgresql:///DBNAME"
 Make a copy of it, then add to the end the stuff you need for
 testing in the debug environment:
 ```
-from billtracker import billtracker, db
-from billtracker.models import User, Bill
+from app import app, db
+from app.models import User, Bill
 
-@billtracker.shell_context_processor
+@app.shell_context_processor
 def make_shell_context():
     return {'db': db, 'User': User, 'Bill': Bill}
 ```

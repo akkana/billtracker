@@ -16,9 +16,10 @@ os.environ["DATABASE_URL"] = 'YOUR_DATABASE_URL'
 # when will it end? Can be either .environ["BILLTRACKER_INFO"] = ""
 # or os.environ["BILLTRACKER_ALERT"] = ""
 
-from billtracker import billtracker as application
+from app import app as application
 
-from billtracker import initialize_flask_session
+from app import initialize_flask_session
+
 initialize_flask_session()
 
 # Set up your secret key, used for things like API calls
