@@ -5,7 +5,7 @@ import unittest
 import sys, os
 sys.path.insert(1, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from billtracker.bills.decodenmlegis import decode_full_history
+from app.bills.decodenmlegis import decode_full_history
 
 from datetime import date
 

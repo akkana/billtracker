@@ -64,10 +64,7 @@ class TestAccdb(unittest.TestCase):
 
         self.app = __class__.app
         with self.app.app_context():
-            print("db is", db)
             db.create_all()
-            print("after create_all, db is", db)
-            print("Table?", db.Table)
             self.client = self.app.test_client()
             print("SQLALCHEMY_DATABASE_URI:",
                   app.config['SQLALCHEMY_DATABASE_URI'])
@@ -76,20 +73,20 @@ class TestAccdb(unittest.TestCase):
         copyfile("test/files/LegInfo-24-01-24T14.accdb",
                  "test/cache/LegInfo.accdb")
         print("Copied to test/cache/LegInfo.accdb")
+        os.system("ls -l test/cache/LegInfo.accdb")
 
     # Called for each test_* function.
     def tearDown(self):
         with self.app.app_context():
             db.drop_all()
 
-        try:
-            os.unlink("test/cache/LegInfo.accdb")
-        except:
-            pass
-        try:
-            os.unlink("test/cache/LegInfo.accdb.bak")
-        except:
-            pass
+        for cachedfile in [ "test/cache/LegInfo.accdb",
+                            "test/cache/LegInfo.accdb.bak",
+                            "test/cache/Legislation.json" ]:
+            try:
+                os.unlink(cachedfile)
+            except FileNotFoundError:
+                pass
 
     def setUpClass():
         # db.init_app can only be called once, so app needs to be a class var.

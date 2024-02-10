@@ -157,21 +157,36 @@ def fetch_accdb_if_needed(localdir):
 
     # localdbfile = now.strftime("LegInfo-%y-%m-%dT%H.accdb")
     jsoncache = os.path.join(localdir, "Legislation.json")
+    localdbfile = os.path.join(localdir, "LegInfo.accdb")
+
+    print("In fetch_accdb_if_needed:")
+    os.system("ls -l %s %s" % (jsoncache, localdbfile))
+    try:
+        jsonfiletime = datetime.fromtimestamp(
+            os.stat(jsoncache).st_mtime).astimezone()
+    except Exception as e:
+        jsonfiletime = None
+        print("Couldn't get JSON file time", e)
+    try:
+        dbfiletime = datetime.fromtimestamp(
+            os.stat(localdbfile).st_mtime).astimezone()
+    except Exception as e:
+        dbfiletime = None
+        print("Couldn't get accdb file time", e)
 
     if billrequests.LOCAL_MODE:
-        if os.path.exists(jsoncache):
-            return jsoncache
-        else:
-            raise FileNotFoundError(jsoncache)
-    try:
-        filetime = datetime.fromtimestamp(
-            os.stat(jsoncache).st_mtime).astimezone()
-    except:
-        filetime = None
+        # Does the JSON file exist, and is it newer than the accdb file?
+        if jsonfiletime:
+            if not dbfiletime or jsonfiletime > dbfiletime:
+                return jsoncache
 
-    # How recently has the URL been updated?
+        if not dbfiletime:
+            print("localdbfile is", localdbfile, "and it's not there")
+            raise FileNotFoundError(localdbfile)
+
+    # Not local mode. How recently has the URL been updated?
     urltime = None
-    if filetime:
+    if jsonfiletime:
         try:
             head = billrequests.head(url)
             if 'Last-Modified' in head.headers:
@@ -190,7 +205,6 @@ def fetch_accdb_if_needed(localdir):
             print("Exception trying to get URL time", e, file=sys.stderr)
 
     # For whatever reason, we need to download a new accdb
-    localdbfile = os.path.join(localdir, "LegInfo.accdb")
 
     # Open a lockfile.
     lockfile = localdbfile + ".lck"
