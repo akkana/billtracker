@@ -23,8 +23,11 @@ Installed wtf:
 pip3 install python-wtf
 pip3 install Flask-WTF
 
-Then inserted the relevant path into the .wsgi file apache will use:
-sys.path.insert(0, '/path/to/python3-venv/lib/python3.5/site-packages/')
+Then you need a .wsgi file apache will run.
+Look at billtracker.wsgi in this directory for an example.
+You'll need to define the path to where your billtracker code lives,
+the path to any venv you're using for python packages,
+and a few other variables like your secret key.
 
 # Templates
 
