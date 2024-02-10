@@ -6,7 +6,7 @@ from flask_login import LoginManager
 from flask_mail import Mail
 from config import Config
 
-import os
+import os, sys
 
 app = Flask(__name__)
 
@@ -23,19 +23,16 @@ mail = None
 def initialize_flask_session():
     global db, migrate, login, mail, SQLALCHEMY_DATABASE_URI
 
-    print(">>>>>>>>>>>>> initializing db etc. <<<<<<<<<<<<<<<<")
     if app and db:
         # The database can only be initialized once.
         # Unit tests may try to re-initialize.
-        print("Already initialized, returning")
+        print("app and db already initialized, returning", file=sys.stderr)
         return app, db
 
     SQLALCHEMY_DATABASE_URI = os.environ["DATABASE_URL"]
     db = SQLAlchemy(app)
-    print("Just initialized db ->", db)
 
     migrate = Migrate(app, db)
-    print("after migrate, db =", db)
 
     # Not clear if this works to enable batch, but what does work is to edit
     # migrate/env.py after the first db init, and add render_as_batch=True.
