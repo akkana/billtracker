@@ -191,7 +191,7 @@ def fetch_accdb_if_needed(localdir):
             head = billrequests.head(url)
             if 'Last-Modified' in head.headers:
                 urltime = parsedate(head.headers['Last-Modified']).astimezone()
-                if filetime >= urltime:
+                if dbfiletime and (dbfiletime >= urltime):
                     print(jsoncache, "is already new enough, not fetching",
                           file=sys.stderr)
                     return jsoncache
