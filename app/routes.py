@@ -2,7 +2,6 @@ from flask import render_template, flash, redirect, url_for, request
 from flask import session
 from flask import request
 from flask_login import login_user, logout_user, current_user, login_required
-from werkzeug.urls import url_parse
 
 from app import app, db
 from app import chattycaptcha
@@ -19,6 +18,7 @@ from datetime import datetime, timedelta, date
 
 import json
 import requests
+from urllib.parse import urlsplit
 import random
 import multiprocessing
 import posixpath
@@ -152,7 +152,7 @@ def login():
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
-        if not next_page or url_parse(next_page).netloc != '':
+        if not next_page or urlsplit(next_page).netloc != '':
             next_page = url_for('bills')
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
@@ -871,8 +871,8 @@ def tags(tag=None, sort=None):
             h = int(sixbytes[0:2], 16) / 256.
             # lightness between .8 and .88
             l = int(sixbytes[0:2], 16) / 2048 + .8
-            # saturation between 0 and .5
-            s = int(sixbytes[2:4], 16) / 256.
+            # saturation between .5 and 1
+            s = int(sixbytes[2:4], 16) / 256 + .5
 
             rgb = colorsys.hls_to_rgb(h, l, s)
 
@@ -880,6 +880,7 @@ def tags(tag=None, sort=None):
             rgb = tuple((int(x * 256) for x in rgb))
 
             dic[piece] = "#%02x%02x%02x" % rgb
+            # print("str2color:", h, l, s, dic)
 
         return dic
 
