@@ -24,50 +24,50 @@ import traceback
 # like the FIR/LESC links randomly add.
 # If there are other letters or a different pattern,
 # it may be an amendment or some other supporting document.
-billno_pat = re.compile("([SH][JC]{0,1}[BMR])(0*)([1-9][0-9]*)")
+billno_pat = re.compile(r"([SH][JC]{0,1}[BMR])(0*)([1-9][0-9]*)")
 
 # Used in listing the Tabled_Reports directory (may be good for amendments too)
-amend_billno_pat = re.compile("([SH][JC]{0,1}[BMR])(0*)([1-9][0-9]*)([A-Za-z0-9]*)(\.[a-zA-Z]+)", re.IGNORECASE)
+amend_billno_pat = re.compile(r"([SH][JC]{0,1}[BMR])(0*)([1-9][0-9]*)([A-Za-z0-9]*)(\.[a-zA-Z]+)", re.IGNORECASE)
 
-house_senate_billno_pat = re.compile('.*_linkBillID_[0-9]*')
+house_senate_billno_pat = re.compile(r'.*_linkBillID_[0-9]*')
 
 # Same thing, but occurring in a file pathname,
 # so it should start with / and end with .
-bill_file_pat = re.compile("([SH][JC]{0,1}[BMR])0*([1-9][0-9]*)\.")
+bill_file_pat = re.compile(r"([SH][JC]{0,1}[BMR])0*([1-9][0-9]*)\.")
 
 # Patterns used in update_allbills
 allbills_billno_pat = re.compile(
     'MainContent_gridViewLegislation_linkBillID.*')
-title_pat = re.compile('MainContent_gridViewLegislation_lblTitle.*')
-sponsor_pat = re.compile('MainContent_gridViewLegislation_linkSponsor.*')
-sponcode_pat = re.compile('.*/Legislator\?SponCode=([A-Z]+)')
-action_pat = re.compile("MainContent_gridViewLegislation_lblActions_[0-9]")
+title_pat = re.compile(r'MainContent_gridViewLegislation_lblTitle.*')
+sponsor_pat = re.compile(r'MainContent_gridViewLegislation_linkSponsor.*')
+sponcode_pat = re.compile(r'.*/Legislator\?SponCode=([A-Z]+)')
+action_pat = re.compile(r"MainContent_gridViewLegislation_lblActions_[0-9]")
 
 # Patterns used in parse_bill_page
-scheduled_for_pat = re.compile("Scheduled for.*on ([0-9/]*)")
-sponcode_pat = re.compile(".*[&?]SponCode\=([A-Z]+)")
-cspat = re.compile("MainContent_dataListLegislationCommitteeSubstitutes_linkSubstitute.*")
+scheduled_for_pat = re.compile(r"Scheduled for.*on ([0-9/]*)")
+sponcode_pat = re.compile(r".*[&?]SponCode\=([A-Z]+)")
+cspat = re.compile(r"MainContent_dataListLegislationCommitteeSubstitutes_linkSubstitute.*")
 
 
 # RE patterns needed for parsing committee pages
-tbl_bills_scheduled = re.compile("MainContent_formViewCommitteeInformation_gridViewScheduledLegislation")
+tbl_bills_scheduled = re.compile(r"MainContent_formViewCommitteeInformation_gridViewScheduledLegislation")
 
-tbl_committee_mtg_dates = re.compile("MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_lblHearingDate_[0-9]*")
-tbl_committee_mtg_times = re.compile("MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_lblHearingTime_[0-9]*")
-tbl_committee_mtg_bills = re.compile("MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_[0-9]+")
+tbl_committee_mtg_dates = re.compile(r"MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_lblHearingDate_[0-9]*")
+tbl_committee_mtg_times = re.compile(r"MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_lblHearingTime_[0-9]*")
+tbl_committee_mtg_bills = re.compile(r"MainContent_formViewCommitteeInformation_repeaterCommittees_repeaterDates_0_gridViewBills_[0-9]+")
 
-billno_cell_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_linkBillID_[0-9]*')
+billno_cell_pat = re.compile(r'MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_linkBillID_[0-9]*')
 
-sched_date_pat = re.compile('MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_lblScheduledDate_[0-9]*')
+sched_date_pat = re.compile(r'MainContent_formViewCommitteeInformation_gridViewScheduledLegislation_lblScheduledDate_[0-9]*')
 
 # Pattern for a time followed by optional am, AM, a.m. etc.
 # optionally preceded by a date or day specifier like "Tuesday & Thursday"
-mtg_datetime_pat = re.compile("(.*) *(\d{1,2}): *(\d\d) *([ap]\.?m\.?)?",
+mtg_datetime_pat = re.compile(r"(.*) *(\d{1,2}): *(\d\d) *([ap]\.?m\.?)?",
                               flags=re.IGNORECASE)
 
 # Pattern to detect dummy bills from their actions
-dummy_pat = re.compile("^\[[0-9]+\] *not prntd")
-dummy_plus_pat = re.compile("^\[[0-9]+\] *not prntd.*\[[0-9]+\]")
+dummy_pat = re.compile(r"^\[[0-9]+\] *not prntd")
+dummy_plus_pat = re.compile(r"^\[[0-9]+\] *not prntd.*\[[0-9]+\]")
 
 
 # XXX The URLmapper stuff should be killed, with any functionality
@@ -270,7 +270,7 @@ def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
 
             # Try to parse the most recent modification date from it:
             actiontext = lastaction.text
-            match = re.search('Calendar Day: (\d\d/\d\d/\d\d\d\d)', actiontext)
+            match = re.search(r'Calendar Day: (\d\d/\d\d/\d\d\d\d)', actiontext)
             if match:
                 last_action_date = dateutil.parser.parse(match.group(1))
             else:
@@ -963,7 +963,7 @@ def expand_house_or_senate(code, cache_locally=True):
             })
             href = 'https://www.nmlegis.gov' + floorlink.get('href')
             # href="/Agendas/Floor/hFloor021222.pdf?t=637803128677866884"
-            floorlinkpat = ".*/Floor/%sFloor([0-9]{6})\.pdf.*" \
+            floorlinkpat = r".*/Floor/%sFloor([0-9]{6})\.pdf.*" \
                 % chamber[0].lower()
             m = re.match(floorlinkpat, href)
             mmddyy = m.group(1)
