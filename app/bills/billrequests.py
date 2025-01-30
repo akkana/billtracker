@@ -437,14 +437,14 @@ def ftp_index(server, ftpdir):
     baseurl = "ftp://%s/%s" % (server, ftpdir)
     for line in listlines:
         if '<DIR>' in line:
-            match = re.match('(\d+-\d+-\d+ +\d+:\d+[AP]M) +<DIR> +(.+)', line)
+            match = re.match(r'(\d+-\d+-\d+ +\d+:\d+[AP]M) +<DIR> +(.+)', line)
             if match:
                 listing.append({ "name": match.group(2),
                                  "url": "%s/%s" % (baseurl, match.group(2)),
                                  "Last Modified": dateutil.parser.parse(match.group(1)),
                                  "size": int(match.group(2)) })
         else:
-            match = re.match('(\d+-\d+-\d+ +\d+:\d+[AP]M) +(\d+) +(.+)', line)
+            match = re.match(r'(\d+-\d+-\d+ +\d+:\d+[AP]M) +(\d+) +(.+)', line)
             if match:
                 listing.append({ "name": match.group(3),
                                  "url": "%s/%s" % (baseurl, match.group(3)),

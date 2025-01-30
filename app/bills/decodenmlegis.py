@@ -62,7 +62,7 @@ def action_code_iter(actioncode):
 # The raw abbreviations dict
 # from https://www.nmlegis.gov/Legislation/Action_Abbreviations
 abbreviations = {
-   '\*': 'Emergency clause',
+   r'\*': 'Emergency clause',
    'API.': 'Action postponed indefinitely',
    'CC': 'Conference committee (Senate and House fail to agree)',
    'CS': 'Committee substitute',

@@ -138,7 +138,7 @@ class NewTagsForm(FlaskForm):
 
     def validate_newtagname(self, newtagname):
         tagname = newtagname.data
-        if not re.match('^[A-Za-z0-9_\-]+$', tagname):
+        if not re.match(r'^[A-Za-z0-9_\-]+$', tagname):
             raise ValidationError("Tags can only contain letters, digits, "
                                   "underscores and dashes")
         return False
