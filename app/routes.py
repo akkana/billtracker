@@ -721,6 +721,8 @@ def tags(tag=None, sort=None):
     # For the flash messages at the end: these will be tagname: [billnos]
     bills_with_added_tags = defaultdict(list)
     bills_with_removed_tags = defaultdict(list)
+    now_tracking = []
+    no_longer_tracking = []
 
     # Was this a form submittal?
     # The form has two submit buttons, with names "submitnewtag" for
@@ -755,6 +757,9 @@ def tags(tag=None, sort=None):
 
             alloldtags = set()
             allnewtags = set()
+            was_tracking = set([ b.billno
+                                 for b in current_user.bills_by_yearcode(
+                                         session["yearcode"]) ])
 
             for bill in bill_list:
                 if bill.tags:
@@ -791,11 +796,16 @@ def tags(tag=None, sort=None):
                     db.session.add(bill)
                     something_changed = True
 
-                # if "f_%s" % bill.billno in values:
-                #     print("Follow button is checked on", bill.billno)
+                # Also, check to see if any tracking checkboxes changed
+                if "f_%s" % bill.billno in values:
+                    if bill.billno not in was_tracking:
+                        now_tracking.append(bill.billno)
+                        current_user.bills.append(bill)
 
-            if something_changed:
-                db.session.commit()
+                else:
+                    if bill.billno in was_tracking:
+                        no_longer_tracking.append(bill.billno)
+                        current_user.bills.remove(bill)
 
             # Any tags removed?
             newtags = allnewtags - alloldtags
@@ -883,6 +893,17 @@ def tags(tag=None, sort=None):
             # print("str2color:", h, l, s, dic)
 
         return dic
+
+    if now_tracking:
+        flash("You are now tracking " + ', '.join(now_tracking))
+    if no_longer_tracking:
+        flash("You are no longer tracking " + ', '.join(no_longer_tracking))
+    if now_tracking or no_longer_tracking:
+        db.session.add(current_user)
+        something_changed = True
+
+    if something_changed:
+        db.session.commit()
 
     return render_template('tags.html', title="Tags", user=current_user,
                            tag=tag,

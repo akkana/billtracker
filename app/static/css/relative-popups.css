@@ -62,7 +62,7 @@
 /* The content inside each button */
 .content {
   position: absolute;
-  top: 100%;
+  top: 100%; left: 0;
   opacity: 0;
   right: 0;
   background: linear-gradient(#eee, #ccc);  /* whole popup background */
