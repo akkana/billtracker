@@ -28,7 +28,8 @@
   {% for bill in bill_list %}
     <tr class="{{ loop.cycle('odd', 'even') }}">
       <td>{{ bill.billno }}</td>
-      <td><a href="{{ bill.bill_url() }}" target="_blank">{{ bill.title }}</a></td>
+      <td><a href="{{ bill.bill_url() }}" target="_blank">{{ bill.title }}</a>
+          (<a href="{{ bill.summary_url() }}"target=" _blank">overview</a>)</td>
       {% if bill.contentslink %}
         <td><a href="{{ bill.contentslink }}" target="_blank">text</a>
         {% set pdflink = bill.get_PDF_link() %}

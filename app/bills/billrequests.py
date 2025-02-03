@@ -81,6 +81,7 @@ class CustomResponse:
 
 def get(url, params=None, **kwargs):
     """Wrapper for requests.get that can fetch from cache instead.
+       Returns a CustomResponse.
        Optional keyword arguments:
          cachefile: specifies the location of the cache file,
                     otherwise it will be calculated.

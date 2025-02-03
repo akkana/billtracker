@@ -160,7 +160,6 @@ def get_all_tags(yearcode):
     g_all_tags[yearcode] = sorted(list(all_tags), key=lambda t: t.lower())
     return g_all_tags[yearcode]
 
-
 def group_bills_by_tag(bill_list, tag):
     tagged = []
     untagged = []

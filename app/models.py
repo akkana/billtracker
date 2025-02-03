@@ -704,11 +704,20 @@ class Bill(db.Model):
         return nmlegisbill.bill_url(self.billno, self.year)
 
 
+    def summary_url(self):
+        return nmlegisbill.bill_summary_url(self.billno, self.year)
+
+
     def show_html(self):
         """Show a summary of the bill's status, as seen on a user's home page.
         """
-        outstr = '<b><a href="%s" target="_blank">%s: %s</a></b><br />' % \
+        outstr = '<b><a href="%s" target="_blank">%s: %s</a></b>' % \
             (self.bill_url(), self.billno, self.title)
+
+        outstr += " (<a href='%s' target='_blank'>summary</a>)" \
+            % nmlegisbill.bill_summary_url(self.billno, self.year)
+
+        outstr += '<br />'
 
         # The date to show is the most recent of last_action_date
         # or scheduled_date.
@@ -886,9 +895,13 @@ class Bill(db.Model):
             leg = Legislator.query.filter_by(sponcode=sponcode).first()
             if leg:
                 if html:
-                    sponlinks.append('<a href="https://www.nmlegis.gov/Members/Legislator?SponCode=%s" title="%s" target="_blank">%s</a>'
+                    sponlinks.append('''<a href="https://www.nmlegis.gov/Members/Legislator?SponCode=%s" title="%s" target="_blank">%s</a>
+(<a href="%s" title="%s %s\'s committees and votes" target="_blank">about</a>)'''
                                      % (leg.sponcode, leg.get_summary(),
-                                        leg.lastname))
+                                        leg.lastname,
+                                        nmlegisbill.legislator_summary_url(leg),
+                                        leg.short_salutation(), leg.lastname)
+                                     )
                 else:
                     sponlinks.append('%s <%s>' % (leg.lastname, leg.sponcode))
 
@@ -1021,6 +1034,7 @@ committee_members = db.Table('committee_members',
 class Legislator(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
+    # The legislator's code on the legislative website
     sponcode = db.Column(db.String(9))
 
     lastname = db.Column(db.String(25))
@@ -1051,7 +1065,7 @@ class Legislator(db.Model):
     county = db.Column(db.String(40))
 
     # Things we don't care about yet, but are available in the XLS;
-    # some, like district, aren't in Ed's Legislators.json, though.
+    # district is now in Ed's legislators.json, but the others aren't.
     # district = db.Column(db.String(4))
     # lead_posi = db.Column(db.String(5))
     # start_year = db.Column(db.String(4))
@@ -1070,6 +1084,15 @@ class Legislator(db.Model):
                                          self.party, self.county,
                                          self.sponcode)
 
+    def salutation(self):
+        if self.sponcode[0] == 'S':
+            return "Senator"
+        return "Representative"
+
+    def short_salutation(self):
+        if self.sponcode[0] == 'S':
+            return "Sen."
+        return "Rep."
 
     @staticmethod
     def refresh_legislators_list():

@@ -107,6 +107,16 @@ def bill_url(billno, yearcode):
 
     return 'https://www.nmlegis.gov/Legislation/Legislation?chamber=%s&legtype=%s&legno=%s&year=%s' % (chamber, billtype, number, yearcode)
 
+#
+# Two useful outside links on Ed Santiago's site
+#
+def bill_summary_url(billno, yearcode):
+    return 'https://nmlegis.edsantiago.com/bills/%s.html' % billno
+
+def legislator_summary_url(leg):
+    return 'https://nmlegis.edsantiago.com/legislators/%s/%s.html' \
+        % (leg.sponcode[0].lower(), leg.sponcode)
+
 
 # XXX Eventually parse_bill_page should be rendered obsolete,
 # once there's a way to get bill location and status from the
@@ -1381,7 +1391,7 @@ def get_legislator_list():
         print("Falling back to XLS: json was", legdata)
         return get_legislator_list_from_XLS()
 
-    # Okay, we're using legislators.json
+    # Okay, we're using legislators.json.
     legislators = []
     for chamber in ('H', 'S'):
         for leg in legdata[chamber]:
