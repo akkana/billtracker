@@ -713,8 +713,8 @@ def update_allbills(yearcode, sessionid):
 
         # Link to Ed Santiago's bill overview page for every bill.
         # For now, just assume it exists.
-        g_allbills[yearcode][billno_str]["overview"] = bill_overview(billno_str,
-                                                                     yearcode)
+        g_allbills[yearcode][billno_str]["overview"] = bill_overview_url(
+            billno_str, yearcode)
 
     # If there are new bills, they'll need content links too.
     # Update them in the background since it involves a lot of fetching
