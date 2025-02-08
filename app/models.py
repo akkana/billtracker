@@ -715,7 +715,7 @@ class Bill(db.Model):
             (self.bill_url(), self.billno, self.title)
 
         outstr += " (<a href='%s' target='_blank'>summary</a>)" \
-            % nmlegisbill.bill_summary_url(self.billno, self.year)
+            % nmlegisbill.bill_overview_url(self.billno, self.year)
 
         outstr += '<br />'
 
