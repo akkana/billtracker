@@ -110,7 +110,7 @@ def bill_url(billno, yearcode):
 #
 # Two useful outside links on Ed Santiago's site
 #
-def bill_summary_url(billno, yearcode):
+def bill_overview_url(billno, yearcode):
     return 'https://nmlegis.edsantiago.com/bills/%s.html' % billno
 
 def legislator_summary_url(leg):
@@ -709,8 +709,12 @@ def update_allbills(yearcode, sessionid):
                     [ todaystr, "dummyactivated", title_span.text ])
 
         except:
-            print("Couldn't get actions for", billno_str,
-                  file=sys.stderr)
+            print("Couldn't get actions for", billno_str, file=sys.stderr)
+
+        # Link to Ed Santiago's bill overview page for every bill.
+        # For now, just assume it exists.
+        g_allbills[yearcode][billno_str]["overview"] = bill_overview(billno_str,
+                                                                     yearcode)
 
     # If there are new bills, they'll need content links too.
     # Update them in the background since it involves a lot of fetching

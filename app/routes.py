@@ -625,6 +625,9 @@ def allbills():
         elif "amend" in allbills[billno] and allbills[billno]["amend"]:
             args["amended"] = allbills[billno]["amend"][-1]
 
+        if "overview" in allbills[billno]:
+            args["overview"] = allbills[billno]["overview"]
+
         if user and billno not in bills_seen:
             unseen.append(args)
         elif "history" in allbills[billno] and allbills[billno]["history"]:

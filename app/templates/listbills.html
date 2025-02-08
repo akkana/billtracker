@@ -12,7 +12,7 @@
 
 <table class="bill_minilist">
  <thead>
-    <tr><th>Bill</th> <th>Title</th> <th>Bill text</th>
+    <tr><th>Bill</th> <th>Title</th> <th>Bill Info</th>
     {% if "popular" in extras %}
       <th># Users
     {% endif %}
@@ -29,7 +29,7 @@
     <tr class="{{ loop.cycle('odd', 'even') }}">
       <td>{{ bill.billno }}</td>
       <td><a href="{{ bill.bill_url() }}" target="_blank">{{ bill.title }}</a>
-          (<a href="{{ bill.summary_url() }}"target=" _blank">overview</a>)</td>
+      </td>
       {% if bill.contentslink %}
         <td><a href="{{ bill.contentslink }}" target="_blank">text</a>
         {% set pdflink = bill.get_PDF_link() %}
@@ -39,6 +39,7 @@
         {% if bill.amendlink %}
             &bull; <a href="{{ bill.amendlink }}" target="_blank">amended</a>
         {% endif %}
+         &bull; <a href="{{ bill.overview_url() }}"target=" _blank">overview</a>
       {% else %}
         <td>&nbsp;
       {% endif %}

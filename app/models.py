@@ -704,8 +704,8 @@ class Bill(db.Model):
         return nmlegisbill.bill_url(self.billno, self.year)
 
 
-    def summary_url(self):
-        return nmlegisbill.bill_summary_url(self.billno, self.year)
+    def overview_url(self):
+        return nmlegisbill.bill_overview_url(self.billno, self.year)
 
 
     def show_html(self):
