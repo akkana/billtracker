@@ -1,15 +1,21 @@
 {% macro edit_tags_button(bill, alltags, colorfcn) %}
 
-  <div class="popup-holder">
-    <input type="radio" id="tab-2" name="tab-group-1" />
-    <label for="tab-2" class="editbutton">Edit&nbsp;tags</label>
-    <div class="popup-holder close-tab">
-      <input type="radio" id="tab-close" name="tab-group-1" />
-      <label for="tab-close">&nbsp;&nbsp; Close &nbsp;&nbsp;</label>
-    </div>
+<label for="toggle-modal" class="btn-modal_open">
+  Edit
+</label>
 
-    <div class="content">
-      Tags:<br>
+<div class="modalCheckbox">
+  <input type="checkbox" id="toggle-modal">
+  <!--Click outside the modal to close it-->
+  <label for="toggle-modal" class="modal-overlay"></label>
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <label for="toggle-modal" class="btn-modal_close">x</label>
+      <h2>Edit tags for {{ bill.billno }} {{ bill.title }}</h2>
+    </div>
+    <div class="modal-body">
+      <p>
+      <h4>Tags:</h4>
 
 {# For now, tag colors aren't used for the checkboxes
    because I haven't figured out how to make them work.
@@ -38,7 +44,11 @@
 
 {% endfor %}
 
+  <p>
+      <label for="toggle-modal" class="btn-modal_close">Close</label>
+
     </div>
   </div>
+</div>
 
 {% endmacro %}

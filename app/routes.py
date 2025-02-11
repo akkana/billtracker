@@ -879,13 +879,15 @@ def tags(tag=None, sort=None):
         dic = {}
 
         for piece in pieces:
-            sixbytes = hashlib.sha256(piece.encode()).hexdigest()[:6]
+            # The hashlib for most tags comes out pretty close in the
+            # first few bits; the bits at the other end seem more random.
+            sixbytes = hashlib.sha256(piece.encode()).hexdigest()[-6:]
             # hue can be anything between 0 and 1
             h = int(sixbytes[0:2], 16) / 256.
-            # lightness between .8 and .88
-            l = int(sixbytes[0:2], 16) / 2048 + .8
+            # lightness between .3 and .55
+            l = int(sixbytes[2:4], 16) / 1024 + .3
             # saturation between .5 and 1
-            s = int(sixbytes[2:4], 16) / 256 + .5
+            s = int(sixbytes[4:6], 16) / 512 + .5
 
             rgb = colorsys.hls_to_rgb(h, l, s)
 

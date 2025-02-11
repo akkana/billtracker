@@ -1,7 +1,7 @@
 <html>
   <head>
     {% include "std-headers.html" %}
-    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/relative-popups.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/popup-toggles.css') }}">
   </head>
   <body>
 
@@ -35,13 +35,13 @@ No tags yet. You can be the first to create one!
 
 {% for t in alltags %}
   {% if t != tag %}
-    <a href="/tags/{{ t }}" class="buttonlike" style="background: {{ colorfcn(t)[t] }}">{{ t }}</a>
+    <a href="/tags/{{ t }}" class="buttonlike colortag" style="background: {{ colorfcn(t)[t] }}">{{ t }}</a>
   {% endif %}
 {% endfor %}
 
 {% if tag %}
 <br>
-or <a href="/tags" class="buttonlike">View/edit all tags</a>
+or <a href="/tags" class="buttonlike colortag">View/edit all tags</a>
 {% endif %}
 </div>
 

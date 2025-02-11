@@ -1,0 +1,182 @@
+
+body{
+  background: white;
+}
+
+h2{
+  text-align: center;
+  color: white;
+}
+
+/* The Edit tags button that brings up the dialog */
+.btn-modal_open {
+    width: 3em;
+    padding: 2px 4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    background: #ddf;
+    text-align: center;
+    color: black;
+    font-weight: bold;
+    box-shadow: 0 2px 2px rgba(0,0,0,.5);
+    /* This doesn't work: it has to be outside this section */
+    &:hover, &:focus {
+        background: #eff;
+        cursor: pointer;
+    }
+    &:active {
+        background: #cce;
+    }
+}
+
+/* The dialog's X close button */
+.btn-modal_close {
+    display: inline-block;
+    float: right;
+    margin: 0 10px 0 0;
+    padding: 6px 9px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    background: #88d;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+    &:hover,
+    &:focus {
+        background: lighten(#86f, 5);
+        cursor: pointer;
+    }
+    &:active {
+        background: darken(#86f, 5);
+    }
+}
+
+/* The actual Edit tags modal dialog */
+
+.modalCheckbox {
+    .modal-overlay {
+        /* modal background */
+        display: none;
+        background: rgba(0, 0, 0, .6);
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+    }
+    .modal-dialog {
+        position: fixed;
+        top: -100%;
+        left: 50%;
+        width: 300px;
+        -webkit-transform: translateX(-50%);
+        -moz-transform: translateX(-50%);
+        -ms-transform: translateX(-50%);
+        -o-transform: translateX(-50%);
+        transform: translateX(-50%);
+        z-index: 1100;
+        border-radius: 4px;
+        background: white;
+      .modal-header{
+            padding: 7px 0;
+            background: #3bc;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            text-align: center;
+            color: white;
+            h2 { margin: 0; }
+        }
+        .modal-body{
+            padding: 20px;
+        }
+    }
+
+    input[type="checkbox"] {
+        position: absolute;
+        opacity: 0;
+        &:checked {
+            /* Displays the modal */
+            ~ .modal-overlay {
+                display: block;
+            }
+            ~ .modal-dialog {
+                -webkit-transition: .5s;
+                -moz-transition: .5s;
+                -ms-transition: .5s;
+                -o-transition: .5s;
+                transition: .5s;
+                top: 20%;
+                transform: translate(-50%);
+            }
+        }
+    }
+
+    /* Toggles inside the popups */
+
+    *, *:before, *:after {
+        box-sizing: border-box;
+    }
+
+    .toggle {
+        cursor: pointer;
+        display: inline-block;
+    }
+
+    /* The toggle switch slider trough */
+    .toggle-switch {
+        display: inline-block;
+        background: #bbb;
+        width: 3em;
+        height: 1.5em;
+        border-radius: 14px;
+        width: 42px;
+        height: 22px;
+        position: relative;
+        vertical-align: middle;
+        transition: background 0.25s;
+    }
+    .toggle-switch:before, .toggle-switch:after {
+        content: "";
+    }
+    .toggle-switch:before {
+        display: block;
+        background: linear-gradient(to bottom, #fff 0%, #eee 100%);
+        border-radius: 50%;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+        width: 1em;
+        height: 1em;
+        width: 18px;
+        height: 18px;
+        transition: left 0.25s;
+        position: absolute;
+        top: 3px;
+        left: 3px;
+    }
+    .toggle:hover .toggle-switch:before {
+        background: linear-gradient(to bottom, #fff 0%, #fff 100%);
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+    }
+    .toggle-checkbox:checked + .toggle-switch {
+        background: #25f;
+    }
+    .toggle-checkbox:checked + .toggle-switch:before {
+        left: 25px;
+    }
+
+    .toggle-checkbox {
+        position: absolute;
+        visibility: hidden;
+    }
+
+    .toggle-label {
+        margin-left: 5px;
+        position: relative;
+        top: 2px;
+        height: 1em;
+        margin: .2em .5em;
+    }
+}
+
