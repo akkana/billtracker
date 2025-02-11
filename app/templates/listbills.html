@@ -57,6 +57,7 @@
 
       {% if "tag" in extras %}
          <td>
+           <span class="colortag-holder">
            {% if bill.tags %}
              {% if extras["colorfcn"] %}
                {% set tag_colors = extras["colorfcn"](bill.tags) %}
@@ -69,6 +70,7 @@
            {% else %}
              &nbsp;
            {% endif %}
+           </span>
            {% if extras["alltags"] and user and not user.is_anonymous %}
              {{ edit_tags_button.edit_tags_button(bill, extras["alltags"], extras["colorfcn"]) }}
            {% endif %}

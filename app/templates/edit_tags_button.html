@@ -18,7 +18,6 @@
       <h2>Edit tags for {{ bill.billno }} {{ bill.title }}</h2>
     </div>
     <div class="modal-body">
-      <p>
       <h4>Tags:</h4>
 
 {# For now, tag colors aren't used for the checkboxes
@@ -36,6 +35,7 @@
   {% set togglename = bill.billno + "-" + tag %}
   <label class="toggle">
     <input type="checkbox" class="toggle-checkbox"
+           onclick="checkbox_clicked(this);"
     {% if tag in billtags %}
            checked
     {% endif %}

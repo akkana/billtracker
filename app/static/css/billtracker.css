@@ -163,6 +163,26 @@ a.colortag:hover {
   background: white;
 }
 
+/* The Submit buttons on the Tags page */
+input.update-tags-submit {
+  background: #66a;
+  color: white;
+  border: 2px outset grey;
+  padding: 2px 3px;
+  border-radius: 6px;
+  font-weight: bold;
+  text-decoration: none;
+  &:hover {
+    background: #ddf;
+    color: black;
+  }
+}
+
+input.update-tags-submit-modified {
+  background: #44f;
+  color: yellow;
+}
+
 /* The captcha on the registration page */
 .captcha {
     background: #eee;
