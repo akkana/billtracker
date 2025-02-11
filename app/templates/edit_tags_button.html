@@ -1,16 +1,20 @@
 {% macro edit_tags_button(bill, alltags, colorfcn) %}
 
-<label for="toggle-modal" class="btn-modal_open">
+{# This is the Edit tags button for a single bill,
+   which pops up a tag editing dialog
+#}
+
+<label for="toggle-modal-{{ bill.billno }}" class="btn-modal_open">
   Edit
 </label>
 
 <div class="modalCheckbox">
-  <input type="checkbox" id="toggle-modal">
-  <!--Click outside the modal to close it-->
-  <label for="toggle-modal" class="modal-overlay"></label>
+  <input type="checkbox" id="toggle-modal-{{ bill.billno }}">
+  <!-- Click outside the modal to close it -->
+  <label for="toggle-modal-{{ bill.billno }}" class="modal-overlay"></label>
   <div class="modal-dialog">
     <div class="modal-header">
-      <label for="toggle-modal" class="btn-modal_close">x</label>
+      <label for="toggle-modal-{{ bill.billno }}" class="btn-modal_close">x</label>
       <h2>Edit tags for {{ bill.billno }} {{ bill.title }}</h2>
     </div>
     <div class="modal-body">
@@ -30,7 +34,6 @@
 
 {% for tag in alltags %}
   {% set togglename = bill.billno + "-" + tag %}
-
   <label class="toggle">
     <input type="checkbox" class="toggle-checkbox"
     {% if tag in billtags %}
@@ -45,7 +48,7 @@
 {% endfor %}
 
   <p>
-      <label for="toggle-modal" class="btn-modal_close">Close</label>
+      <label for="toggle-modal-{{ bill.billno }}" class="btn-modal_close">Close</label>
 
     </div>
   </div>

@@ -154,6 +154,15 @@ table.bordered td { padding: .3em; }
   padding-left: .4em; padding-right: .4em;
 }
 
+/* XXX Need a way to set this rule only for things that have both classes,
+ * colortag and hover.
+ * As a stopgap, the other colortags are span, not a.
+ */
+a.colortag:hover {
+  color: black;
+  background: white;
+}
+
 /* The captcha on the registration page */
 .captcha {
     background: #eee;
