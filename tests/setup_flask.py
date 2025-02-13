@@ -20,7 +20,7 @@ for env_var in [ "DATABASE_URL", "FLASK_APP", "SECRET_KEY",
 os.environ["CONFIG_TYPE"] = "config.TestingConfig"
 
 topdir = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
-CACHEDIR = 'test/cache'
+CACHEDIR = 'tests/cache'
 
 TEST_DB = '%s/test.db' % CACHEDIR
 dbpath = os.path.join(topdir, TEST_DB)
@@ -43,8 +43,6 @@ from app.bills import billrequests
 # or any real cache
 billrequests.LOCAL_MODE = True
 
-# XXX cachedir is currently in test/ (used for unittest).
-# If we successfully switch to pytest, remember to move it to tests/.
 billrequests.CACHEDIR = CACHEDIR
 
 

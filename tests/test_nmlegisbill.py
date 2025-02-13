@@ -21,7 +21,7 @@ import datetime
 
 
 billrequests.LOCAL_MODE = True
-billrequests.CACHEDIR = 'test/cache'
+billrequests.CACHEDIR = 'tests/cache'
 
 # Uncomment to get verbose information on cache/net requests:
 # billrequests.DEBUG = True
@@ -30,7 +30,7 @@ billrequests.CACHEDIR = 'test/cache'
 def test_parse_bills():
     # Don't go to the actual nmlegis site
     billrequests.LOCAL_MODE = True
-    billrequests.CACHEDIR = 'test/cache'
+    billrequests.CACHEDIR = 'tests/cache'
 
     bill = nmlegisbill.parse_bill_page('HB73', yearcode='19')
     # mod date keeps changing. Don't try to test it.
@@ -115,7 +115,7 @@ def test_parse_json_schedules():
                 ]
 
     committee_sched = nmlegisbill.expand_committees(
-        jsonsrc="test/files/schedule-20220211.json")
+        jsonsrc="tests/files/schedule-20220211.json")
 
     # Bill lists aren't necessarily in the same order every time,
     # so sort them in order to use assertEqual.
@@ -523,7 +523,7 @@ def test_parse_json_schedules():
 def pytest_runtest_teardown():
     print("Cleaning up")
     try:
-        jsonbackup = "test/cache/allbills_%s.json" \
+        jsonbackup = "tests/cache/allbills_%s.json" \
             % (datetime.datetime.now()
                - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
         if os.path.exists(jsonbackup):

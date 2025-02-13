@@ -42,9 +42,9 @@ import os
 # page changes, it breaks the tests. If you're sure that the only things
 # you changed are chrome and not content, set renew_files to True and
 # run the test again. It will generate the files you need to copy into
-# the test/files directory to make the tests work.
+# the tests/files directory to make the tests work.
 # Don't forget to set it back to False afterward.
-renew_files = False
+renew_files = True
 
 
 def test_password_hashing():
@@ -387,18 +387,19 @@ def test_billtracker():
 
             response_html = response.get_data(as_text=True)
 
-            with open("test/files/allnewbills.html") as fp:
+            with open("tests/files/allnewbills.html") as fp:
                 expected_html = fp.read()
             if renew_files:
                 if response_html != expected_html:
                     with open("/tmp/allnewbills.html", "w") as outfp:
                         outfp.write(response_html)
                     print("************ allnewbills will fail without: "
-                        "cp /tmp/allnewbills.html test/files/allnewbills.html")
+                        "cp /tmp/allnewbills.html tests/files/allnewbills.html")
             else:
                 with open("/tmp/response.html", 'w') as ofp:
                     ofp.write(response_html)
                 assert response_html == expected_html
+                # assert_files_equal(response_html, expected_html)
 
             # Now all the bills have been seen, none should be new.
             response = test_client.get("/allbills?yearcode=19")
@@ -406,14 +407,14 @@ def test_billtracker():
                     response.status_code == 302)
             response_html = response.get_data(as_text=True)
 
-            with open("test/files/nonewbills.html") as fp:
+            with open("tests/files/nonewbills.html") as fp:
                 expected_html = fp.read()
             if renew_files:
                 if response_html != expected_html:
                     with open("/tmp/nonewbills.html", "w") as outfp:
                         outfp.write(response_html)
                     print("************ nonewbills will fail without: "
-                          "cp /tmp/nonewbills.html test/files/nonewbills.html")
+                          "cp /tmp/nonewbills.html tests/files/nonewbills.html")
             else:
                 assert response_html == expected_html
 
@@ -430,9 +431,9 @@ def test_billtracker():
             # Change a bill's title. That involves moving the bill's
             # html description aside and replacing it with one that
             # has a different title.
-            substitute_file("test/cache/Legislation_List_Session=57",
+            substitute_file("tests/cache/Legislation_List_Session=57",
                             ".titlechange")
-            substitute_file("test/cache/2019-HB73.html", ".titlechange")
+            substitute_file("tests/cache/2019-HB73.html", ".titlechange")
 
             # Make sure the old title is the expected one
             hb73 = Bill.query.filter_by(billno="HB73").first()
@@ -451,9 +452,9 @@ def test_billtracker():
             assert hb73.title == "THIS IS A NEW TITLE FOR THIS BILL"
 
             # move the files back where they belong.
-            orig_file("test/cache/Legislation_List_Session=57",
+            orig_file("tests/cache/Legislation_List_Session=57",
                       ".titlechange")
-            orig_file("test/cache/2019-HB73.html", ".titlechange")
+            orig_file("tests/cache/2019-HB73.html", ".titlechange")
 
             # Now test the allbills page again to make sure it shows
             # the retitled bill as new.

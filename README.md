@@ -62,7 +62,9 @@ line.
 
 ## Unit Tests
 
-There are a few unit tests in the tests/ directory. Run them with:
+There are tests in the tests/ directory, using the pytest framework.
+Run them with:
 ```
-python3 -m unittest discover
+tests/run_tests
 ```
+

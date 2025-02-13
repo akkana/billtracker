@@ -1,6 +1,6 @@
 #!/bin/sh
 
-pytest \
-    tests/test_billtracker.py \
-    tests/test_nmlegisbill.py \
-    tests/test_accdb.py
+# Need to run all the tests separately
+pytest --quiet --tb=native  tests/test_accdb.py && \
+pytest --quiet --tb=native tests/test_nmlegisbill.py && \
+pytest --quiet --tb=native tests/test_billtracker.py

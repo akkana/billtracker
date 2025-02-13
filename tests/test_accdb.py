@@ -16,9 +16,9 @@ import os
 # import sys
 # print("test_accdb: sys.modules =", sys.modules)
 
-STORED_ACCDBLOC = "test/files/LegInfo-24-01-24T14.accdb"
-ACCDBLOC = "test/cache/LegInfo.accdb"
-LEGISLOC = "test/cache/Legislation.json"
+STORED_ACCDBLOC = "tests/files/LegInfo-24-01-24T14.accdb"
+ACCDBLOC = "tests/cache/LegInfo.accdb"
+LEGISLOC = "tests/cache/Legislation.json"
 
 
 def test_accdb():
