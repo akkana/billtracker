@@ -274,7 +274,7 @@ def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
         actiontable = soup.find("table",
           id="MainContent_tabContainerLegislation_tabPanelActions_dataListActions")
 
-        actions = actiontable.findAll('span', class_="list-group-item")
+        actions = actiontable.find_all('span', class_="list-group-item")
         if actions:
             lastaction = actions[-1]
 
@@ -347,7 +347,7 @@ def update_legislative_session_list():
             cachesecs=60*60*24)
         sessionselect = soup.find("select", id="MainContent_ddlSessions")
         yearcodes_by_name = {}
-        for opt in sessionselect.findAll("option"):
+        for opt in sessionselect.find_all("option"):
             yearcodes_by_name[opt.get_text()] = opt["value"]
 
         # Now iterate over Legislation_List
@@ -358,7 +358,7 @@ def update_legislative_session_list():
 
         # The first option listed is the most recent one.
         # But read all of them, in order to update the cache sessions file.
-        options = sessionselect.findAll("option")
+        options = sessionselect.find_all("option")
         for opt in options:
             # This will be something like:
             # <option value="60">2020 2nd Special</option>
@@ -636,7 +636,7 @@ def update_allbills(yearcode, sessionid):
         print("Can't read the all-bills list: no footable", file=sys.stderr)
         return
 
-    for tr in footable.findAll('tr'):
+    for tr in footable.find_all('tr'):
         billno_a = tr.find('a', id=allbills_billno_pat)
         title_span = tr.find('span', id=title_pat)
         if not billno_a or not title_span:
@@ -669,7 +669,7 @@ def update_allbills(yearcode, sessionid):
         # Build sponsor list, replacing what was there before
         # since it might have changed
         g_allbills[yearcode][billno_str]["sponsors"] = []
-        for sponsor_a in tr.findAll("a", id=sponsor_pat):
+        for sponsor_a in tr.find_all("a", id=sponsor_pat):
             try:
                 g_allbills[yearcode][billno_str]["sponsors"].append(
                     sponcode_pat.match(sponsor_a["href"]).group(1))
@@ -1014,7 +1014,7 @@ def expand_house_or_senate(code, cache_locally=True):
     # exact times to the user, we'll show a link to the only official
     # meeting time, the one on the PDF schedules. Even that is just an
     # early boundary, since they often meet as much as several hours late.
-    for a in soup.findAll('a', { "id": house_senate_billno_pat }):
+    for a in soup.find_all('a', { "id": house_senate_billno_pat }):
         ret['meetings'][0]['bills'].append(a.text.replace(' ', '')
                                             .replace('*', ''))
     return ret
@@ -1051,8 +1051,8 @@ def expand_committee(code):
     members = []
     membertbl = soup.find('table', id='MainContent_formViewCommitteeInformation_gridViewCommitteeMembers')
     if membertbl:
-        for row in membertbl.findAll('tr'):
-            cells = row.findAll('td')
+        for row in membertbl.find_all('tr'):
+            cells = row.find_all('td')
             if cells:
                 # members.append([cells[1].text.strip(), cells[0].text.strip(),
                 #                 cells[-1].text.strip()])
@@ -1352,7 +1352,7 @@ def get_sponcodes(url):
         return legs
     soup = BeautifulSoup(r.text, 'lxml')
     select = soup.find(id="MainContent_ddlLegislators")
-    for opt in select.findAll('option'):
+    for opt in select.find_all('option'):
         value = opt.get('value')
         if value == "...":
             continue
