@@ -1200,21 +1200,44 @@ def expand_committees(jsonsrc=None):
 
                 # Convert datetime into the Python object
                 if "datetime" in meeting:
-                    meeting["datetime"] = parse_date_time(meeting["datetime"])
+                    try:
+                        meeting["datetime"] = parse_date_time(meeting["datetime"])
+                    except Exception as e1:
+                        # One error we've seen is "datetime": "T11:00:00"
+                        # so try looking for that
+                        if meeting["datetime"][0] == 'T':
+                            dts = meeting["date"] + meeting["datetime"]
+                            try:
+                                meeting["datetime"] = parse_date_time(dts)
+                            except Exception as e2:
+                                print("Can't parse datetime:", e2,
+                                      meeting["datetime"],
+                                      file=sys.stderr)
+                                del meeting["datetime"]
 
-                    # Some committees have "time" field set to something like
-                    # "After the Floor Session", which typically means
-                    # 1pm or so. Set those to 11:00 so they don't sort
-                    # before morning meetings.
-                    if 'time' not in meeting:
-                        print("No 'time' in", commcode, "meeting:", meeting,
-                              file=sys.stderr)
-                    elif (meeting["datetime"].hour == 0 and
-                        meeting["time"].lower().startswith("after")):
-                        meeting["datetime"] = \
-                            meeting["datetime"].replace(hour=11)
-                else:
-                    meeting["datetime"] = parse_date_time(meeting["date"])
+                if "datetime" not in meeting:
+                    # either there was no datetime to begin with,
+                    # or it was unparseable -- for example, 'T11:00:00'
+                    # Try to get it from the date and time
+                    if 'date' in meeting:
+                        if 'time' in meeting:
+                            meeting["datetime"] = parse_date_time(
+                                meeting["date"], meeting["time"])
+                        else:
+                            meeting["datetime"] = parse_date_time(
+                                meeting["date"], None)
+
+                # Some committees have "time" field set to something like
+                # "After the Floor Session", which typically means
+                # 1pm or so. Set those to 11:00 so they don't sort
+                # before morning meetings.
+                if 'time' not in meeting:
+                    print("No 'time' in", commcode, "meeting:", meeting,
+                          file=sys.stderr)
+                elif (meeting["datetime"].hour == 0 and
+                    meeting["time"].lower().startswith("after")):
+                    meeting["datetime"] = \
+                        meeting["datetime"].replace(hour=11)
 
                 expand_timestr(meeting)
 
