@@ -111,11 +111,10 @@ def bill_url(billno, yearcode):
 # Two useful outside links on Ed Santiago's site
 #
 def bill_overview_url(billno, yearcode):
-    return 'https://nmlegis.edsantiago.com/bills/%s.html' % billno
+    return 'https://nmlegiswatch.org/bills/%s.html' % billno
 
 def legislator_summary_url(leg):
-    return 'https://nmlegis.edsantiago.com/legislators/%s/%s.html' \
-        % (leg.sponcode[0].lower(), leg.sponcode)
+    return 'https://nmlegiswatch.org/legislators/%s' % leg.sponcode
 
 
 # XXX Eventually parse_bill_page should be rendered obsolete,

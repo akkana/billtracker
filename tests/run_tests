@@ -1,6 +1,16 @@
 #!/bin/sh
 
-# Need to run all the tests separately
-pytest --quiet --tb=native  tests/test_accdb.py && \
+# Need to run all the tests separately, because both test_billtracker
+# and test_accdb set up a flask environment, and there doesn't seem
+# to be any way to initialize it cleanly for more than one test.
+
+# --tb=native shows the line number in the file *here*, rather than
+# a file in some module dependency like sqlalchemy.
+# (The documentation says it gives Python standard library formatting,
+# but it sure doesn't give a traceback of line numbers like normal python.)
+# -tb=auto, or long, or short, might give a traceback.
+# See https://docs.pytest.org/en/stable/how-to/output.html#modifying-python-traceback-printing
+
+pytest --quiet --tb=native tests/test_accdb.py && \
 pytest --quiet --tb=native tests/test_nmlegisbill.py && \
 pytest --quiet --tb=native tests/test_billtracker.py

@@ -19,14 +19,14 @@ to help our state move in the right direction.
 If you're interested in being more active in New Mexico's government,
 the NM League of Women Voters has lots of info on the
 <a href="https://www.lwvnm.org/Action/">LWVNM Action page</a>
-(disclaimer: I'm the webmaster).
+(disclaimer: I'm also the webmaster for LWVNM).
 
 <h2>Privacy and Email Addresses</h2>
 <p>
 The NM Bill Tracker doesn't store any personal information about you.
 It asks for your email address so it can send you updates on bills.
 Email addresses are not used for any other purpose, and will never be
-shared with outside projects or companies, or even with other
+shared with outside projects or companies, or with other
 NM Bill Tracker users.
 <p>
 If you don't want email updates and just want to check bill status
@@ -35,22 +35,43 @@ online with a web browser, you can leave the email field blank.
 If you initially provide an email address, then change your mind and
 decide you don't want email updates after all, go to
 <a href="/settings">Settings</a> and make the Email field blank.
-
-<h2>Can it be used in other states?</h2>
 <p>
-Right now the Bill Tracker only works in New Mexico, but it should be
-fairly easy to extend it to any state that makes bill status available
+No one else can see the bills you put in your list. The only thing
+you can see involving other users is the number of users following
+each bill.
+
+<h2>Shout-out to NMLegisWatch</h2>
+<p>
+Starting in 2025, there's a very similar project called
+<a href="https://nmlegiswatch.org/">NM LegisWatch</a>, written by
+Ed Santiago. The two projects are cooperative:
+Ed and I have shared code and data for the NM legislature for years.
+The NM Bill Tracker links to some pages on NM LegisWatch,
+in particular, to the excellent bill and legislator summary pages,
+and it uses data pulled by NMLegisWatch. The feature sets for the
+two projects are similar but not identical, so use whichever one
+suits your needs best ... or use both!
+
+<h2>Can the BillTracker be used in other states?</h2>
+<p>
+Right now the Bill Tracker only works in New Mexico, but it shouldn't
+be that hard to extend it to any state that makes bill status available
 online.
+<p>
 The NM Bill Tracker uses Python's Beautiful Soup module to scrape the
-New Mexico Legislative website.
-if you're interested in using Bill Tracker in your state, I'd be
+New Mexico Legislative website. To use it in another state, you would
+need a way to get that data for your own state, which might involve
+web scraping, or (in a few enlightened states) there might be an
+easier way.
+<p>
+if you're interested in using my Bill Tracker in your state, I'd be
 happy to work with you to integrate scrapers for other states into
 the Bill Tracker source code. Drop me a line.
 
 <p>
-The BillTracker is free open source software, written in Python/Flask. The
-<a href="https://github.com/akkana/billtracker">BillTracker source code
-is on GitHub</a>. Contributions are welcome!
+The BillTracker is free open source software, written in Python using Flask.
+The <a href="https://github.com/akkana/billtracker">BillTracker source code
+is on GitHub</a>. Contributions, bug reports and bug fixes are welcome!
 
 <p>
 Problems, pet peeves or wish list?
