@@ -1432,6 +1432,12 @@ def get_legislator_list():
             leg['home_phone'] = ''
             legislators.append(leg)
 
+            # legislators.json doesn't have title
+            if chamber == 'H':
+                leg['title'] = 'Representative'
+            else:
+                leg['title'] = 'Senator'
+
     return legislators
 
 
