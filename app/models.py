@@ -714,7 +714,7 @@ class Bill(db.Model):
         outstr = '<b><a href="%s" target="_blank">%s: %s</a></b>' % \
             (self.bill_url(), self.billno, self.title)
 
-        outstr += " (<a href='%s' target='_blank'>summary</a>)" \
+        outstr += " (<a href='%s' target='_blank'>details</a>)" \
             % nmlegisbill.bill_overview_url(self.billno, self.year)
 
         outstr += '<br />'
@@ -835,17 +835,18 @@ class Bill(db.Model):
                 # of the action code.
                 full_history = decodenmlegis.decode_full_history(actioncode)
                 statustext = full_history[1]
+            outstr += 'Status: '
+            outstr += '<a target="_blank" title="Vote history" ' \
+                'href="/votes/%s/%s">[Votes]</a> ' % (self.billno, self.year)
             if statustext:
-                outstr += 'Status: %s<br />\n' % statustext
+                outstr += '%s<br />\n' % statustext
             if actioncode:
-
                 outstr += '<a href="https://www.nmlegis.gov/Legislation/' \
-                          'Action_Abbreviations" target="_blank">Full history</a>: ' \
+                  'Action_Abbreviations" target="_blank">Full history</a>: ' \
                           '<span class="historycode" title="%s">%s</span>' \
                           '<br />\n' \
                           % (decodenmlegis.full_history_text(actioncode),
                              actioncode)
-
         elif self.statusHTML:
             # not likely to be used, to have statusHTML but no statustext
             outstr += 'Status: %s<br />\n' % self.statusHTML
@@ -1343,7 +1344,7 @@ class LegSession(db.Model):
         # Update the session list from nmlegisbill
         sessionsdict = update_legislative_session_list()
         # A list of dicts including id, year, typename, yearcode
-        # frmo nnmlegisbill.
+        # from nnmlegisbill.
 
         for lsess in sessionsdict:
             # Is it in the database? Then we can stop: sessions

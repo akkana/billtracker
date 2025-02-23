@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Votes for {{ billno }}: {{ bill.title }}</h2>
+
+{% if reports %}
+<p>
+({{ legsession.year }} {{ legsession.typename }} session)
+</p>
+
+  {% for commcode in reports %}
+    {% for report in reports[commcode] %}
+      {% if report %}
+        <h3>{{ committees[commcode].name }}, {{ report["date"] }}:</h3>
+        <table class="definitions">
+        {% for votetype in report["votes"] | sort(reverse=true) %}
+          <tr>
+          <th>{{ votetype }}:</th>
+          <td>
+            {# report["votes"][votetype]] is a list of sponcodes #}
+            {# jinja can't do list comprehensions, so can't use join().
+               Here's another way to put commas everywhere but the end. #}
+            {% for sponcode in report["votes"][votetype] %}
+              {{ legislators[sponcode].lastname }}{% if not loop.last %},{% endif %}
+            {% endfor %}
+</td></tr>
+        {% endfor %}
+        </table>
+      {% endif %}
+    {% endfor %}
+   {% endfor %}
+{% else %}
+<p>
+No votes recorded for {{ billno }}
+in the {{ legsession.year }} {{ legsession.typename }} session.</p>
+{% endif %}
+
+{% endblock %}

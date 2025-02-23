@@ -128,8 +128,8 @@ table.bordered td { padding: .3em; }
 .buttonlike {
   color: black;
   background: #afe;
+  padding: 1px 3px;
   border: 2px outset grey;
-  padding: 2px 3px;
   border-radius: 6px;
   text-decoration: none;
 }

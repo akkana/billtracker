@@ -16,6 +16,7 @@ from collections import OrderedDict
 from bs4 import BeautifulSoup
 import json
 import xlrd
+import shutil
 import threading
 import traceback
 
@@ -1221,10 +1222,10 @@ def expand_committees(jsonsrc=None):
                     if 'date' in meeting:
                         if 'time' in meeting:
                             meeting["datetime"] = parse_date_time(
-                                meeting["date"], meeting["time"])
+                                "%sT%s" % (meeting["date"], meeting["time"]))
                         else:
                             meeting["datetime"] = parse_date_time(
-                                meeting["date"], None)
+                                meeting["date"])
 
                 # Some committees have "time" field set to something like
                 # "After the Floor Session", which typically means
@@ -1538,6 +1539,90 @@ def get_legislator_list_from_XLS():
                   file=sys.stderr)
 
     return legislators
+
+
+g_committee_reports = {}
+COMMITTEE_REPORTS_RELOAD = 3600
+
+def get_all_committee_reports(yearcode, current_yearcode):
+    # Do we already have recent enough reports?
+    # Re-fetch every hour if in current yearcode.
+    if (yearcode in g_committee_reports and
+        (yearcode != current_yearcode or
+         ("last_modified" in g_committee_reports and
+          (now - g_committee_reports["last_modified"]).seconds
+            <= COMMITTEE_REPORTS_RELOAD))):
+        # it's there, and recent enough
+        return g_committee_reports[yearcode]
+
+    # Okay, no recent reports in memory already.
+
+    reportfile = os.path.join(billrequests.CACHEDIR,
+                              "all_committee_reports_%s.json" % yearcode)
+
+    # The remote file is only available for the current session
+    if yearcode == current_yearcode:
+        # Try fetching new committee reports
+        try:
+            r = billrequests.get(
+                'https://nmlegis.edsantiago.com/committee-reports.json')
+            if r.status_code != 200:
+                print("Error fetching committee-reports.json:",
+                      r.status_code, file=sys.stderr)
+                return g_committee_reports[yearcode]
+            print("Fetched new committee reports", file=sys.stderr)
+        except Exception as e:
+            print("Exception fetching committee-reports.json", e,
+                  file=sys.stderr)
+            return g_committee_reports[yearcode]
+
+        # Now we've just downloaded a new committee-reports.json,
+        # which should have appeared here:
+        dlfile = os.path.join(billrequests.CACHEDIR,
+            'https:__nmlegis.edsantiago.com_committee-reports.json')
+
+        # Compare it with any previous reportfile and move it there
+        # if it's bigger; if it's smaller, warn and don't copy.
+        if (os.path.exists(reportfile) and os.path.exists(dlfile) and
+            os.stat(dlfile).st_size < os.stat(reportfile).st_size):
+                print("**** EEK! %s < %s, not saving" % (dlfile, reportfile),
+                      file=sys.stderr)
+        else:
+            # It's the same size or larger; copy it into place
+            shutil.copyfile(dlfile, reportfile)
+        # Either way, use the json just downloaded, though arguably
+        # if the new file is smaller we should read the old file
+        g_committee_reports[yearcode] = r.json()
+
+    else:
+        # Not the current yearcode, and wasn't already in g_committee_reports,
+        # so the best effort is to try to read from an old reportfile.
+        try:
+            with open(reportfile) as ifp:
+                g_committee_reports[yearcode] = json.load(ifp)
+        except Exception as e:
+            print("Couldn't read committee reports for", yearcode, ":", e,
+                  file=sys.stderr)
+            # keep from having to do all this file checking next time
+            g_committee_reports[yearcode] = {}
+            return {}
+
+    g_committee_reports["fetched"] = datetime.datetime.now().astimezone()
+
+    return g_committee_reports
+
+def get_bill_committee_reports(billno, yearcode, current_yearcode):
+    allreports = get_all_committee_reports(yearcode, current_yearcode)
+    if yearcode not in allreports:
+        return {}
+    if "reports" not in allreports[yearcode]:
+        print("No 'reports' in allreports[%s]" % yearcode, file=sys.stderr)
+        return {}
+    if billno not in allreports[yearcode]["reports"]:
+        return {}
+
+    return allreports[yearcode]["reports"][billno]
+
 
 """
 ftp://www.nmlegis.gov/ has the following directories:

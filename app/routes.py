@@ -920,6 +920,52 @@ def tags(tag=None, sort=None):
                            alltags=new_tags+get_all_tags(session["yearcode"]))
 
 
+@app.route("/votes/<billno>")
+@app.route("/votes/<billno>/<yearcode>")
+def showvotes(billno, yearcode=None):
+    if not yearcode:
+        yearcode = LegSession.current_yearcode()
+
+    session = LegSession.by_yearcode(yearcode)
+
+    reports = nmlegisbill.get_bill_committee_reports(billno, yearcode,
+                                                LegSession.current_yearcode())
+
+    # Make sure it's iterable, even if empty
+    if not reports:
+        reports = {}
+
+    bill = Bill.query.filter_by(billno=billno, year=yearcode).first()
+
+    # Make tables of committees and legislators by commcode/sponcode
+    # that the jinja template can use
+    committees = {}
+    legislators = {}
+    for commcode in reports:
+        # Report is like: { commcode: [ [ "votes": [ sponcode, ... ] ] ] }
+        if commcode in committees:
+            continue
+        comm = Committee.query.filter_by(code=commcode).first()
+        if comm:
+            committees[commcode] = comm
+
+        for report in reports[commcode]:
+            if not report:
+                continue
+            for votetype in report["votes"]:
+                for sponcode in report["votes"][votetype]:
+                    if sponcode in legislators:
+                        continue
+                    leg = Legislator.query.filter_by(sponcode=sponcode).first()
+                    if leg:
+                        legislators[sponcode] = leg
+
+    return render_template('votes.html', title="Votes for %s" % billno,
+                           billno=billno, bill=bill, reports=reports,
+                           committees=committees, legislators=legislators,
+                           legsession=session)
+
+
 @app.route("/history/")
 @app.route("/history/<billno>")
 @app.route("/history/<billno>/<yearcode>")
