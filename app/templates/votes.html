@@ -22,7 +22,7 @@
       <td>
             {# report["votes"][votetype]] is a list of sponcodes #}
             {% for sponcode in report["votes"][votetype] | sort %}
-                <a href="https://nmlegiswatch.org/legislators/{{ sponcode }}" target="_blank">{{ legislators[sponcode].firstname }} {{ legislators[sponcode].lastname }}</a><br />
+                <a href="https://nmlegiswatch.org/legislators/{{ sponcode }}" target="_blank" class="party-{{ legislators[sponcode].party }}">{{ legislators[sponcode].firstname }} {{ legislators[sponcode].lastname }}</a><br />
             {% endfor %}
           {% endif %}
   </td></tr>
@@ -36,5 +36,12 @@
 No votes recorded for {{ billno }}
 in the {{ legsession.year }} {{ legsession.typename }} session.</p>
 {% endif %}
+
+<h2>Legend</h2>
+<p>
+Parties:
+<span class="party-R">Republican</span>
+<span class="party-D">Democrat</span>
+<span class="party-L">Libertarian</span>
 
 {% endblock %}

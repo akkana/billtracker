@@ -122,6 +122,10 @@ th { background: #eee; }
 
 .highlight { background: #ffb; }
 
+.party-R { background: #fcc; }
+.party-D { background: #cef; }
+.party-L { background: #ffc; }
+
 table.bordered, table.bordered td { border: 1px solid black; }
 table.bordered td { padding: .3em; }
 
