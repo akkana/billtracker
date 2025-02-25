@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<h2>Votes for {{ billno }}: {{ bill.title }}</h2>
+<h2>Votes on {{ billno }}: {{ bill.title }}</h2>
 
 {% if reports %}
 <p>
@@ -12,24 +12,25 @@
   {% for commcode in reports %}
     {% for report in reports[commcode] %}
       {% if report %}
-        <h3>{{ committees[commcode].name }}, {{ report["date"] }}:</h3>
+        <h3>{{ committees[commcode].name }}, {{ report["date"] | prettify_yyyy_mm_dd() }}:</h3>
         <table class="definitions">
         {% for votetype in report["votes"] | sort(reverse=true) %}
-          <tr>
-          <th>{{ votetype }}:</th>
-          <td>
+          {# votetype "rollcall" is the URL of the roll call vote,
+             not a list of legislators #}
+          {% if votetype != "rollcall" %}
+  <tr><th>{{ votetype }}:</th>
+      <td>
             {# report["votes"][votetype]] is a list of sponcodes #}
-            {# jinja can't do list comprehensions, so can't use join().
-               Here's another way to put commas everywhere but the end. #}
-            {% for sponcode in report["votes"][votetype] %}
-              {{ legislators[sponcode].lastname }}{% if not loop.last %},{% endif %}
+            {% for sponcode in report["votes"][votetype] | sort %}
+                <a href="https://nmlegiswatch.org/legislators/{{ sponcode }} target=" _blank">{{ legislators[sponcode].firstname }} {{ legislators[sponcode].lastname }}</a><br />
             {% endfor %}
-</td></tr>
+          {% endif %}
+  </td></tr>
         {% endfor %}
-        </table>
+</table>
       {% endif %}
     {% endfor %}
-   {% endfor %}
+  {% endfor %}
 {% else %}
 <p>
 No votes recorded for {{ billno }}

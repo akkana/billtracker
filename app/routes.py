@@ -920,6 +920,15 @@ def tags(tag=None, sort=None):
                            alltags=new_tags+get_all_tags(session["yearcode"]))
 
 
+# A jinja filter to reformat YYYY-MM-DD votes to something prettier
+@app.template_filter()
+def prettify_yyyy_mm_dd(yyyymmdd):
+    try:
+        return datetime.strptime(yyyymmdd, '%Y-%m-%d').strftime('%a, %b %-d, %Y')
+    except RuntimeError:
+        return yyyymmdd
+
+
 @app.route("/votes/<billno>")
 @app.route("/votes/<billno>/<yearcode>")
 def showvotes(billno, yearcode=None):
@@ -928,9 +937,8 @@ def showvotes(billno, yearcode=None):
 
     session = LegSession.by_yearcode(yearcode)
 
-    reports = nmlegisbill.get_bill_committee_reports(billno, yearcode,
+    reports = nmlegisbill.get_bill_vote_reports(billno, yearcode,
                                                 LegSession.current_yearcode())
-
     # Make sure it's iterable, even if empty
     if not reports:
         reports = {}
@@ -939,18 +947,26 @@ def showvotes(billno, yearcode=None):
 
     # Make tables of committees and legislators by commcode/sponcode
     # that the jinja template can use
-    committees = {}
-    legislators = {}
+    committees = {}      # commcode -> Committee object
+    legislators = {}     # sponcode -> Legislator object
     for commcode in reports:
         # Report is like: { commcode: [ [ "votes": [ sponcode, ... ] ] ] }
         if commcode in committees:
             continue
-        comm = Committee.query.filter_by(code=commcode).first()
+        if commcode == 'H':
+            comm = Committee.query.filter_by(code='House').first()
+        elif commcode == 'S':
+            comm = Committee.query.filter_by(code='Senate').first()
+        else:
+            comm = Committee.query.filter_by(code=commcode).first()
         if comm:
             committees[commcode] = comm
+        else:
+            print("showvotes: Couldn't find committee", commcode,
+                  file=sys.stderr)
 
         for report in reports[commcode]:
-            if not report:
+            if not report:  # There's always a blank report at the beginning
                 continue
             for votetype in report["votes"]:
                 for sponcode in report["votes"][votetype]:

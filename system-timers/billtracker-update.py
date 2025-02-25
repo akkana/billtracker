@@ -56,6 +56,7 @@ if in_session:
     # page slow, so make sure it's called offline every 2 hours
     # during normal waking hours so the pages will be pre-fetched
     # and users won't have to wait.
+    # This also fetches the bill status JSON from nmlegiswatch.org.
     allbills_hours = [ 4, 6, 7, 9, 11, 13, 15, 16, 17, 18, 19, 21 ]
 
     # Bill updating is a bit more complicated since there are so many bills
@@ -129,6 +130,10 @@ def main():
         allbills = requests.get('%s/api/refresh_allbills/%s' % (BASEURL,
                                                                 KEY)).text
         print("refresh_allbills returned:", allbills)
+
+        print("Refreshing vote reports")
+        response = requests.get('%s/api/refresh_votes/%s' % (BASEURL, KEY)).text
+        print("refresh_votes returned", response)
 
     if now.hour in committee_hours:
         print("refresh_all_committees:")

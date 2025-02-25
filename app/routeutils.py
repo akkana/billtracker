@@ -187,3 +187,4 @@ def group_bills_by_tag(bill_list, tag):
             untagged.append(bill)
 
     return tagged, untagged
+

@@ -667,6 +667,28 @@ def refresh_committee(comcode, key):
     return refresh_one_committee(comcode)
 
 
+@app.route("/api/refresh_votes/<key>")
+def refresh_all_votes(key):
+    """Fetch the committee-reports and floor-votes JSON data
+       so it will be fresh when a user queries it.
+    """
+    if key != app.config["SECRET_KEY"]:
+        return "FAIL Bad key\n"
+
+    print("api/refresh_votes", file=sys.stderr)
+
+    set_session_by_request_values()
+
+
+    try:
+        nmlegisbill.get_all_vote_reports(session["yearcode"],
+                                         LegSession.current_yearcode())
+    except Exception as e:
+        print("Exception fetching vote reports:", e, file=sys.stderr)
+
+    return "OK Refreshed committee and floor votes"
+
+
 @app.route("/api/db_backup", methods=['GET', 'POST'])
 @app.route('/api/db_backup/<key>', methods=['GET', 'POST'])
 def db_backup(key=None):

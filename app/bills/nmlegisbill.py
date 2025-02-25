@@ -16,7 +16,6 @@ from collections import OrderedDict
 from bs4 import BeautifulSoup
 import json
 import xlrd
-import shutil
 import threading
 import traceback
 
@@ -1541,28 +1540,75 @@ def get_legislator_list_from_XLS():
     return legislators
 
 
-g_committee_reports = {}
-COMMITTEE_REPORTS_RELOAD = 3600
+g_all_vote_reports = {}
+# How often (seconds) to refresh the vote reports
+VOTE_REPORTS_RELOAD = 3600
 
-def get_all_committee_reports(yearcode, current_yearcode):
-    # Do we already have recent enough reports?
+def get_all_vote_reports(yearcode, current_yearcode):
+    """Fetch vote reports from two sources:
+       https://nmlegis.edsantiago.com/committee-reports.json
+       https://nmlegis.edsantiago.com/floor-votes.json
+       Those files are cached in the normal way,
+       but also combined into a combined report file,
+       all_vote_reports_YEARCODE.json
+    """
+    now = datetime.datetime.now().astimezone()
+
+    # Do we already have recent enough reports in memory?
     # Re-fetch every hour if in current yearcode.
-    if (yearcode in g_committee_reports and
+    if (yearcode in g_all_vote_reports and
         (yearcode != current_yearcode or
-         ("last_modified" in g_committee_reports and
-          (now - g_committee_reports["last_modified"]).seconds
-            <= COMMITTEE_REPORTS_RELOAD))):
+         ("fetched" in g_all_vote_reports and
+          (now - g_all_vote_reports["fetched"]).seconds
+            <= VOTE_REPORTS_RELOAD))):
         # it's there, and recent enough
-        return g_committee_reports[yearcode]
+        return g_all_vote_reports[yearcode]
 
     # Okay, no recent reports in memory already.
+    # Is there a recent enough combined report file?
+    allreportfile = os.path.join(billrequests.CACHEDIR,
+                                 "all_vote_reports_%s.json" %
+                                 yearcode)
+    try:
+        lastcombined = datetime.datetime.fromtimestamp(os.stat(allreportfile).st_mtime,
+                                                       now.tzinfo)
 
-    reportfile = os.path.join(billrequests.CACHEDIR,
-                              "all_committee_reports_%s.json" % yearcode)
+        if (now - lastcombined).seconds <= VOTE_REPORTS_RELOAD:
+            # The cached file is new enough. Read it in.
+            print("Reading votes from", allreportfile, file=sys.stderr)
+            with open(allreportfile) as ifp:
+                g_all_vote_reports[yearcode] = json.load(ifp)
+                return g_all_vote_reports[yearcode]
+    except Exception as e:
+        print("Couldn't read cached", allreportfile, ":", e, file=sys.stderr)
 
-    # The remote file is only available for the current session
+    # Cached downloaded JSON files:
+    dlfiles = [
+        os.path.join(billrequests.CACHEDIR,
+                     'https:__nmlegis.edsantiago.com_committee-reports.json'),
+        os.path.join(billrequests.CACHEDIR,
+                     'https:__nmlegis.edsantiago.com_floor-votes.json'),
+    ]
+
+    # Fetch remote files.
+    # The remote files only exist for the current session.
     if yearcode == current_yearcode:
-        # Try fetching new committee reports
+        print("Building new", allreportfile, file=sys.stderr)
+        # Save the old sizes
+        old_dl_sizes = []
+        for f in dlfiles:
+            try:
+                old_dl_sizes.append(os.stat(f).st_size)
+            except (FileNotFoundError, PermissionError):
+                old_dl_sizes.append(0)
+            except Exception as e:
+                print("Exception checking old sizes:", e)
+                old_dl_sizes.append(0)
+        if len(old_dl_sizes) != len(dlfiles):
+            print("EEK! old_dl_sizes is the wrong length", len(old_dl_sizes),
+                  file=sys.stderr)
+
+        # Try fetching new committee reports and floor votes files
         try:
             r = billrequests.get(
                 'https://nmlegis.edsantiago.com/committee-reports.json')
@@ -1570,58 +1616,91 @@ def get_all_committee_reports(yearcode, current_yearcode):
                 print("Error fetching committee-reports.json:",
                       r.status_code, file=sys.stderr)
                 return g_committee_reports[yearcode]
-            print("Fetched new committee reports", file=sys.stderr)
+            comm_json = r.json()
+            r = billrequests.get(
+                'https://nmlegis.edsantiago.com/floor-votes.json')
+            if r.status_code != 200:
+                print("Error fetching floor-votes.json:",
+                      r.status_code, file=sys.stderr)
+                return g_committee_reports[yearcode]
+            floor_json = r.json()
         except Exception as e:
-            print("Exception fetching committee-reports.json", e,
+            print("Exception fetching committee and floor votes", e,
                   file=sys.stderr)
             return g_committee_reports[yearcode]
 
-        # Now we've just downloaded a new committee-reports.json,
-        # which should have appeared here:
-        dlfile = os.path.join(billrequests.CACHEDIR,
-            'https:__nmlegis.edsantiago.com_committee-reports.json')
-
-        # Compare it with any previous reportfile and move it there
-        # if it's bigger; if it's smaller, warn and don't copy.
-        if (os.path.exists(reportfile) and os.path.exists(dlfile) and
-            os.stat(dlfile).st_size < os.stat(reportfile).st_size):
-                print("**** EEK! %s < %s, not saving" % (dlfile, reportfile),
+        # Now we've just downloaded both json files.
+        # Are the sizes the same as or larger than the previous data?
+        for old_size, new_f in zip(old_dl_sizes, dlfiles):
+            try:
+                if os.stat(new_f).st_size < old_size:
+                    print("*** EEK! Size of %s shrunk" % new_f,
+                          file=sys.stderr)
+                    # Note, this will happen once per session, when the
+                    # new session file first appears.
+                    # XXX Should check for that case here.
+            except:
+                print("*** EEK! Couldn't stat newly downloaded", new_f,
                       file=sys.stderr)
+
+        # Start with the committee reports
+        g_all_vote_reports[yearcode] = comm_json["reports"]
+
+        # Merge in the floor reports, which have a different structure
+        if "votes" in floor_json:
+            for billno in floor_json["votes"]:
+                for chamber in floor_json["votes"][billno]:
+                    # You might think that anything voted on by the
+                    # House or Senate must have had a committee vote already,
+                    # but no, it turns out a bill can go straight to a
+                    # floor session.
+                    if billno not in g_all_vote_reports[yearcode]:
+                        g_all_vote_reports[yearcode][billno] = {}
+                    g_all_vote_reports[yearcode][billno][chamber] \
+                        = [ {
+                            'date':
+                                floor_json["votes"][billno][chamber]["date"],
+                            'votes': floor_json["votes"][billno][chamber]
+                        } ]
+                    # But remove the date that's parallel with the vote types
+                    del g_all_vote_reports[yearcode][billno][chamber][0]['votes']['date']
+
         else:
-            # It's the same size or larger; copy it into place
-            shutil.copyfile(dlfile, reportfile)
-        # Either way, use the json just downloaded, though arguably
-        # if the new file is smaller we should read the old file
-        g_committee_reports[yearcode] = r.json()
+            print("*** No 'votes' in floor-votes.json!", file=sys.stderr)
+            # So there won't be any floor votes shown
+
+        # Save the merged file.
+        # Note that this doesn't have the "fetched" yet,
+        # but you can use the file date.
+        # Note that "fetched" is a datetime so it would have to be
+        # converted to a string to save it as JSON.
+        with open(allreportfile, 'w') as ofp:
+            json.dump(g_all_vote_reports[yearcode], ofp, indent=2)
+            print("Saved", allreportfile, file=sys.stderr)
 
     else:
         # Not the current yearcode, and wasn't already in g_committee_reports,
-        # so the best effort is to try to read from an old reportfile.
+        # so the best effort is to hope for an old allreportfile.
         try:
-            with open(reportfile) as ifp:
-                g_committee_reports[yearcode] = json.load(ifp)
+            with open(allreportfile) as ifp:
+                g_all_vote_reports[yearcode] = json.load(ifp)
         except Exception as e:
-            print("Couldn't read committee reports for", yearcode, ":", e,
+            print("Couldn't read vote reports from", allreportfile, ":", e,
                   file=sys.stderr)
             # keep from having to do all this file checking next time
-            g_committee_reports[yearcode] = {}
+            g_all_vote_reports[yearcode] = {}
             return {}
 
-    g_committee_reports["fetched"] = datetime.datetime.now().astimezone()
+    g_all_vote_reports[yearcode]["fetched"] = now
 
-    return g_committee_reports
+    return g_all_vote_reports[yearcode]
 
-def get_bill_committee_reports(billno, yearcode, current_yearcode):
-    allreports = get_all_committee_reports(yearcode, current_yearcode)
-    if yearcode not in allreports:
-        return {}
-    if "reports" not in allreports[yearcode]:
-        print("No 'reports' in allreports[%s]" % yearcode, file=sys.stderr)
-        return {}
-    if billno not in allreports[yearcode]["reports"]:
+def get_bill_vote_reports(billno, yearcode, current_yearcode):
+    allreports = get_all_vote_reports(yearcode, current_yearcode)
+    if billno not in allreports:
         return {}
 
-    return allreports[yearcode]["reports"][billno]
+    return allreports[billno]
 
 
 """
