@@ -22,7 +22,7 @@
       <td>
             {# report["votes"][votetype]] is a list of sponcodes #}
             {% for sponcode in report["votes"][votetype] | sort %}
-                <a href="https://nmlegiswatch.org/legislators/{{ sponcode }}" target="_blank" class="party-{{ legislators[sponcode].party }}">{{ legislators[sponcode].firstname }} {{ legislators[sponcode].lastname }}</a><br />
+                <a href="https://nmlegiswatch.org/legislators/{{ sponcode }}" target="_blank" class="party-{{ legislators[sponcode].party }}">{{ legislators[sponcode].firstname }} {{ legislators[sponcode].lastname }} ({{ legislators[sponcode].party }})</a><br />
             {% endfor %}
           {% endif %}
   </td></tr>
