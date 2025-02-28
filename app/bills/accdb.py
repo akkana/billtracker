@@ -233,31 +233,38 @@ def fetch_accdb_if_needed(localdir):
                 break
 
     print("Fetching", url, "last mod date", urltime, file=sys.stderr)
-    r = requests.get(url)
-    with zipfile.ZipFile(BytesIO(r.content)) as zip:
-        names = zip.namelist()
-        if len(names) > 1:
-            print("Too many names in zip archive:", ' '.join(names),
-                  file=sys.stderr)
-        for name in names:
-            if name.endswith('.accdb'):
-                accdbname = name
-                base, ext = os.path.splitext(accdbname)
-                break
-        if not accdbname:
-            os.unlink(lockfile)
-            raise RuntimeError("No zipfile in %s" % url)
+    try:
+        r = requests.get(url)
+        with zipfile.ZipFile(BytesIO(r.content)) as zip:
+            names = zip.namelist()
+            if len(names) > 1:
+                print("Too many names in zip archive:", ' '.join(names),
+                      file=sys.stderr)
+            for name in names:
+                if name.endswith('.accdb'):
+                    accdbname = name
+                    base, ext = os.path.splitext(accdbname)
+                    break
+            if not accdbname:
+                os.unlink(lockfile)
+                raise RuntimeError("No zipfile in %s" % url)
 
-        # Rename accdbname to the new file path
-        newfile = localdbfile + ".new"
-        zip.getinfo(accdbname).filename = newfile
-        # then extract it
-        zip.extract(accdbname)
+            # Rename accdbname to the new file path
+            newfile = localdbfile + ".new"
+            zip.getinfo(accdbname).filename = newfile
+            # then extract it
+            zip.extract(accdbname)
 
-        # Move the new file into place
-        # and then remove the lockfile
-        os.rename(newfile, localdbfile)
+            # Move the new file into place
+            # and then remove the lockfile
+            os.rename(newfile, localdbfile)
+    except Exception as e:
+        print("Exception getting accdb file", newfile, ":", file=sys.stderr)
+        print(traceback.format_exc(), file=sys.stderr)
         os.unlink(lockfile)
+        return
+
+    os.unlink(lockfile)
 
     # Now the localdbfile is presumed to exist
     cache_bill_table(localdbfile, jsoncache)
