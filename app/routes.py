@@ -604,11 +604,12 @@ def allbills():
     today = date.today()
 
     # allbills.html expects a list of dictionaries with keys:
-    # billno, title, url, contentsurl, user_tracking, num_tracking
     # [ [billno, title, link, fulltext_link, tracked_by_user ] ]
+    # and might also have other items, like num_tracking, amended,
+    # comm_sub_links, etc.
     for billno in allbills:
         if billno.startswith("_"):
-            # Skip things like _updated and _schema
+            # Skip entries like _updated and _schema
             continue
 
         # Prepare the structure expected by allbills.html
@@ -622,6 +623,12 @@ def allbills():
             args["amended"] = allbills[billno]["Amendments_In_Context"]
         elif "Floor_Amendments" in allbills[billno]:
             args["amended"] = allbills[billno]["Floor_Amendments"]
+        elif 'comm_sub_links' in allbills[billno]:
+            # comm_sub_links is a list of [(link, date)]
+            # XXX which probably all the amendment types should be
+            lastsub = max(allbills[billno]["comm_sub_links"], key=lambda x: x[1])
+            args["amended"] = lastsub[0]
+            args["amended_date"] = lastsub[1]
         elif "amend" in allbills[billno] and allbills[billno]["amend"]:
             args["amended"] = allbills[billno]["amend"][-1]
 

@@ -581,9 +581,13 @@ def refresh_all_committees(key):
                         # XXX Somehow, this message isn't really picking up
                         # mtg['datetime']; it's printing the earlier
                         # meeting time both times.
-                        print("CONFLICT:", billno, "scheduled for",
-                              bill.scheduled_date, "but also for",
-                              mtg['datetime'], file=sys.stderr)
+                        # typical output:
+                        # CONFLICT: SB170 scheduled for 2025-03-07 10:00:00 but also for 2025-03-07 10:00:00
+                        print("CONFLICT:", billno,
+                              "scheduled for", bill.scheduled_date,
+                              "but also for", mtg['datetime'],
+                              "sched_time =", sched_time,
+                              file=sys.stderr)
 
                     updated_comm = True
 

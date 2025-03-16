@@ -57,17 +57,20 @@ Please try again later.
         {% if bill_line["oldtitle"] %}
           <b class="titlechange">&larr; TITLE CHANGED FROM</b> {{ bill_line["oldtitle"] }}
         {% endif %}
+        {% if bill_line["amended_date"] %}
+          <b>COMMITTEE SUB ON {{ bill_line["amended_date"] }}</b>
+        {% endif %}
       {% if bill_line["contentsurl"] %}
         <td><a href="{{ bill_line["contentsurl"] }}" target="_blank">text</a>
       {% else %}
         <td>&nbsp;
       {% endif %}
       {% if bill_line["amended"] %}
-        | <a href="{{ bill_line["amended"] }}" target="_blank">amended</a>
+        &bull; <a href="{{ bill_line["amended"] }}" target="_blank">amended</a>
       {% endif %}
 
       {% if bill_line["overview"] %}
-        | <a href="{{ bill_line["overview"] }}" target="_blank">overview</a>
+        &bull; <a href="{{ bill_line["overview"] }}" target="_blank">overview</a>
       {% endif %}
 
       {% if showtags %}

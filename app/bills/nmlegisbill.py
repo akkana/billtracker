@@ -39,15 +39,16 @@ bill_file_pat = re.compile(r"([SH][JC]{0,1}[BMR])0*([1-9][0-9]*)\.")
 allbills_billno_pat = re.compile(
     'MainContent_gridViewLegislation_linkBillID.*')
 title_pat = re.compile(r'MainContent_gridViewLegislation_lblTitle.*')
-sponsor_pat = re.compile(r'MainContent_gridViewLegislation_linkSponsor.*')
+sponsor_pat = re.compile(r'MainContent_gridViewLegislation_linkSponsor*')
 sponcode_pat = re.compile(r'.*/Legislator\?SponCode=([A-Z]+)')
+more_spon_links = r'MainContent_tabContainerLegislation_tabPanelSponsors_dataListSponsors_linkSponsor_.*'
 action_pat = re.compile(r"MainContent_gridViewLegislation_lblActions_[0-9]")
 
 # Patterns used in parse_bill_page
 scheduled_for_pat = re.compile(r"Scheduled for.*on ([0-9/]*)")
 sponcode_pat = re.compile(r".*[&?]SponCode\=([A-Z]+)")
 cspat = re.compile(r"MainContent_dataListLegislationCommitteeSubstitutes_linkSubstitute.*")
-
+comsubpat = re.compile(r'MainContent_dataListLegislationCommitteeSubstitutes_linkSubstitute_.*')
 
 # RE patterns needed for parsing committee pages
 tbl_bills_scheduled = re.compile(r"MainContent_formViewCommitteeInformation_gridViewScheduledLegislation")
@@ -188,6 +189,13 @@ def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
         print("ERROR: No sponcode in", billdic['sponsorlink'], file=sys.stderr)
         billdic['sponsor'] = sponsor_a.text.strip()
 
+    # Find additional sponsors
+    # XXX Not fully implemented
+    # spon_table = soup.find('table', id='MainContent_tabContainerLegislation_tabPanelSponsors_dataListSponsors"')
+    # if spon_table:
+    #     for sponsor_a in spon_table.find_all('a', id=more_spon_links):
+    #         print("  ", billno, "has another cosponsor:", sponsor_a)
+
     curloc_a  = soup.find("a",
                           id="MainContent_formViewLegislation_linkLocation")
     curloc_href = curloc_a.get('href')
@@ -238,12 +246,25 @@ def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
                                                          baseurl)
 
     # Does the bill have any amendments?
-    # Unfortunately we can't get the amendments themselves --
-    # they're only available in PDF. But we can see if they exist.
+    # Unfortunately the amendments themselves are only available in PDF.
+    # But we can see if they exist.
     amendbutton = soup.find("a", id="MainContent_formViewAmendmentsInContext_linkAmendmentsInContext")
     if amendbutton:
         billdic["amendlink"] = url_mapper.to_abs_link(amendbutton.get('href'),
                                                       baseurl)
+    # Look for proposed committee ubstitutes. These are super important:
+    # in 2025 they're the only hint that a dummy bill has been turned
+    # into a real one.
+    # XXX Allbills also finds committee subs, use that for now.
+    # The parsing here works, but doesn't include the dates that
+    # allbills adds for the committee subs.
+    # commsubs = []
+    # committesubbtns = soup.find_all("a", id=comsubpat)
+    # for btn in committesubbtns:
+    #     comsubtext = btn.text
+    #     commsubs.append(url_mapper.to_abs_link(btn.get('href'), baseurl))
+    # if commsubs:
+    #     billdic["comm_sub_links"] = commsubs
 
     # The amendments link in the button is just the "Amendments_In_Context" PDF.
     # But if that's not there, there may be other types of amendments,
@@ -450,6 +471,7 @@ def save_allbills_json(yearcode):
     todaystr = datetime.date.today().strftime("%Y-%m-%d")
     histfile = os.path.join(billrequests.CACHEDIR,
                             'allbills_%s.json' % todaystr)
+
     try:
         tmpfile = g_allbills_cachefile[yearcode] + ".tmp"
         with open(tmpfile, "w") as fp:
@@ -881,18 +903,69 @@ def update_bill_links(yearcode):
                         print("Not sure what to do with file type", href,
                               file=sys.stderr)
 
-                else:
+                elif filename.endswith('CS.pdf') or \
+                     filename.endswith('CS.html'):
+                    billno = get_billno_from_filename(filename)
+                    if not billno:
+                        continue
+                    if billno not in g_allbills[yearcode]:
+                        print("Found committee sub", filename,
+                              "for nonexistent bill", billno,
+                              file=sys.stderr)
+                        nonexistent.add(billno)
+                        continue
+                    # Last Modified is a string like '3/14/2025\t5:23 PM MST'
+                    # %I must be used instead of %H for %p to get PM right
+                    lastmod = datetime.datetime.strptime(l['Last Modified'],
+                                                         '%m/%d/%Y\t%I:%M %p MST')
+                    # XXX might want to worry about the MST part and
+                    # instead match an arbitrary string and check it later
+
+                    if billno not in g_allbills[yearcode]:
+                        print('\n\n====', billno, filename,
+                              ": committee sub for bill not in g_allbills",
+                              "lastmod", lastmod,
+                              file=sys.stderr)
+                        nonexistent.add(billno)
+                        continue
+                    # print('\n\n====', billno, ": Found committee sub", filename,
+                    #       "Last modified:", l['Last Modified'],
+                    #       file=sys.stderr)
+
+                    fileurl = '%s/%s' % (listingurl, filename)
+                    if 'comm_sub_links' not in g_allbills[yearcode][billno]:
+                        g_allbills[yearcode][billno]['comm_sub_links'] = []
+                    # Is it already listed in the bill's comm_sub_links?
+                    alreadythere = False
+                    for link,lm in g_allbills[yearcode][billno]['comm_sub_links']:
+                        if link == fileurl:
+                            alreadythere = True
+                            break
+                    if not alreadythere:
+                        g_allbills[yearcode][billno]['comm_sub_links'].append(
+                            (fileurl, lastmod.strftime('%Y-%m-%d')))
+                        g_allbills[yearcode][billno]['history'].append(
+                            [
+                                # Arguably, should use today's date
+                                # in case file is backdated and lying
+                                lastmod.strftime('%Y-%m-%d'),
+                                'committee-sub', fileurl
+                            ])
+
+                    continue
+
                     # It's not the main content for a billno, but it might
                     # be an amendment or committee sub since those are
                     # in the same directory with names like SB0520COS.pdf
+                    # The important ones are the committee subs, which
+                    # have names like HB0586JCS.pdf -- see above.
+                    #
                     # XXX Many of those files aren't actually amendments,
                     # though, but instead reports of passage. Even when
                     # they are amendments, they're floor amendents from
                     # committee and may not have been adopted.
                     # Better to leave them out, for now.
-                    # billno = get_billno_from_filename(filename)
-                    # if billno:
-                    #     if billno not in g_allbills[yearcode]:
+                    # For now, just do committee subs.
                     #         print("Found possible committee sub", filename,
                     #               "for as yet nonexistent bill", billno,
                     #               file=sys.stderr)
@@ -907,10 +980,6 @@ def update_bill_links(yearcode):
                     # else:
                     #     print(filename, "is neither a bill nor comm sub",
                     #           file=sys.stderr)
-
-                    # print("Skipping possible committee sub", filename,
-                    #       "for", billno)
-                    continue
 
             if nonexistent:
                 print("Nonexistent bills", ', '.join(nonexistent),
@@ -1242,7 +1311,6 @@ def expand_committees(jsonsrc=None):
 
                 committees[commcode]["meetings"].append(meeting)
 
-    # pprint(committees)
     return committees
 
 
@@ -1738,9 +1806,23 @@ other
 # __main__ doesn't work any more because of the relative import .billutils.
 #
 if __name__ == '__main__':
-    update_legislator_list()
+
+    print("Refreshing g_allbills from cache file", file=sys.stderr)
+    yearcode = '25'
+    # with open(g_allbills_cachefile[yearcode]) as fp:
+    with open('cache/allbills_25.json') as fp:
+        g_allbills[yearcode] = json.load(fp)
+    update_bill_links(yearcode)
 
     sys.exit(0)
+
+    update_allbills('25', sessionid)
+
+
+    parsed = parse_bill_page('HB586', '25')
+    print(parsed)
+
+    update_legislator_list()
 
     bills, member = expand_committee('SCORC')
     print("Scheduled bills:", bills)

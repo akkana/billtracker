@@ -663,6 +663,8 @@ class Bill(db.Model):
                 self.LESClink = bill_info['LESC']
             if 'Amendments_In_Context' in bill_info:
                 self.amendlink = bill_info['Amendments_In_Context']
+            elif 'comm_sub_links' in bill_info:
+                self.amendlink = bill_info['comm_sub_links'][0]
             elif 'Floor_Amendments' in bill_info:
                 self.amendlink = bill_info['Floor_Amendments']
         else:
