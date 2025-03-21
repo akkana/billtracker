@@ -869,6 +869,7 @@ def update_bill_links(yearcode):
                 billno = None
 
                 filename = l['name']
+                filename_lower = filename.lower()
 
                 # The actual bill content is in files like SB0258.HTML;
                 # names like SB0258IC1.HTML are likely amendments.
@@ -903,8 +904,8 @@ def update_bill_links(yearcode):
                         print("Not sure what to do with file type", href,
                               file=sys.stderr)
 
-                elif filename.endswith('S.pdf') or \
-                     filename.endswith('S.html'):
+                elif filename_lower.endswith('s.pdf') or \
+                     filename_lower.endswith('s.html'):
                     billno = get_billno_from_filename(filename)
                     if not billno:
                         continue
