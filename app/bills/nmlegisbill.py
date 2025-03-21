@@ -903,8 +903,8 @@ def update_bill_links(yearcode):
                         print("Not sure what to do with file type", href,
                               file=sys.stderr)
 
-                elif filename.endswith('CS.pdf') or \
-                     filename.endswith('CS.html'):
+                elif filename.endswith('S.pdf') or \
+                     filename.endswith('S.html'):
                     billno = get_billno_from_filename(filename)
                     if not billno:
                         continue
