@@ -140,91 +140,354 @@ abbrev_re = [ (re.compile(r'\b%s\b' % key), abbreviations[key])
               for key in abbreviations.keys() ]
 
 
+# A pattern matching committee codes
+COMMPAT = r'[HS][A-Z]{2,5}'
+
+
+def full_history_text(fullhist):
+    """Given a full history for a bill,
+       return a newline-separated string of actions.
+    """
+    histstr = ''
+    legday = None
+    for day, actionstring, actioncode, location in fullhist:
+        if day != legday:
+            if histstr:
+                histstr += '\n'
+            legday = day
+            histstr += "Legislative day %s:\n    " % day
+        elif legday:
+            # appending another item to a legislative day
+            histstr += '\n    '
+        histstr += actionstring
+
+    return histstr
+
+
 def decode_full_history(actioncode):
     """Decode a bill's full history according to the code specified in
        https://www.nmlegis.gov/Legislation/Action_Abbreviations
-       Returns location, status (action string), histlist
+       Returns current_location, status (action string), histlist
          where histlist is a list of (day, actionstring, actioncode, location)
          tuples.
     """
+    legday = 0
+    curloc = None
+    history = []
+
     # The history code is one long line, like
     # HPREF [2] HCPAC/HJC-HCPAC [3] DNP-CS/DP-HJC [4] DP [5] PASSED/H (40-29) [8] SPAC/SJC-SPAC [17] DP-SJC [22] DP/a [23] FAILED/S (18-24).
+    # 'HPREF [2] HGEIC/HTRC-HGEIC [3] DNP-CS/DP-HTRC [4] DNP-CS/DP  [6] PASSED/H (62-0)- STBTC/SJC-STBTC [13] DP-SJC [15] DP  [17] PASSED/S (39-0) SGND BY GOV (Mar. 20) Ch. 10.
     # Most actions start with [legislative day] but the first may not.
-    histlist = []
-    for action, legday in action_code_iter(actioncode):
-        actionstring, location = decode_history_day(action, legday)
-        histlist.append((int(legday), actionstring, action, location))
-    lasttuple = histlist[-1]
-    lastaction = "Legislative Day %s: %s" % (lasttuple[0], lasttuple[1])
-    # location and actionstring(=status) are taken from the last history item.
+    # First try: can we split by whitespace?
+    # It mostly works, but there are problems with things like "w/o rec-HENRC"
+    # which will be expected to be committee names because of the slash,
+    # so first make a substitute for those.
+    actioncode = actioncode.replace('/w/o rec/a-', ' no-rec -')
+    actioncode = actioncode.replace('w/o rec/a-', ' no-rec -')
+    actioncode = actioncode.replace('/w/o rec-', ' no-rec -')
+    actioncode = actioncode.replace('w/o rec-', ' no-rec -')
 
-    # print("  Location:", location, file=sys.stderr)
-    # print("  actionstring:", actionstring, file=sys.stderr)
-    # print("  lastaction:", lastaction, file=sys.stderr)
-    # print("  histlist:", histlist, file=sys.stderr)
-    return location, lastaction, histlist
+    for piece in actioncode.split():
+        # Is it a new legislative day?
+        try:
+            m = re.match(r'\[([0-9]+)\]', piece)
+            legday = int(m.group(1))
+            continue
+        except AttributeError:
+            # not a legislative day
+            pass
+
+        # A Do Pass as amended, plus referral to the next committee
+        m = re.search(f'DP/a-({COMMPAT})', piece)
+        if m:
+            history.append([ legday, "Do pass as amended by %s" % curloc,
+                             piece, curloc ])
+            curloc = m.group(1)
+            history.append([ legday, "Sent to %s" % curloc, piece, curloc ])
+            continue
+
+        # Do Pass of a committee substitute, plus referral to the next committee
+        m = re.search(f'DNP-CS/DP-({COMMPAT})', piece)
+        if m:
+            history.append([ legday, "Committee sub do pass by %s" % curloc,
+                             piece, curloc ])
+            curloc = m.group(1)
+            history.append([ legday, "Sent to %s" % m.group(1), piece, curloc ])
+            continue
+
+        # A Do Pass without amendment, plus referral to the next committee
+        m = re.search(f'DP-({COMMPAT})', piece)
+        if m:
+            history.append([ legday, "Do pass by %s" % curloc, piece, curloc ])
+            curloc = m.group(1)
+            history.append([ legday, "Sent to %s" % m.group(1), piece, curloc ])
+            continue
+
+        # But a DP can be on its own too, especially if its next step
+        # is the House or Senate
+        m = re.search(r'\bDP\b', piece)
+        if m:
+            history.append([ legday, "Do pass by %s" % curloc, piece, curloc ])
+            continue
+
+        # Pick out those no-recs that were substituted earlier:
+        if piece == 'no-rec':
+            history.append([ legday, "No recommendation", piece, curloc ])
+
+        # Passing the House or Senate
+        m = re.search(r'PASSED/([HS])', piece)
+        if m:
+            chamber = m.group(1)
+            if chamber == 'H':
+                chambername = 'House'
+                curloc = 'S'
+            elif chamber == 'S':
+                chambername = 'Senate'
+                curloc = 'H'
+            else:
+                print("**** Error PASSED", chamber,
+                      "which is not H or S", piece,
+                      file=sys.stderr)
+                curloc = None
+            history.append([ legday, "Passed %s" % chambername,
+                              piece, curloc ])
+            continue
+
+        if piece == 'SGND':
+            history.append([ legday, "Signed by Governor",
+                              piece, curloc ])
+            # It's actually 'SGND BY GOV' but just ignore the other 2 words,
+            # it's not like it can be SGND by anyone else.
+            continue
+
+        # Withdrawn, which has a slash that could be confused
+        # with committee assignment
+        m = re.search(f'w/drn-({COMMPAT})', piece)
+        if m:
+            history.append([ legday, "Withdrawn", piece, curloc ])
+            curloc = m.group(1)
+            history.append([ legday, "Sent to %s" % curloc, piece, curloc ])
+            continue
+
+        # fl, fl/, fl/a
+        if piece.startswith('fl'):
+            # There was an amendment on a chamber floor, but that passage
+            # isn't in this word, so just ignore it.
+            continue
+
+        # # Single committee assignment, which looks like SJC-SJC
+        # m = re.match(f'({COMMPAT})-({COMMPAT})', piece)
+        # if m and m.group(1) == m.group(2):
+        #     curloc = m.group(1)
+        #     history.append([ legday, "Assigned %s" % curloc,
+        #                          piece, curloc ])
+
+        # Multiple committee assignment. Python re isn't smart enough
+        # to do this with pure regex, alas.
+        try:
+            if ('/' in piece and '-' in piece and
+                piece.rfind('/') < piece.rfind('-')):
+                assignments, loc = piece.split('-')
+                committees = [ c.strip() for c in assignments.split('/') ]
+                for c in committees:
+                    # rec will occur because of strings like '[4] w/o rec-SFC'
+                    # so it only applies in the context of nearby words.
+                    if c == 'rec':
+                        break   # there won't be any more committees
+                    if not re.match(COMMPAT, c):
+                        print("**** seeming committee assignment but",
+                              "'%s' doesn't match committee pattern:" % c,
+                              piece, file=sys.stderr)
+                        raise ValueError
+                history.append([ legday, "Assigned %s" % assignments,
+                                 piece, curloc ])
+                if loc not in committees:
+                    print("****** Parse problem: loc", loc,
+                          "is not in commmittee list", committees,
+                          "in", piece, file=sys.stderr)
+                # Treat it as a loc anyway
+                curloc = loc
+                history.append([ legday, "Sent to %s" % curloc, piece, curloc ])
+                continue
+        except ValueError:
+            continue
+
+        # Not printed, but assigned
+        m = re.match(f'prntd-({COMMPAT})', piece)
+        if m:
+            curloc = m.group(1)
+            history.append([ legday, "Not printed, sent to %s" % curloc,
+                             piece, curloc ])
+            continue
+
+        # Only assigned one committee, dash but no slashes, e.g. SJC-SJC
+        m = re.match(f'({COMMPAT})-({COMMPAT})', piece)
+        if m:
+            if m.group(1) != m.group(2):
+                print("**** expected these two to be equal:",
+                      m.group(1), m.group(2), file=sys.stderr)
+            # Use just the second one
+            curloc = m.group(2)
+            history.append([ legday, "Assigned %s" % curloc, piece, curloc ])
+            history.append([ legday, "Sent to %s" % curloc, piece, curloc ])
+            continue
+
+        # Passed current committee, nothing else
+        if piece == 'DP/a':
+            history.append([ legday, "Do pass as amended", piece, curloc ])
+            continue
+        if piece == 'DP':
+            history.append([ legday, "Do pass", piece, curloc ])
+            continue
+
+        # Passing to the next committee, with anything else not understood
+        m = re.search(f'-({COMMPAT})', piece)
+        if m:
+            curloc = m.group(1)
+            history.append([ legday, "Sent to %s" % curloc, piece, curloc ])
+            continue
+
+        # Signed by the Governor; I don't think the legday is relevant
+        if piece.startswith('SGND BY GOV'):
+            curloc = "Signed"
+            history.append([ 0, "Signed by Governor", piece, curloc ])
+
+    return curloc, actioncode, history
 
 
-def full_history_text(actioncode):
-    """Return a newline-separated string of actions for a bill"""
-    return '\n'.join([ "%d: %s" % (l[0], l[1])
-                       for l in decode_full_history(actioncode)[-1] ])
-
-
-comchange_pat = re.compile('([a-zA-Z]{3,})/([a-zA-Z]{3,})-([a-zA-Z]{3,})')
-end_comcode_pat = re.compile('-([A-Z]{3,})$')
-
-
-def decode_history_day(actioncode, legday):
-    """Decode a single history day according to the code specified in
-       https://www.nmlegis.gov/Legislation/Action_Abbreviations
-       For instance, 'HCPAC/HJC-HCPAC' -> 'Moved to HCPAC, ref HJC-HCPAC'
-       Returns actionstring, location
-       where actionstring tries to be a human-readable string,
-       and location is our best guess at where the bill is now.
+def get_location_lists(billno, history):
+    """Get the list of locations a bill has already passed,
+       and what we know about future locations.
+       history can be either a decoded full history,
+       or a status code to pass to decode_full_history().
     """
-    location = None
+    if type(history) is str:
+        location, status, history = decode_full_history(history)
 
-    # If the full day's description ends with -COMCODE,
-    # that committee is the new location.
-    m = end_comcode_pat.search(actioncode)
-    if m:
-        location = m.group(1)
-        actioncode = actioncode[:m.span()[0]] + " Sent to " + location
+    pastlocs = []
+    assignments = []
+    curloc = None
+    # print(billno, "history:")
+    for day, action, code, loc in history:
+        # print("  ::", action, "assignments", assignments)
+        if action.startswith("Assigned "):
+            assignments = action[9:].split('/')  # committee list
+        elif action.startswith('Do pass'):
+            if curloc:
+                pastlocs.append(curloc)
+                try:
+                    assignments.remove(curloc)
+                except ValueError:
+                    print(billno, "curloc", curloc, "wasn't in assignments",
+                          assignments) # , file=sys.stderr)
+            curloc = None
+        elif action.startswith('Passed '):
+            pastlocs.append(action[7])
+            assignments = []
+            curloc = None
+        elif action.startswith("Sent to"):
+            if curloc:
+                pastlocs.append(curloc)
+            curloc = loc
+        elif action.startswith("Signed"):
+            curloc = None
+            if pastlocs[-1] != 'GOV':
+                pastlocs.append('GOV')
+            pastlocs.append('SIGNED')
 
-    # Committee changes are listed as NEWCOMM/COMM{,-COMM}
-    # where the comms after the slash may be the old committee,
-    # the new committee or some other committee entirely.
-    # The abbreviations page doesn't explain.
-    # However, slashes can also mean other things, e.g.
-    #   CS/H 18, DP/a, FAILED/H or S, FL/, fl/aaa, h/fld cncr,
-    #   m/rcnsr adptd, rcld frm/h, s/cncrd, s/fld, SCS/H 18, w/drn, w/o rec
-    # It seems like committee movements will always have at least three
-    # alphabetic characters on either side of the slash.
-    # And it should end with -COMCODE with the code of the current committee.
-    match = re.search(comchange_pat, actioncode)
-    if match:
-        return ('Sent to %s, ref %s' % (match.group(1), match.group(2)),
-                match.group(3))
+            # that's as far as a bill can go, so it's safe to return now
+            return pastlocs, []
 
-    # It's not a committee assignment; decode what we can.
-    # It's not obvious how to get location, so just take the
-    # whole decoded last action.
-    actionstr = actioncode
-    for pat, expanded in abbrev_re:
-        actionstr = pat.sub(expanded, actionstr)
-    return (actionstr, location)
+    futurelocs = []
+    if curloc:
+        futurelocs.append(curloc)
+    if assignments:
+        futurelocs += assignments
+
+    # Now figure out what's missing, what hasn't been assigned yet,
+    # ending with the Governor.
+    # First figure out which chamber it started in:
+    if pastlocs:
+        starting_chamber = pastlocs[0][0]
+    else:
+        # It's presumably starting in the same chamber as its billno
+        starting_chamber = billno[0]
+
+    if futurelocs:
+        last_chamber = futurelocs[-1][0]
+    elif pastlocs:
+        last_chamber = pastlocs[-1][0]
+    else:
+        last_chamber = starting_chamber
+
+    if starting_chamber == 'S':
+        other_chamber = 'H'
+    else:
+        other_chamber = 'S'
+
+    # Has it ever had committees assigned?
+    if not pastlocs and not futurelocs:
+        futurelocs.append(starting_chamber + '???')
+
+    # Has it been on its home chamber's floor yet?
+    if starting_chamber not in pastlocs:
+        futurelocs.append(starting_chamber)
+
+    # Does it not yet have committees from the other chamber?
+    # Note: non-joint memorials don't need to go through the other chamber.
+    if billno[1] != 'M' and billno[1] != 'R' and billno[1:3] != 'CR':
+        if last_chamber == starting_chamber:
+            futurelocs.append(other_chamber + '???')
+            futurelocs.append(other_chamber)
+        elif other_chamber not in pastlocs:
+            # it has committees but not the floor session
+            futurelocs.append(other_chamber)
+
+    # Hopefully that covers the chambers (though not details like
+    # going back to the first chamber for concurrence with amendments).
+    # Add the final step, which is the Governor.
+    # Resolutions and memorials don't need any action from the Governor.
+    if billno[1] != 'R' and billno[1] != 'M' and billno[1] != 'J':
+        futurelocs.append('GOV')
+        futurelocs.append('SIGNED')
+
+    return pastlocs, futurelocs
 
 
 if __name__ == '__main__':
     import sys
-    for arg in sys.argv[1:]:
-        location, status, lastaction, histlist = decode_full_history(arg)
+    # from pprint import pprint
+
+    if len(sys.argv) > 1:
+        for arg in sys.argv[1:]:
+            location, status, histlist = decode_full_history(arg)
+            print("Status:", status)
+            # print("Last Action:", lastaction)
+            print("History:")
+            for day, longaction, code, location in histlist:
+                print(f"  Day {day}: {longaction}, now in {location} ({code})")
+        sys.exit(0)
+
+    import json
+    fp = open('tests/files/billstatuses.json')
+    allbills = json.load(fp)
+    for billno in allbills:
         print()
-        print("===", arg)
+        print("\n===", billno)
+
+        location, status, histlist = decode_full_history(allbills[billno])
+        # print()
+        # pprint(histlist)
         print("Location:", location)
         print("Status:", status)
-        print("Last Action:", lastaction)
-        for day, longaction, code in histlist:
-            print("  ", day, ":", code, "->", longaction)
+        # print("Last Action:", lastaction)
+        print("History:")
+        for day, longaction, code, location in histlist:
+            print(f"  Day {day}: {longaction}, now in {location} ({code})")
+
+        # Get just locations, assuming any location change indicates a pass.
+        pastloc, futureloc = get_location_lists(billno, histlist)
+        print("Past locations:", ' '.join(pastloc))
+        print("Future locations:", ' '.join(futureloc))
 

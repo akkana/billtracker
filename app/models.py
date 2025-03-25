@@ -664,7 +664,7 @@ class Bill(db.Model):
             if 'Amendments_In_Context' in bill_info:
                 self.amendlink = bill_info['Amendments_In_Context']
             elif 'comm_sub_links' in bill_info:
-                self.amendlink = bill_info['comm_sub_links'][0]
+                self.amendlink = bill_info['comm_sub_links'][0][0]
             elif 'Floor_Amendments' in bill_info:
                 self.amendlink = bill_info['Floor_Amendments']
         else:
@@ -812,7 +812,7 @@ class Bill(db.Model):
 
         if self.statustext:
             # statusHTML is full of crap this year, so prefer statustext
-            # even in HTML output until/unless I find a way around that.
+            # even in HTML.
 
             # But first, pull the action code out of statustext
             # to be dealt with separately.
@@ -831,24 +831,54 @@ class Bill(db.Model):
                 actioncode = ''
 
             statustext = statustext.strip()
-            if actioncode and not statustext:
-                # A bill updated from the accdb will have an action code,
-                # but no status text. Take statustext from the last day
-                # of the action code.
-                full_history = decodenmlegis.decode_full_history(actioncode)
-                statustext = full_history[1]
+            if actioncode:
+                location, status, fullhist = \
+                    decodenmlegis.decode_full_history(actioncode)
+                if not statustext:
+                    # A bill updated from the accdb will have an action code,
+                    # but no status text. Take statustext from the last day
+                    # of the action code.
+                    statustext = fullhist[1]
             outstr += 'Status: '
             outstr += '<a target="_blank" title="Vote history" ' \
                 'href="/votes/%s/%s">[Votes]</a> ' % (self.billno, self.year)
             if statustext:
                 outstr += '%s<br />\n' % statustext
             if actioncode:
+                hist_str = decodenmlegis.full_history_text(fullhist)
                 outstr += '<a href="https://www.nmlegis.gov/Legislation/' \
                   'Action_Abbreviations" target="_blank">Full history</a>: ' \
                           '<span class="historycode" title="%s">%s</span>' \
                           '<br />\n' \
-                          % (decodenmlegis.full_history_text(actioncode),
-                             actioncode)
+                          % (hist_str, actioncode)
+
+                # add a progress graph
+                past_locs, future_locs = \
+                    decodenmlegis.get_location_lists(self.billno, fullhist)
+                # print(self.billno, "past_locs:", past_locs)
+                # print("   future_locs:", future_locs)
+
+                total_steps = len(past_locs) + len(future_locs)
+                # If there are any H??? or S???, count those double
+                # since most bills will be assigned at least 2 committees
+                if 'H???' in future_locs:
+                    total_steps += 1
+                if 'S???' in future_locs:
+                    total_steps += 1
+                stepsize = int(100. / total_steps)
+
+                outstr += '''<table class="progress" style="width: 100%;">
+<tr class="progress-gradient">\n'''
+                for loc in past_locs:
+                    # Temporary, just for proof of concept
+                    outstr += '<td class="gradpiece" title="%s" ' % loc
+                    outstr += 'style="width: %d%%">%s</td>' % (stepsize, loc)
+                for loc in future_locs:
+                    outstr += '<td class="notpassed" title="%s" ' % loc
+                    outstr += 'style="width: %d%%">%s</td>' % (stepsize, loc)
+
+                outstr += '</tr></table>\n'
+
         elif self.statusHTML:
             # not likely to be used, to have statusHTML but no statustext
             outstr += 'Status: %s<br />\n' % self.statusHTML
@@ -909,6 +939,7 @@ class Bill(db.Model):
                     sponlinks.append('%s <%s>' % (leg.lastname, leg.sponcode))
 
         return ', '.join(sponlinks)
+
 
     def show_text(self):
         """Show a summary of the bill's status in plaintext format.

@@ -187,6 +187,31 @@ input.update-tags-submit-modified {
   color: yellow;
 }
 
+/* The colored progress indicator for a bill.
+   Relative sizes of the gradpieces need to be specified, though.
+ */
+table.progress {
+   table-layout: fixed;       /* Allows overflow: hidden to work in td */
+   border-collapse: collapse; /* eliminate extra padding between td    */
+   margin-right: 0px;
+   margin-left: auto;
+   font-size: .8em;
+}
+table.progress td { text-align: center !important; border: 1px solid #ddd; }
+.progress-gradient {
+    background-image: linear-gradient(to right, white, yellow, green)
+                                       !important;
+}
+.gradpiece {
+    overflow: hidden; padding: 0 !important;
+    background: none !important;
+}
+.gradgov { color: white; padding: 0 !important; }
+.notpassed {
+    background: white !important; color: #777; padding: 0 !important;
+}
+
+
 /* The captcha on the registration page */
 .captcha {
     background: #eee;
