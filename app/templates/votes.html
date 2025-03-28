@@ -9,28 +9,24 @@
 ({{ legsession.year }} {{ legsession.typename }} session)
 </p>
 
-  {% for commcode in reports %}
-    {% for report in reports[commcode] %}
-      {% if report %}
-        <h3>{{ committees[commcode].name }}, {{ report["date"] | prettify_yyyy_mm_dd() }}:</h3>
-        <table class="definitions">
-        {% for votetype in report["votes"] | sort(reverse=true) %}
-          {# votetype "rollcall" is the URL of the roll call vote,
-             not a list of legislators #}
-          {% if votetype != "rollcall" %}
+  {% for report in reports %}
+    <h3>{{ committees[report['comm']].name }}, {{ report["date"] | prettify_yyyy_mm_dd() }}:</h3>
+    <table class="definitions">
+    {% for votetype in report["votes"] | sort(reverse=true) %}
+      {# votetype "rollcall" is the URL of the roll call vote,
+         not a list of legislators #}
+      {% if votetype != "rollcall" %}
   <tr><th>{{ votetype }}:</th>
       <td>
-            {# report["votes"][votetype]] is a list of sponcodes #}
-            {% for sponcode in report["votes"][votetype] | sort %}
-                <a href="https://nmlegiswatch.org/legislators/{{ sponcode }}" target="_blank" class="party-{{ legislators[sponcode].party }}">{{ legislators[sponcode].firstname }} {{ legislators[sponcode].lastname }} ({{ legislators[sponcode].party }})</a><br />
-            {% endfor %}
-          {% endif %}
+        {# report["votes"][votetype]] is a list of sponcodes #}
+        {% for sponcode in report["votes"][votetype] | sort %}
+            <a href="https://nmlegiswatch.org/legislators/{{ sponcode }}" target="_blank" class="party-{{ legislators[sponcode].party }}">{{ legislators[sponcode].firstname }} {{ legislators[sponcode].lastname }} ({{ legislators[sponcode].party }})</a><br />
+        {% endfor %}  {# end loop over sponcodes for this votetype #}
+      {% endif %}     {# not rollcall #}
   </td></tr>
-        {% endfor %}
+    {% endfor %}      {# End loop over votetypes #}
 </table>
-      {% endif %}
-    {% endfor %}
-  {% endfor %}
+  {% endfor %}        {# End loop over reports #}
 {% else %}
 <p>
 No votes recorded for {{ billno }}

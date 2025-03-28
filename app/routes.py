@@ -944,47 +944,70 @@ def showvotes(billno, yearcode=None):
 
     session = LegSession.by_yearcode(yearcode)
 
-    reports = nmlegisbill.get_bill_vote_reports(billno, yearcode,
-                                                LegSession.current_yearcode())
-    # Make sure it's iterable, even if empty
-    if not reports:
-        reports = {}
-
-    bill = Bill.query.filter_by(billno=billno, year=yearcode).first()
-
     # Make tables of committees and legislators by commcode/sponcode
     # that the jinja template can use
     committees = {}      # commcode -> Committee object
     legislators = {}     # sponcode -> Legislator object
-    for commcode in reports:
-        # Report is like: { commcode: [ [ "votes": [ sponcode, ... ] ] ] }
-        if commcode in committees:
-            continue
-        if commcode == 'H':
-            comm = Committee.query.filter_by(code='House').first()
-        elif commcode == 'S':
-            comm = Committee.query.filter_by(code='Senate').first()
-        else:
-            comm = Committee.query.filter_by(code=commcode).first()
-        if comm:
-            committees[commcode] = comm
-        else:
-            print("showvotes: Couldn't find committee", commcode,
-                  file=sys.stderr)
 
-        for report in reports[commcode]:
-            if not report:  # There's always a blank report at the beginning
+    votes_by_comm = nmlegisbill.get_bill_vote_reports(billno, yearcode,
+                                                LegSession.current_yearcode())
+
+    # Make sure it's iterable, even if empty
+    if not votes_by_comm:
+        votes_by_comm = {}
+
+    # Make a list of reports sorted by date.
+    # The structure allows for multiple dates per commcode:
+    # { commcode: [ { date: date1, ... },
+    #               { date: date2, ... }, ] }
+    reports_by_date = []
+    for commcode in votes_by_comm:
+        for report in votes_by_comm[commcode]:
+            if not report:
+                continue    # There's always a blank report at the beginning
+            report['comm'] = commcode
+            reports_by_date.append(report)
+
+            # Make sure there's an entry for this committee
+            if commcode in committees:
                 continue
-            for votetype in report["votes"]:
-                for sponcode in report["votes"][votetype]:
-                    if sponcode in legislators:
-                        continue
-                    leg = Legislator.query.filter_by(sponcode=sponcode).first()
-                    if leg:
-                        legislators[sponcode] = leg
+            if commcode == 'H':
+                comm = Committee.query.filter_by(code='House').first()
+            elif commcode == 'S':
+                comm = Committee.query.filter_by(code='Senate').first()
+            else:
+                comm = Committee.query.filter_by(code=commcode).first()
+            if comm:
+                committees[commcode] = comm
+            else:
+                print("**** showvotes: Couldn't find committee", commcode,
+                      file=sys.stderr)
+    reports_by_date.sort(key=lambda r: r['date'])
+
+    bill = Bill.query.filter_by(billno=billno, year=yearcode).first()
+
+    for report in reports_by_date:
+        # Report is a dictionary with keys 'date', 'comm', 'votes'
+        # where 'votes' is a dict with e.g. { 'yes': [sponcodelist] }
+
+        for votetype in report["votes"]:
+            if votetype not in [ 'no', 'yes', 'absent', 'excused' ]:
+                # There are other entries, like "rollcall"
+                # which points to a URL, not a list of sponcodes.
+                continue
+            for sponcode in report["votes"][votetype]:
+                if sponcode in legislators:
+                    continue
+                leg = Legislator.query.filter_by(sponcode=sponcode).first()
+                if leg:
+                    legislators[sponcode] = leg
+                else:
+                    print("*** Warning: couldn't find legislator",
+                          sponcode, file=sys.stderr)
+                    # legislators[sponcode] = "%s (new?)" % sponcode
 
     return render_template('votes.html', title="Votes for %s" % billno,
-                           billno=billno, bill=bill, reports=reports,
+                           billno=billno, bill=bill, reports=reports_by_date,
                            committees=committees, legislators=legislators,
                            legsession=session)
 
