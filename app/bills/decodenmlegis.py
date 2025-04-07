@@ -370,7 +370,6 @@ def get_location_lists(billno, history):
     curloc = None
     # print(billno, "history:")
     for day, action, code, loc in history:
-        # print("  ::", action, "assignments", assignments)
         if action.startswith("Assigned "):
             assignments = action[9:].split('/')  # committee list
         elif action.startswith('Do pass'):
@@ -392,8 +391,6 @@ def get_location_lists(billno, history):
             curloc = loc
         elif action.startswith("Signed"):
             curloc = None
-            if pastlocs[-1] != 'GOV':
-                pastlocs.append('GOV')
             pastlocs.append('SIGNED')
 
             # that's as far as a bill can go, so it's safe to return now
@@ -449,7 +446,6 @@ def get_location_lists(billno, history):
     # Add the final step, which is the Governor.
     # Resolutions and memorials don't need any action from the Governor.
     if billno[1] != 'R' and billno[1] != 'M' and billno[1] != 'J':
-        futurelocs.append('GOV')
         futurelocs.append('SIGNED')
 
     return pastlocs, futurelocs

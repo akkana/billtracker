@@ -570,7 +570,8 @@ def update_allbills_if_needed(yearcode, sessionid=None, force_update=False):
         # file. The background process needs to be able to rewrite
         # the cache file, or otherwise it should run in the foreground.
         if g_allbills[yearcode]:
-            print("Updating allbills in the FOREGROUND", file=sys.stderr)
+            print("Updating allbills in the FOREGROUND for",
+                  yearcode, file=sys.stderr)
             update_allbills(yearcode, sessionid)
 
             # print("Updating all_bills in the background ...",
