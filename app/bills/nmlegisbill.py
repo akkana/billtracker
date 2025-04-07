@@ -945,6 +945,10 @@ def update_bill_links(yearcode):
                     if not alreadythere:
                         g_allbills[yearcode][billno]['comm_sub_links'].append(
                             (fileurl, lastmod.strftime('%Y-%m-%d')))
+                        if 'history' not in g_allbills[yearcode][billno]:
+                            print(billno_str, "didn't have a history entry!",
+                                  file=sys.stderr)
+                            g_allbills[yearcode][billno]['history'] = []
                         g_allbills[yearcode][billno]['history'].append(
                             [
                                 # Arguably, should use today's date
