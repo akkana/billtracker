@@ -88,12 +88,12 @@
 
     {% if config['BILLTRACKER_ALERT'] %}
     <p class="newsalert">
-        {{ config['BILLTRACKER_ALERT'] }}
+        {{ config['BILLTRACKER_ALERT'] | safe }}
     </p>
     {% endif %}
     {% if config['BILLTRACKER_INFO'] %}
     <p class="newsbanner">
-        {{ config['BILLTRACKER_INFO'] }}
+        {{ config['BILLTRACKER_INFO'] | safe }}
     </p>
     {% endif %}
 
