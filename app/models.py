@@ -1320,36 +1320,22 @@ class LegSession(db.Model):
 
     @staticmethod
     def current_leg_session():
-        """Return the latest legislative session
-           (the session with the highest id).
+        """Return the latest legislative session.
         """
-        try:
-            # for later sqlalchemy:
-            max_id = db.session.execute(db.select(
-                func.max(LegSession.id))).scalar()
-        except:    #  sqlalchemy.exc.ArgumentError
-            # the error raised by sqlalchemy 1.4.46 and presumably earlier
-            try:
-                # worked on earlier versions
-                max_id = db.session.query(func.max(LegSession.id)).scalar()
-                if max_id is None:
-                    print("Eek, max_id for sessions is None", file=sys.stderr)
-                    raise RuntimeError("Eek, max_id for sessions is None")
-            except:
-                # XXX arguably, call update_session_list ?
-                print("Can't get LegSession max_id either way",
-                      file=sys.stderr)
-                max_id = 0
-                for sess in LegSession.query.all():
-                    if sess.id > max_id:
-                        max_id = sess.id
+        # Used to use the session with the highest id, but that gave
+        # randomly changing results. So instead, look at the year.
+        latest_year = db.session.execute(db.select(
+            func.max(LegSession.year))).scalar()
+        year_sessions = LegSession.query.filter_by(year=latest_year).all()
+        print("Found", len(year_sessions), "session(s) with latest year",
+              latest_year, file=sys.stderr)
+        latest_session = year_sessions[0]
+        for ys in year_sessions[1:]:
+            if ys.yearcode > latest_session.yearcode:
+                latest_session = ys
 
-        try:
-            # sqlalchemy 2.0 way:
-            return db.session.get(LegSession, max_id)
-        except:
-            # sqlalchemy 1.x way
-            return LegSession.query.get(max_id)
+        print("latest session:", latest_session, file=sys.stderr)
+        return latest_session
 
     @staticmethod
     def current_yearcode():
