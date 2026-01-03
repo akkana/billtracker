@@ -924,7 +924,7 @@ def update_tracking_lists(key, yearcode=None):
         shortorgname = trackingjson["org"]
         trackingdata = trackingjson["tracking"]
 
-        print("Updating", jsonfile, file=sys.stderr, file=sys.stderr)
+        print("Updating", jsonfile, file=sys.stderr)
 
         for topicdic in trackingdata:
             for billdict in topicdic['bills']:
