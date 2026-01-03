@@ -1104,13 +1104,16 @@ class Legislator(db.Model):
     # lead_posi = db.Column(db.String(5))
     # start_year = db.Column(db.String(4))
 
-
     def __repr__(self):
         return '<Legislator %s: %s %s %s (%s, %s)>' % (
             self.title, self.sponcode,
             self.firstname, self.lastname,
             self.party, self.county
         )
+
+    def get_url(self):
+        return "https://www.nmlegis.gov/Members/Legislator?SponCode=%s" \
+            % self.sponcode
 
     def get_summary(self):
         return "%s %s %s (%s, %s): %s" % (self.title,
@@ -1375,8 +1378,13 @@ class LegSession(db.Model):
                     break
             except AttributeError:
                 if LegSession.query.get(lsess["id"]):
+                    print("Couldn't get session with id", lsess["id"],
+                          file=sys.stderr)
                     break
 
+            print("Making a new session with id", lsess["id"],
+                  "year", lsess["year"], "yearcode", lsess["yearcode"],
+                  "typename", lsess["typename"], file=sys.stderr)
             newsession = LegSession(id=lsess["id"],
                                     year = lsess["year"],
                                     yearcode = lsess["yearcode"],

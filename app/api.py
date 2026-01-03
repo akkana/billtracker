@@ -6,10 +6,13 @@ from app import app, db
 from app.models import User, Bill, Legislator, Committee, LegSession
 from app.routeutils import BILLNO_PAT
 from app.bills import nmlegisbill, billrequests, accdb
-from .routeutils import set_session_by_request_values
+from .routeutils import set_session_by_request_values, make_new_bill
 
 from flask import session, request, jsonify
 
+import re
+import json
+from shutil import copyfile
 from datetime import date, datetime, timezone, timedelta
 import subprocess
 import sys, os
@@ -885,3 +888,150 @@ def clean_dups(key, yearcode=None):
     print(outstr, file=sys.stderr)
     return outstr
 
+
+# Update tracking lists, like for the LWVNM.
+# These are maintained in JSON format with a copy in HTML,
+# in cache/tracking/yearcode.
+@app.route('/api/update-trackers/<key>')
+@app.route('/api/update-trackers/<key>/<yearcode>')
+def update_tracking_lists(key, yearcode=None):
+    if key != app.config["SECRET_KEY"]:
+        return "{ 'error': 'FAIL Bad key' }"
+
+    if not yearcode:
+        yearcode = LegSession.current_yearcode()
+
+    trackingdir = os.path.join(app.root_path, 'static', 'tracking', yearcode)
+
+    updated = []
+    failed = []
+
+    for jsonfile in os.listdir(trackingdir):
+        if not jsonfile.endswith('.json'):
+            continue
+
+        jsonpath = os.path.join(trackingdir, jsonfile)
+        try:
+            with open(jsonpath) as jfp:
+                trackingjson = json.load(jfp)
+            updated.append(jsonfile)
+        except Exception as e:
+            print("Couldn't read JSON file", jsonfile, ":", e, file=sys.stderr)
+            failed.append(jsonfile)
+            continue
+
+        orgname = trackingjson["organization"]
+        shortorgname = trackingjson["org"]
+        trackingdata = trackingjson["tracking"]
+
+        print("Updating", jsonfile, file=sys.stderr, file=sys.stderr)
+
+        for topicdic in trackingdata:
+            for billdict in topicdic['bills']:
+                # billno, title, sponsor, status
+                if not 'billno' in billdict or not billdict['billno']:
+                    continue
+                bill = Bill.query.filter_by(billno=billdict['billno'],
+                                            year=yearcode).first()
+                if not bill:
+                    try:
+                        bill = make_new_bill(billdict['billno'], yearcode)
+                        print("Making a new bill", billdict['billno'],
+                              "in yearcode", yearcode, file=sys.stderr)
+                    except RuntimeError:
+                        print("Couldn't make a bill called", billdict['billno'],
+                              file=sys.stderr)
+                        continue
+                billdict['title'] = bill.title
+                billdict['sponsor'] = bill.sponsor  # comma separated sponcodes
+                billdict['status'] = bill.statustext
+
+        # All the bills are updated, as far as possible.
+        # re-save the JSON after making a backup
+        copyfile(jsonpath, jsonpath + '.bak')
+        with open(jsonpath, "w") as ofp:
+            json.dump(trackingjson, ofp, indent=2, ensure_ascii=False)
+            print("Updated", jsonfile, file=sys.stderr)
+
+        # Generate an HTML version
+        htmlpath = jsonpath.replace('.json', '.html')
+        with open(htmlpath, 'w') as ofp:
+            print("""<h1>%s Tracking Sheet</h1>
+<table class="bordered">
+    <tr>
+    <td><strong>Bill</strong></td>
+    <td><strong>Legislation Name/Description</strong></td>
+    <td><strong>Sponsor</strong></td>
+    <td><strong>Date</strong></td>
+    <td><strong>Status</strong></td>
+    </tr>""" % orgname, file=ofp)
+
+            for topicdic in trackingdata:
+                print("<tr><th colspan=5>%s</th></tr>" % topicdic["topic"],
+                      file=ofp)
+                for billdic in topicdic["bills"]:
+                    bill = None
+                    print("<tr>", file=ofp)
+
+                    # First cell: billno, linkified
+                    billno = ''
+                    if "billno" in billdic:
+                        billno = billdic["billno"].strip()
+                    if billno:
+                        bill = Bill.query.filter_by(billno=billno,
+                                                    year=yearcode).first()
+                        if bill:
+                            print("Loaded bill", bill, file=sys.stderr)
+                            print("  <td><a href='%s' target='_blank'>%s</a></td>"
+                                  % (bill.bill_url(), billno), file=ofp)
+                        else:
+                            print("Couldn't load bill '%s'" % billno,
+                                  "len", len(billno),
+                                  billdic['title'], file=sys.stderr)
+                            print("  <td>%s</td>" % billno, file=ofp)
+                    else:
+                        print("No billno for", billdic['title'], file=sys.stderr)
+                        print("  <td>&nbsp;</td>", file=ofp)
+
+                    # title, sponsor, date
+                    def print_cell(fieldname):
+                        if fieldname in billdic and billdic[fieldname]:
+                            print("  <td>%s</td>" % billdic[fieldname], file=ofp)
+                        else:
+                            print("  <td>&nbsp;</td>", file=ofp)
+                    print_cell("title")
+
+                    # Sponsor list
+                    if 'sponsor' in billdic and billdic['sponsor']:
+                        sponsors = []
+                        for sponcode in billdic['sponsor'].split(','):
+                            spon = Legislator.query.filter_by(sponcode=sponcode).first()
+                            if spon:
+                                sponsors.append("<a href='%s'>%s</a>"
+                                                % (spon.get_url(),
+                                                   spon.lastname))
+                            else:
+                                sponsors.append('&nbsp;')
+                        print("<td>%s</td>" % ', '.join(sponsors), file=ofp)
+                    else:
+                        print("  <td>&nbsp;</td>", file=ofp)
+                    print_cell("date")
+
+                    # status
+                    if bill:
+                        print("  <td>%s</td>" % bill.statusHTML, file=ofp)
+                    else:
+                        print_cell("status")
+
+                    print("</tr>", file=ofp)
+
+            print("</table>", file=ofp)
+
+    if updated:
+        retstr = "OK, updated " + ' '.join(updated)
+    if failed:
+        if retstr:
+            retstr += "\n"
+        retstr += "Failed to update: " + ' '.join(failed)
+
+    return retstr

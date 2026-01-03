@@ -211,6 +211,12 @@ table.progress td { text-align: center !important; border: 1px solid #ddd; }
     background: white !important; color: #777; padding: 0 !important;
 }
 
+/* Basic tables, like those used in tracking sheets */
+table.bordered {  border: 1px solid #aaa; width: auto; margin: 1em; }
+table.bordered th, table.bordered td {
+  border: 1px solid #aaa; width: auto; margin: 1em; padding: .3em;
+}
+table.bordered th { text-align: left; }
 
 /* The captcha on the registration page */
 .captcha {

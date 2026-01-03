@@ -1194,3 +1194,40 @@ def password_reset():
                            form=form)
 
 
+@app.route("/trackers", methods=['GET', 'POST'])
+@app.route("/trackers/<whichtracker>", methods=['GET', 'POST'])
+@app.route("/trackers/<whichtracker>/<yearcode>", methods=['GET', 'POST'])
+def show_trackers(whichtracker=None, yearcode=None):
+    if not yearcode:
+        yearcode = LegSession.current_yearcode()
+
+    trackingdir = os.path.join(app.root_path, 'static', 'tracking', yearcode)
+
+    if whichtracker:
+        # Requested a specific tracker
+        # There's apparently no way to get a jinja template to include
+        # a static file, so instead, read in the static file and pass
+        # it to a general include template.
+        with open (os.path.join(trackingdir, whichtracker)) as fp:
+            content = fp.read()
+            content += '<p>\n<a href="/trackers">All Trackers</a>'
+            return render_template('include.html',
+                                   filename=whichtracker,
+                                   content=content)
+
+    trackers = []
+    try:
+        filelist = os.listdir(trackingdir)
+    except:
+        print("No trackers found", file=sys.stderr)
+        filelist = []
+
+    for htmlfile in filelist:
+        if not htmlfile.endswith('.html'):
+            continue
+        trackers.append({ "name": htmlfile[:-5], "filename": htmlfile })
+
+    return render_template('trackers.html', title='Tracking Lists',
+                           trackers=trackers, yearcode=yearcode)
+
+

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Trackers:</h2>
+
+<ul>
+{% for tracker in trackers %}
+
+  <li><a href="/trackers/{{ tracker['filename'] }}">{{ tracker['name'] }}</a>
+
+{% endfor %}
+</ul>
+
+{% endblock %}
