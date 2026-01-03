@@ -112,6 +112,10 @@ def main():
         res = requests.post(posturl, postdata)
 
     if now.hour in legdb_hours:
+        print("update tracking sheets:")
+        comout = requests.get('%s/api/update-trackers/%s %' (BASEURL, KEY)).text
+        print(comout)
+
         print("refresh_from_legdb:")
         comout = requests.get('%s/api/refresh_from_legdb/%s'
                               % (BASEURL, KEY)).text

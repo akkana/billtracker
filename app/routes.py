@@ -1210,7 +1210,7 @@ def show_trackers(whichtracker=None, yearcode=None):
         # it to a general include template.
         with open (os.path.join(trackingdir, whichtracker)) as fp:
             content = fp.read()
-            content += '<p>\n<a href="/trackers">All Trackers</a>'
+            content += '<p>\n<a href="/trackers">All Tracking Sheets</a>'
             return render_template('include.html',
                                    filename=whichtracker,
                                    content=content)
