@@ -1220,10 +1220,24 @@ def show_trackers(whichtracker=None, yearcode=None):
         # There's apparently no way to get a jinja template to include
         # a static file, so instead, read in the static file and pass
         # it to a general include template.
+
+        # Try to get a title from the corresponding JSON file
+        pagetitle = ''
+        try:
+            if whichtracker.endswith('.html'):
+                jsonfile = whichtracker.replace('.html', '.json')
+            else:
+                jsonfile = whichtracker + '.json'
+            with open (os.path.join(trackingdir, jsonfile)) as fp:
+                pagetitle = json.load(fp)['org'] + " Tracking Sheet"
+        except:
+            pass
+
         with open (os.path.join(trackingdir, whichtracker)) as fp:
             content = fp.read()
             content += '<p>\n<a href="/trackers">All Tracking Sheets</a>'
             return render_template('include.html',
+                                   title=pagetitle,
                                    filename=whichtracker,
                                    content=content)
 

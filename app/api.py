@@ -905,6 +905,7 @@ def update_tracking_lists(key, yearcode=None):
 
     updated = []
     failed = []
+    retstr = ''
 
     for jsonfile in os.listdir(trackingdir):
         if not jsonfile.endswith('.json'):
@@ -916,7 +917,9 @@ def update_tracking_lists(key, yearcode=None):
                 trackingjson = json.load(jfp)
             updated.append(jsonfile)
         except Exception as e:
-            print("Couldn't read JSON file", jsonfile, ":", e, file=sys.stderr)
+            errstr = "Couldn't read JSON file %s: %s" % (jsonfile, str(e))
+            retstr += errstr
+            print(errstr, file=sys.stderr)
             failed.append(jsonfile)
             continue
 
@@ -956,15 +959,14 @@ def update_tracking_lists(key, yearcode=None):
         # Generate an HTML version
         htmlpath = jsonpath.replace('.json', '.html')
         with open(htmlpath, 'w') as ofp:
-            print("""<h1>%s Tracking Sheet</h1>
-<table class="bordered">
+            print("""<table class="bordered">
     <tr>
     <td><strong>Bill</strong></td>
     <td><strong>Legislation Name/Description</strong></td>
     <td><strong>Sponsor</strong></td>
     <td><strong>Date</strong></td>
     <td><strong>Status</strong></td>
-    </tr>""" % orgname, file=ofp)
+    </tr>""", file=ofp)
 
             for topicdic in trackingdata:
                 print("<tr><th colspan=5>%s</th></tr>" % topicdic["topic"],
@@ -990,7 +992,12 @@ def update_tracking_lists(key, yearcode=None):
                                   billdic['title'], file=sys.stderr)
                             print("  <td>%s</td>" % billno, file=ofp)
                     else:
-                        print("No billno for", billdic['title'], file=sys.stderr)
+                        if 'title' in billdic:
+                            print("No billno for '%s'" % billdic['title'],
+                                  file=sys.stderr)
+                        else:
+                            print("No billno for", billdic,
+                                  file=sys.stderr)
                         print("  <td>&nbsp;</td>", file=ofp)
 
                     # title, sponsor, date
@@ -1026,12 +1033,17 @@ def update_tracking_lists(key, yearcode=None):
                     print("</tr>", file=ofp)
 
             print("</table>", file=ofp)
+            htmlfile = jsonfile.replace('.json', '.html')
+            print("<p>Source: <a href='https://nmbilltracker.org/trackers/%s/%s'>New Mexico Bill Tracker</a>" % (yearcode, htmlfile), file=ofp);
+            print("<br />JSON data: <a href='https://nmbilltracker.org/static/tracking/26/LWVtrack2026.json'>LWVtrack2026.json</a>", file=ofp);
 
     if updated:
-        retstr = "OK, updated " + ' '.join(updated)
+        if retstr:
+            retstr += "<br>\n"
+        retstr = "Updated " + ' '.join(updated)
     if failed:
         if retstr:
-            retstr += "\n"
+            retstr += "<br>\n"
         retstr += "Failed to update: " + ' '.join(failed)
 
     return retstr
