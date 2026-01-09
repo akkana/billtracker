@@ -411,6 +411,8 @@ def track_untrack():
         # f_billno checkbox in values.
         now_tracking = set([ b.billno
             for b in current_user.bills_by_yearcode(session["yearcode"]) ])
+
+        # will_track and will_untrack are sets of billnos, not Bill objects
         will_track = set()
         will_untrack = set()
         for btnno in values:
@@ -445,6 +447,9 @@ def track_untrack():
             for b in current_user.bills_by_yearcode(session["yearcode"]):
                 if b.billno in untrack_bills:
                     current_user.bills.remove(b)
+                    # XXX XXX Should this be done later, so as not to
+                    # open the session too early?
+                    db.session.add(b)
             untrack_bills = sorted(list(untrack_bills))
             flash("You are no longer tracking %s" % ', '.join(untrack_bills))
 
@@ -459,7 +464,7 @@ def track_untrack():
             # Figure out which bills will need to be fetched:
             # Bills the user wants to track that don't exist yet in the db:
             new_billnos = []
-            # Bills that the user will start tracking:
+            # Bill objects that the user will start tracking:
             bills_to_track = []
             for billno in track_bills:
                 b = Bill.query.filter_by(billno=billno,
@@ -497,6 +502,13 @@ def track_untrack():
             # (hitting the database):
             for bill in bills_to_track:
                 current_user.bills.append(bill)
+                # In late 2025, tracked bills are no longer getting remembered,
+                # they're remembered for a little while, but then forgotten later,
+                # at least in the production session using postgresql.
+                # Maybe the tracked and untracked bills now need to be added
+                # to the session, though they didn't in past years.
+                db.session.add(bill)
+
             for bill in new_bills:
                 db.session.add(bill)
                 current_user.bills.append(bill)
