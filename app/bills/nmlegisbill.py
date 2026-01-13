@@ -642,7 +642,8 @@ def update_allbills(yearcode, sessionid):
     baseurl = 'https://www.nmlegis.gov/Legislation'
     url = baseurl + '/Legislation_List?Session=%2d' % sessionid
 
-    todaystr = datetime.date.today().strftime("%Y-%m-%d")
+    today = datetime.date.today()
+    todaystr = today.strftime("%Y-%m-%d")
 
     # re-fetch if needed. Pass a cache time that's a little less than
     # the one we're using for the allbills cachefile
@@ -734,9 +735,10 @@ def update_allbills(yearcode, sessionid):
             print("Couldn't get actions for", billno_str, file=sys.stderr)
 
         # Link to Ed Santiago's bill overview page for every bill.
-        # For now, just assume it exists.
-        g_allbills[yearcode][billno_str]["overview"] = bill_overview_url(
-            billno_str, yearcode)
+        # It won't exist except for the current yearcode.
+        if yearcode == today.strftime('%y'):
+            g_allbills[yearcode][billno_str]["overview"] = bill_overview_url(
+                billno_str, yearcode)
 
     # If there are new bills, they'll need content links too.
     # Update them in the background since it involves a lot of fetching
@@ -1566,11 +1568,11 @@ def get_legislator_list_from_XLS():
 
     wanted_fields = [ "FNAME", "LNAME", "TITLE",
                       "STREET", "CITY", "STATE", "ZIP",
-                      "OFF_PHONE", "OFF_ROOM", "WKPH", "HMPH",
+                      "Phone1", "Phone2", "OFF_ROOM",
                       "PreferredEmail" ]
     to_fields = [ "firstname", "lastname", "title",
                   "street", "city", "state", "zip",
-                  "office_phone", "office", "work_phone", "home_phone",
+                  "office_phone", "work_phone" "office",
                   "email" ]
 
     fields = [ sheet.cell(0, col).value for col in range(sheet.ncols) ]
@@ -1580,7 +1582,11 @@ def get_legislator_list_from_XLS():
     for row in range(1, sheet.nrows):
         leg = {}
         for i, f in enumerate(wanted_fields):
-            leg[to_fields[i]] = sheet.cell(row, fields.index(f)).value
+            try:
+                leg[to_fields[i]] = sheet.cell(row, fields.index(f)).value
+            except ValueError as e:
+                print("ValueError getting legislator list from XLS:", e,
+                      ": skipping field", f, file=sys.stderr)
 
         fullname = leg['firstname'] + ' ' + leg['lastname']
 

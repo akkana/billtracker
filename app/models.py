@@ -716,8 +716,9 @@ class Bill(db.Model):
         outstr = '<b><a href="%s" target="_blank">%s: %s</a></b>' % \
             (self.bill_url(), self.billno, self.title)
 
-        outstr += " (<a href='%s' target='_blank'>NMLegisWatch</a>)" \
-            % nmlegisbill.bill_overview_url(self.billno, self.year)
+        if self.year == LegSession.current_yearcode():
+            outstr += " (<a href='%s' target='_blank'>NMLegisWatch</a>)" \
+                % nmlegisbill.bill_overview_url(self.billno, self.year)
 
         outstr += '<br />'
 
