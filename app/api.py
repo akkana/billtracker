@@ -959,6 +959,10 @@ def update_tracking_lists(key, yearcode=None):
         # Generate an HTML version
         htmlpath = jsonpath.replace('.json', '.html')
         with open(htmlpath, 'w') as ofp:
+            print("<p>", file=ofp)
+            print("Last updated:",
+                  datetime.now().strftime("%a, %b %-d, %Y %-I:%M %p"),
+                  file=ofp)
             print("""<table class="bordered">
     <tr>
     <td><strong>Bill</strong></td>
