@@ -161,3 +161,24 @@ and then run
 ```
 flask shell
 ```
+
+### Database Backup and Restore
+
+api/db_backup will make a time-stamped backup copy of the database.
+
+For sqlite,  it just copies the file.
+
+Under postgresql, the database backup (api/db_backup) runs:
+pg_dump $dbname
+
+To restore it:
+
+If you're restoring to an empty postgresql,
+first, login with psql and CREATE DATABASE $database
+
+Then,
+psql -U $username -d $dbname < $filename.sql
+
+This might also work:
+pg_restore  -U $username -d$database noc $filename.sql
+
