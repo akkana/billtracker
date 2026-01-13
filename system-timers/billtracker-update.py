@@ -112,10 +112,6 @@ def main():
         res = requests.post(posturl, postdata)
 
     if now.hour in legdb_hours:
-        print("update tracking sheets:")
-        comout = requests.get('%s/api/update-trackers/%s %' (BASEURL, KEY)).text
-        print(comout)
-
         print("refresh_from_legdb:")
         comout = requests.get('%s/api/refresh_from_legdb/%s'
                               % (BASEURL, KEY)).text
@@ -143,6 +139,10 @@ def main():
         print("refresh_all_committees:")
         comout = requests.get('%s/api/refresh_all_committees/%s'
                               % (BASEURL, KEY)).text
+        print(comout)
+
+        print("update tracking sheets:")
+        comout = requests.get('%s/api/update-trackers/%s' % (BASEURL, KEY)).text
         print(comout)
 
     # Nothing for legislators, they'll be updated if needed
