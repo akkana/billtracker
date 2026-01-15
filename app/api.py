@@ -987,7 +987,6 @@ def update_tracking_lists(key, yearcode=None):
                         bill = Bill.query.filter_by(billno=billno,
                                                     year=yearcode).first()
                         if bill:
-                            print("Loaded bill", bill, file=sys.stderr)
                             print("  <td><a href='%s' target='_blank'>%s</a></td>"
                                   % (bill.bill_url(), billno), file=ofp)
                         else:
@@ -1015,15 +1014,22 @@ def update_tracking_lists(key, yearcode=None):
                     # Sponsor list
                     if 'sponsor' in billdic and billdic['sponsor']:
                         sponsors = []
-                        for sponcode in billdic['sponsor'].split(','):
-                            spon = Legislator.query.filter_by(sponcode=sponcode).first()
+                        for sponstr in billdic['sponsor'].split(','):
+                            if not sponstr:
+                                continue
+                            spon = Legislator.search(sponstr)
                             if spon:
                                 sponsors.append("<a href='%s'>%s</a>"
                                                 % (spon.get_url(),
                                                    spon.lastname))
                             else:
-                                sponsors.append('&nbsp;')
-                        print("<td>%s</td>" % ', '.join(sponsors), file=ofp)
+                                print("Couldn't match sponsor", sponstr,
+                                      file=sys.stderr)
+                                sponsors.append(sponstr + " (?)")
+                        if sponsors:
+                            print("<td>%s</td>" % ', '.join(sponsors), file=ofp)
+                        else:
+                            print("<td>&nbsp;</td>", file=ofp)
                     else:
                         print("  <td>&nbsp;</td>", file=ofp)
                     print_cell("date")

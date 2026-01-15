@@ -1133,6 +1133,57 @@ class Legislator(db.Model):
         return "Rep."
 
     @staticmethod
+    def search(legstr):
+        """Searching for legislators isn't always easy.
+           You might have a sponcode, in which case it's trivial.
+           Otherwise, you might have a last name, or a full name where
+           it's not clear where the boundary is between the first and
+           last name.
+           Returns a Legislator object, or None.
+        """
+        # Is it a sponcode?
+        if legstr.isupper():
+            leg = Legislator.query.filter_by(sponcode=legstr).first()
+            if leg:
+                return leg
+        # Is it a last name?
+        legs = Legislator.query.filter_by(lastname=legstr).all()
+        if len(legs) == 1:
+            return legs[0]
+        elif legs:
+            print("Found multiple matches for %s!" % legstr,
+                  ','.join([ str(l) for l in legs ]))
+            return legs[0]
+
+        if ' ' not in legstr:
+            return None
+
+        # Now the hard part: split off successive words and match against lastname
+        spaceindex = -1
+        while True:
+            print("Searching for a space in", legstr[spaceindex+1:])
+            spaceindex = legstr[spaceindex+1:].find(' ')
+            print("spaceindex:", spaceindex)
+            if spaceindex < 0:
+                return None
+            firstname = legstr[:spaceindex]   # .lower()
+            lastname = legstr[spaceindex+1:]  # .lower()
+            legs = Legislator.query.filter_by(lastname=lastname,
+                                              firstname=firstname).all()
+            print("legs:", legs)
+            if not legs:
+                continue
+            if len(legs) == 1:
+                return legs[0]
+            print("Found multiple matches for lastname %s!" % lastname, legs,
+                  file=sys.stderr)
+            return legs[0]
+
+        # Shouldn't ever get here, should have returned None from previous loop
+        print("Internal error in Legislator.search", file=sys.stderr)
+        return None
+
+    @staticmethod
     def refresh_legislators_list():
         """Long-running, fetches XLS file from website,
            should not be called in user-facing code.
@@ -1331,14 +1382,11 @@ class LegSession(db.Model):
         latest_year = db.session.execute(db.select(
             func.max(LegSession.year))).scalar()
         year_sessions = LegSession.query.filter_by(year=latest_year).all()
-        print("Found", len(year_sessions), "session(s) with latest year",
-              latest_year, file=sys.stderr)
         latest_session = year_sessions[0]
         for ys in year_sessions[1:]:
             if ys.yearcode > latest_session.yearcode:
                 latest_session = ys
 
-        print("latest session:", latest_session, file=sys.stderr)
         return latest_session
 
     @staticmethod
