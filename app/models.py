@@ -1161,16 +1161,13 @@ class Legislator(db.Model):
         # Now the hard part: split off successive words and match against lastname
         spaceindex = -1
         while True:
-            print("Searching for a space in", legstr[spaceindex+1:])
             spaceindex = legstr[spaceindex+1:].find(' ')
-            print("spaceindex:", spaceindex)
             if spaceindex < 0:
                 return None
-            firstname = legstr[:spaceindex]   # .lower()
-            lastname = legstr[spaceindex+1:]  # .lower()
-            legs = Legislator.query.filter_by(lastname=lastname,
-                                              firstname=firstname).all()
-            print("legs:", legs)
+            firstname = legstr[:spaceindex].lower()
+            lastname = legstr[spaceindex+1:].lower()
+            legs = Legislator.query.filter(Legislator.lastname.ilike(lastname),
+                                           Legislator.firstname.ilike(firstname)).all()
             if not legs:
                 continue
             if len(legs) == 1:
