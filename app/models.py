@@ -1153,7 +1153,7 @@ class Legislator(db.Model):
         elif legs:
             print("Found multiple matches for %s!" % legstr,
                   ','.join([ str(l) for l in legs ]))
-            return legs[0]
+            return None
 
         if ' ' not in legstr:
             return None
