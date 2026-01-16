@@ -1172,8 +1172,10 @@ class Legislator(db.Model):
                 continue
             if len(legs) == 1:
                 return legs[0]
-            print("Found multiple matches for lastname %s!" % lastname, legs,
-                  file=sys.stderr)
+            print("Found multiple matches for lastname %s, firstname $s!"
+                  % (lastname, firstname), legs, file=sys.stderr)
+            # XXX one problematic case: someone who's been in both the House
+            # and the Senate, like HFIGU Natalie Figueroa/SFIGU Natalie Figueroa
             return legs[0]
 
         # Shouldn't ever get here, should have returned None from previous loop

@@ -30,6 +30,7 @@ from collections import OrderedDict, defaultdict
 import colorsys
 import hashlib
 import sys, os
+from shutil import copyfile
 
 
 # How recently did a bill have to change to be on the "new"
@@ -146,8 +147,11 @@ def login():
         return redirect(url_for('bills'))
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
+        username = form.username.data.strip()
+        user = User.query.filter_by(username=username).first()
         if user is None or not user.check_password(form.password.data):
+            print("LOGIN FAILURE: Invalid username or password '%s'" % username,
+                  file=sys.stderr)
             flash('Invalid username or password')
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
@@ -208,16 +212,19 @@ def register():
     # The form has been submitted and validated.
     # We just called validate_on_submit(), which reloaded the form,
     # then called the various validate() methods AFTER reloading.
-    print("Creating new user account", form.username.data,
+    new_username = form.username.data.strip()
+    new_password = form.password.data.strip()
+    new_email = form.email.data.strip()
+    print("Creating new user account", new_username,
           "from IP", request.remote_addr,
           "with captcha", session["capq"],
           file=sys.stderr)
-    user = User(username=form.username.data, email=form.email.data)
-    user.set_password(form.password.data)
+    user = User(username=new_username, email=new_email)
+    user.set_password(new_password)
 
     if user.email:
         try:
-            print("Sending confirmation mail to", form.username.data)
+            print("Sending confirmation mail to", new_username)
             user.send_confirmation_mail(request.url_root)
             flash("Welcome to the NM Bill Tracker. A confirmation message has been mailed to %s."
                   % user.email)
@@ -1228,11 +1235,13 @@ def show_trackers(whichtracker=None, yearcode=None):
                 jsonfile = whichtracker.replace('.html', '.json')
             else:
                 jsonfile = whichtracker + '.json'
+                whichtracker += '.html'
             with open (os.path.join(trackingdir, jsonfile)) as fp:
                 pagetitle = json.load(fp)['org'] + " Tracking Sheet"
         except:
             pass
 
+        # Now display the contents of the HTML file
         with open (os.path.join(trackingdir, whichtracker)) as fp:
             content = fp.read()
             content += '<p>\n<a href="/trackers">All Tracking Sheets</a>'
@@ -1257,3 +1266,156 @@ def show_trackers(whichtracker=None, yearcode=None):
                            trackers=trackers, yearcode=yearcode)
 
 
+@app.route("/edit-trackingsheet/<whichtracker>", methods=['GET', 'POST'])
+@app.route("/edit-trackingsheet/<whichtracker>/<passwd>", methods=['GET', 'POST'])
+def edit_trackingsheet(whichtracker, passwd=None):
+    # For some reason, the next line gives
+    # UnboundLocalError: cannot access local variable 'yearcode' where it is not associated with a value
+    # unless yearcode is specified as a function argument.
+    # But it's not wanted as a function argument: no point in letting someone
+    # edit trackingsheets from past sessions.
+    yearcode = LegSession.current_yearcode()
+
+    trackingdir = os.path.join(app.root_path, 'static', 'tracking', yearcode)
+
+    if not whichtracker:
+        flash("Please specify which tracker you want to edit")
+        return render_template('edit_tracker.html',
+                               title=pagetitle,
+                               whichtracker=whichtracker,
+                               passwd=passwd,
+                               trackinglist=None)
+
+    # Requested a specific tracker
+
+    if request.method == 'GET' and passwd != app.config["SECRET_KEY"]:
+        return "FAIL password is required\n"
+
+    # Try to get a title from the corresponding JSON file
+    pagetitle = ''
+    try:
+        if whichtracker.endswith('.html'):
+            jsonfile = whichtracker.replace('.html', '.json')
+        else:
+            jsonfile = whichtracker + '.json'
+            whichtracker += '.html'
+        jsonpath = os.path.join(trackingdir, jsonfile)
+        with open (jsonpath) as fp:
+            trackingjson = json.load(fp)
+            pagetitle = trackingjson['org'] + " Tracking Sheet"
+    except:
+        trackingjson = { 'tracking': [] }
+
+    # Is this a form submittal, IE someone just edited the page?
+    # If so, incorporate the changes and re-save the JSON file.
+    # This uses plain form handling, without WTForms, since they're more
+    # complicated for handling variable lists of fields.
+    # from pprint import pprint
+    if request.method == 'POST':
+        formvalues = request.values.to_dict()
+
+        # If the passwd was already specified in the URL, accept that,
+        # otherwise see if it was passed in from the form.
+        if not passwd:
+            if 'passwd' not in formvalues:
+                return "FAIL Password required for editing tracking sheets"
+            passwd = formvalues['passwd']
+            if passwd != app.config["SECRET_KEY"]:
+                return "FAIL bad password\n"
+
+        # Extract all the form data into a dictionary
+        topicbills = {}
+        for formkey in formvalues:
+            if '||' not in formkey:
+                continue
+            # print("formkey:", formkey)
+            # Don't bother with empty fields
+            if not formvalues[formkey]:
+                continue
+            try:
+                fieldname, topic, number = re.match(
+                    r'^([a-z]+)\|\|(.*) ([0-9]+)$', formkey).groups()
+                # print("fieldname", fieldname, "|| topic", topic,
+                #       "|| number", number, "--", formvalues[formkey])
+            except:
+                print("Couldn't split", formkey, file=sys.stderr)
+                continue
+            if topic not in topicbills:
+                topicbills[topic] = []
+            number = int(number)
+            if number >= len(topicbills[topic]):
+                # Extend topicbills to have at least this many items
+                topicbills[topic] += [{} for i in range(
+                    number - len(topicbills[topic]) + 1)]
+                # print("number was", number, "now topicbills is length",
+                #       len(topicbills[topic]))
+
+            def sanitize_input(instr):
+                """Sanitize the user input to make sure there's nothing
+                   that might confuse JSON or get interpreted later
+                """
+                return ''.join([x for x in instr if x.isalnum() or x.isspace()
+                                or x in '-_.,'])
+
+            topicbills[topic][number][fieldname] = \
+                sanitize_input(formvalues[formkey])
+
+        # Make sure each of the required fields is there,
+        # and remove empty bills:
+        for topic in topicbills:
+            todelete = []
+            for bill in topicbills[topic]:
+                # Are all the fields empty?
+                allcontent = ''.join([ bill[field].strip() for field in bill ])
+                if allcontent:
+                    for field in [ 'billno', 'title', 'sponsor', 'status' ]:
+                        if field not in bill:
+                            bill[field] = ''
+                else:
+                    todelete.append(bill)
+            for bill in todelete:
+                topicbills[topic].remove(bill)
+
+        # print("topicbills:")
+        # pprint(topicbills)
+
+        # Now set the JSON to be what we read in from the form.
+        # Unfortunately, it needs to be reorganized a little first
+        trackingjson['tracking'] = []
+        for topic in topicbills:
+            topicdic = { 'topic': topic,
+                         'priority': 0,    # XXX read the real priority
+                         'bills': []
+                       }
+            for bill in topicbills[topic]:
+                topicdic['bills'].append(bill)
+            # print("Appending topic", topic)
+            trackingjson['tracking'].append(topicdic)
+        # pprint(trackingjson['tracking'])
+
+        # re-save the JSON after making a backup
+        trackingjson['updated'] = datetime.now().strftime('%Y-%m-%d %H:%M')
+
+        copyfile(jsonpath, jsonpath + '.bak')
+        with open(jsonpath, "w") as ofp:
+            json.dump(trackingjson, ofp, indent=2, ensure_ascii=False)
+            print("Updated", jsonfile, file=sys.stderr)
+
+    # Now, ready to display the output
+    # Add IDs to each table row, since they don't necessarily all have billnos
+    # print("trackingjson:")
+    # pprint(trackingjson)
+    for topic in trackingjson['tracking']:
+        # Add a few empty entries per topic
+        for i in range(3):
+            topic['bills'].append({ 'billno': '', 'title': '',
+                                    'sponsor': '', 'status': '' })
+        # Add IDs to identify the form elements
+        for i, bill_line in enumerate(topic['bills']):
+            bill_line['id'] = f"{topic['topic']} {i}"
+
+    return render_template('edit_tracker.html',
+                           title=pagetitle,
+                           whichtracker=whichtracker,
+                           passwd=passwd,
+                           trackinglist=trackingjson['tracking'])

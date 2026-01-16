@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<form method="POST" action="/edit-trackingsheet/{{ whichtracker }}">
+<input type="hidden" id="yearcode" name="yearcode" value="{{ session['yearcode'] }}">
+<input type="hidden" id="passwd" name="passwd" value="{{ passwd }}">
+
+<p>
+<input type=submit name="update" value="Update tracking sheet">
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+<a href="/trackers/{{ whichtracker }}">View {{ whichtracker }}</a>
+<p>
+
+<table class="bill_minilist">
+ <thead>
+   <tr>
+     <th>Bill # <th>Name/Description <th>Sponsor <th>Status</th>
+     </tr>
+</thead>
+<tbody>
+
+  {% for topic in trackinglist %}
+    <tr><th colspan=5>{{ topic['topic'] }}</th></tr>
+    {% for bill in topic['bills'] %}
+    <tr>
+      <td><input name="billno||{{ bill['id'] }}" size="7" type="text" value="{{ bill['billno'] }}"></td>
+      <td><input name="title||{{ bill['id'] }}" size="50" type="text" value="{{ bill['title'] }}"></td>
+      <td><input name="sponsor||{{ bill['id'] }}" size="20" type="text" value="{{ bill['sponsor'] }}"></td>
+      <td><input name="status||{{ bill['id'] }}" size="35" type="text" value="{{ bill['status'] }}"></td>
+    </tr>
+    {% endfor %}
+  {% endfor %}
+
+</tbody>
+</table>
+
+<p>
+<input type=submit name="update" value="Update tracking sheet">
+
+</form>
+
+{% endblock %}

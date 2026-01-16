@@ -951,6 +951,8 @@ def update_tracking_lists(key, yearcode=None):
 
         # All the bills are updated, as far as possible.
         # re-save the JSON after making a backup
+        now = datetime.now()
+        trackingjson['updated'] = now.strftime('%Y-%m-%d %H:%M')
         copyfile(jsonpath, jsonpath + '.bak')
         with open(jsonpath, "w") as ofp:
             json.dump(trackingjson, ofp, indent=2, ensure_ascii=False)
@@ -961,8 +963,7 @@ def update_tracking_lists(key, yearcode=None):
         with open(htmlpath, 'w') as ofp:
             print("<p>", file=ofp)
             print("Last updated:",
-                  datetime.now().strftime("%a, %b %-d, %Y %-I:%M %p"),
-                  file=ofp)
+                  now.strftime("%a, %b %-d, %Y %-I:%M %p"), file=ofp)
             print("""<table class="bordered">
     <tr>
     <td><strong>Bill</strong></td>
