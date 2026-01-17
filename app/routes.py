@@ -1357,16 +1357,20 @@ def edit_trackingsheet(whichtracker, passwd=None):
                 return ''.join([x for x in instr if x.isalnum() or x.isspace()
                                 or x in '-_.,'])
 
-            topicbills[topic][number][fieldname] = \
-                sanitize_input(formvalues[formkey])
+            if fieldname == 'oppose' and formvalues[formkey] == 'on':
+                topicbills[topic][number][fieldname] = 1
+            else:
+                topicbills[topic][number][fieldname] = \
+                    sanitize_input(formvalues[formkey])
 
-        # Make sure each of the required fields is there,
+        # Make sure each of the required fields is there in the data,
         # and remove empty bills:
         for topic in topicbills:
             todelete = []
             for bill in topicbills[topic]:
-                # Are all the fields empty?
-                allcontent = ''.join([ bill[field].strip() for field in bill ])
+                # Are all the fields empty? Then delete the entry.
+                allcontent = ''.join([ str(bill[field]).strip()
+                                       for field in bill ])
                 if allcontent:
                     for field in [ 'billno', 'title', 'sponsor', 'status' ]:
                         if field not in bill:

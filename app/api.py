@@ -1007,7 +1007,13 @@ def update_tracking_lists(key, yearcode=None):
                     # title, sponsor, date
                     def print_cell(fieldname):
                         if fieldname in billdic and billdic[fieldname]:
-                            print("  <td>%s</td>" % billdic[fieldname], file=ofp)
+                            if (fieldname == 'title' and 'oppose' in billdic
+                                and billdic['oppose']):
+                                print("  <td><b>%s (OPPOSE)</b></td>"
+                                      % billdic[fieldname], file=ofp)
+                            else:
+                                print("  <td>%s</td>" % billdic[fieldname],
+                                      file=ofp)
                         else:
                             print("  <td>&nbsp;</td>", file=ofp)
                     print_cell("title")

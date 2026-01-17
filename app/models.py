@@ -1172,11 +1172,29 @@ class Legislator(db.Model):
                 continue
             if len(legs) == 1:
                 return legs[0]
-            print("Found multiple matches for lastname %s, firstname $s!"
+            print("Found multiple matches for lastname %s, firstname %s!"
                   % (lastname, firstname), legs, file=sys.stderr)
             # XXX one problematic case: someone who's been in both the House
             # and the Senate, like HFIGU Natalie Figueroa/SFIGU Natalie Figueroa
-            return legs[0]
+            # For that one case, check to see which one has sponsored more
+            # recent bills. Maybe it's safe to assume no one moves from the
+            # Senate back to the House, but I'm not sure I trust that.
+            legbillyears = []
+            for leg in legs:
+                legbills = Bill.query.filter(
+                    Bill.sponsor.contains(leg.sponcode)).all()
+                legbillyears.append((max([b.year for b in legbills]), leg))
+            legbillyears.sort(key=lambda x: x[0], reverse=True)
+            # Is the most recent bill for the most recent legislator a later
+            # year than the most recent bill for the second-most-recent leg?
+            # XXX This code is not well tested.
+            if legbillyears[0][0] > legbillyears[1][0]:
+                return legbillyears[0][1]
+            print("Couldn't find a clear winner from", file=sys.stderr)
+            for lby in legbillyears:
+                print("    %s (bills in %s)" % (lby[1].sponcode, lby[0]),
+                      file=sys.stderr)
+            return None
 
         # Shouldn't ever get here, should have returned None from previous loop
         print("Internal error in Legislator.search", file=sys.stderr)
