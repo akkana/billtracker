@@ -10,6 +10,7 @@ from app.forms import LoginForm, RegistrationForm, AddBillsForm, \
 from app.models import User, Bill, Legislator, Committee, LegSession
 from app.bills import nmlegisbill, billutils, billrequests
 from app.emails import send_email
+from app.api import update_tracking_lists
 from .routeutils import BILLNO_PAT, html_bill_table, make_new_bill, \
     g_all_tags, get_all_tags, group_bills_by_tag, set_session_by_request_values
 from config import ADMINS
@@ -1404,6 +1405,10 @@ def edit_trackingsheet(whichtracker, passwd=None):
         with open(jsonpath, "w") as ofp:
             json.dump(trackingjson, ofp, indent=2, ensure_ascii=False)
             print("Updated", jsonfile, file=sys.stderr)
+
+        # Now, with the JSON updated, we can refresh the HTML
+        print("Updating tracking lists...", file=sys.stderr)
+        update_tracking_lists(key=app.config["SECRET_KEY"], yearcode=yearcode)
 
     # Now, ready to display the output
     # Add IDs to each table row, since they don't necessarily all have billnos

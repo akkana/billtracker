@@ -992,7 +992,6 @@ def update_tracking_lists(key, yearcode=None):
                                   % (bill.bill_url(), billno), file=ofp)
                         else:
                             print("Couldn't load bill '%s'" % billno,
-                                  "len", len(billno),
                                   billdic['title'], file=sys.stderr)
                             print("  <td>%s</td>" % billno, file=ofp)
                     else:
