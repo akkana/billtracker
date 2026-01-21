@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<form method="POST" action="/edit-trackingsheet/{{ whichtracker }}">
+<form method="POST" action="{{ request.url }}">
 <input type="hidden" id="yearcode" name="yearcode" value="{{ session['yearcode'] }}">
 <input type="hidden" id="passwd" name="passwd" value="{{ passwd }}">
 
