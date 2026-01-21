@@ -976,6 +976,29 @@ def update_tracking_lists(key, yearcode=None):
             for topicdic in trackingdata:
                 print("<tr><th colspan=5>%s</th></tr>" % topicdic["topic"],
                       file=ofp)
+
+                # Sort the bill list
+                def billdic_sortkey(bd):
+                    if 'billno' not in bd:
+                        return 'ZZ'
+                    billno = bd['billno'].strip()
+                    if not billno:
+                        return 'YY'
+                    m = BILLNO_PAT.match(billno)
+                    if not m:
+                        return 'XX' + billno
+                    # Sort by chamber and number
+                    try:
+                        billtype, zeros, num = m.groups()
+                        num = int(num)
+                        return billtype + '%05d' % num
+                    except Exception as e:
+                        print("Problem parsing '%s' in tracking sheet" % billno,
+                              e)
+                        return 'ZZZ'
+
+                topicdic["bills"].sort(key=billdic_sortkey)
+
                 for billdic in topicdic["bills"]:
                     bill = None
                     print("<tr>", file=ofp)
@@ -1008,7 +1031,7 @@ def update_tracking_lists(key, yearcode=None):
                         if fieldname in billdic and billdic[fieldname]:
                             if (fieldname == 'title' and 'oppose' in billdic
                                 and billdic['oppose']):
-                                print("  <td><b>%s (OPPOSE)</b></td>"
+                                print("  <td><i>%s (OPPOSE)</i></td>"
                                       % billdic[fieldname], file=ofp)
                             else:
                                 print("  <td>%s</td>" % billdic[fieldname],
