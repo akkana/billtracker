@@ -907,6 +907,26 @@ def update_tracking_lists(key, yearcode=None):
     failed = []
     retstr = ''
 
+    # A key to sort by billno
+    def billdic_sortkey(bd):
+        if 'billno' not in bd:
+            return 'ZZ'
+        billno = bd['billno'].strip()
+        if not billno:
+            return 'YY'
+        m = BILLNO_PAT.match(billno)
+        if not m:
+            return 'XX' + billno
+        # Sort by chamber and number
+        try:
+            billtype, zeros, num = m.groups()
+            num = int(num)
+            return billtype + '%05d' % num
+        except Exception as e:
+            print("Problem parsing '%s' in tracking sheet" % billno,
+                  e)
+            return 'ZZZ'
+
     for jsonfile in os.listdir(trackingdir):
         if not jsonfile.endswith('.json'):
             continue
@@ -949,6 +969,10 @@ def update_tracking_lists(key, yearcode=None):
                 billdict['sponsor'] = bill.sponsor  # comma separated sponcodes
                 billdict['status'] = bill.statustext
 
+            # Done with bills in this topic;
+            # now sort each category by bill number
+            topicdic["bills"].sort(key=billdic_sortkey)
+
         # All the bills are updated, as far as possible.
         # re-save the JSON after making a backup
         now = datetime.now()
@@ -976,28 +1000,6 @@ def update_tracking_lists(key, yearcode=None):
             for topicdic in trackingdata:
                 print("<tr><th colspan=5>%s</th></tr>" % topicdic["topic"],
                       file=ofp)
-
-                # Sort the bill list
-                def billdic_sortkey(bd):
-                    if 'billno' not in bd:
-                        return 'ZZ'
-                    billno = bd['billno'].strip()
-                    if not billno:
-                        return 'YY'
-                    m = BILLNO_PAT.match(billno)
-                    if not m:
-                        return 'XX' + billno
-                    # Sort by chamber and number
-                    try:
-                        billtype, zeros, num = m.groups()
-                        num = int(num)
-                        return billtype + '%05d' % num
-                    except Exception as e:
-                        print("Problem parsing '%s' in tracking sheet" % billno,
-                              e)
-                        return 'ZZZ'
-
-                topicdic["bills"].sort(key=billdic_sortkey)
 
                 for billdic in topicdic["bills"]:
                     bill = None
