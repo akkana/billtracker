@@ -1406,9 +1406,21 @@ def edit_trackingsheet(whichtracker, passwd=None):
             json.dump(trackingjson, ofp, indent=2, ensure_ascii=False)
             print("Updated", jsonfile, file=sys.stderr)
 
-        # Now, with the JSON updated, we can refresh the HTML
+        # Now, with the JSON updated, we can look up bills and refresh
+        # both the JSON and the HTML.
         print("Updating tracking lists...", file=sys.stderr)
         update_tracking_lists(key=app.config["SECRET_KEY"], yearcode=yearcode)
+
+        # If we just fall through to render_template below, the new page
+        # will show the changes the user just made, but not the updates
+        # that update_tracking_lists() picked up from the actual bills.
+        # Instead, reload the page which should pick up anything new.
+        # XXX This might cause problems if the password was passed
+        # as POST data rather than in the URL, but so far, I'm not
+        # doing that so hopefully it doesn't matter.
+        # Arguably I should just remove the route that doesn't
+        # include the password.
+        return redirect(request.url)
 
     # Now, ready to display the output
     # Add IDs to each table row, since they don't necessarily all have billnos
