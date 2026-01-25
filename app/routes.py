@@ -256,7 +256,8 @@ def confirm_email(auth):
 
     user = User.query.filter_by(auth_code=auth).first()
     if not user:
-        print("Couldn't find a user with auth code", auth, file=sys.stderr)
+        print("Couldn't find a user with auth code '%s'" % auth,
+              file=sys.stderr)
         flash("Sorry, I don't know that code. Please contact an administrator.")
         return redirect(url_for('user_settings'))
 
@@ -1311,7 +1312,6 @@ def edit_trackingsheet(whichtracker, passwd=None):
     # If so, incorporate the changes and re-save the JSON file.
     # This uses plain form handling, without WTForms, since they're more
     # complicated for handling variable lists of fields.
-    # from pprint import pprint
     if request.method == 'POST':
         formvalues = request.values.to_dict()
 
@@ -1329,15 +1329,12 @@ def edit_trackingsheet(whichtracker, passwd=None):
         for formkey in formvalues:
             if '||' not in formkey:
                 continue
-            # print("formkey:", formkey)
             # Don't bother with empty fields
             if not formvalues[formkey]:
                 continue
             try:
                 fieldname, topic, number = re.match(
                     r'^([a-z]+)\|\|(.*) ([0-9]+)$', formkey).groups()
-                # print("fieldname", fieldname, "|| topic", topic,
-                #       "|| number", number, "--", formvalues[formkey])
             except:
                 print("Couldn't split", formkey, file=sys.stderr)
                 continue
@@ -1348,8 +1345,6 @@ def edit_trackingsheet(whichtracker, passwd=None):
                 # Extend topicbills to have at least this many items
                 topicbills[topic] += [{} for i in range(
                     number - len(topicbills[topic]) + 1)]
-                # print("number was", number, "now topicbills is length",
-                #       len(topicbills[topic]))
 
             def sanitize_input(instr):
                 """Sanitize the user input to make sure there's nothing
@@ -1367,22 +1362,45 @@ def edit_trackingsheet(whichtracker, passwd=None):
         # Make sure each of the required fields is there in the data,
         # and remove empty bills:
         for topic in topicbills:
-            todelete = []
-            for bill in topicbills[topic]:
+            bills2delete = []
+            for i, bill in enumerate(topicbills[topic]):
                 # Are all the fields empty? Then delete the entry.
                 allcontent = ''.join([ str(bill[field]).strip()
                                        for field in bill ])
-                if allcontent:
-                    for field in [ 'billno', 'title', 'sponsor', 'status' ]:
-                        if field not in bill:
-                            bill[field] = ''
-                else:
-                    todelete.append(bill)
-            for bill in todelete:
-                topicbills[topic].remove(bill)
 
-        # print("topicbills:")
-        # pprint(topicbills)
+                # Check whether this bill duplicates one previously seen.
+                # I'm not sure how the dups get there, and why
+                # deleting one doesn't always succeed; since I haven't been able
+                isdup = False
+                # to find a reproducible case, just winnow them out here.
+                # First, does the current bill have a real billno?
+                if 'billno' in bill and re.match(BILLNO_PAT, bill["billno"]):
+                    real_billno = bill["billno"]
+                else:
+                    real_billno = None
+                for oldbill in topicbills[topic][:i]:
+                    if (real_billno and 'billno' in oldbill
+                        and oldbill['billno'] == real_billno):
+                        # They match. Break out of both loops,
+                        # stop looking at bill.
+                        print("Duplicate billno", real_billno, file=sys.stderr)
+                        isdup = True
+                        break
+                    # Otherwise, are the titles identical?
+                    elif ('title' in bill and 'title' in oldbill
+                          and bill['title'] == oldbill['title']):
+                        print("Duplicate title", bill['title'])
+                        isdup = True
+                        break
+                if isdup:
+                    # stop looking at this bill, it's a dup
+                    bills2delete.append(bill)
+                    continue
+
+            if bills2delete:
+                print("Deleting:", bills2delete, file=sys.stderr)
+            for bill in bills2delete:
+                topicbills[topic].remove(bill)
 
         # Now set the JSON to be what we read in from the form.
         # Unfortunately, it needs to be reorganized a little first
