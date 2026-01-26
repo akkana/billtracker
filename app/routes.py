@@ -1445,8 +1445,9 @@ def edit_trackingsheet(whichtracker, passwd=None):
     # print("trackingjson:")
     # pprint(trackingjson)
     for topic in trackingjson['tracking']:
-        # Add a few empty entries per topic
-        for i in range(3):
+        # Add a few empty entries per topic.
+        # XXX Eventually it would be nice to have a JS "Add new field" button
+        for i in range(4):
             topic['bills'].append({ 'billno': '', 'title': '',
                                     'sponsor': '', 'status': '' })
         # Add IDs to identify the form elements

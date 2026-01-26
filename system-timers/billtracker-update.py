@@ -44,7 +44,11 @@ if in_session:
     amend_hours = [ ]
     db_backup_hours = [ 1, 13 ]
 
-    legdb_hours = [ 3, 16, 18, 21 ]
+    # Disable updating from the accdb for now.
+    # It causes status to flip back and forth because the accdb only has
+    # codes like "\n[1] SCC/STBTC/SJC-SCC", vs. the full statustext/statushtml
+    # legdb_hours = [ 3, 16, 18, 21 ]
+    legdb_hours = [ ]
 
     # Committees are really the important things to refresh:
     # they're the only way to find out when bills are scheduled,
