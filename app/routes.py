@@ -502,7 +502,7 @@ def track_untrack():
             # But sadly, that's not a good idea for new bills,
             # because there's too much information missing from the accdb.
             # print("Updating", new_bills, "from the accdb", sys.stderr)
-            # accdb.update_bills(new_bills)
+            # accdb.update_bills(new_bills, session["yearcode"])
 
             track_bills = sorted(list(track_bills))
             flash("You are now tracking %s" % ', '.join(track_bills))

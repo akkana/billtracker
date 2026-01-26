@@ -36,7 +36,7 @@ from app.bills import billrequests
 LOCKED_TOO_LONG = 60
 
 
-def update_bills(bill_list):
+def update_bills(bill_list, yearcode):
     """Update a list of bills in the flask database based on any changes
        to the accdb.
        bill_list is a list of Bill objects from models.py,
@@ -44,9 +44,10 @@ def update_bills(bill_list):
        This will typically be called periodically from an API,
        not in response to user action.
     """
-    accdbfile = fetch_accdb_if_needed(billrequests.CACHEDIR)
+    accjsonname = "Legislation%s.json" % yearcode
+    accdbfile = fetch_accdb_if_needed(yearcode, billrequests.CACHEDIR)
 
-    with open(os.path.join(billrequests.CACHEDIR, "Legislation.json")) as jfp:
+    with open(os.path.join(billrequests.CACHEDIR, accjsonname)) as jfp:
         billtable = json.load(jfp)
 
     changed = False
@@ -55,7 +56,11 @@ def update_bills(bill_list):
     now = datetime.now()
     for bill in bill_list:
         billchanged = False
-        accbill = billtable[bill.billno]
+        try:
+            accbill = billtable[bill.billno]
+        except KeyError:
+            print(bill.billno, "wasn't in the billtable", file=sys.stderr)
+            billtable[bill.billno] = {}
         if not accbill:
             print("Eek, tried to update bill %s not in the accdb" % bill.billno,
                   file=sys.stderr)
@@ -141,7 +146,7 @@ def update_bills(bill_list):
         print("Nothing changed", file=sys.stderr)
 
 
-def fetch_accdb_if_needed(localdir):
+def fetch_accdb_if_needed(yearcode, localdir):
     """Fetch the LegInfoYY.zip file from nmlegis.gov if web headers
        say it's newer than our cached Legislation.json file.
        Unzip it, extract and cache the Legislation table.
@@ -156,10 +161,11 @@ def fetch_accdb_if_needed(localdir):
         % (yearcode, yearcode)
 
     # localdbfile = now.strftime("LegInfo-%y-%m-%dT%H.accdb")
-    jsoncache = os.path.join(localdir, "Legislation.json")
+    accjsonname = "Legislation%s.json" % yearcode
+    jsoncache = os.path.join(localdir, accjsonname)
     localdbfile = os.path.join(localdir, "LegInfo.accdb")
 
-    print("In fetch_accdb_if_needed:")
+    print("In fetch_accdb_if_needed:", file=sys.stderr)
     os.system("ls -l %s %s" % (jsoncache, localdbfile))
     try:
         jsonfiletime = datetime.fromtimestamp(
