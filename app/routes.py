@@ -2,6 +2,7 @@ from flask import render_template, flash, redirect, url_for, request
 from flask import session
 from flask import request
 from flask_login import login_user, logout_user, current_user, login_required
+from sqlalchemy import func
 
 from app import app, db
 from app import chattycaptcha
@@ -149,7 +150,11 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         username = form.username.data.strip()
-        user = User.query.filter_by(username=username).first()
+        # Case-insensitive search on username:
+        # duplicates: 2020sos dkstanf#509 hobbes ug90t16
+        user = User.query.filter(func.lower(User.username)
+                                 == func.lower(username)).first()
+        print("username", username, "matched", user)
         if user is None or not user.check_password(form.password.data):
             print("LOGIN FAILURE: Invalid username or password '%s'" % username,
                   file=sys.stderr)
