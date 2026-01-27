@@ -12,7 +12,7 @@
 <a href="/trackers/{{ whichtracker }}">View {{ whichtracker }}</a>
 <p>
 
-<table class="bill_minilist">
+<table id="billtable" class="bill_minilist">
  <thead>
    <tr>
      <th>Bill # <th>Name/Description <th>Sponsor <th>Status <th>Oppose?
@@ -35,6 +35,20 @@
                  class="track">
     </tr>
     {% endfor %}
+
+    {# Would be nice to add some blank fields in noscript, but it turns
+       out you can't use <noscript> inside a table, the rows all end up
+       above the table. So use a JS-dependent button for adding new fields,
+       but disable the button if JS is off.
+    #}
+    <tr><td>
+    <button type="button" id="newrow-btn-{{ topic['topic'] }}" disabled
+            onclick="newfield('{{ topic['topic'] }}');">Add row</button>
+    </td></tr>
+<script type="text/javascript">
+  document.getElementById('newrow-btn-{{ topic['topic'] | safe }}').disabled = false;
+</script>
+
   {% endfor %}
 
 </tbody>
@@ -44,5 +58,49 @@
 <input type=submit name="update" value="Update tracking sheet">
 
 </form>
+
+<script type="text/javascript">
+function newfield(topic) {
+    // The button that got us here:
+    var btn = document.getElementById('newrow-btn-' + topic);
+    console.log("button:", btn);
+    var rowtr = btn.parentElement.parentElement;
+    var rowIndex = rowtr.rowIndex;
+    console.log("rowIndex:", rowIndex);
+
+    // We also need the index in the bill list, which we can get from
+    // the row just above the button.
+    console.log("rowtr:", rowtr);
+    var prevSib = rowtr.previousSibling;
+    while (prevSib && prevSib.nodeType != 1)
+        prevSib = prevSib.previousSibling;
+    console.log("prev sib (should be a tr):", prevSib);
+    var lastBillnoInput = prevSib.getElementsByTagName('input')[0]
+    // This should be the last billno field, which should have an id like
+    // billno||Topic Name||number
+    var nameParts = lastBillnoInput.name.split('||');
+    // Gives an array [ 'billno', TOPICNAME, number_as_int)
+    console.log("nameParts:", nameParts, "from splitting", lastBillnoInput.name);
+    var nextInt = parseInt(nameParts[2]) + 1;
+    console.log("nextInt:", nextInt);
+
+    var newRow = billtable.insertRow(rowIndex);
+    var newCell  = newRow.insertCell();
+    newCell.innerHTML = '<input name="billno||' + topic + '||' + nextInt
+                         + '" size="7" type="text" value="">';
+    newCell  = newRow.insertCell();
+    newCell.innerHTML = '<input name="title||' + topic + '||' + nextInt
+                         + '" size="50" type="text" value="">';
+    newCell  = newRow.insertCell();
+    newCell.innerHTML = '<input name="sponsor||' + topic + '||' + nextInt
+                         + '" size="20" type="text" value="">';
+    newCell  = newRow.insertCell();
+    newCell.innerHTML = '<input name="status||' + topic + '||' + nextInt
+                         + '" size="35" type="text" value="">';
+    newCell  = newRow.insertCell();
+    newCell.innerHTML = '<input name="oppose||' + topic + '||' + nextInt
+                         + '" type="checkbox" class="track">'
+}
+</script
 
 {% endblock %}

@@ -1339,7 +1339,7 @@ def edit_trackingsheet(whichtracker, passwd=None):
                 continue
             try:
                 fieldname, topic, number = re.match(
-                    r'^([a-z]+)\|\|(.*) ([0-9]+)$', formkey).groups()
+                    r'^([a-z]+)\|\|(.*)\|\|([0-9]+)$', formkey).groups()
             except:
                 print("Couldn't split", formkey, file=sys.stderr)
                 continue
@@ -1372,6 +1372,9 @@ def edit_trackingsheet(whichtracker, passwd=None):
                 # Are all the fields empty? Then delete the entry.
                 allcontent = ''.join([ str(bill[field]).strip()
                                        for field in bill ])
+                if not allcontent:
+                    bills2delete.append(bill)
+                    continue
 
                 # Check whether this bill duplicates one previously seen.
                 # I'm not sure how the dups get there, and why
@@ -1404,8 +1407,8 @@ def edit_trackingsheet(whichtracker, passwd=None):
 
             if bills2delete:
                 print("Deleting:", bills2delete, file=sys.stderr)
-            for bill in bills2delete:
-                topicbills[topic].remove(bill)
+                for bill in bills2delete:
+                    topicbills[topic].remove(bill)
 
         # Now set the JSON to be what we read in from the form.
         # Unfortunately, it needs to be reorganized a little first
@@ -1450,14 +1453,9 @@ def edit_trackingsheet(whichtracker, passwd=None):
     # print("trackingjson:")
     # pprint(trackingjson)
     for topic in trackingjson['tracking']:
-        # Add a few empty entries per topic.
-        # XXX Eventually it would be nice to have a JS "Add new field" button
-        for i in range(4):
-            topic['bills'].append({ 'billno': '', 'title': '',
-                                    'sponsor': '', 'status': '' })
         # Add IDs to identify the form elements
         for i, bill_line in enumerate(topic['bills']):
-            bill_line['id'] = f"{topic['topic']} {i}"
+            bill_line['id'] = f"{topic['topic']}||{i}"
 
     return render_template('edit_tracker.html',
                            title=pagetitle,
