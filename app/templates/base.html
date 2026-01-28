@@ -1,6 +1,13 @@
 <html>
   <head>
     {% include "std-headers.html" %}
+
+    {# Put any extra css or script needs inside block head
+       in the child template. See tags.html for an example.
+     #}
+    {% block head %}
+    {% endblock %}
+
   </head>
   <body>
 
