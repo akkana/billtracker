@@ -509,12 +509,30 @@ def track_untrack():
             # print("Updating", new_bills, "from the accdb", sys.stderr)
             # accdb.update_bills(new_bills, session["yearcode"])
 
+            # Difference between track_bills and bills_to_track:
+            # bills_to_track are newly-tracked bill objects that already existed;
+            # track_bills is the list of newly tracked billnos, some of which
+            # did not already exist in the database and needed to be fetched.
+            # Once they're fetched, the objects are added to new_bills.
+            # So bills_to_track + new_bills = objects corresp. to track_bills
+
             track_bills = sorted(list(track_bills))
             flash("You are now tracking %s" % ', '.join(track_bills))
 
             # Now add all the bills to track to the user's list
             # (hitting the database):
             for bill in bills_to_track:
+                # Already checked that the user wasn't tracking this bill,
+                # but suddenly in 2026 somehow we're getting errors like
+                # sqlalchemy.exc.IntegrityError: (psycopg2.errors.UniqueViolation) duplicate key value violates unique constraint "idx_16621_userbills_pkey"
+                # DETAIL:  Key (user_id, bill_id)=(6, 2510) already exists
+                # on the db.session.commit() line
+                # so check again to make sure:
+                if bill in current_user.bills:
+                    print("******* Eek! user", user,
+                          "already tracks existing bill", bill,
+                          file=sys.stderr)
+                    continue
                 current_user.bills.append(bill)
                 # In late 2025, tracked bills are no longer getting remembered,
                 # they're remembered for a little while, but then forgotten later,
@@ -524,8 +542,14 @@ def track_untrack():
                 db.session.add(bill)
 
             for bill in new_bills:
-                db.session.add(bill)
+                # This really shouldn't be able to happen, but let's check anyway
+                if bill in current_user.bills:
+                    print("******* Eek! user", user,
+                          "already tracks **NEW** bill", bill,
+                          file=sys.stderr)
+                    continue
                 current_user.bills.append(bill)
+                db.session.add(bill)
 
         if track_bills or untrack_bills:
             # We changed something. Finish up and commit.
