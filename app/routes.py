@@ -1274,13 +1274,16 @@ def show_trackers(whichtracker=None, yearcode=None):
             pass
 
         # Now display the contents of the HTML file
-        with open (os.path.join(trackingdir, whichtracker)) as fp:
-            content = fp.read()
-            content += '<p>\n<a href="/trackers">All Tracking Sheets</a>'
-            return render_template('include.html',
-                                   title=pagetitle,
-                                   filename=whichtracker,
-                                   content=content)
+        try:
+            with open (os.path.join(trackingdir, whichtracker)) as fp:
+                content = fp.read()
+                content += '<p>\n<a href="/trackers">All Tracking Sheets</a>'
+                return render_template('include.html',
+                                       title=pagetitle,
+                                       filename=whichtracker,
+                                       content=content)
+        except:
+            flash("Couldn't open '%s'" % os.path.join(trackingdir, whichtracker))
 
     trackers = []
     try:
