@@ -542,6 +542,8 @@ def track_untrack():
                 db.session.add(bill)
 
             for bill in new_bills:
+                db.session.add(bill)
+
                 # This really shouldn't be able to happen, but let's check anyway
                 if bill in current_user.bills:
                     print("******* Eek! user", user,
@@ -549,7 +551,6 @@ def track_untrack():
                           file=sys.stderr)
                     continue
                 current_user.bills.append(bill)
-                db.session.add(bill)
 
         if track_bills or untrack_bills:
             # We changed something. Finish up and commit.

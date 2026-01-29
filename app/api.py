@@ -1067,7 +1067,7 @@ def update_tracking_lists(key, yearcode=None):
 
                     # status
                     if bill:
-                        print("  <td>%s</td>" % bill.statusHTML, file=ofp)
+                        print("  <td>%s</td>" % bill.location_html(), file=ofp)
                     else:
                         print_cell("status")
 

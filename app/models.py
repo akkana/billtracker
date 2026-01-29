@@ -709,6 +709,69 @@ class Bill(db.Model):
     def overview_url(self):
         return nmlegisbill.bill_overview_url(self.billno, self.year)
 
+    @staticmethod
+    def highlight_if_recent(adate, pre_string):
+        if adate and \
+           ((datetime.now() - adate) < timedelta(hours=30)):
+            return "<b>%s %s</b>" % (pre_string,
+                                     adate.strftime('%a %m/%d/%Y'))
+        else:
+            return "%s %s" % (pre_string,
+                              adate.strftime('%a %m/%d/%Y'))
+
+    def location_html(self):
+        comm = Committee.query.filter_by(code=self.location).first()
+        if comm:
+            outstr = 'Location: ' \
+                      '<a href="%s" target="_blank">%s</a><br />' % \
+                      (comm.get_link(), comm.name)
+
+        else:        # A location that has no committee entry
+            outstr = 'Location: %s<br />' % self.location
+
+        today = date.today()
+
+        if self.scheduled_date:
+            sched_date = self.scheduled_date.date()
+
+            future = self.scheduled_in_future()
+
+            # If the bill is scheduled in the future, bold it:
+            if future:
+                outstr += ' <b class="highlight">'
+                if self.scheduled_date.hour \
+                   and (not comm or not comm.mtg_time):
+                    outstr += 'SCHEDULED: %s</b><br />' \
+                      % (self.scheduled_date.strftime(
+                          '%a %m/%d/%Y %H:%M'))
+                elif comm and comm.mtg_time:
+                    outstr += 'SCHEDULED: %s %s</b><br />' \
+                      % (self.scheduled_date.strftime(
+                          '%a %m/%d'), comm.mtg_time)
+                else:
+                    outstr += 'SCHEDULED: %s</b><br />' \
+                      % (self.scheduled_date.strftime('%a %m/%d'))
+
+                outstr += '</b>'
+
+            # if it's not considered future but still today,
+            # highlight that:
+            elif sched_date == today:
+                outstr += ' Was scheduled today, %s<br />' \
+                    % self.scheduled_date.strftime('%a %m/%d/%Y')
+
+            # otherwise show the most recent of scheduled or last_action,
+            # and highlight it if it's recent.
+            elif self.last_action_date:
+                if self.last_action_date > self.scheduled_date.replace(tzinfo=None):
+                    outstr += self.highlight_if_recent(self.last_action_date,
+                                                       "Last action")
+                else:
+                    outstr += self.highlight_if_recent(self.last_action_date,
+                                                       "Last scheduled")
+                outstr += '<br />'
+
+        return outstr
 
     def show_html(self):
         """Show a summary of the bill's status, as seen on a user's home page.
@@ -728,67 +791,10 @@ class Bill(db.Model):
         if last_action:
             last_action = last_action.replace(tzinfo=None)
 
-        def highlight_if_recent(adate, pre_string):
-            if adate and \
-               ((now - adate) < timedelta(hours=30)):
-                return "<b>%s %s</b>" % (pre_string,
-                                         adate.strftime('%a %m/%d/%Y'))
-            else:
-                return "%s %s" % (pre_string,
-                                  adate.strftime('%a %m/%d/%Y'))
+        now = datetime.now()
 
         if self.location:
-            comm = Committee.query.filter_by(code=self.location).first()
-            if comm:
-                outstr += 'Location: ' \
-                          '<a href="%s" target="_blank">%s</a><br />' % \
-                          (comm.get_link(), comm.name)
-
-            else:        # A location that has no committee entry
-                outstr += 'Location: %s<br />' % self.location
-
-            now = datetime.now()
-            today = now.date()
-
-            if self.scheduled_date:
-                sched_date = self.scheduled_date.date()
-
-                future = self.scheduled_in_future()
-
-                # If the bill is scheduled in the future, bold it:
-                if future:
-                    outstr += ' <b class="highlight">'
-                    if self.scheduled_date.hour \
-                       and (not comm or not comm.mtg_time):
-                        outstr += 'SCHEDULED: %s</b><br />' \
-                          % (self.scheduled_date.strftime(
-                              '%a %m/%d/%Y %H:%M'))
-                    elif comm and comm.mtg_time:
-                        outstr += 'SCHEDULED: %s %s</b><br />' \
-                          % (self.scheduled_date.strftime(
-                              '%a %m/%d'), comm.mtg_time)
-                    else:
-                        outstr += 'SCHEDULED: %s</b><br />' \
-                          % (self.scheduled_date.strftime('%a %m/%d'))
-
-                    outstr += '</b>'
-
-                # if it's not considered future but still today,
-                # highlight that:
-                elif sched_date == today:
-                    outstr += ' Was scheduled today, %s<br />' \
-                        % self.scheduled_date.strftime('%a %m/%d/%Y')
-
-                # otherwise show the most recent of scheduled or last_action,
-                # and highlight it if it's recent.
-                elif last_action:
-                    if last_action > self.scheduled_date.replace(tzinfo=None):
-                        outstr += highlight_if_recent(last_action,
-                                                      "Last action")
-                    else:
-                        outstr += highlight_if_recent(last_action,
-                                                      "Last scheduled")
-                    outstr += '<br />'
+            outstr += self.location_html()
 
         else:            # No location set
             outstr += 'Location: unknown<br />'
@@ -800,7 +806,7 @@ class Bill(db.Model):
         # XXX Tabled info should be in the database somehow.
 
         if self.last_action_date:
-            outstr += highlight_if_recent(last_action, "Last action")
+            outstr += self.highlight_if_recent(last_action, "Last action")
 
         # Bills don't have action dates on signing:
         # elif not self.statustext or not self.statustext.startswith('Signed'):
