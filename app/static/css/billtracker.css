@@ -219,7 +219,8 @@ table.bordered th, table.bordered td {
 table.bordered th { text-align: left; }
 
 tr.tabled { color: #888; }
-tr.notassigned { color: #660; }
+tr.notscheduled { color: #660; }
+tr.notfiled { color: #995; }
 
 /* The captcha on the registration page */
 .captcha {
