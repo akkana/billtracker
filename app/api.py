@@ -1105,13 +1105,12 @@ def update_tracking_lists(key, yearcode=None):
                         print("  <td>&nbsp;</td>", file=ofp)
 
                     # Comments -- free-form-ish, with a few codes like TABLED
+                    commentlist = []
                     if rowclass == 'notscheduled':
-                        comments = 'NOT SCHEDULED'
-                    else:
-                        comments = ''
+                        commentlist.append('NOT SCHEDULED')
                     if 'comments' in billdic:
-                        comments += ', ' + billdic['comments']
-                    print("<td>%s</td>" %  comments, file=ofp)
+                        commentlist.append(billdic['comments'])
+                    print("<td>%s</td>" %  ', '.join(commentlist), file=ofp)
 
                     # status
                     if bill:
