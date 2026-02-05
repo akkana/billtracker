@@ -5,7 +5,7 @@
 from app import app, db
 from app.models import User, Bill, Legislator, Committee, LegSession
 from app.routeutils import BILLNO_PAT
-from app.bills import nmlegisbill, billrequests, accdb
+from app.bills import nmlegisbill, billrequests, accdb, billutils
 from .routeutils import set_session_by_request_values, make_new_bill
 
 from flask import session, request, jsonify
@@ -908,7 +908,7 @@ def update_tracking_lists(key, yearcode=None):
     retstr = ''
 
     # A key to sort by billno
-    def billdic_sortkey(bd):
+    def sortkey_by_billno(bd):
         if 'billno' not in bd:
             return 'ZZ'
         billno = bd['billno'].strip()
@@ -947,8 +947,6 @@ def update_tracking_lists(key, yearcode=None):
         shortorgname = trackingjson["org"]
         trackingdata = trackingjson["tracking"]
 
-        print("Updating", jsonfile, file=sys.stderr)
-
         for topicdic in trackingdata:
             for billdict in topicdic['bills']:
                 # billno, title, sponsor, status
@@ -971,7 +969,7 @@ def update_tracking_lists(key, yearcode=None):
 
             # Done with bills in this topic;
             # now sort each category by bill number
-            topicdic["bills"].sort(key=billdic_sortkey)
+            topicdic["bills"].sort(key=sortkey_by_billno)
 
         # All the bills are updated, as far as possible.
         # re-save the JSON after making a backup
@@ -990,45 +988,76 @@ def update_tracking_lists(key, yearcode=None):
                   now.strftime("%a, %b %-d, %Y %-I:%M %p"), file=ofp)
             print("""<table class="bordered">
     <tr>
-    <td><strong>Bill</strong></td>
-    <td><strong>Legislation Name/Description</strong></td>
-    <td><strong>Sponsor</strong></td>
-    <td><strong>Date</strong></td>
-    <td><strong>Status</strong></td>
+    <th><strong>Bill</strong></th>
+    <th><strong>Legislation Name/Description</strong></th>
+    <th><strong>Sponsors</strong></th>
+    <th><strong>Comments</strong></th>
+    <th><strong>Status</strong></th>
     </tr>""", file=ofp)
 
             for topicdic in trackingdata:
                 print("<tr><th colspan=5>%s</th></tr>" % topicdic["topic"],
                       file=ofp)
 
+                # Sort bill list to put tabled or dead bills last,
+                # bills in HRC or SCC next to last.
+                def sortkey_topicbills(billdic):
+                    try:
+                        billno = billdic['billno']
+                    except:
+                        billno = 'xx999'
+
+                    if 'comments' in billdic and 'TABLED' in billdic['comments']:
+                        return 'zz' + billno
+                    # Would be nice to put SCC and HXRC bills as 'yy' + billno
+                    # but that would require having the bill object,
+                    # not just the bill string
+                    return billno
+
+                topicdic["bills"].sort(key=sortkey_topicbills)
+
                 for billdic in topicdic["bills"]:
                     bill = None
-                    print("<tr>", file=ofp)
+
+                    if 'comments' in billdic and 'TABLED' in billdic['comments']:
+                        rowclass = 'tabled'
+                    else:
+                        rowclass = 'bill'
+                    print('<tr class="%s">' % rowclass, file=ofp)
 
                     # First cell: billno, linkified
                     billno = ''
                     if "billno" in billdic:
-                        billno = billdic["billno"].strip()
+                        billno = billutils.sanitize_billno(billdic["billno"])
+                        # XXX should also do things like remove internal spaces
                     if billno:
                         bill = Bill.query.filter_by(billno=billno,
                                                     year=yearcode).first()
                         if bill:
+                            if (bill.location == 'SCC'
+                                or bill.location == 'Senate Committees Committee'
+                                or bill.location == 'HXRC'
+                                or bill.location ==
+                                       'House Rules & Order Of Business'):
+                                rowclass = 'notassigned'
+                            print('<tr class="%s">' % rowclass, file=ofp)
                             print("  <td><a href='%s' target='_blank'>%s</a></td>"
-                                  % (bill.bill_url(), billno), file=ofp)
+                                      % (bill.bill_url(), billno), file=ofp)
                         else:
                             print("Couldn't load bill '%s'" % billno,
-                                  billdic['title'], file=sys.stderr)
+                                  (billdic['title'] if 'title' in billdic else '(no title)'), file=sys.stderr)
+                            print('<tr class="%s">' % rowclass, file=ofp)
                             print("  <td>%s</td>" % billno, file=ofp)
-                    else:
+                    else:        # No bill filed yet
+                        print('<tr class="%s">' % rowclass, file=ofp)
                         if 'title' in billdic:
                             print("No billno for '%s'" % billdic['title'],
                                   file=sys.stderr)
                         else:
-                            print("No billno for", billdic,
-                                  file=sys.stderr)
+                            print("No billno for", billdic, file=sys.stderr)
                         print("  <td>&nbsp;</td>", file=ofp)
 
-                    # title, sponsor, date
+                    # title, sponsor
                     def print_cell(fieldname):
                         if fieldname in billdic and billdic[fieldname]:
                             if (fieldname == 'title' and 'oppose' in billdic
@@ -1063,7 +1092,9 @@ def update_tracking_lists(key, yearcode=None):
                             print("<td>&nbsp;</td>", file=ofp)
                     else:
                         print("  <td>&nbsp;</td>", file=ofp)
-                    print_cell("date")
+
+                    # Comments -- free-form-ish, with a few codes like TABLED
+                    print_cell("comments")
 
                     # status
                     if bill:

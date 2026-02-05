@@ -11,9 +11,9 @@ from urllib.parse import urlparse
 
 
 def year_to_2digit(year):
-    '''Translate a year in various formats to the 2-digit string
+    """Translate a year in various formats to the 2-digit string
        used on nmlegis, e.g. '19' rather than '2019' or 2019 or 19.
-    '''
+    """
     if type(year) is int:
         if year > 2000:
             year -= 2000
@@ -31,16 +31,23 @@ def year_to_2digit(year):
 
 
 def billno_to_parts(billno):
-    '''Split a bill number into its parts: chamber, billtype, number
+    """Split a bill number into its parts: chamber, billtype, number
        Return chamber, billtype, number as strings
        suitable for an nmlegis URL.
-    '''
+    """
     # billno is chamber, bill type, digits, e.g. HJM4. Parse that:
     match = re.match('([HS])([A-Z]+) *([0-9]+)', billno)
     if not match:
         raise RuntimeError("I don't understand bill number '%s'" % billno)
     chamber, billtype, number = match.groups()
     return chamber, billtype, number
+
+
+def sanitize_billno(billno_str):
+    """Change something like ' hb 223 ' into 'HB223'
+    """
+    # Better: https://www.digitalocean.com/community/tutorials/python-remove-spaces-from-string
+    return billno_str.upper().replace(" ", "")
 
 
 #
@@ -59,20 +66,20 @@ def billno_to_parts(billno):
 
 class URLmapper:
     def __init__(self, baseurl, billurlpat):
-        '''baseurl is the basic top-level home page (no terminal slash).
+        """baseurl is the basic top-level home page (no terminal slash).
            billurlpat is the URL pattern for bills, taking five arguments:
            baseurl, chamber, billtype, number and (2-digit string) year.
            If you need something that doesn't include these four
            patterns in that order, redefine bill_url() accordingly.
-        '''
+        """
         self.baseurl = baseurl
         self.billurlpat = billurlpat
 
     def to_abs_link(self, url, cururl):
-        '''Try to map relative and / URLs to absolute ones.
+        """Try to map relative and / URLs to absolute ones.
            cururl is the page on which the link was found,
            for relative links like ../
-        '''
+        """
         if not url:
             return url
         purl = urlparse(url)
@@ -92,9 +99,9 @@ class URLmapper:
         return url
 
     def to_local_link(self, url, cururl):
-        '''In URLmappers that are local, return a local link
+        """In URLmappers that are local, return a local link
            that won't hit the server.
-        '''
+        """
         return url
 
     def bill_url(self, chamber, billtype, number, year):
@@ -113,20 +120,20 @@ class LocalhostURLmapper(URLmapper):
         self.realbillurlpat = realbillurlpat
 
     def to_local_link(self, url, cururl):
-        '''In URLmappers that are local, return a local link
+        """In URLmappers that are local, return a local link
            that won't hit the server.
-        '''
+        """
         if not url:
             return url
         return URLmapper.to_abs_link(self, url, cururl)
         # This should be an absolute link in terms of localhost.
 
     def to_abs_link(self, url, cururl):
-        '''Try to map relative, / and localhost URLs to absolute ones
+        """Try to map relative, / and localhost URLs to absolute ones
            based on the realurl.
            cururl is the page on which the link was found,
            for relative links like ../
-        '''
+        """
         mapped_url = self.to_local_link(url, None)
 
         # Now we have an absolute link in terms of localhost.
@@ -160,9 +167,9 @@ class LocalhostURLmapper(URLmapper):
 
 # Use cached local files: good for unit tests.
 class LocalURLmapper(URLmapper):
-    '''For debugging, look for files like ./test/2018-HJR1.html
+    """For debugging, look for files like ./test/2018-HJR1.html
        but still use the real links for other links.
-    '''
+    """
     def __init__(self, baseurl):
         self.baseurl = baseurl
 
@@ -171,9 +178,9 @@ class LocalURLmapper(URLmapper):
                                             chamber, billtype, number)
 
     def to_local_link(self, url, cururl):
-        '''In URLmappers that are local, return a local link
+        """In URLmappers that are local, return a local link
            that won't hit the server.
-        '''
+        """
         if not url:
             return url
 
