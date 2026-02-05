@@ -1071,8 +1071,8 @@ def update_tracking_lists(key, yearcode=None):
                     # title, sponsor
                     def print_cell(fieldname):
                         if fieldname in billdic and billdic[fieldname]:
-                            if (fieldname == 'title' and 'oppose' in billdic
-                                and billdic['oppose']):
+                            if (fieldname == 'title'
+                                and 'oppose' in billdic and billdic['oppose']):
                                 print("  <td><i>%s (OPPOSE)</i></td>"
                                       % billdic[fieldname], file=ofp)
                             else:
@@ -1108,6 +1108,8 @@ def update_tracking_lists(key, yearcode=None):
                     commentlist = []
                     if rowclass == 'notscheduled':
                         commentlist.append('NOT SCHEDULED')
+                    if 'oppose' in billdic and billdic['oppose']:
+                        commentlist.append('OPPOSE')
                     if 'comments' in billdic:
                         commentlist.append(billdic['comments'])
                     print("<td>%s</td>" %  ', '.join(commentlist), file=ofp)
