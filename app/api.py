@@ -1068,7 +1068,6 @@ def update_tracking_lists(key, yearcode=None):
                             print("No billno for", billdic, file=sys.stderr)
                         print("  <td>&nbsp;</td>", file=ofp)
 
-                    # title, sponsor
                     def print_cell(fieldname):
                         if fieldname in billdic and billdic[fieldname]:
                             if (fieldname == 'title'
@@ -1080,7 +1079,15 @@ def update_tracking_lists(key, yearcode=None):
                                       file=ofp)
                         else:
                             print("  <td>&nbsp;</td>", file=ofp)
-                    print_cell("title")
+
+                    # title
+                    if bill:
+                        # Link to nmlegiswatch page if possible
+                        print("  <td><a href='https://nmlegiswatch.org/bills/"
+                              "%s.html' target='_blank'>%s</a></td>"
+                              % (bill.billno, bill.title), file=ofp)
+                    else:
+                        print_cell("title")
 
                     # Sponsor list
                     if 'sponsor' in billdic and billdic['sponsor']:
