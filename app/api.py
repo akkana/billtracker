@@ -948,6 +948,9 @@ def update_tracking_lists(key, yearcode=None):
         trackingdata = trackingjson["tracking"]
 
         for topicdic in trackingdata:
+            # Run through bills in this topic, fetching a Bill object
+            # if there is one, or making a new object,
+            # then updating the billdict fields accordingly.
             for billdict in topicdic['bills']:
                 # billno, title, sponsor, status
                 if not 'billno' in billdict or not billdict['billno']:
@@ -980,7 +983,8 @@ def update_tracking_lists(key, yearcode=None):
             json.dump(trackingjson, ofp, indent=2, ensure_ascii=False)
             print("Updated", jsonfile, file=sys.stderr)
 
-        # Generate an HTML version
+        # Generate an HTML view. This is generated here and saved
+        # as a static file so outside websites can incorporate it.
         htmlpath = jsonpath.replace('.json', '.html')
         with open(htmlpath, 'w') as ofp:
             print("<p>", file=ofp)
@@ -1034,14 +1038,20 @@ def update_tracking_lists(key, yearcode=None):
 
                 topicdic["bills"].sort(key=sortkey_topicbills)
 
-                for billdic in topicdic["bills"]:
+                for rowindex, billdic in enumerate(topicdic["bills"]):
                     bill = None
 
-                    if 'comments' in billdic and 'TABLED' in billdic['comments']:
+                    if ('comments' in billdic
+                        and 'TABLED' in billdic['comments']):
                         rowclass = 'tabled'
                     else:
                         rowclass = 'bill'
-                    print('<tr class="%s">' % rowclass, file=ofp)
+                    if rowindex % 2:
+                        oddeven = 'odd'
+                    else:
+                        oddeven = 'even'
+                    # print('<tr class="%s %s">' % (rowclass),
+                    #       file=ofp)
 
                     # First cell: billno, linkified
                     if 'billno' in billdic:
@@ -1054,16 +1064,19 @@ def update_tracking_lists(key, yearcode=None):
                         if bill:
                             if not_scheduled(bill.location):
                                 rowclass = 'notscheduled'
-                            print('<tr class="%s">' % rowclass, file=ofp)
+                            print('<tr class="%s %s">' % (rowclass, oddeven),
+                                  file=ofp)
                             print("  <td><a href='%s' target='_blank'>%s</a></td>"
                                       % (bill.bill_url(), billno), file=ofp)
                         else:
                             print("Couldn't load bill '%s'" % billno,
                                   (billdic['title'] if 'title' in billdic else '(no title)'), file=sys.stderr)
-                            print('<tr class="%s">' % rowclass, file=ofp)
+                            print('<tr class="%s %s">' % (rowclass, oddeven),
+                                  file=ofp)
                             print("  <td>%s</td>" % billno, file=ofp)
                     else:        # No billno, no bill filed yet
-                        print('<tr class="%s">' % rowclass, file=ofp)
+                        print('<tr class="%s %s">' % (rowclass, oddeven),
+                              file=ofp)
                         if 'title' in billdic:
                             print("No billno for '%s'" % billdic['title'],
                                   file=sys.stderr)

@@ -823,7 +823,7 @@ class Bill(db.Model):
 
             actioncode = self.get_actioncode()
 
-            statustext = statustext.strip()
+            statustext = self.statustext.strip()
             if actioncode:
                 location, status, fullhist = \
                     decodenmlegis.decode_full_history(actioncode)

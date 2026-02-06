@@ -214,6 +214,8 @@ table.progress td { text-align: center !important; border: 1px solid #ddd; }
 /* The table used in tracking sheets */
 table.trackingsheet {
     border-collapse: collapse;
+    tr.odd td  { background: #fff; }
+    tr.even td { background: #dfe; }
     tr.bill, tr.notfiled, tr.notscheduled, tr.bill {
         border-top: 3px solid #668;
         td { border: 1px solid #ddd; padding: .35em; }
@@ -222,7 +224,7 @@ table.trackingsheet {
                 th { background: #eef; padding: .5em; margin: .25em; }
               }
     tr.topictitle th { background: #00a; color: white; text-align: center;
-                       padding: .9em .2em; }
+                       font-size: 1.4em; padding: .6em .2em; }
 
     tr.tabled { color: #777; }
     tr.notscheduled { color: #660; }
