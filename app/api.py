@@ -986,14 +986,16 @@ def update_tracking_lists(key, yearcode=None):
             print("<p>", file=ofp)
             print("Last updated:",
                   now.strftime("%a, %b %-d, %Y %-I:%M %p"), file=ofp)
-            print("""<table class="bordered">
-    <tr>
+            print("<br /><br />", file=ofp)
+            print('<table class="trackingsheet">', file=ofp)
+
+            billheader = """<tr class='header'>
     <th><strong>Bill</strong></th>
     <th><strong>Legislation Name/Description</strong></th>
     <th><strong>Sponsors</strong></th>
     <th><strong>Comments</strong></th>
     <th><strong>Status</strong></th>
-    </tr>""", file=ofp)
+    </tr>"""
 
             def not_scheduled(bill_loc):
                 return (bill_loc == 'SCC'
@@ -1002,8 +1004,9 @@ def update_tracking_lists(key, yearcode=None):
                         or bill_loc == 'House Rules & Order Of Business')
 
             for topicdic in trackingdata:
-                print("<tr><th colspan=5>%s</th></tr>" % topicdic["topic"],
-                      file=ofp)
+                print("<tr class='topictitle'><th colspan=5>%s</th></tr>"
+                      % topicdic["topic"], file=ofp)
+                print(billheader, file=ofp)
 
                 # Sort bill list to put tabled or dead bills last,
                 # bills in HRC or SCC next to last.
@@ -1128,6 +1131,14 @@ def update_tracking_lists(key, yearcode=None):
                         print_cell("status")
 
                     print("</tr>", file=ofp)
+
+                    # Show the progress graph too
+                    if bill:
+                        print("<tr class='progress-gradient'><td colspan=5>",
+                              file=ofp)
+                        print(bill.html_progress_graph(), file=ofp)
+                        print("</td></tr>", file=ofp)
+                    print("<tr><td>&nbsp;</td></tr>", file=ofp)
 
             print("</table>", file=ofp)
             htmlfile = jsonfile.replace('.json', '.html')

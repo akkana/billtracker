@@ -211,16 +211,28 @@ table.progress td { text-align: center !important; border: 1px solid #ddd; }
     background: white !important; color: #777; padding: 0 !important;
 }
 
-/* Basic tables, like those used in tracking sheets */
-table.bordered {  border: 1px solid #aaa; width: auto; margin: 1em; }
-table.bordered th, table.bordered td {
-  border: 1px solid #aaa; width: auto; margin: 1em; padding: .3em;
-}
-table.bordered th { text-align: left; }
+/* The table used in tracking sheets */
+table.trackingsheet {
+    border-collapse: collapse;
+    tr.bill, tr.notfiled, tr.notscheduled, tr.bill {
+        border-top: 3px solid #668;
+        td { border: 1px solid #ddd; padding: .35em; }
+    }
+    tr.header { padding: .4;
+                th { background: #eef; padding: .5em; margin: .25em; }
+              }
+    tr.topictitle th { background: #00a; color: white; text-align: center;
+                       padding: .9em .2em; }
 
-tr.tabled { color: #888; }
-tr.notscheduled { color: #660; }
-tr.notfiled { color: #995; }
+    tr.tabled { color: #777; }
+    tr.notscheduled { color: #660; }
+    tr.notfiled { color: #995; }
+    tr.tabled a, tr.notscheduled a, tr.notfiled a {
+        color: #67f;
+    }
+    a { color: blue; text-decoration: none; }
+    a:hover { color: blue !important; text-decoration: underline; background: #ffa; }
+}
 
 /* The captcha on the registration page */
 .captcha {

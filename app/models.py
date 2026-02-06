@@ -821,21 +821,7 @@ class Bill(db.Model):
             # statusHTML is full of crap this year, so prefer statustext
             # even in HTML.
 
-            # But first, pull the action code out of statustext
-            # to be dealt with separately.
-            if '\n' in self.statustext:
-                lines = self.statustext.split('\n')
-                # Is it really an action code? Or just the last line
-                # of normal actiontext?
-                actioncode = lines[-1]
-                if '[' in actioncode:
-                    statustext = ', '.join(lines[:-1])
-                else:
-                    statustext = ', '.join(lines)
-                    actioncode = ''
-            else:
-                statustext = self.statustext.strip()
-                actioncode = ''
+            actioncode = self.get_actioncode()
 
             statustext = statustext.strip()
             if actioncode:
@@ -859,32 +845,7 @@ class Bill(db.Model):
                           '<br />\n' \
                           % (hist_str, actioncode)
 
-                # add a progress graph
-                past_locs, future_locs = \
-                    decodenmlegis.get_location_lists(self.billno, fullhist)
-                # print(self.billno, "past_locs:", past_locs)
-                # print("   future_locs:", future_locs)
-
-                total_steps = len(past_locs) + len(future_locs)
-                # If there are any H??? or S???, count those double
-                # since most bills will be assigned at least 2 committees
-                if 'H???' in future_locs:
-                    total_steps += 1
-                if 'S???' in future_locs:
-                    total_steps += 1
-                stepsize = int(100. / total_steps)
-
-                outstr += '''<table class="progress" style="width: 100%;">
-<tr class="progress-gradient">\n'''
-                for loc in past_locs:
-                    # Temporary, just for proof of concept
-                    outstr += '<td class="gradpiece" title="%s" ' % loc
-                    outstr += 'style="width: %d%%">%s</td>' % (stepsize, loc)
-                for loc in future_locs:
-                    outstr += '<td class="notpassed" title="%s" ' % loc
-                    outstr += 'style="width: %d%%">%s</td>' % (stepsize, loc)
-
-                outstr += '</tr></table>\n'
+                outstr += self.html_progress_graph(fullhist)
 
         elif self.statusHTML:
             # not likely to be used, to have statusHTML but no statustext
@@ -919,6 +880,60 @@ class Bill(db.Model):
 
         if self.tags:
             outstr += "Tags: " + self.tags
+
+        return outstr
+
+    def get_actioncode(self):
+        """pull the action code out of statustext to be dealt with separately."""
+        if '\n' in self.statustext:
+            lines = self.statustext.split('\n')
+            # Is it really an action code? Or just the last line
+            # of normal actiontext?
+            actioncode = lines[-1]
+            if '[' in actioncode:
+                statustext = ', '.join(lines[:-1])
+            else:
+                statustext = ', '.join(lines)
+                actioncode = ''
+        else:
+            statustext = self.statustext.strip()
+            actioncode = ''
+        return actioncode
+
+    def html_progress_graph(self, fullhist=None):
+        """a progress graph"""
+
+        if not fullhist:
+            location, status, fullhist = \
+                decodenmlegis.decode_full_history(self.get_actioncode()
+)
+        outstr = ''
+
+        past_locs, future_locs = \
+            decodenmlegis.get_location_lists(self.billno, fullhist)
+        # print(self.billno, "past_locs:", past_locs)
+        # print("   future_locs:", future_locs)
+
+        total_steps = len(past_locs) + len(future_locs)
+        # If there are any H??? or S???, count those double
+        # since most bills will be assigned at least 2 committees
+        if 'H???' in future_locs:
+            total_steps += 1
+        if 'S???' in future_locs:
+            total_steps += 1
+        stepsize = int(100. / total_steps)
+
+        outstr += '''<table class="progress" style="width: 100%;">
+<tr class="progress-gradient">\n'''
+        for loc in past_locs:
+            # Temporary, just for proof of concept
+            outstr += '<td class="gradpiece" title="%s" ' % loc
+            outstr += 'style="width: %d%%">%s</td>' % (stepsize, loc)
+        for loc in future_locs:
+            outstr += '<td class="notpassed" title="%s" ' % loc
+            outstr += 'style="width: %d%%">%s</td>' % (stepsize, loc)
+
+        outstr += '</tr></table>\n'
 
         return outstr
 
