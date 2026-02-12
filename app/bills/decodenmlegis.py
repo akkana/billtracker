@@ -4,6 +4,7 @@
 """
 
 import re
+import sys
 
 # Locations that are not committees
 special_locations = ( "Senate", "House", "Passed", "Died",

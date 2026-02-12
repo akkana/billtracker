@@ -966,9 +966,12 @@ def update_tracking_lists(key, yearcode=None):
                         print("Couldn't make a bill called", billdict['billno'],
                               file=sys.stderr)
                         continue
-                billdict['title'] = bill.title
-                billdict['sponsor'] = bill.sponsor  # comma separated sponcodes
-                billdict['status'] = bill.statustext
+                if bill:
+                    billdict['title'] = bill.title
+                    billdict['sponsor'] = bill.sponsor # comma sep. sponcodes
+                    billdict['status'] = bill.statustext
+                else:
+                    print("Couldn't make a new bill", file=sys.stderr)
 
             # Done with bills in this topic;
             # now sort each category by bill number
@@ -1014,6 +1017,7 @@ def update_tracking_lists(key, yearcode=None):
 
                 # Sort bill list to put tabled or dead bills last,
                 # bills in HRC or SCC next to last.
+                # XXX This isn't getting the billno right, HB127 comes before HB13
                 def sortkey_topicbills(billdic):
                     try:
                         billno = billdic['billno']
