@@ -15,7 +15,7 @@
 <table id="billtable" class="bill_minilist">
  <thead>
    <tr>
-     <th>Bill # <th>Name/Description <th>Sponsor <th>Status <th>Oppose?
+     <th>Bill # <th>Name/Description <th>Sponsor <th>Comments <th>Oppose?
      </tr>
 </thead>
 <tbody>
@@ -28,7 +28,6 @@
       <td><input name="title||{{ bill['id'] }}" size="50" type="text" value="{{ bill['title'] }}"></td>
       <td><input name="sponsor||{{ bill['id'] }}" size="20" type="text" value="{{ bill['sponsor'] }}"></td>
       <td><input name="comments||{{ bill['id'] }}" size="35" type="text" value="{{ bill['comments'] }}"></td>
-      <td><input name="status||{{ bill['id'] }}" size="35" type="text" value="{{ bill['status'] }}"></td>
       <td><input name="oppose||{{ bill['id'] }}" type="checkbox"
         {% if bill['oppose'] %}
             checked

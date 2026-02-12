@@ -97,7 +97,7 @@ table.definitions th {
 }
 
 tr.odd td  { background: #fff; }
-tr.even td { background: #dfe; }
+tr.even td { background: #eefff0; }
 
 /* Odd or even, hovering will highlight the entire row */
 table.bill_list tr:hover td, table.bill_minilist tr:hover td {
@@ -213,9 +213,9 @@ table.progress td { text-align: center !important; border: 1px solid #ddd; }
 
 /* The table used in tracking sheets */
 table.trackingsheet {
-    border-collapse: collapse;
+    border-collapse: collapse;      /* Needed for border-top to work */
     tr.odd td  { background: #fff; }
-    tr.even td { background: #dfe; }
+    tr.even td { background: #eefff0; }
     tr.bill, tr.notfiled, tr.notscheduled, tr.bill {
         border-top: 3px solid #668;
         td { border: 1px solid #ddd; padding: .35em; }
@@ -224,16 +224,16 @@ table.trackingsheet {
                 th { background: #eef; padding: .5em; margin: .25em; }
               }
     tr.topictitle th { background: #00a; color: white; text-align: center;
+                       border: 1px solid black;
                        font-size: 1.4em; padding: .6em .2em; }
 
     tr.tabled { color: #777; }
     tr.notscheduled { color: #660; }
     tr.notfiled { color: #995; }
-    tr.tabled a, tr.notscheduled a, tr.notfiled a {
-        color: #67f;
-    }
+    tr.tabled a, tr.notscheduled a, tr.notfiled a { color: #67f; }
     a { color: blue; text-decoration: none; }
-    a:hover { color: blue !important; text-decoration: underline; background: #ffa; }
+    a:hover { color: blue !important; background: #ffa;
+              text-decoration: underline; }
 }
 
 /* The captcha on the registration page */
