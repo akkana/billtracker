@@ -1350,24 +1350,31 @@ def edit_trackingsheet(whichtracker, passwd=None):
 
         # If the passwd was already specified in the URL, accept that,
         # otherwise see if it was passed in from the form.
-        if not passwd:
-            if 'passwd' not in formvalues:
-                return "FAIL Password required for editing tracking sheets"
-            passwd = formvalues['passwd']
-            if passwd != app.config["SECRET_KEY"]:
-                return "FAIL bad password\n"
+        # XXX This doesn't happen any more, but might need to
+        # enable it some day.
+        # if not passwd:
+        #     if 'passwd' not in formvalues:
+        #         return "FAIL Password required for editing tracking sheets"
+        #     passwd = formvalues['passwd']
+        #     if passwd != app.config["SECRET_KEY"]:
+        #         return "FAIL bad password\n"
 
         # Extract all the form data into a dictionary
         topicbills = {}
         for formkey in formvalues:
             if '||' not in formkey:
+                print("No || in", formkey, file=sys.stderr)
                 continue
             # Don't bother with empty fields
             if not formvalues[formkey]:
+                print("Empty value for", formkey, file=sys.stderr)
                 continue
             try:
                 fieldname, topic, number = re.match(
                     r'^([a-z]+)\|\|(.*)\|\|([0-9]+)$', formkey).groups()
+                print("split fieldname %s: topic %s, number %s: '%s'"
+                      % (fieldname, topic, number, formvalues[formkey]),
+                      file=sys.stderr)
             except:
                 print("Couldn't split", formkey, file=sys.stderr)
                 continue
@@ -1381,7 +1388,7 @@ def edit_trackingsheet(whichtracker, passwd=None):
 
             def sanitize_input(instr):
                 """Sanitize the user input to make sure there's nothing
-                   that might confuse JSON or get interpreted later
+                   that might confuse JSON or pose a security risk
                 """
                 return ''.join([x for x in instr if x.isalnum() or x.isspace()
                                 or x in '-_.,'])
@@ -1391,6 +1398,10 @@ def edit_trackingsheet(whichtracker, passwd=None):
             else:
                 topicbills[topic][number][fieldname] = \
                     sanitize_input(formvalues[formkey])
+                if topic.startswith("Voting"):
+                    print("Set", fieldname, "to",
+                          topicbills[topic][number][fieldname],
+                          file=sys.stderr)
 
         # Make sure each of the required fields is there in the data,
         # and remove empty bills:
@@ -1402,13 +1413,14 @@ def edit_trackingsheet(whichtracker, passwd=None):
                                        for field in bill ])
                 if not allcontent:
                     bills2delete.append(bill)
+                    print("Will delete #", i, file=sys.stderr)
                     continue
 
                 # Check whether this bill duplicates one previously seen.
                 # I'm not sure how the dups get there, and why
                 # deleting one doesn't always succeed; since I haven't been able
-                isdup = False
                 # to find a reproducible case, just winnow them out here.
+                isdup = False
                 # First, does the current bill have a real billno?
                 if 'billno' in bill and re.match(BILLNO_PAT, bill["billno"]):
                     real_billno = bill["billno"]
@@ -1425,7 +1437,7 @@ def edit_trackingsheet(whichtracker, passwd=None):
                     # Otherwise, are the titles identical?
                     elif ('title' in bill and 'title' in oldbill
                           and bill['title'] == oldbill['title']):
-                        print("Duplicate title", bill['title'])
+                        print("Duplicate title", bill['title'], file=sys.stderr)
                         isdup = True
                         break
                 if isdup:
@@ -1450,7 +1462,7 @@ def edit_trackingsheet(whichtracker, passwd=None):
                 topicdic['bills'].append(bill)
             # print("Appending topic", topic)
             trackingjson['tracking'].append(topicdic)
-        # pprint(trackingjson['tracking'])
+        print("trackingjson:", trackingjson['tracking'])
 
         # re-save the JSON after making a backup
         trackingjson['updated'] = datetime.now().strftime('%Y-%m-%d %H:%M')

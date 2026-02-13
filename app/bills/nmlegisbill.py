@@ -225,7 +225,7 @@ def parse_bill_page(billno, yearcode, cache_locally=True, cachesecs=2*60*60):
                 billdic['scheduled_date'] = dateutil.parser.parse(schedstr)
             except:
                 print("Couldn't parse scheduled date", schedstr,
-                      "from '%s'" % curloc_text)
+                      "from '%s'" % curloc_text, file=sys.stderr)
 
     # XXX What's the code for On Governor's Desk? Or Failed, or others?
     # XXX There's also a case where curloc_a is blank and curloc will

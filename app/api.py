@@ -908,10 +908,10 @@ def update_tracking_lists(key, yearcode=None):
     retstr = ''
 
     # A key to sort by billno
-    def sortkey_by_billno(bd):
-        if 'billno' not in bd:
+    def sortkey_by_billno(billdic):
+        if 'billno' not in billdic:
             return 'ZZ'
-        billno = bd['billno'].strip()
+        billno = billdic['billno'].strip()
         if not billno:
             return 'YY'
         m = BILLNO_PAT.match(billno)
@@ -926,6 +926,18 @@ def update_tracking_lists(key, yearcode=None):
             print("Problem parsing '%s' in tracking sheet" % billno,
                   e)
             return 'ZZZ'
+
+    # Sort bill list by billno but put tabled or dead bills last,
+    # bills in HRC or SCC next to last.
+    def sortkey_by_billno_and_status(billdic):
+        billno_key = sortkey_by_billno(billdic)
+
+        if 'comments' in billdic and 'TABLED' in billdic['comments']:
+            return 'zz' + billno_key
+        if ('bill' in billdic and billdic['bill']
+            and not_scheduled(billdic['bill'].location)):
+            return 'xx' + billno_key
+        return billno_key
 
     for jsonfile in os.listdir(trackingdir):
         if not jsonfile.endswith('.json'):
@@ -1015,22 +1027,6 @@ def update_tracking_lists(key, yearcode=None):
                       % topicdic["topic"], file=ofp)
                 print(billheader, file=ofp)
 
-                # Sort bill list to put tabled or dead bills last,
-                # bills in HRC or SCC next to last.
-                # XXX This isn't getting the billno right, HB127 comes before HB13
-                def sortkey_topicbills(billdic):
-                    try:
-                        billno = billdic['billno']
-                    except:
-                        billno = 'yy999'
-
-                    if 'comments' in billdic and 'TABLED' in billdic['comments']:
-                        return 'zz' + billno
-                    if ('bill' in billdic and billdic['bill']
-                        and not_scheduled(billdic['bill'].location)):
-                        return 'xx' + billno
-                    return billno
-
                 # Fetch Bill objects for any billdic that has them.
                 # This will be used in sorting.
                 for billdic in topicdic["bills"]:
@@ -1040,7 +1036,7 @@ def update_tracking_lists(key, yearcode=None):
                         billdic['bill'] = Bill.query.filter_by(
                             billno=billdic['billno'], year=yearcode).first()
 
-                topicdic["bills"].sort(key=sortkey_topicbills)
+                topicdic["bills"].sort(key=sortkey_by_billno_and_status)
 
                 for rowindex, billdic in enumerate(topicdic["bills"]):
                     bill = None
