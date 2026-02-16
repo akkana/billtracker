@@ -226,7 +226,7 @@ def action_code_iter(actioncode):
         curaction = None
         # print("*** yield", part, curday, curloc)
         # Undo the substitution from dashes to underscores
-        yield part.replace('_', '-'), curday, curloc
+        yield part.replace('_', '-'), curday, curloc.replace('/', '')
 
 
 def full_history_text(fullhist):
@@ -366,7 +366,8 @@ def decode_full_history(actioncode):
             continue
 
         if piece.startswith('SGND'):
-            history.append([ legday, "Signed by Governor", piece, loc ])
+            curloc = 'SIGNED'
+            history.append([ legday, "Signed by Governor", piece, curloc ])
             # It's actually 'SGND BY GOV' but just ignore the other 2 words,
             # it's not like it can be SGND by anyone else.
             continue
@@ -420,7 +421,6 @@ def decode_full_history(actioncode):
                           "'%s' doesn't match committee pattern:" % c,
                           piece, file=sys.stderr)
                     raise ValueError
-            # print("assigned:", assigned)
             curloc = assigned[0]
             history.append([ legday, "Assigned %s" % '/'.join(assigned),
                              piece, curloc ])
@@ -496,9 +496,12 @@ def get_location_lists(billno, history):
             continue
 
     # The current location (the last loc setting)
-    # is considered a future loc, not past, so move it.
+    # is considered a future loc, not past, so move it,
+    # unless it's SIGNED or CHAPTERED.
     if pastlocs:
-        futurelocs.append(pastlocs.pop(-1))
+        lastloc = pastlocs[-1]
+        if lastloc != 'SIGNED' and lastloc != 'CHAPTERED':
+            futurelocs.append(pastlocs.pop(-1))
 
     # Now store any assignments not in that list
     for day, action, code, loc in history:
@@ -555,8 +558,9 @@ def get_location_lists(billno, history):
     # going back to the first chamber for concurrence with amendments).
     # Add the final step, which is the Governor.
     # Resolutions and memorials don't need any action from the Governor.
-    if billno[1] != 'R' and billno[1] != 'M' and billno[1] != 'J':
-        futurelocs.append('SIGNED')
+    if billno[1] != 'R' and billno[1] != 'M' and billno[1] != 'J' \
+       and 'SIGNED' not in pastlocs and 'SIGNED' not in futurelocs:
+            futurelocs.append('SIGNED')
 
     return pastlocs, futurelocs
 
