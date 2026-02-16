@@ -15,7 +15,9 @@ import unittest
 
 import sys, os
 
-from app.bills import nmlegisbill, billutils, billrequests
+from app.bills import nmlegisbill, billutils, billrequests, decodenmlegis
+
+import json
 
 import datetime
 
@@ -105,6 +107,44 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
         'members': ['SPINS', 'SJARA', 'SGRIG', 'SMCKE', 'SSANJ', 'SSHEN'],
         'name': 'Senate Indian, Rural & Cultural Affairs'
     }
+
+
+def test_decode_full_history():
+    expected_file = "tests/files/actioncodes26-parsed.json"
+    with open(expected_file) as fp:
+        expected = json.load(fp)
+
+    codes_file = "tests/files/actioncodes26.txt"
+    # actual = []
+    with open(codes_file) as fp:
+        for line, actualobj in zip(fp, expected):
+            yearbill, actioncode = line.split('|')
+            yearcode, billno = yearbill.split()
+            location, status, fullhist = \
+                decodenmlegis.decode_full_history(actioncode)
+            histdic = {
+                'billno': billno,
+                'yearcode': yearcode,
+                'fullhist': fullhist,
+                'location': location
+            }
+            assert histdic == actualobj
+            # actual.append(histdic)
+
+            # Print out everything, to allow manually eyeballing/checking
+            # print("\n\n%s %s: %s" % (yearcode, billno, status))
+            # print("  location:", location)
+            # for day, longaction, code, location in fullhist:
+            #     print("Day %s: %s (now in %s)" % (day, longaction, location))
+            # pastloc, futureloc = decodenmlegis.get_location_lists(billno,
+            #                                                       fullhist)
+            # print("Past locations:", ' '.join(pastloc))
+            # print("Future locations:", ' '.join(futureloc))
+
+    # preparing the file to test against
+    # with open(expected_file, 'w') as fp:
+    #     json.dump(actual, fp, indent=2)
+    #     print("Saved to", expected_file)
 
 
 def test_parse_json_schedules():

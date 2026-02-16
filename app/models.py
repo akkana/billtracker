@@ -905,14 +905,15 @@ class Bill(db.Model):
 
         if not fullhist:
             location, status, fullhist = \
-                decodenmlegis.decode_full_history(self.get_actioncode()
-)
+                decodenmlegis.decode_full_history(self.get_actioncode())
+
         outstr = ''
 
+        if not fullhist:
+            print("No fullhist for", self, "with action code",
+                      self.get_actioncode())
         past_locs, future_locs = \
             decodenmlegis.get_location_lists(self.billno, fullhist)
-        # print(self.billno, "past_locs:", past_locs)
-        # print("   future_locs:", future_locs)
 
         total_steps = len(past_locs) + len(future_locs)
         # If there are any H??? or S???, count those double
@@ -926,7 +927,6 @@ class Bill(db.Model):
         outstr += '''<table class="progress" style="width: 100%;">
 <tr class="progress-gradient">\n'''
         for loc in past_locs:
-            # Temporary, just for proof of concept
             outstr += '<td class="gradpiece" title="%s" ' % loc
             outstr += 'style="width: %d%%">%s</td>' % (stepsize, loc)
         for loc in future_locs:

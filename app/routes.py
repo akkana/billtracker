@@ -220,7 +220,9 @@ def register():
     # then called the various validate() methods AFTER reloading.
     new_username = form.username.data.strip()
     new_password = form.password.data.strip()
-    new_email = form.email.data.strip()
+    new_email = form.email.data
+    if new_email:
+        new_email = new_email.strip()
     print("Creating new user account", new_username,
           "from IP", request.remote_addr,
           "with captcha", session["capq"],

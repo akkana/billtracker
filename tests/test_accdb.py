@@ -17,8 +17,8 @@ import os
 # print("test_accdb: sys.modules =", sys.modules)
 
 STORED_ACCDBLOC = "tests/files/LegInfo-24-01-24T14.accdb"
-ACCDBLOC = "tests/cache/LegInfo.accdb"
-LEGISLOC = "tests/cache/Legislation.json"
+ACCDBLOC = "tests/cache/LegInfo24.accdb"
+LEGISLOC = "tests/cache/Legislation24.json"
 
 
 def test_accdb():
@@ -34,7 +34,7 @@ def test_accdb():
     except FileNotFoundError:
         pass
     shutil.copyfile(STORED_ACCDBLOC, ACCDBLOC)
-    print("Copied to", ACCDBLOC)
+    print("Copied", STORED_ACCDBLOC, "to", ACCDBLOC)
     accdb.cache_bill_table(ACCDBLOC, LEGISLOC)
 
     with app.test_client() as test_client:
@@ -58,7 +58,7 @@ def test_accdb():
             sb43 = Bill()
             sb43.billno = 'SB43'
 
-            accdb.update_bills([hjr7, sb43])
+            accdb.update_bills([hjr7, sb43], session["yearcode"])
 
             db.session.add(hjr7)
             db.session.add(sb43)

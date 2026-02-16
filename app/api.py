@@ -789,11 +789,14 @@ def find_dups(yearcode=None):
 @app.route('/api/showdups/<key>')
 @app.route('/api/showdups/<key>/<yearcode>')
 def show_dups(key, yearcode=None):
-    """Look for duplicate bills in a given yearcode, or all years.
+    """Look for duplicate bills in a given yearcode (default to current).
        Return JSON showing dup bills and who's tracking them.
     """
     if key != app.config["SECRET_KEY"]:
         return "FAIL Bad key\n"
+
+    if not yearcode:
+        yearcode = LegSession.current_yearcode()
 
     ret_json = {}
 
@@ -834,6 +837,9 @@ def show_dups(key, yearcode=None):
 def clean_dups(key, yearcode=None):
     if key != app.config["SECRET_KEY"]:
         return "{ 'error': 'FAIL Bad key' }"
+
+    if not yearcode:
+        yearcode = LegSession.current_yearcode()
 
     billdups = find_dups(yearcode)
     # billdups is a list of pairs/triples/whatever of bills

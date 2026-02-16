@@ -156,14 +156,13 @@ def fetch_accdb_if_needed(yearcode, localdir):
        but sometimes gets smaller updates later in the evening or other times.
     """
     now = datetime.now()
-    yearcode = now.strftime("%y")
     url = 'https://nmlegis.gov/Sessions/%s%%20Regular/other/LegInfo%s.zip' \
         % (yearcode, yearcode)
 
     # localdbfile = now.strftime("LegInfo-%y-%m-%dT%H.accdb")
     accjsonname = "Legislation%s.json" % yearcode
     jsoncache = os.path.join(localdir, accjsonname)
-    localdbfile = os.path.join(localdir, "LegInfo.accdb")
+    localdbfile = os.path.join(localdir, "LegInfo%s.accdb" % yearcode)
 
     print("In fetch_accdb_if_needed:", file=sys.stderr)
     os.system("ls -l %s %s" % (jsoncache, localdbfile))

@@ -7,3 +7,9 @@ test_client.session_transaction isn't the right kind to make
 sqlalchemy happy.
 
 So use tests/run_tests instead.
+
+To run an individual test file:
+pytest tests/test_nmlegisbill.py
+
+or a single test:
+pytest tests/test_nmlegisbill.py::test_decode_full_history

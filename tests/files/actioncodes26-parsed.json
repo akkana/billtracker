@@ -1,0 +1,9334 @@
+[
+  {
+    "billno": "HB139",
+    "yearcode": "23",
+    "fullhist": [
+      [
+        2,
+        "Assigned HJC/HAFC",
+        "HJC/HAFC",
+        "HJC"
+      ],
+      [
+        3,
+        "Do pass by HJC",
+        "DP",
+        "HAFC"
+      ],
+      [
+        10,
+        "Do pass by HAFC",
+        "DP",
+        "H"
+      ],
+      [
+        12,
+        "Re-referred to HJC",
+        "re-ref erred HJC",
+        "HJC"
+      ],
+      [
+        13,
+        "Do pass by H",
+        "DNP-CS/DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB384",
+    "yearcode": "23",
+    "fullhist": [
+      [
+        6,
+        "Assigned HHHC/HGEIC",
+        "HHHC/HGEIC",
+        "HHHC"
+      ],
+      [
+        12,
+        "Do pass by HHHC",
+        "DP",
+        "HGEIC"
+      ],
+      [
+        14,
+        "Do pass by HGEIC",
+        "DNP-CS/DP",
+        "H"
+      ],
+      [
+        14,
+        "Re-referred to HGEIC",
+        "re-ref HGEIC",
+        "HGEIC"
+      ],
+      [
+        15,
+        "Do pass by H",
+        "DNP-CS/DP",
+        "HGEIC"
+      ]
+    ],
+    "location": "HGEIC"
+  },
+  {
+    "billno": "HB95",
+    "yearcode": "23",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        2,
+        "Assigned HGEIC/HENRC",
+        "HGEIC/HENRC",
+        "HGEIC"
+      ],
+      [
+        3,
+        "Do pass by HGEIC",
+        "DP",
+        "HENRC"
+      ],
+      [
+        4,
+        "Do pass by HENRC",
+        "DP",
+        "H"
+      ],
+      [
+        8,
+        "Re-referred to HENRC",
+        "re-ref erred to HENRC",
+        "HENRC"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HB38",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ],
+      [
+        2,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        2,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "Assigned HHHC/HJC",
+        "HHHC/HJC",
+        "HHHC"
+      ],
+      [
+        6,
+        "Do pass by HHHC",
+        "DNP-CS/DP",
+        "HJC"
+      ],
+      [
+        6,
+        "Do pass by HJC",
+        "DP",
+        "H"
+      ],
+      [
+        7,
+        "Withdrawn",
+        "w/drn h/calendar",
+        "HJC"
+      ],
+      [
+        7,
+        "Re-referred to HHHC",
+        "re-ref HHHC",
+        "HHHC"
+      ]
+    ],
+    "location": "HJC"
+  },
+  {
+    "billno": "SJR1",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SRC/SEC",
+        "SRC/SEC",
+        "SRC"
+      ],
+      [
+        3,
+        "Do pass by SRC",
+        "DP",
+        "SEC"
+      ],
+      [
+        5,
+        "Do pass by SEC",
+        "DP",
+        "S"
+      ],
+      [
+        7,
+        "Passed Senate (38-0)",
+        "PASSED/S (38-0)",
+        "S"
+      ],
+      [
+        6,
+        "Assigned HGEIC/HEC",
+        "HGEIC/HEC",
+        "HGEIC"
+      ],
+      [
+        7,
+        "Do pass by HGEIC",
+        "DP",
+        "HEC"
+      ]
+    ],
+    "location": "HEC"
+  },
+  {
+    "billno": "HB45",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HHHC/HJC",
+        "HHHC/HJC",
+        "HHHC"
+      ]
+    ],
+    "location": "HHHC"
+  },
+  {
+    "billno": "SB71",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SFC",
+        "SCC/SHPAC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "SB49",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SEC/SFC",
+        "SCC/SEC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "SB32",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SJC",
+        "SCC/SHPAC/SJC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "SHPAC"
+      ],
+      [
+        5,
+        "Do pass by SHPAC",
+        "DP",
+        "SJC"
+      ]
+    ],
+    "location": "SJC"
+  },
+  {
+    "billno": "SB60",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ]
+    ],
+    "location": "STBTC"
+  },
+  {
+    "billno": "SB101",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SHPAC/SFC",
+        "SCC/SHPAC/SFC",
+        "SCC"
+      ],
+      [
+        3,
+        "Ruled germane",
+        "germane",
+        "SHPAC"
+      ],
+      [
+        5,
+        "Do pass by SHPAC",
+        "DP",
+        "SFC"
+      ],
+      [
+        7,
+        "Do pass by SFC",
+        "DP",
+        "S"
+      ],
+      [
+        8,
+        "Passed Senate (31-0)",
+        "PASSED/S (31-0)",
+        "S"
+      ],
+      [
+        6,
+        "Assigned HCPAC/HHHC",
+        "HCPAC/HHHC",
+        "HCPAC"
+      ],
+      [
+        8,
+        "Do pass by HCPAC",
+        "DP",
+        "HHHC"
+      ]
+    ],
+    "location": "HHHC"
+  },
+  {
+    "billno": "HB164",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HGEIC/HJC",
+        "HGEIC/HJC",
+        "HGEIC"
+      ],
+      [
+        3,
+        "Do pass by HGEIC",
+        "DP",
+        "HJC"
+      ],
+      [
+        6,
+        "Do pass by HJC",
+        "DNP-CS/DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HB157",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HHHC/HAFC",
+        "HHHC/HAFC",
+        "HHHC"
+      ]
+    ],
+    "location": "HHHC"
+  },
+  {
+    "billno": "SB240",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        7,
+        "Assigned SFC",
+        "SFC/",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "HB259",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned HHHC/HAFC",
+        "HHHC/HAFC",
+        "HHHC"
+      ],
+      [
+        6,
+        "Do pass by HHHC",
+        "DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB286",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        4,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB44",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SEC/SFC",
+        "SCC/SEC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "SEC"
+      ],
+      [
+        5,
+        "Do pass by SEC",
+        "DP",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "HB15",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        4,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        4,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        4,
+        "Assigned HCPAC/HHHC",
+        "HCPAC/HHHC",
+        "HCPAC"
+      ],
+      [
+        4,
+        "Assigned HCPAC/HJC",
+        "HCPAC/HJC",
+        "HCPAC"
+      ],
+      [
+        5,
+        "Do pass by HCPAC",
+        "DP",
+        "HJC"
+      ]
+    ],
+    "location": "HJC"
+  },
+  {
+    "billno": "SB57",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SJC/SFC",
+        "SCC/SJC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "SB10",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SFC",
+        "SCC/SHPAC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "SB30",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SJC",
+        "SCC/SHPAC/SJC",
+        "SCC"
+      ],
+      [
+        3,
+        "Ruled germane",
+        "germane",
+        "SHPAC"
+      ],
+      [
+        5,
+        "Do pass by SHPAC",
+        "DP",
+        "SJC"
+      ],
+      [
+        8,
+        "Do pass by SJC",
+        "DP",
+        "S"
+      ],
+      [
+        10,
+        "Passed Senate (24-15)",
+        "PASSED/S (24-15)",
+        "S"
+      ],
+      [
+        7,
+        "Assigned HJC",
+        "HJC/",
+        "HJC"
+      ]
+    ],
+    "location": "HJC"
+  },
+  {
+    "billno": "HM9",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Sent to HTBL",
+        "HTBL",
+        "HTBL"
+      ],
+      [
+        1,
+        "Withdrawn",
+        "w/drn",
+        "HTBL"
+      ],
+      [
+        1,
+        "Passed House (70-0)",
+        "PASSED/H (70-0)",
+        "H"
+      ],
+      [
+        6,
+        "Signed by Governor",
+        "SGND.",
+        "HTBL"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HB187",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB195",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        6,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        6,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        6,
+        "Assigned HHHC/HJC",
+        "HHHC/HJC",
+        "HHHC"
+      ],
+      [
+        6,
+        "Do pass by HHHC",
+        "DNP-CS/DP",
+        "HJC"
+      ]
+    ],
+    "location": "HJC"
+  },
+  {
+    "billno": "HB208",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB34",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SEC/SHPAC",
+        "SCC/SEC/SHPAC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB120",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        2,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        2,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "Assigned HEC/HJC",
+        "HEC/HJC",
+        "HEC"
+      ],
+      [
+        4,
+        "Do pass by HEC",
+        "DP",
+        "HJC"
+      ],
+      [
+        6,
+        "Do pass by HJC",
+        "DP",
+        "H"
+      ],
+      [
+        7,
+        "Passed House (40-23) with a floor amendment",
+        "PASSED/H (40-23)",
+        "H"
+      ],
+      [
+        10,
+        "Assigned SEC/SJC",
+        "SEC/SJC",
+        "SEC"
+      ],
+      [
+        12,
+        "Do pass by SEC",
+        "DP",
+        "SJC"
+      ]
+    ],
+    "location": "SJC"
+  },
+  {
+    "billno": "SJR2",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SRC/SFC",
+        "SRC/SFC",
+        "SRC"
+      ]
+    ],
+    "location": "SRC"
+  },
+  {
+    "billno": "HJR6",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned HGEIC/HJC",
+        "HGEIC/HJC",
+        "HGEIC"
+      ],
+      [
+        4,
+        "Do pass by HGEIC",
+        "DP",
+        "HJC"
+      ],
+      [
+        6,
+        "Do pass by HJC",
+        "DP",
+        "H"
+      ],
+      [
+        8,
+        "Passed House (54-8)",
+        "PASSED/H (54-8)",
+        "H"
+      ],
+      [
+        12,
+        "Assigned SRC",
+        "SRC/",
+        "SRC"
+      ]
+    ],
+    "location": "SRC"
+  },
+  {
+    "billno": "SB98",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SIRC/SCONC",
+        "SCC/SIRC/SCONC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB55",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HLVMC/HTRC",
+        "HLVMC/HTRC",
+        "HLVMC"
+      ],
+      [
+        2,
+        "Do pass by HLVMC",
+        "DP",
+        "HTRC"
+      ]
+    ],
+    "location": "HTRC"
+  },
+  {
+    "billno": "SB18",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SCONC/STBTC",
+        "SCC/SCONC/STBTC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "SCONC"
+      ],
+      [
+        7,
+        "Do pass as amended by SCONC",
+        "DP/a",
+        "STBTC"
+      ],
+      [
+        10,
+        "Do pass by STBTC",
+        "DP",
+        "S"
+      ],
+      [
+        10,
+        "FAILED/S (19-23).",
+        "FAILED/S (19-23).",
+        "STBTC"
+      ]
+    ],
+    "location": "S"
+  },
+  {
+    "billno": "HB104",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HHHC/HAFC",
+        "HHHC/HAFC",
+        "HHHC"
+      ],
+      [
+        2,
+        "Do pass by HHHC",
+        "DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB358",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB60",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ],
+      [
+        2,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        2,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "Assigned HCPAC/HJC",
+        "HCPAC/HJC",
+        "HCPAC"
+      ],
+      [
+        3,
+        "Do pass by HCPAC",
+        "DP",
+        "HJC"
+      ],
+      [
+        6,
+        "Do pass by HJC",
+        "DP",
+        "H"
+      ],
+      [
+        7,
+        "Passed House (59-5)",
+        "PASSED/H (59-5)",
+        "H"
+      ],
+      [
+        10,
+        "Assigned SJC",
+        "SJC/",
+        "SJC"
+      ]
+    ],
+    "location": "SJC"
+  },
+  {
+    "billno": "HB371",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        7,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        7,
+        "HAFC",
+        "ref HAFC",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB365",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB52",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SFC",
+        "SCC/SHPAC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB353",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB18",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB232",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned HCPAC/HTRC",
+        "HCPAC/HTRC",
+        "HCPAC"
+      ]
+    ],
+    "location": "HCPAC"
+  },
+  {
+    "billno": "HB19",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB378",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB349",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB344",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB151",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HHHC/HJC",
+        "HHHC/HJC",
+        "HHHC"
+      ],
+      [
+        2,
+        "Assigned HJC/HAFC",
+        "HJC/HAFC",
+        "HJC"
+      ],
+      [
+        6,
+        "Do pass by HJC",
+        "DNP-CS/DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB373",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB179",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB347",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB202",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HHHC/HAFC",
+        "HHHC/HAFC",
+        "HHHC"
+      ],
+      [
+        6,
+        "Do pass by HHHC",
+        "DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB155",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB350",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB210",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HHHC/HAFC",
+        "HHHC/HAFC",
+        "HHHC"
+      ],
+      [
+        4,
+        "Do pass by HHHC",
+        "DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB376",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB348",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB362",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB342",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB73",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ],
+      [
+        2,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        2,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "Assigned HCPAC/HJC",
+        "HCPAC/HJC",
+        "HCPAC"
+      ]
+    ],
+    "location": "HCPAC"
+  },
+  {
+    "billno": "HB16",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB71",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "HB345",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB367",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HM39",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        4,
+        "Assigned HJC",
+        "HJC/",
+        "HJC"
+      ],
+      [
+        7,
+        "Do pass by HJC",
+        "DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HB357",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB199",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        6,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        6,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        6,
+        "Assigned HCPAC/HJC",
+        "HCPAC/HJC",
+        "HCPAC"
+      ],
+      [
+        8,
+        "Do pass by HCPAC",
+        "DNP-CS/DP",
+        "HJC"
+      ]
+    ],
+    "location": "HJC"
+  },
+  {
+    "billno": "HM59",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        7,
+        "Assigned HHHC",
+        "HHHC/",
+        "HHHC"
+      ],
+      [
+        8,
+        "Do pass by HHHC",
+        "DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HB206",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HCPAC/HJC",
+        "HCPAC/HJC",
+        "HCPAC"
+      ],
+      [
+        6,
+        "Do pass by HCPAC",
+        "DP",
+        "HJC"
+      ],
+      [
+        7,
+        "Do pass by HJC",
+        "DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HB360",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB341",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB182",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB364",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB343",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB17",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HCEDC/HGEIC",
+        "HCEDC/HGEIC",
+        "HCEDC"
+      ]
+    ],
+    "location": "HCEDC"
+  },
+  {
+    "billno": "HB372",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB369",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB354",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HM56",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        6,
+        "Assigned HENRC",
+        "HENRC/",
+        "HENRC"
+      ]
+    ],
+    "location": "HENRC"
+  },
+  {
+    "billno": "SB92",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ]
+    ],
+    "location": "STBTC"
+  },
+  {
+    "billno": "HB57",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ],
+      [
+        2,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        2,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "Assigned HCPAC/HJC",
+        "HCPAC/HJC",
+        "HCPAC"
+      ],
+      [
+        6,
+        "HJC",
+        "rec",
+        "HJC"
+      ]
+    ],
+    "location": "HJC"
+  },
+  {
+    "billno": "HB5",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB106",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HCEDC/HTRC",
+        "HCEDC/HTRC",
+        "HCEDC"
+      ]
+    ],
+    "location": "HCEDC"
+  },
+  {
+    "billno": "SB127",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SRC/SFC",
+        "SCC/SRC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB126",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB224",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned HHHC/HTRC",
+        "HHHC/HTRC",
+        "HHHC"
+      ],
+      [
+        6,
+        "Do pass by HHHC",
+        "DP",
+        "HTRC"
+      ]
+    ],
+    "location": "HTRC"
+  },
+  {
+    "billno": "HM35",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        4,
+        "Assigned HHHC",
+        "HHHC/",
+        "HHHC"
+      ],
+      [
+        7,
+        "Do pass by HHHC",
+        "DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HB233",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB351",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB190",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HHHC/HAFC",
+        "HHHC/HAFC",
+        "HHHC"
+      ]
+    ],
+    "location": "HHHC"
+  },
+  {
+    "billno": "HM47",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned HEC",
+        "HEC/",
+        "HEC"
+      ],
+      [
+        6,
+        "Do pass by HEC",
+        "DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HB149",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        7,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        7,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        7,
+        "HAFC",
+        "ref",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB180",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HGEIC/HAFC",
+        "HGEIC/HAFC",
+        "HGEIC"
+      ],
+      [
+        3,
+        "Do pass by HGEIC",
+        "DP",
+        "HAFC"
+      ],
+      [
+        6,
+        "Do pass by HAFC",
+        "DNP-CS/DP",
+        "H"
+      ],
+      [
+        6,
+        "Passed House (65-0)",
+        "PASSED/H (65-0)",
+        "H"
+      ],
+      [
+        10,
+        "Assigned SFC",
+        "SFC/",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "SB47",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SCONC/SFC",
+        "SCC/SCONC/SFC",
+        "SCC"
+      ],
+      [
+        5,
+        "Ruled germane",
+        "germane",
+        "SCONC"
+      ]
+    ],
+    "location": "SCONC"
+  },
+  {
+    "billno": "HB331",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB129",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SHPAC/SJC",
+        "SCC/SHPAC/SJC",
+        "SCC"
+      ],
+      [
+        3,
+        "Ruled germane",
+        "germane",
+        "SHPAC"
+      ],
+      [
+        7,
+        "Do pass by SHPAC",
+        "DNP-CS/DP",
+        "SJC"
+      ]
+    ],
+    "location": "SJC"
+  },
+  {
+    "billno": "HB352",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB37",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HAAWC/HTRC",
+        "HAAWC/HTRC",
+        "HAAWC"
+      ]
+    ],
+    "location": "HAAWC"
+  },
+  {
+    "billno": "HB70",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HGEIC/HJC",
+        "HGEIC/HJC",
+        "HGEIC"
+      ],
+      [
+        2,
+        "Do pass by HGEIC",
+        "DP",
+        "HJC"
+      ],
+      [
+        5,
+        "Do pass by HJC",
+        "DNP-CS/DP",
+        "H"
+      ],
+      [
+        6,
+        "Passed House (66-0)",
+        "PASSED/H (66-0)",
+        "H"
+      ],
+      [
+        10,
+        "Assigned SRC",
+        "SRC/",
+        "SRC"
+      ]
+    ],
+    "location": "SRC"
+  },
+  {
+    "billno": "HB327",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HJR2",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HCPAC/HJC",
+        "HCPAC/HJC",
+        "HCPAC"
+      ]
+    ],
+    "location": "HCPAC"
+  },
+  {
+    "billno": "SB97",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ]
+    ],
+    "location": "STBTC"
+  },
+  {
+    "billno": "SB58",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ],
+      [
+        5,
+        "Do pass by STBTC",
+        "DP",
+        "SFC"
+      ],
+      [
+        7,
+        "Do pass as amended by SFC",
+        "DP/a",
+        "S"
+      ],
+      [
+        7,
+        "Passed Senate (27-8)",
+        "PASSED/S (27-8)",
+        "S"
+      ],
+      [
+        6,
+        "Assigned HCEDC/HTRC",
+        "HCEDC/HTRC",
+        "HCEDC"
+      ],
+      [
+        6,
+        "Do pass by HCEDC",
+        "DP",
+        "HTRC"
+      ],
+      [
+        8,
+        "Do pass by HTRC",
+        "DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HB32",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HHHC/HJC",
+        "HHHC/HJC",
+        "HHHC"
+      ],
+      [
+        1,
+        "Do pass by HHHC",
+        "DP",
+        "HJC"
+      ],
+      [
+        5,
+        "Do pass by HJC",
+        "DNP-CS/DP",
+        "H"
+      ],
+      [
+        5,
+        "Passed House (63-0) with a floor amendment",
+        "PASSED/H (63-0)",
+        "H"
+      ],
+      [
+        7,
+        "Assigned SHPAC/SJC",
+        "SHPAC/SJC",
+        "SHPAC"
+      ]
+    ],
+    "location": "SHPAC"
+  },
+  {
+    "billno": "HB370",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB375",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB326",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB129",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB29",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SEC/SFC",
+        "SCC/SEC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "SEC"
+      ],
+      [
+        3,
+        "Do pass as amended by SEC",
+        "DP/a",
+        "SFC"
+      ],
+      [
+        5,
+        "Do pass by SFC",
+        "DP",
+        "S"
+      ],
+      [
+        5,
+        "Passed Senate (34-0)",
+        "PASSED/S (34-0)",
+        "S"
+      ],
+      [
+        5,
+        "Assigned HGEIC/HEC",
+        "HGEIC/HEC",
+        "HGEIC"
+      ],
+      [
+        6,
+        "Do pass by HGEIC",
+        "DP",
+        "HEC"
+      ],
+      [
+        7,
+        "Do pass as amended by HEC",
+        "DP/a",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HB13",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HHHC/HJC",
+        "HHHC/HJC",
+        "HHHC"
+      ],
+      [
+        1,
+        "Do pass by HHHC",
+        "DP",
+        "HJC"
+      ],
+      [
+        2,
+        "Do pass by HJC",
+        "DNP-CS/DP",
+        "H"
+      ],
+      [
+        2,
+        "Passed House (68-0)",
+        "PASSED/H (68-0)",
+        "H"
+      ],
+      [
+        5,
+        "Assigned SHPAC/SJC",
+        "SHPAC/SJC",
+        "SHPAC"
+      ]
+    ],
+    "location": "SHPAC"
+  },
+  {
+    "billno": "HB34",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ],
+      [
+        1,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        1,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        1,
+        "Assigned HHHC/HEC",
+        "HHHC/HEC",
+        "HHHC"
+      ],
+      [
+        2,
+        "Do pass as amended by HHHC",
+        "DP/a",
+        "HEC"
+      ],
+      [
+        3,
+        "Do pass by HEC",
+        "DP",
+        "H"
+      ],
+      [
+        5,
+        "Passed House (67-0)",
+        "PASSED/H (67-0)",
+        "H"
+      ],
+      [
+        7,
+        "Assigned SEC/SHPAC",
+        "SEC/SHPAC",
+        "SEC"
+      ],
+      [
+        7,
+        "Do pass by SEC",
+        "DP",
+        "SHPAC"
+      ],
+      [
+        12,
+        "Do pass by SHPAC",
+        "DP",
+        "S"
+      ]
+    ],
+    "location": "S"
+  },
+  {
+    "billno": "HB377",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB340",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB223",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        7,
+        "Assigned SCC/STBTC/SJC",
+        "SCC/STBTC/SJC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB93",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HGEIC/HTRC",
+        "HGEIC/HTRC",
+        "HGEIC"
+      ],
+      [
+        8,
+        "Do pass by HGEIC",
+        "DP",
+        "HTRC"
+      ]
+    ],
+    "location": "HTRC"
+  },
+  {
+    "billno": "HB374",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB356",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB29",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HLVMC/HAFC",
+        "HLVMC/HAFC",
+        "HLVMC"
+      ],
+      [
+        5,
+        "Do pass by HLVMC",
+        "DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB109",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ],
+      [
+        4,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        4,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        4,
+        "Assigned HAAWC/HGEIC",
+        "HAAWC/HGEIC",
+        "HAAWC"
+      ],
+      [
+        5,
+        "Do pass as amended by HAAWC",
+        "DP/a",
+        "HGEIC"
+      ],
+      [
+        6,
+        "Do pass by HGEIC",
+        "DP",
+        "H"
+      ],
+      [
+        6,
+        "Passed House (61-0)",
+        "PASSED/H (61-0)",
+        "H"
+      ],
+      [
+        10,
+        "Assigned SCONC",
+        "SCONC/",
+        "SCONC"
+      ],
+      [
+        12,
+        "Do pass by SCONC",
+        "DP",
+        "S"
+      ]
+    ],
+    "location": "S"
+  },
+  {
+    "billno": "HB368",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB319",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB9",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned HCPAC/HJC",
+        "HCPAC/HJC",
+        "HCPAC"
+      ],
+      [
+        1,
+        "Do pass by HCPAC",
+        "DP",
+        "HJC"
+      ],
+      [
+        3,
+        "Do pass as amended by HJC",
+        "DP/a",
+        "H"
+      ],
+      [
+        3,
+        "Passed House (40-29)",
+        "PASSED/H (40-29)",
+        "H"
+      ],
+      [
+        5,
+        "Assigned SJC",
+        "SJC/",
+        "SJC"
+      ],
+      [
+        6,
+        "Do pass by SJC",
+        "DP",
+        "S"
+      ],
+      [
+        7,
+        "Passed Senate (24-15)",
+        "PASSED/S (24-15)",
+        "S"
+      ],
+      [
+        6,
+        "Signed by Governor",
+        "SGND BY GOV (Feb. 5) Ch.  5.",
+        "SJC/"
+      ]
+    ],
+    "location": "S"
+  },
+  {
+    "billno": "HB121",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB355",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB16",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SJC",
+        "SCC/SHPAC/SJC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB278",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        4,
+        "Assigned HHHC/HAFC",
+        "HHHC/HAFC",
+        "HHHC"
+      ]
+    ],
+    "location": "HHHC"
+  },
+  {
+    "billno": "HB145",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned HCEDC/HTRC",
+        "HCEDC/HTRC",
+        "HCEDC"
+      ],
+      [
+        5,
+        "Do pass by HCEDC",
+        "DP",
+        "HTRC"
+      ],
+      [
+        6,
+        "Do pass by HTRC",
+        "DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HB119",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SR1",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SRC/SJC",
+        "SRC/SJC",
+        "SRC"
+      ]
+    ],
+    "location": "SRC"
+  },
+  {
+    "billno": "HB228",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB295",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        4,
+        "Assigned HHHC/HGEIC",
+        "HHHC/HGEIC",
+        "HHHC"
+      ],
+      [
+        6,
+        "Do pass by HHHC",
+        "DNP-CS/DP",
+        "HGEIC"
+      ],
+      [
+        7,
+        "Do pass by HGEIC",
+        "DP",
+        "H"
+      ],
+      [
+        8,
+        "Passed House (57-6)",
+        "PASSED/H (57-6)",
+        "H"
+      ],
+      [
+        12,
+        "Assigned SFC",
+        "SFC/",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "HB359",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB6",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB45",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SEC/SJC",
+        "SCC/SEC/SJC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB107",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "HB272",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        4,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB92",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HCEDC/HTRC",
+        "HCEDC/HTRC",
+        "HCEDC"
+      ]
+    ],
+    "location": "HCEDC"
+  },
+  {
+    "billno": "HB62",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HENRC/HTRC",
+        "HENRC/HTRC",
+        "HENRC"
+      ],
+      [
+        2,
+        "Do pass by HENRC",
+        "DP",
+        "HTRC"
+      ]
+    ],
+    "location": "HTRC"
+  },
+  {
+    "billno": "HB363",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB40",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/STBTC/SJC",
+        "SCC/STBTC/SJC",
+        "SCC"
+      ],
+      [
+        3,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ],
+      [
+        5,
+        "Do pass by STBTC",
+        "DP",
+        "SJC"
+      ],
+      [
+        10,
+        "Do pass by SJC",
+        "DNP-CS/DP",
+        "S"
+      ],
+      [
+        12,
+        "Passed Senate (32-8)",
+        "PASSED/S (32-8)",
+        "S"
+      ],
+      [
+        7,
+        "Assigned HJC",
+        "HJC/",
+        "HJC"
+      ]
+    ],
+    "location": "HJC"
+  },
+  {
+    "billno": "SB11",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SFC",
+        "SCC/SHPAC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB255",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned HGEIC/HAFC",
+        "HGEIC/HAFC",
+        "HGEIC"
+      ],
+      [
+        5,
+        "Do pass by HGEIC",
+        "DP",
+        "HAFC"
+      ],
+      [
+        9,
+        "Do pass by HAFC",
+        "DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "SB117",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        3,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ]
+    ],
+    "location": "STBTC"
+  },
+  {
+    "billno": "SB163",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        5,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ]
+    ],
+    "location": "STBTC"
+  },
+  {
+    "billno": "HB361",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HM13",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HJC",
+        "HJC/",
+        "HJC"
+      ],
+      [
+        6,
+        "Do pass as amended by HJC",
+        "DP/a",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "SB2",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SFC",
+        "SCC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "SFC"
+      ],
+      [
+        1,
+        "Do pass as amended by SFC",
+        "DP/a",
+        "S"
+      ],
+      [
+        3,
+        "Passed Senate (31-9)",
+        "PASSED/S (31-9)",
+        "S"
+      ],
+      [
+        2,
+        "Assigned HTPWC",
+        "HTPWC/",
+        "HTPWC"
+      ],
+      [
+        3,
+        "Do pass by HTPWC",
+        "DP",
+        "H"
+      ],
+      [
+        3,
+        "Passed House (44-23)",
+        "PASSED/H (44-23)",
+        "H"
+      ],
+      [
+        7,
+        "Signed by Governor",
+        "SGND BY GOV (Feb. 5) Ch.  4.",
+        "HTPWC/"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "SB185",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        5,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ]
+    ],
+    "location": "STBTC"
+  },
+  {
+    "billno": "HB209",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB248",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned HTRC",
+        "HTRC/",
+        "HTRC"
+      ],
+      [
+        9,
+        "Do pass by HTRC",
+        "DNP-CS/DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "SB112",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB339",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB247",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned HTRC",
+        "HTRC/",
+        "HTRC"
+      ],
+      [
+        6,
+        "Do pass as amended by HTRC",
+        "DP/a",
+        "H"
+      ],
+      [
+        6,
+        "Passed House (48-20)",
+        "PASSED/H (48-20)",
+        "H"
+      ],
+      [
+        10,
+        "Assigned SFC",
+        "SFC/",
+        "SFC"
+      ],
+      [
+        10,
+        "Do pass as amended by SFC",
+        "DP/a",
+        "S"
+      ]
+    ],
+    "location": "S"
+  },
+  {
+    "billno": "HB176",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HCEDC/HAFC",
+        "HCEDC/HAFC",
+        "HCEDC"
+      ]
+    ],
+    "location": "HCEDC"
+  },
+  {
+    "billno": "SB235",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        7,
+        "Assigned SCC/SCONC/STBTC",
+        "SCC/SCONC/STBTC",
+        "SCC"
+      ],
+      [
+        7,
+        "Ruled germane",
+        "germane",
+        "SCONC"
+      ],
+      [
+        10,
+        "Do pass by SCONC",
+        "DNP-CS/DP",
+        "STBTC"
+      ],
+      [
+        12,
+        "Do pass by STBTC",
+        "DP",
+        "S"
+      ]
+    ],
+    "location": "S"
+  },
+  {
+    "billno": "HB366",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB147",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB291",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned HTRC",
+        "HTRC/",
+        "HTRC"
+      ],
+      [
+        6,
+        "Do pass as amended by HTRC",
+        "DP/a",
+        "H"
+      ],
+      [
+        7,
+        "Passed House (59-8)",
+        "PASSED/H (59-8)",
+        "H"
+      ],
+      [
+        12,
+        "Assigned STBTC",
+        "STBTC/",
+        "STBTC"
+      ]
+    ],
+    "location": "STBTC"
+  },
+  {
+    "billno": "HB49",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HCPAC/HJC",
+        "HCPAC/HJC",
+        "HCPAC"
+      ],
+      [
+        3,
+        "Do pass by HCPAC",
+        "DNP-CS/DP",
+        "HJC"
+      ],
+      [
+        6,
+        "Do pass as amended by HJC",
+        "DP/a",
+        "H"
+      ],
+      [
+        6,
+        "Passed House (54-9)",
+        "PASSED/H (54-9)",
+        "H"
+      ],
+      [
+        10,
+        "Assigned SJC/SFC",
+        "SJC/SFC",
+        "SJC"
+      ]
+    ],
+    "location": "SJC"
+  },
+  {
+    "billno": "HB172",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HJR7",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned HGEIC/HJC",
+        "HGEIC/HJC",
+        "HGEIC"
+      ],
+      [
+        4,
+        "Do pass by HGEIC",
+        "DP",
+        "HJC"
+      ],
+      [
+        6,
+        "Do pass by HJC",
+        "DP",
+        "H"
+      ],
+      [
+        6,
+        "Passed House (59-3)",
+        "PASSED/H (59-3)",
+        "H"
+      ],
+      [
+        10,
+        "Assigned SRC",
+        "SRC/",
+        "SRC"
+      ]
+    ],
+    "location": "SRC"
+  },
+  {
+    "billno": "HB346",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB261",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        7,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        10,
+        "Withdrawn",
+        "w/drn",
+        "SJC"
+      ],
+      [
+        10,
+        "Assigned SCC/SRC/SJC",
+        "SCC/SRC/SJC",
+        "SCC"
+      ],
+      [
+        10,
+        "Ruled germane",
+        "germane",
+        "SRC"
+      ],
+      [
+        10,
+        "Do pass by SRC",
+        "DNP-CS/DP",
+        "SJC"
+      ],
+      [
+        12,
+        "Do pass by SJC",
+        "DNP-CS/DP",
+        "S"
+      ]
+    ],
+    "location": "S"
+  },
+  {
+    "billno": "HB203",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB200",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HCEDC/HAFC",
+        "HCEDC/HAFC",
+        "HCEDC"
+      ],
+      [
+        5,
+        "Do pass as amended by HCEDC",
+        "DP/a",
+        "HAFC"
+      ],
+      [
+        6,
+        "Do pass as amended by HAFC",
+        "DP/a",
+        "H"
+      ],
+      [
+        7,
+        "Passed House (52-15)",
+        "PASSED/H (52-15)",
+        "H"
+      ],
+      [
+        12,
+        "Assigned STBTC",
+        "STBTC/",
+        "STBTC"
+      ]
+    ],
+    "location": "STBTC"
+  },
+  {
+    "billno": "HB242",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned HLVMC/HAFC",
+        "HLVMC/HAFC",
+        "HLVMC"
+      ]
+    ],
+    "location": "HLVMC"
+  },
+  {
+    "billno": "HB275",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        4,
+        "Assigned HTRC/HAFC",
+        "HTRC/HAFC",
+        "HTRC"
+      ],
+      [
+        7,
+        "Do pass as amended by HTRC",
+        "DP/a",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB321",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB332",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned HTRC",
+        "HTRC/",
+        "HTRC"
+      ]
+    ],
+    "location": "HTRC"
+  },
+  {
+    "billno": "HB324",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB153",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SJC/STBTC",
+        "SCC/SJC/STBTC",
+        "SCC"
+      ],
+      [
+        3,
+        "Ruled germane",
+        "germane",
+        "SJC"
+      ]
+    ],
+    "location": "SJC"
+  },
+  {
+    "billno": "HB56",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HLVMC/HAFC",
+        "HLVMC/HAFC",
+        "HLVMC"
+      ],
+      [
+        2,
+        "Do pass by HLVMC",
+        "DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "SM25",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        10,
+        "Assigned SRC/SIRC",
+        "SRC/SIRC",
+        "SRC"
+      ]
+    ],
+    "location": "SRC"
+  },
+  {
+    "billno": "HB26",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "SB169",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned SCC/SHPAC/SFC",
+        "SCC/SHPAC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "SB177",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        5,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ],
+      [
+        10,
+        "Do pass as amended by STBTC",
+        "DP/a",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "HB7",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HLVMC/HAFC",
+        "HLVMC/HAFC",
+        "HLVMC"
+      ],
+      [
+        1,
+        "Do pass by HLVMC",
+        "DP",
+        "HAFC"
+      ],
+      [
+        7,
+        "Do pass by HAFC",
+        "DP",
+        "H"
+      ],
+      [
+        7,
+        "Passed House (65-2)",
+        "PASSED/H (65-2)",
+        "H"
+      ],
+      [
+        12,
+        "Assigned SFC",
+        "SFC/",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "HB185",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        4,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        4,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        4,
+        "Assigned HEC/HGEIC",
+        "HEC/HGEIC",
+        "HEC"
+      ],
+      [
+        6,
+        "Do pass by HEC",
+        "DP",
+        "HGEIC"
+      ]
+    ],
+    "location": "HGEIC"
+  },
+  {
+    "billno": "SB116",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        3,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ]
+    ],
+    "location": "STBTC"
+  },
+  {
+    "billno": "HB194",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        4,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        4,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        4,
+        "Assigned HRDLC/HTRC",
+        "HRDLC/HTRC",
+        "HRDLC"
+      ]
+    ],
+    "location": "HRDLC"
+  },
+  {
+    "billno": "SB212",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        6,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ]
+    ],
+    "location": "STBTC"
+  },
+  {
+    "billno": "SB228",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        7,
+        "Assigned SCC/SFC",
+        "SCC/SFC",
+        "SCC"
+      ],
+      [
+        7,
+        "Ruled germane",
+        "germane",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "HB3",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned HTPWC/HAFC",
+        "HTPWC/HAFC",
+        "HTPWC"
+      ],
+      [
+        2,
+        "Do pass as amended by HTPWC",
+        "DP/a",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "SB142",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SEC/SFC",
+        "SCC/SEC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB69",
+    "yearcode": "26",
+    "fullhist": [],
+    "location": null
+  },
+  {
+    "billno": "SB264",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        7,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        10,
+        "Withdrawn",
+        "w/drn",
+        "SRC"
+      ],
+      [
+        10,
+        "Assigned SCC/SRC/SJC",
+        "SCC/SRC/SJC",
+        "SCC"
+      ],
+      [
+        10,
+        "Ruled germane",
+        "germane",
+        "SRC"
+      ],
+      [
+        10,
+        "Do pass by SRC",
+        "DNP-CS/DP",
+        "SJC"
+      ],
+      [
+        12,
+        "Do pass by SJC",
+        "DP",
+        "S"
+      ]
+    ],
+    "location": "S"
+  },
+  {
+    "billno": "SB204",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned SCC/SEC/SFC",
+        "SCC/SEC/SFC",
+        "SCC"
+      ],
+      [
+        5,
+        "Ruled germane",
+        "germane",
+        "SEC"
+      ],
+      [
+        7,
+        "Do pass by SEC",
+        "DP",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "HB36",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "HB140",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned HGEIC/HAFC",
+        "HGEIC/HAFC",
+        "HGEIC"
+      ],
+      [
+        2,
+        "Do pass by HGEIC",
+        "DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB65",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ],
+      [
+        2,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        2,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "Assigned HHHC/HAFC",
+        "HHHC/HAFC",
+        "HHHC"
+      ],
+      [
+        5,
+        "Do pass by HHHC",
+        "DNP-CS/DP",
+        "HAFC"
+      ],
+      [
+        7,
+        "Do pass as amended by HAFC",
+        "DP/a",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "SB12",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ]
+    ],
+    "location": "STBTC"
+  },
+  {
+    "billno": "SB69",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB61",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HCPAC/HJC",
+        "HCPAC/HJC",
+        "HCPAC"
+      ],
+      [
+        2,
+        "Do pass by HCPAC",
+        "DP",
+        "HJC"
+      ],
+      [
+        5,
+        "Do pass by HJC",
+        "DP",
+        "H"
+      ],
+      [
+        6,
+        "Passed House (55-11)",
+        "PASSED/H (55-11)",
+        "H"
+      ],
+      [
+        10,
+        "Assigned SJC",
+        "SJC/",
+        "SJC"
+      ]
+    ],
+    "location": "SJC"
+  },
+  {
+    "billno": "HB146",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        2,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        2,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "Assigned HCPAC/HJC",
+        "HCPAC/HJC",
+        "HCPAC"
+      ]
+    ],
+    "location": "HCPAC"
+  },
+  {
+    "billno": "HB330",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB173",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned SCC/STBTC/SJC",
+        "SCC/STBTC/SJC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB244",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB77",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        5,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ],
+      [
+        7,
+        "Do pass by STBTC",
+        "DP",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "SB175",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned SCC/SHPAC/SJC",
+        "SCC/SHPAC/SJC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HM60",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        7,
+        "Assigned HENRC",
+        "HENRC/",
+        "HENRC"
+      ]
+    ],
+    "location": "HENRC"
+  },
+  {
+    "billno": "HB212",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB5",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SFC",
+        "SCC/SHPAC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "SHPAC"
+      ],
+      [
+        3,
+        "Do pass by SHPAC",
+        "DP",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "SB46",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SCONC/SFC",
+        "SCC/SCONC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "SCONC"
+      ],
+      [
+        3,
+        "Do pass by SCONC",
+        "DP",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "HB189",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HHHC/HAFC",
+        "HHHC/HAFC",
+        "HHHC"
+      ]
+    ],
+    "location": "HHHC"
+  },
+  {
+    "billno": "HB197",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HCPAC/HJC",
+        "HCPAC/HJC",
+        "HCPAC"
+      ]
+    ],
+    "location": "HCPAC"
+  },
+  {
+    "billno": "HJR10",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned HGEIC/HJC",
+        "HGEIC/HJC",
+        "HGEIC"
+      ]
+    ],
+    "location": "HGEIC"
+  },
+  {
+    "billno": "HB218",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SM7",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SRC/SJC",
+        "SRC/SJC",
+        "SRC"
+      ]
+    ],
+    "location": "SRC"
+  },
+  {
+    "billno": "HB141",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB264",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned HHHC/HTRC",
+        "HHHC/HTRC",
+        "HHHC"
+      ],
+      [
+        4,
+        "Withdrawn",
+        "w/drn",
+        "HHHC"
+      ],
+      [
+        4,
+        "HTRC",
+        "ref HTRC",
+        "HTRC"
+      ]
+    ],
+    "location": "HTRC"
+  },
+  {
+    "billno": "SB15",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/STBTC",
+        "SCC/SHPAC/STBTC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB205",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HEC/HAFC",
+        "HEC/HAFC",
+        "HEC"
+      ]
+    ],
+    "location": "HEC"
+  },
+  {
+    "billno": "HM53",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned HEC",
+        "HEC/",
+        "HEC"
+      ],
+      [
+        7,
+        "Do pass by HEC",
+        "DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HM52",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned HHHC",
+        "HHHC/",
+        "HHHC"
+      ]
+    ],
+    "location": "HHHC"
+  },
+  {
+    "billno": "HB2",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned HAFC",
+        "HAFC/",
+        "HAFC"
+      ],
+      [
+        5,
+        "Do pass by HAFC",
+        "DNP-CS/DP",
+        "H"
+      ],
+      [
+        5,
+        "Passed House (55-15)",
+        "PASSED/H (55-15)",
+        "H"
+      ],
+      [
+        7,
+        "Assigned SFC",
+        "SFC/",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "HB171",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB38",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ],
+      [
+        2,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        2,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "Assigned HHHC/HJC",
+        "HHHC/HJC",
+        "HHHC"
+      ],
+      [
+        6,
+        "Do pass by HHHC",
+        "DNP-CS/DP",
+        "HJC"
+      ],
+      [
+        6,
+        "Do pass by HJC",
+        "DP",
+        "H"
+      ],
+      [
+        7,
+        "Withdrawn",
+        "w/drn h/calendar",
+        "HJC"
+      ],
+      [
+        7,
+        "Re-referred to HHHC",
+        "re-ref HHHC",
+        "HHHC"
+      ],
+      [
+        8,
+        "Do pass by HJC",
+        "DNP-CS/DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "SB168",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SCONC/SFC",
+        "SCC/SCONC/SFC",
+        "SCC"
+      ],
+      [
+        5,
+        "Ruled germane",
+        "germane",
+        "SCONC"
+      ],
+      [
+        5,
+        "Do pass by SCONC",
+        "DP",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "SB54",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SEC/SJC",
+        "SCC/SEC/SJC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB225",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB65",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SEC/SJC",
+        "SCC/SEC/SJC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "SB68",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SJC",
+        "SCC/SHPAC/SJC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB114",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned HHHC/HAFC",
+        "HHHC/HAFC",
+        "HHHC"
+      ],
+      [
+        2,
+        "Do pass by HHHC",
+        "DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "SB121",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB314",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned HGEIC/HAFC",
+        "HGEIC/HAFC",
+        "HGEIC"
+      ],
+      [
+        6,
+        "Do pass by HGEIC",
+        "DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB144",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB134",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB22",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "SB89",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ]
+    ],
+    "location": "STBTC"
+  },
+  {
+    "billno": "HB143",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB216",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB191",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HEC/HAFC",
+        "HEC/HAFC",
+        "HEC"
+      ]
+    ],
+    "location": "HEC"
+  },
+  {
+    "billno": "HB240",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SJR4",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned SRC/SJC",
+        "SRC/SJC",
+        "SRC"
+      ]
+    ],
+    "location": "SRC"
+  },
+  {
+    "billno": "SM15",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned SRC/SJC",
+        "SRC/SJC",
+        "SRC"
+      ]
+    ],
+    "location": "SRC"
+  },
+  {
+    "billno": "SB62",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SIRC/SFC",
+        "SCC/SIRC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "SIRC"
+      ],
+      [
+        5,
+        "Do pass by SIRC",
+        "DP",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "SB192",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned SCC/SJC/SFC",
+        "SCC/SJC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB214",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB188",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned SCC/SEC/SFC",
+        "SCC/SEC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB204",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB27",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HCEDC/HTRC",
+        "HCEDC/HTRC",
+        "HCEDC"
+      ],
+      [
+        3,
+        "Do pass by HCEDC",
+        "DNP-CS/DP",
+        "HTRC"
+      ]
+    ],
+    "location": "HTRC"
+  },
+  {
+    "billno": "SB125",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SEC/SFC",
+        "SCC/SEC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "SB167",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SJC/SFC",
+        "SCC/SJC/SFC",
+        "SCC"
+      ],
+      [
+        5,
+        "Ruled germane",
+        "germane",
+        "SJC"
+      ]
+    ],
+    "location": "SJC"
+  },
+  {
+    "billno": "HB54",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "SB257",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        7,
+        "Assigned SCC/SIRC/SCONC",
+        "SCC/SIRC/SCONC",
+        "SCC"
+      ],
+      [
+        12,
+        "Ruled germane",
+        "germane",
+        "SIRC"
+      ]
+    ],
+    "location": "SIRC"
+  },
+  {
+    "billno": "SB41",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SJC",
+        "SCC/SHPAC/SJC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "SHPAC"
+      ],
+      [
+        5,
+        "Do pass by SHPAC",
+        "DP",
+        "SJC"
+      ],
+      [
+        10,
+        "Do pass by SJC",
+        "DNP-CS/DP",
+        "S"
+      ],
+      [
+        12,
+        "Passed Senate (40-1) with a floor amendment",
+        "PASSED/S (40-1)",
+        "S"
+      ],
+      [
+        9,
+        "Assigned HJC",
+        "HJC/",
+        "HJC"
+      ]
+    ],
+    "location": "HJC"
+  },
+  {
+    "billno": "HB336",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB16",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SJC",
+        "SCC/SHPAC/SJC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB222",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HJM1",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        2,
+        "Assigned HCEDC",
+        "HCEDC/",
+        "HCEDC"
+      ],
+      [
+        6,
+        "Do pass by HCEDC",
+        "DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HB318",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB70",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SFC",
+        "SCC/SHPAC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB219",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        5,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        5,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        5,
+        "Assigned HEC/HJC",
+        "HEC/HJC",
+        "HEC"
+      ]
+    ],
+    "location": "HEC"
+  },
+  {
+    "billno": "HB59",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ],
+      [
+        2,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        2,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "Assigned HCPAC/HJC",
+        "HCPAC/HJC",
+        "HCPAC"
+      ]
+    ],
+    "location": "HCPAC"
+  },
+  {
+    "billno": "HB198",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HHHC/HAFC",
+        "HHHC/HAFC",
+        "HHHC"
+      ],
+      [
+        6,
+        "HAFC",
+        "rec",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB24",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HGEIC/HAFC",
+        "HGEIC/HAFC",
+        "HGEIC"
+      ],
+      [
+        1,
+        "Do pass as amended by HGEIC",
+        "DP/a",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB237",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SM1",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SRC/SJC",
+        "SRC/SJC",
+        "SRC"
+      ]
+    ],
+    "location": "SRC"
+  },
+  {
+    "billno": "SB189",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        5,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ],
+      [
+        10,
+        "Do pass by STBTC",
+        "DNP-CS/DP",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "SB108",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SCONC/SFC",
+        "SCC/SCONC/SFC",
+        "SCC"
+      ],
+      [
+        3,
+        "Ruled germane",
+        "germane",
+        "SCONC"
+      ],
+      [
+        5,
+        "Do pass by SCONC",
+        "DP",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "SB61",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SIRC/SFC",
+        "SCC/SIRC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "SIRC"
+      ],
+      [
+        5,
+        "Do pass by SIRC",
+        "DP",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "SB95",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SJC",
+        "SCC/SHPAC/SJC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB211",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB215",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HM12",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HHHC",
+        "HHHC/",
+        "HHHC"
+      ]
+    ],
+    "location": "HHHC"
+  },
+  {
+    "billno": "HB174",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SM10",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SRC/SCONC",
+        "SRC/SCONC",
+        "SRC"
+      ]
+    ],
+    "location": "SRC"
+  },
+  {
+    "billno": "HB138",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned HCEDC/HGEIC",
+        "HCEDC/HGEIC",
+        "HCEDC"
+      ],
+      [
+        2,
+        "HRC",
+        "ref HRC",
+        "HRC"
+      ]
+    ],
+    "location": "HRC"
+  },
+  {
+    "billno": "SJR3",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SRC/SEC",
+        "SRC/SEC",
+        "SRC"
+      ],
+      [
+        5,
+        "Do pass by SRC",
+        "DP",
+        "SEC"
+      ]
+    ],
+    "location": "SEC"
+  },
+  {
+    "billno": "SB17",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SJC",
+        "SCC/SHPAC/SJC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "SHPAC"
+      ],
+      [
+        5,
+        "Do pass by SHPAC",
+        "DP",
+        "SJC"
+      ],
+      [
+        7,
+        "Do pass by SJC",
+        "DNP-CS/DP",
+        "S"
+      ],
+      [
+        8,
+        "Passed Senate (21-17)",
+        "PASSED/S (21-17)",
+        "S"
+      ],
+      [
+        6,
+        "Assigned HCEDC/HJC",
+        "HCEDC/HJC",
+        "HCEDC"
+      ],
+      [
+        7,
+        "Do pass by HCEDC",
+        "DP",
+        "HJC"
+      ]
+    ],
+    "location": "HJC"
+  },
+  {
+    "billno": "SB111",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SHPAC/STBTC",
+        "SCC/SHPAC/STBTC",
+        "SCC"
+      ],
+      [
+        5,
+        "Ruled germane",
+        "germane",
+        "SHPAC"
+      ],
+      [
+        8,
+        "Do pass by SHPAC",
+        "DP",
+        "STBTC"
+      ],
+      [
+        12,
+        "Do pass by STBTC",
+        "DP",
+        "S"
+      ]
+    ],
+    "location": "S"
+  },
+  {
+    "billno": "HB122",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB165",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        2,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        2,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "Assigned HGEIC/HJC",
+        "HGEIC/HJC",
+        "HGEIC"
+      ],
+      [
+        4,
+        "Do pass by HGEIC",
+        "DP",
+        "HJC"
+      ],
+      [
+        6,
+        "Do pass by HJC",
+        "DP",
+        "H"
+      ],
+      [
+        7,
+        "Passed House (67-0)",
+        "PASSED/H (67-0)",
+        "H"
+      ],
+      [
+        12,
+        "Assigned STBTC",
+        "STBTC/",
+        "STBTC"
+      ]
+    ],
+    "location": "STBTC"
+  },
+  {
+    "billno": "HB89",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "HB281",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        4,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB290",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        4,
+        "Assigned HCEDC/HTRC",
+        "HCEDC/HTRC",
+        "HCEDC"
+      ]
+    ],
+    "location": "HCEDC"
+  },
+  {
+    "billno": "HB74",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ],
+      [
+        2,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        2,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "Assigned HCPAC/HJC",
+        "HCPAC/HJC",
+        "HCPAC"
+      ]
+    ],
+    "location": "HCPAC"
+  },
+  {
+    "billno": "HB81",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "HB35",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "SB119",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SJC/SFC",
+        "SCC/SJC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB102",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "SB39",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SCONC/STBTC",
+        "SCC/SCONC/STBTC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB83",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "HJR1",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HEC/HJC",
+        "HEC/HJC",
+        "HEC"
+      ],
+      [
+        2,
+        "Do pass by HEC",
+        "DP",
+        "HJC"
+      ],
+      [
+        4,
+        "Do pass as amended by HJC",
+        "DP/a",
+        "H"
+      ],
+      [
+        6,
+        "Passed House (67-0)",
+        "PASSED/H (67-0)",
+        "H"
+      ],
+      [
+        8,
+        "Assigned SRC/SEC",
+        "SRC/SEC",
+        "SRC"
+      ],
+      [
+        10,
+        "Do pass by SRC",
+        "DP",
+        "SEC"
+      ],
+      [
+        12,
+        "Do pass by SEC",
+        "DP",
+        "S"
+      ]
+    ],
+    "location": "S"
+  },
+  {
+    "billno": "HB10",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HHHC/HJC",
+        "HHHC/HJC",
+        "HHHC"
+      ],
+      [
+        1,
+        "Do pass by HHHC",
+        "DP",
+        "HJC"
+      ],
+      [
+        2,
+        "Do pass by HJC",
+        "DNP-CS/DP",
+        "H"
+      ],
+      [
+        2,
+        "Passed House (68-0)",
+        "PASSED/H (68-0)",
+        "H"
+      ],
+      [
+        5,
+        "Assigned SHPAC/SJC",
+        "SHPAC/SJC",
+        "SHPAC"
+      ]
+    ],
+    "location": "SHPAC"
+  },
+  {
+    "billno": "HB98",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "SB13",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ]
+    ],
+    "location": "STBTC"
+  },
+  {
+    "billno": "SB37",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SEC/SFC",
+        "SCC/SEC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "SEC"
+      ],
+      [
+        1,
+        "Do pass by SEC",
+        "DP",
+        "SFC"
+      ],
+      [
+        5,
+        "Do pass by SFC",
+        "DP",
+        "S"
+      ],
+      [
+        5,
+        "Passed Senate (39-0)",
+        "PASSED/S (39-0)",
+        "S"
+      ],
+      [
+        5,
+        "Assigned HGEIC/HEC",
+        "HGEIC/HEC",
+        "HGEIC"
+      ],
+      [
+        6,
+        "Do pass by HGEIC",
+        "DP",
+        "HEC"
+      ],
+      [
+        7,
+        "Do pass as amended by HEC",
+        "DP/a",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HB184",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HENRC/HAFC",
+        "HENRC/HAFC",
+        "HENRC"
+      ],
+      [
+        5,
+        "Do pass as amended by HENRC",
+        "DP/a",
+        "HAFC"
+      ],
+      [
+        6,
+        "Do pass by HAFC",
+        "DP",
+        "H"
+      ],
+      [
+        7,
+        "Passed House (67-0)",
+        "PASSED/H (67-0)",
+        "H"
+      ],
+      [
+        12,
+        "Assigned SFC",
+        "SFC/",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "SB131",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SHPAC/SJC",
+        "SCC/SHPAC/SJC",
+        "SCC"
+      ],
+      [
+        3,
+        "Ruled germane",
+        "germane",
+        "SHPAC"
+      ]
+    ],
+    "location": "SHPAC"
+  },
+  {
+    "billno": "SB152",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        3,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ],
+      [
+        7,
+        "Do pass by STBTC",
+        "DP",
+        "SFC"
+      ],
+      [
+        10,
+        "Do pass by SFC",
+        "DNP-CS/DP",
+        "S"
+      ],
+      [
+        12,
+        "Passed Senate (38-0)",
+        "PASSED/S (38-0)",
+        "S"
+      ],
+      [
+        7,
+        "Assigned HAFC",
+        "HAFC/",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB12",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HHHC/HJC",
+        "HHHC/HJC",
+        "HHHC"
+      ],
+      [
+        1,
+        "Do pass by HHHC",
+        "DP",
+        "HJC"
+      ],
+      [
+        2,
+        "Do pass by HJC",
+        "DNP-CS/DP",
+        "H"
+      ],
+      [
+        2,
+        "Passed House (67-0)",
+        "PASSED/H (67-0)",
+        "H"
+      ],
+      [
+        5,
+        "Assigned SHPAC/SJC",
+        "SHPAC/SJC",
+        "SHPAC"
+      ]
+    ],
+    "location": "SHPAC"
+  },
+  {
+    "billno": "HB14",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HHHC/HJC",
+        "HHHC/HJC",
+        "HHHC"
+      ],
+      [
+        1,
+        "Do pass by HHHC",
+        "DP",
+        "HJC"
+      ],
+      [
+        2,
+        "Do pass by HJC",
+        "DNP-CS/DP",
+        "H"
+      ],
+      [
+        2,
+        "Passed House (67-0)",
+        "PASSED/H (67-0)",
+        "H"
+      ],
+      [
+        5,
+        "Assigned SHPAC/SJC",
+        "SHPAC/SJC",
+        "SHPAC"
+      ]
+    ],
+    "location": "SHPAC"
+  },
+  {
+    "billno": "HB128",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        4,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        4,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        4,
+        "Assigned HHHC/HLVMC",
+        "HHHC/HLVMC",
+        "HHHC"
+      ],
+      [
+        5,
+        "Do pass by HHHC",
+        "DP",
+        "HLVMC"
+      ],
+      [
+        6,
+        "Do pass by HLVMC",
+        "DP",
+        "H"
+      ],
+      [
+        6,
+        "Passed House (61-1)",
+        "PASSED/H (61-1)",
+        "H"
+      ],
+      [
+        10,
+        "Assigned SHPAC",
+        "SHPAC/",
+        "SHPAC"
+      ]
+    ],
+    "location": "SHPAC"
+  },
+  {
+    "billno": "HJR5",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HGEIC/HJC",
+        "HGEIC/HJC",
+        "HGEIC"
+      ],
+      [
+        6,
+        "Do pass as amended by HGEIC",
+        "DP/a",
+        "HJC"
+      ],
+      [
+        7,
+        "Do pass by HJC",
+        "DP",
+        "H"
+      ],
+      [
+        8,
+        "Passed House (41-26)",
+        "PASSED/H (41-26)",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "SB14",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SFC",
+        "SCC/SHPAC/SFC",
+        "SCC"
+      ],
+      [
+        5,
+        "Ruled germane",
+        "germane",
+        "SHPAC"
+      ],
+      [
+        8,
+        "Do pass by SHPAC",
+        "DNP-CS/DP",
+        "SFC"
+      ],
+      [
+        10,
+        "Do pass as amended by SFC",
+        "DP/a",
+        "S"
+      ],
+      [
+        10,
+        "Passed Senate (35-2)",
+        "PASSED/S (35-2)",
+        "S"
+      ],
+      [
+        7,
+        "Assigned HHHC/HAFC",
+        "HHHC/HAFC",
+        "HHHC"
+      ]
+    ],
+    "location": "HHHC"
+  },
+  {
+    "billno": "HB103",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HCEDC/HTRC",
+        "HCEDC/HTRC",
+        "HCEDC"
+      ],
+      [
+        3,
+        "Do pass by HCEDC",
+        "DP",
+        "HTRC"
+      ],
+      [
+        6,
+        "Do pass by HTRC",
+        "DP",
+        "H"
+      ],
+      [
+        7,
+        "Passed House (54-10)",
+        "PASSED/H (54-10)",
+        "H"
+      ],
+      [
+        10,
+        "Assigned STBTC",
+        "STBTC/",
+        "STBTC"
+      ]
+    ],
+    "location": "STBTC"
+  },
+  {
+    "billno": "HB183",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HAAWC/HAFC",
+        "HAAWC/HAFC",
+        "HAAWC"
+      ],
+      [
+        3,
+        "Do pass by HAAWC",
+        "DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB196",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HCPAC/HJC",
+        "HCPAC/HJC",
+        "HCPAC"
+      ]
+    ],
+    "location": "HCPAC"
+  },
+  {
+    "billno": "HM11",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Printed",
+        "nt prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB41",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HGEIC/HAFC",
+        "HGEIC/HAFC",
+        "HGEIC"
+      ],
+      [
+        1,
+        "Do pass by HGEIC",
+        "DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "SB21",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SHPAC/STBTC",
+        "SCC/SHPAC/STBTC",
+        "SCC"
+      ],
+      [
+        3,
+        "Ruled germane",
+        "germane",
+        "SHPAC"
+      ],
+      [
+        5,
+        "Do pass as amended by SHPAC",
+        "DP/a",
+        "STBTC"
+      ],
+      [
+        10,
+        "Do pass as amended by STBTC",
+        "DP/a",
+        "S"
+      ],
+      [
+        12,
+        "Passed Senate (36-0)",
+        "PASSED/S (36-0)",
+        "S"
+      ],
+      [
+        7,
+        "Assigned HHHC",
+        "HHHC/",
+        "HHHC"
+      ]
+    ],
+    "location": "HHHC"
+  },
+  {
+    "billno": "SB136",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SJC/SFC",
+        "SCC/SJC/SFC",
+        "SCC"
+      ],
+      [
+        5,
+        "Ruled germane",
+        "germane",
+        "SJC"
+      ]
+    ],
+    "location": "SJC"
+  },
+  {
+    "billno": "SB20",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SHPAC/STBTC",
+        "SCC/SHPAC/STBTC",
+        "SCC"
+      ],
+      [
+        5,
+        "Ruled germane",
+        "germane",
+        "SHPAC"
+      ],
+      [
+        8,
+        "Do pass by SHPAC",
+        "DNP-CS/DP",
+        "STBTC"
+      ],
+      [
+        10,
+        "Do pass by STBTC",
+        "DNP-CS/DP",
+        "S"
+      ],
+      [
+        12,
+        "Passed Senate (36-1)",
+        "PASSED/S (36-1)",
+        "S"
+      ],
+      [
+        7,
+        "Assigned HHHC",
+        "HHHC/",
+        "HHHC"
+      ]
+    ],
+    "location": "HHHC"
+  },
+  {
+    "billno": "SB145",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SHPAC/SFC",
+        "SCC/SHPAC/SFC",
+        "SCC"
+      ],
+      [
+        5,
+        "Ruled germane",
+        "germane",
+        "SHPAC"
+      ],
+      [
+        6,
+        "Do pass by SHPAC",
+        "DP",
+        "SFC"
+      ],
+      [
+        10,
+        "Do pass as amended by SFC",
+        "DP/a",
+        "S"
+      ],
+      [
+        12,
+        "Passed Senate (32-2)",
+        "PASSED/S (32-2)",
+        "S"
+      ],
+      [
+        8,
+        "Assigned HJC/HAFC",
+        "HJC/HAFC",
+        "HJC"
+      ]
+    ],
+    "location": "HJC"
+  },
+  {
+    "billno": "HB133",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned HAFC",
+        "HAFC/",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB25",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ],
+      [
+        1,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        1,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        1,
+        "Assigned HCPAC/HJC",
+        "HCPAC/HJC",
+        "HCPAC"
+      ]
+    ],
+    "location": "HCPAC"
+  },
+  {
+    "billno": "HB72",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ],
+      [
+        2,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        2,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "Assigned HHHC/HJC",
+        "HHHC/HJC",
+        "HHHC"
+      ],
+      [
+        4,
+        "Do pass by HHHC",
+        "DP",
+        "HJC"
+      ]
+    ],
+    "location": "HJC"
+  },
+  {
+    "billno": "HB11",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HHHC/HJC",
+        "HHHC/HJC",
+        "HHHC"
+      ],
+      [
+        1,
+        "Do pass by HHHC",
+        "DP",
+        "HJC"
+      ],
+      [
+        2,
+        "Do pass by HJC",
+        "DNP-CS/DP",
+        "H"
+      ],
+      [
+        2,
+        "Passed House (67-0)",
+        "PASSED/H (67-0)",
+        "H"
+      ],
+      [
+        5,
+        "Assigned SHPAC/SJC",
+        "SHPAC/SJC",
+        "SHPAC"
+      ]
+    ],
+    "location": "SHPAC"
+  },
+  {
+    "billno": "HB88",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HRDLC/HAFC",
+        "HRDLC/HAFC",
+        "HRDLC"
+      ],
+      [
+        2,
+        "Do pass by HRDLC",
+        "DP",
+        "HAFC"
+      ],
+      [
+        7,
+        "Do pass by HAFC",
+        "DP",
+        "H"
+      ],
+      [
+        7,
+        "Passed House (67-0)",
+        "PASSED/H (67-0)",
+        "H"
+      ],
+      [
+        12,
+        "Assigned SFC",
+        "SFC/",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "HB31",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HHHC/HJC",
+        "HHHC/HJC",
+        "HHHC"
+      ],
+      [
+        1,
+        "Do pass by HHHC",
+        "DP",
+        "HJC"
+      ],
+      [
+        2,
+        "Do pass by HJC",
+        "DNP-CS/DP",
+        "H"
+      ],
+      [
+        2,
+        "Passed House (68-0)",
+        "PASSED/H (68-0)",
+        "H"
+      ],
+      [
+        5,
+        "Assigned SHPAC/SJC",
+        "SHPAC/SJC",
+        "SHPAC"
+      ]
+    ],
+    "location": "SHPAC"
+  },
+  {
+    "billno": "SB53",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SJC",
+        "SCC/SHPAC/SJC",
+        "SCC"
+      ],
+      [
+        5,
+        "Ruled germane",
+        "germane",
+        "SHPAC"
+      ],
+      [
+        7,
+        "Do pass by SHPAC",
+        "DP",
+        "SJC"
+      ]
+    ],
+    "location": "SJC"
+  },
+  {
+    "billno": "HB110",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HGEIC/HRDLC",
+        "HGEIC/HRDLC",
+        "HGEIC"
+      ],
+      [
+        2,
+        "Withdrawn",
+        "w/drn",
+        "HGEIC"
+      ],
+      [
+        2,
+        "Printed",
+        "prntd",
+        "HGEIC"
+      ],
+      [
+        2,
+        "Assigned HRDLC/HGEIC",
+        "HRDLC/HGEIC",
+        "HRDLC"
+      ],
+      [
+        5,
+        "Do pass by HRDLC",
+        "DNP-CS/DP",
+        "HGEIC"
+      ]
+    ],
+    "location": "HGEIC"
+  },
+  {
+    "billno": "HJR3",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HENRC/HJC",
+        "HENRC/HJC",
+        "HENRC"
+      ]
+    ],
+    "location": "HENRC"
+  },
+  {
+    "billno": "SB9",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SFC",
+        "SCC/SHPAC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "SHPAC"
+      ],
+      [
+        5,
+        "Do pass by SHPAC",
+        "DP",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "HB67",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "SB1",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SJC",
+        "SCC/SJC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "SJC"
+      ],
+      [
+        1,
+        "Do pass by SJC",
+        "DP",
+        "S"
+      ],
+      [
+        3,
+        "Passed Senate (40-0)",
+        "PASSED/S (40-0)",
+        "S"
+      ],
+      [
+        2,
+        "Assigned HHHC",
+        "HHHC/",
+        "HHHC"
+      ],
+      [
+        4,
+        "Do pass by HHHC",
+        "DP",
+        "H"
+      ],
+      [
+        5,
+        "Passed House (64-0)",
+        "PASSED/H (64-0)",
+        "H"
+      ],
+      [
+        7,
+        "Signed by Governor",
+        "SGND BY GOV (Feb. 5) Ch.  3.",
+        "HHHC/"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "SB150",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        3,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ],
+      [
+        12,
+        "Do pass by STBTC",
+        "DP",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "HB192",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB120",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        3,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ]
+    ],
+    "location": "STBTC"
+  },
+  {
+    "billno": "HB193",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HEC/HTRC",
+        "HEC/HTRC",
+        "HEC"
+      ]
+    ],
+    "location": "HEC"
+  },
+  {
+    "billno": "HB118",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB102",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SJC/SFC",
+        "SCC/SJC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "SB118",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        3,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ]
+    ],
+    "location": "STBTC"
+  },
+  {
+    "billno": "HM6",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        2,
+        "Assigned HCEDC",
+        "HCEDC/",
+        "HCEDC"
+      ]
+    ],
+    "location": "HCEDC"
+  },
+  {
+    "billno": "HB76",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HHHC/HAFC",
+        "HHHC/HAFC",
+        "HHHC"
+      ],
+      [
+        2,
+        "Do pass by HHHC",
+        "DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "SB4",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SFC",
+        "SCC/SHPAC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "SHPAC"
+      ],
+      [
+        5,
+        "Do pass as amended by SHPAC",
+        "DP/a",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "HM4",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        2,
+        "Assigned HEC",
+        "HEC/",
+        "HEC"
+      ],
+      [
+        4,
+        "Do pass by HEC",
+        "DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "SB110",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SCONC/SFC",
+        "SCC/SCONC/SFC",
+        "SCC"
+      ],
+      [
+        3,
+        "Ruled germane",
+        "germane",
+        "SCONC"
+      ],
+      [
+        5,
+        "Do pass by SCONC",
+        "DP",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "SB114",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/STBTC/SJC",
+        "SCC/STBTC/SJC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB86",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "HB77",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HCEDC/HTRC",
+        "HCEDC/HTRC",
+        "HCEDC"
+      ],
+      [
+        4,
+        "Do pass by HCEDC",
+        "DNP-CS/DP",
+        "HTRC"
+      ]
+    ],
+    "location": "HTRC"
+  },
+  {
+    "billno": "HB75",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ],
+      [
+        2,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        2,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "Assigned HCPAC/HJC",
+        "HCPAC/HJC",
+        "HCPAC"
+      ]
+    ],
+    "location": "HCPAC"
+  },
+  {
+    "billno": "HB108",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ],
+      [
+        2,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        2,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "Assigned HAAWC/HTRC",
+        "HAAWC/HTRC",
+        "HAAWC"
+      ],
+      [
+        3,
+        "Do pass as amended by HAAWC",
+        "DP/a",
+        "HTRC"
+      ],
+      [
+        6,
+        "Do pass by HTRC",
+        "DP",
+        "H"
+      ],
+      [
+        7,
+        "Passed House (63-1)",
+        "PASSED/H (63-1)",
+        "H"
+      ],
+      [
+        12,
+        "Assigned STBTC",
+        "STBTC/",
+        "STBTC"
+      ]
+    ],
+    "location": "STBTC"
+  },
+  {
+    "billno": "SB51",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SJC/SFC",
+        "SCC/SJC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HJM2",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        2,
+        "Assigned HJC",
+        "HJC/",
+        "HJC"
+      ],
+      [
+        5,
+        "Do pass by HJC",
+        "DNP-CS/DP",
+        "H"
+      ],
+      [
+        8,
+        "Passed House (64-0)",
+        "PASSED/H (64-0)",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HB207",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        4,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        4,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        4,
+        "Assigned HAAWC/HGEIC",
+        "HAAWC/HGEIC",
+        "HAAWC"
+      ]
+    ],
+    "location": "HAAWC"
+  },
+  {
+    "billno": "SM11",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SRC/SIRC",
+        "SRC/SIRC",
+        "SRC"
+      ]
+    ],
+    "location": "SRC"
+  },
+  {
+    "billno": "HB99",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HHHC/HJC",
+        "HHHC/HJC",
+        "HHHC"
+      ],
+      [
+        4,
+        "Do pass as amended by HHHC",
+        "DP/a",
+        "HJC"
+      ],
+      [
+        7,
+        "Do pass by HJC",
+        "DNP-CS/DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "SB201",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned SCC/SIRC/SFC",
+        "SCC/SIRC/SFC",
+        "SCC"
+      ],
+      [
+        5,
+        "Ruled germane",
+        "germane",
+        "SIRC"
+      ],
+      [
+        10,
+        "Do pass by SIRC",
+        "DP",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "HB226",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HJR9",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned HGEIC/HJC",
+        "HGEIC/HJC",
+        "HGEIC"
+      ]
+    ],
+    "location": "HGEIC"
+  },
+  {
+    "billno": "HB257",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned HHHC/HAFC",
+        "HHHC/HAFC",
+        "HHHC"
+      ],
+      [
+        6,
+        "Do pass by HHHC",
+        "DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HM20",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HENRC",
+        "HENRC/",
+        "HENRC"
+      ],
+      [
+        6,
+        "Do pass by HENRC",
+        "DNP-CS/DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HB246",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned HENRC/HAFC",
+        "HENRC/HAFC",
+        "HENRC"
+      ],
+      [
+        5,
+        "Do pass by HENRC",
+        "DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB229",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB200",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned SCC/SEC/SFC",
+        "SCC/SEC/SFC",
+        "SCC"
+      ],
+      [
+        5,
+        "Ruled germane",
+        "germane",
+        "SEC"
+      ]
+    ],
+    "location": "SEC"
+  },
+  {
+    "billno": "HB260",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB201",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HJC/HAFC",
+        "HJC/HAFC",
+        "HJC"
+      ],
+      [
+        5,
+        "Do pass as amended by HJC",
+        "DP/a",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HM21",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Printed",
+        "nt prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB249",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned HHHC/HTRC",
+        "HHHC/HTRC",
+        "HHHC"
+      ]
+    ],
+    "location": "HHHC"
+  },
+  {
+    "billno": "SB187",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned SCC/SCONC/SFC",
+        "SCC/SCONC/SFC",
+        "SCC"
+      ],
+      [
+        5,
+        "Ruled germane",
+        "germane",
+        "SCONC"
+      ],
+      [
+        7,
+        "Do pass by SCONC",
+        "DP",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "HB101",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HAAWC/HAFC",
+        "HAAWC/HAFC",
+        "HAAWC"
+      ],
+      [
+        2,
+        "Do pass as amended by HAAWC",
+        "DP/a",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB20",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned HCPAC/HGEIC",
+        "HCPAC/HGEIC",
+        "HCPAC"
+      ],
+      [
+        6,
+        "Do pass by HCPAC",
+        "DP",
+        "HGEIC"
+      ],
+      [
+        7,
+        "Do pass by HGEIC",
+        "DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HM7",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HLVMC",
+        "HLVMC/",
+        "HLVMC"
+      ],
+      [
+        3,
+        "Do pass by HLVMC",
+        "DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "SB31",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SJC",
+        "SCC/SHPAC/SJC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "SB55",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ],
+      [
+        5,
+        "Do pass by STBTC",
+        "DP",
+        "SFC"
+      ],
+      [
+        7,
+        "Do pass by SFC",
+        "DP",
+        "S"
+      ],
+      [
+        7,
+        "Passed Senate (26-10)",
+        "PASSED/S (26-10)",
+        "S"
+      ],
+      [
+        6,
+        "Assigned HENRC/HTRC",
+        "HENRC/HTRC",
+        "HENRC"
+      ],
+      [
+        7,
+        "Do pass by HENRC",
+        "DP",
+        "HTRC"
+      ]
+    ],
+    "location": "HTRC"
+  },
+  {
+    "billno": "HB124",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        4,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        4,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        4,
+        "Assigned HCPAC/HGEIC",
+        "HCPAC/HGEIC",
+        "HCPAC"
+      ],
+      [
+        5,
+        "Do pass by HCPAC",
+        "DP",
+        "HGEIC"
+      ],
+      [
+        6,
+        "Do pass by HGEIC",
+        "DP",
+        "H"
+      ],
+      [
+        6,
+        "Passed House (40-21)",
+        "PASSED/H (40-21)",
+        "H"
+      ],
+      [
+        10,
+        "Assigned SRC/SFC",
+        "SRC/SFC",
+        "SRC"
+      ]
+    ],
+    "location": "SRC"
+  },
+  {
+    "billno": "HB68",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HHHC/HAFC",
+        "HHHC/HAFC",
+        "HHHC"
+      ],
+      [
+        2,
+        "Do pass by HHHC",
+        "DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "SB64",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SEC/SFC",
+        "SCC/SEC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "SEC"
+      ],
+      [
+        5,
+        "Do pass as amended by SEC",
+        "DP/a",
+        "SFC"
+      ],
+      [
+        5,
+        "Do pass as amended by SFC",
+        "DP/a",
+        "S"
+      ],
+      [
+        7,
+        "Passed Senate (38-1)",
+        "PASSED/S (38-1)",
+        "S"
+      ],
+      [
+        5,
+        "Assigned HGEIC/HEC",
+        "HGEIC/HEC",
+        "HGEIC"
+      ],
+      [
+        6,
+        "Do pass by HGEIC",
+        "DP",
+        "HEC"
+      ],
+      [
+        8,
+        "Do pass by HEC",
+        "DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HB111",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned HAAWC/HJC",
+        "HAAWC/HJC",
+        "HAAWC"
+      ],
+      [
+        2,
+        "Do pass by HAAWC",
+        "DP",
+        "HJC"
+      ],
+      [
+        4,
+        "Do pass by HJC",
+        "DP",
+        "H"
+      ],
+      [
+        7,
+        "Passed House (51-3)",
+        "PASSED/H (51-3)",
+        "H"
+      ],
+      [
+        12,
+        "Assigned SCONC",
+        "SCONC/",
+        "SCONC"
+      ]
+    ],
+    "location": "SCONC"
+  },
+  {
+    "billno": "SB124",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SEC/SFC",
+        "SCC/SEC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB136",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB112",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "HB117",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SB84",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SEC/SFC",
+        "SCC/SEC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "SB76",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ],
+      [
+        12,
+        "Do pass by STBTC",
+        "DP",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "HB113",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned HENRC/HTRC",
+        "HENRC/HTRC",
+        "HENRC"
+      ]
+    ],
+    "location": "HENRC"
+  },
+  {
+    "billno": "HB85",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "HB139",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned HGEIC/HAFC",
+        "HGEIC/HAFC",
+        "HGEIC"
+      ],
+      [
+        2,
+        "Do pass by HGEIC",
+        "DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB50",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HHHC/HJC",
+        "HHHC/HJC",
+        "HHHC"
+      ],
+      [
+        1,
+        "Do pass by HHHC",
+        "DP",
+        "HJC"
+      ],
+      [
+        2,
+        "Do pass by HJC",
+        "DP",
+        "H"
+      ],
+      [
+        2,
+        "Passed House (66-0)",
+        "PASSED/H (66-0)",
+        "H"
+      ],
+      [
+        5,
+        "Assigned SJC",
+        "SJC/",
+        "SJC"
+      ],
+      [
+        6,
+        "Do pass by SJC",
+        "DP",
+        "S"
+      ],
+      [
+        7,
+        "Passed Senate (37-0)",
+        "PASSED/S (37-0)",
+        "S"
+      ],
+      [
+        6,
+        "Signed by Governor",
+        "SGND BY GOV (Feb. 9) Ch.  6.",
+        "SJC/"
+      ]
+    ],
+    "location": "S"
+  },
+  {
+    "billno": "HB276",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        4,
+        "Assigned HAAWC/HAFC",
+        "HAAWC/HAFC",
+        "HAAWC"
+      ],
+      [
+        5,
+        "Do pass by HAAWC",
+        "DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HM37",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        4,
+        "Assigned HENRC",
+        "HENRC/",
+        "HENRC"
+      ]
+    ],
+    "location": "HENRC"
+  },
+  {
+    "billno": "SB209",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned SCC/SCONC/SFC",
+        "SCC/SCONC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB279",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        4,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        4,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        4,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        4,
+        "Assigned HHHC/HJC",
+        "HHHC/HJC",
+        "HHHC"
+      ],
+      [
+        7,
+        "Do pass by HHHC",
+        "DNP-CS/DP",
+        "HJC"
+      ]
+    ],
+    "location": "HJC"
+  },
+  {
+    "billno": "HB270",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        4,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        5,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        5,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        5,
+        "Assigned HLVMC/HCEDC",
+        "HLVMC/HCEDC",
+        "HLVMC"
+      ],
+      [
+        5,
+        "Assigned HLVMC/HTPWC",
+        "HLVMC/HTPWC",
+        "HLVMC"
+      ],
+      [
+        7,
+        "Do pass by HLVMC",
+        "DP",
+        "HTPWC"
+      ],
+      [
+        7,
+        "Do pass by HTPWC",
+        "DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "SB217",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB78",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "HB1",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned HAFC",
+        "HAFC/",
+        "HAFC"
+      ],
+      [
+        1,
+        "Do pass by HAFC",
+        "DP",
+        "H"
+      ],
+      [
+        1,
+        "Passed House (54-2)",
+        "PASSED/H (54-2)",
+        "H"
+      ],
+      [
+        1,
+        "Sent to SFC",
+        "SFC",
+        "SFC"
+      ],
+      [
+        1,
+        "Do pass by SFC",
+        "DP",
+        "SFC"
+      ],
+      [
+        3,
+        "Passed Senate (39-0)",
+        "PASSED/S (39-0)",
+        "S"
+      ],
+      [
+        2,
+        "Signed by Governor",
+        "SGND BY GOV (Jan. 27) Ch.  1.",
+        "SFC"
+      ]
+    ],
+    "location": "S"
+  },
+  {
+    "billno": "HB64",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HRDLC/HAFC",
+        "HRDLC/HAFC",
+        "HRDLC"
+      ],
+      [
+        3,
+        "Do pass by HRDLC",
+        "DP",
+        "HAFC"
+      ],
+      [
+        6,
+        "Do pass by HAFC",
+        "DP",
+        "H"
+      ],
+      [
+        7,
+        "Passed House (67-0)",
+        "PASSED/H (67-0)",
+        "H"
+      ],
+      [
+        12,
+        "Assigned SFC",
+        "SFC/",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "HB33",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HHHC/HJC",
+        "HHHC/HJC",
+        "HHHC"
+      ],
+      [
+        1,
+        "Do pass by HHHC",
+        "DP",
+        "HJC"
+      ],
+      [
+        5,
+        "Do pass by HJC",
+        "DNP-CS/DP",
+        "H"
+      ],
+      [
+        5,
+        "Passed House (64-0)",
+        "PASSED/H (64-0)",
+        "H"
+      ],
+      [
+        7,
+        "Assigned SHPAC/SJC",
+        "SHPAC/SJC",
+        "SHPAC"
+      ]
+    ],
+    "location": "SHPAC"
+  },
+  {
+    "billno": "HM1",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        2,
+        "Assigned HHHC",
+        "HHHC/",
+        "HHHC"
+      ],
+      [
+        7,
+        "Do pass by HHHC",
+        "DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HB63",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HAAWC/HAFC",
+        "HAAWC/HAFC",
+        "HAAWC"
+      ],
+      [
+        2,
+        "Do pass by HAAWC",
+        "DP",
+        "HAFC"
+      ],
+      [
+        6,
+        "Do pass by HAFC",
+        "DP",
+        "H"
+      ],
+      [
+        7,
+        "Passed House (66-0)",
+        "PASSED/H (66-0)",
+        "H"
+      ],
+      [
+        12,
+        "Assigned SCONC",
+        "SCONC/",
+        "SCONC"
+      ]
+    ],
+    "location": "SCONC"
+  },
+  {
+    "billno": "HB127",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        2,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        2,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "Assigned HHHC/HJC",
+        "HHHC/HJC",
+        "HHHC"
+      ],
+      [
+        5,
+        "Do pass as amended by HHHC",
+        "DP/a",
+        "HJC"
+      ],
+      [
+        6,
+        "Do pass by HJC",
+        "DP",
+        "H"
+      ],
+      [
+        7,
+        "Passed House (62-0)",
+        "PASSED/H (62-0)",
+        "H"
+      ],
+      [
+        10,
+        "Assigned SHPAC",
+        "SHPAC/",
+        "SHPAC"
+      ]
+    ],
+    "location": "SHPAC"
+  },
+  {
+    "billno": "HM2",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        2,
+        "Assigned HEC",
+        "HEC/",
+        "HEC"
+      ],
+      [
+        5,
+        "Do pass by HEC",
+        "DP",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HB39",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "HB46",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "HM3",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        2,
+        "Printed",
+        "nt prntd",
+        "HPREF"
+      ],
+      [
+        5,
+        "Withdrawn",
+        "w/drn",
+        "HPREF"
+      ],
+      [
+        5,
+        "Passed House (70-0)",
+        "PASSED/H (70-0).",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "SB130",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SHPAC/STBTC",
+        "SCC/SHPAC/STBTC",
+        "SCC"
+      ],
+      [
+        10,
+        "Ruled germane",
+        "germane",
+        "SHPAC"
+      ]
+    ],
+    "location": "SHPAC"
+  },
+  {
+    "billno": "HB47",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HEC/HAFC",
+        "HEC/HAFC",
+        "HEC"
+      ],
+      [
+        1,
+        "Do pass as amended by HEC",
+        "DP/a",
+        "HAFC"
+      ],
+      [
+        6,
+        "Do pass by HAFC",
+        "DNP-CS/DP",
+        "H"
+      ],
+      [
+        7,
+        "Passed House (61-0)",
+        "PASSED/H (61-0)",
+        "H"
+      ],
+      [
+        10,
+        "Assigned SEC",
+        "SEC/",
+        "SEC"
+      ]
+    ],
+    "location": "SEC"
+  },
+  {
+    "billno": "HB152",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        null
+      ]
+    ],
+    "location": null
+  },
+  {
+    "billno": "SM9",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SRC/SFC",
+        "SRC/SFC",
+        "SRC"
+      ]
+    ],
+    "location": "SRC"
+  },
+  {
+    "billno": "SB140",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SHPAC/SFC",
+        "SCC/SHPAC/SFC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB154",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        2,
+        "Assigned HENRC/HTRC",
+        "HENRC/HTRC",
+        "HENRC"
+      ],
+      [
+        5,
+        "Do pass by HENRC",
+        "DP",
+        "HTRC"
+      ],
+      [
+        6,
+        "Do pass by HTRC",
+        "DP",
+        "H"
+      ],
+      [
+        7,
+        "Passed House (59-5)",
+        "PASSED/H (59-5)",
+        "H"
+      ],
+      [
+        10,
+        "Assigned STBTC",
+        "STBTC/",
+        "STBTC"
+      ]
+    ],
+    "location": "STBTC"
+  },
+  {
+    "billno": "SB143",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SCONC/SFC",
+        "SCC/SCONC/SFC",
+        "SCC"
+      ],
+      [
+        3,
+        "Ruled germane",
+        "germane",
+        "SCONC"
+      ],
+      [
+        5,
+        "Do pass by SCONC",
+        "DP",
+        "SFC"
+      ],
+      [
+        7,
+        "Do pass as amended by SFC",
+        "DP/a",
+        "S"
+      ],
+      [
+        8,
+        "Passed Senate (37-0)",
+        "PASSED/S (37-0)",
+        "S"
+      ],
+      [
+        6,
+        "Assigned HAFC",
+        "HAFC/",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "SB157",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        3,
+        "Assigned SCC/SJC/STBTC",
+        "SCC/SJC/STBTC",
+        "SCC"
+      ]
+    ],
+    "location": "SCC"
+  },
+  {
+    "billno": "HB28",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "HB23",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ]
+    ],
+    "location": "HPREF"
+  },
+  {
+    "billno": "SB73",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SEC/STBTC",
+        "SCC/SEC/STBTC",
+        "SCC"
+      ],
+      [
+        7,
+        "Ruled germane",
+        "germane",
+        "SEC"
+      ],
+      [
+        10,
+        "Do pass by SEC",
+        "DP",
+        "STBTC"
+      ],
+      [
+        12,
+        "Do pass by STBTC",
+        "DP",
+        "S"
+      ]
+    ],
+    "location": "S"
+  },
+  {
+    "billno": "HB87",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HHHC/HAFC",
+        "HHHC/HAFC",
+        "HHHC"
+      ],
+      [
+        2,
+        "Do pass by HHHC",
+        "DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "SB66",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SCONC/SFC",
+        "SCC/SCONC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "SCONC"
+      ],
+      [
+        5,
+        "Do pass by SCONC",
+        "DP",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "HB320",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        5,
+        "Not printed",
+        "not prntd",
+        null
+      ],
+      [
+        6,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        6,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        6,
+        "Assigned HENRC/HAFC",
+        "HENRC/HAFC",
+        "HENRC"
+      ],
+      [
+        7,
+        "Do pass by HENRC",
+        "DP",
+        "HAFC"
+      ]
+    ],
+    "location": "HAFC"
+  },
+  {
+    "billno": "HB44",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HHHC/HJC",
+        "HHHC/HJC",
+        "HHHC"
+      ]
+    ],
+    "location": "HHHC"
+  },
+  {
+    "billno": "HB30",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ],
+      [
+        2,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        2,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "Assigned HEC/HGEIC",
+        "HEC/HGEIC",
+        "HEC"
+      ],
+      [
+        3,
+        "Do pass by HEC",
+        "DP",
+        "HGEIC"
+      ],
+      [
+        5,
+        "Do pass by HGEIC",
+        "DP",
+        "H"
+      ],
+      [
+        6,
+        "Passed House (67-0)",
+        "PASSED/H (67-0)",
+        "H"
+      ],
+      [
+        8,
+        "Assigned SRC/SEC",
+        "SRC/SEC",
+        "SRC"
+      ],
+      [
+        10,
+        "Withdrawn",
+        "w/drn",
+        "SEC"
+      ],
+      [
+        12,
+        "Do pass by SEC",
+        "DP",
+        "S"
+      ]
+    ],
+    "location": "S"
+  },
+  {
+    "billno": "HM29",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        4,
+        "Assigned HGEIC",
+        "HGEIC/",
+        "HGEIC"
+      ],
+      [
+        8,
+        "Do pass as amended by HGEIC",
+        "DP/a",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "HB90",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HHHC/HTRC",
+        "HHHC/HTRC",
+        "HHHC"
+      ],
+      [
+        2,
+        "Do pass by HHHC",
+        "DNP-CS/DP",
+        "HTRC"
+      ]
+    ],
+    "location": "HTRC"
+  },
+  {
+    "billno": "HB21",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        1,
+        "Assigned HRDLC/HTRC",
+        "HRDLC/HTRC",
+        "HRDLC"
+      ],
+      [
+        2,
+        "Do pass as amended by HRDLC",
+        "DP/a",
+        "HTRC"
+      ]
+    ],
+    "location": "HTRC"
+  }
+]
