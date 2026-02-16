@@ -1119,7 +1119,7 @@ def update_tracking_lists(key, yearcode=None):
                                 continue
                             spon = Legislator.search(sponstr)
                             if spon:
-                                sponsors.append("<a href='%s'>%s</a>"
+                                sponsors.append("<a href='%s' target='_blank'>%s</a>"
                                                 % (spon.get_url(),
                                                    spon.lastname))
                             else:

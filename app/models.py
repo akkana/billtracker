@@ -938,9 +938,7 @@ class Bill(db.Model):
         return outstr
 
     def get_sponsor_links(self, html=True):
-        """Return HTML for a list of sponsor links, each of which is like
-           "https://www.nmlegis.gov/Members/Legislator?SponCode=HFIGU"
-        """
+        """Return HTML for a list of sponsor links"""
         if not self.sponsor:
             return ""
 
@@ -950,7 +948,7 @@ class Bill(db.Model):
             leg = Legislator.query.filter_by(sponcode=sponcode).first()
             if leg:
                 if html:
-                    sponlinks.append('''<a href="https://www.nmlegis.gov/Members/Legislator?SponCode=%s" title="%s" target="_blank">%s</a>
+                    sponlinks.append('''<a href="https://nmlegiswatch.org/legislators/%s" title="%s" target="_blank">%s</a>
 (<a href="%s" title="%s %s\'s committees and votes" target="_blank">about</a>)'''
                                      % (leg.sponcode, leg.get_summary(),
                                         leg.lastname,
@@ -1134,8 +1132,7 @@ class Legislator(db.Model):
         )
 
     def get_url(self):
-        return "https://www.nmlegis.gov/Members/Legislator?SponCode=%s" \
-            % self.sponcode
+        return "https://nmlegiswatch.org/legislators/%s" % self.sponcode
 
     def get_summary(self):
         return "%s %s %s (%s, %s): %s" % (self.title,
@@ -1387,10 +1384,7 @@ class Committee(db.Model):
 
 
     def get_link(self):
-        if self.code == 'House' or self.code == 'Senate':
-            return 'https://www.nmlegis.gov/Entity/%s/Floor_Calendar' \
-                % self.code
-        return 'https://www.nmlegis.gov/Committee/Standing_Committee?CommitteeCode=%s' % self.code
+        return 'https://nmlegiswatch.org/committees/%s' % self.code
 
 
 class LegSession(db.Model):
