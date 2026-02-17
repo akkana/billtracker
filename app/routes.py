@@ -1365,21 +1365,20 @@ def edit_trackingsheet(whichtracker, passwd=None):
         topicbills = {}
         for formkey in formvalues:
             if '||' not in formkey:
-                print("No || in", formkey, file=sys.stderr)
+                # print("No || in", formkey, file=sys.stderr)
                 continue
             # Don't bother with empty fields
             if not formvalues[formkey]:
-                print("Empty value for", formkey, file=sys.stderr)
                 continue
             try:
                 fieldname, topic, number = re.match(
                     r'^([a-z]+)\|\|(.*)\|\|([0-9]+)$', formkey).groups()
-                print("split fieldname %s: topic %s, number %s: '%s'"
-                      % (fieldname, topic, number, formvalues[formkey]),
-                      file=sys.stderr)
             except:
                 print("Couldn't split", formkey, file=sys.stderr)
                 continue
+            if topic.startswith('Voting'):
+                print(fieldname, '|', topic, '|', number,
+                      '|', formvalues[formkey], file=sys.stderr)
             if topic not in topicbills:
                 topicbills[topic] = []
             number = int(number)
@@ -1400,11 +1399,10 @@ def edit_trackingsheet(whichtracker, passwd=None):
             else:
                 topicbills[topic][number][fieldname] = \
                     sanitize_input(formvalues[formkey])
-                if topic.startswith("Voting"):
-                    print("Set", fieldname, "to",
-                          topicbills[topic][number][fieldname],
-                          file=sys.stderr)
 
+        print("Voting form elements:",
+              topicbills['Voting & Elections & Ethics'],
+              file=sys.stderr)
         # Make sure each of the required fields is there in the data,
         # and remove empty bills:
         for topic in topicbills:
@@ -1429,21 +1427,51 @@ def edit_trackingsheet(whichtracker, passwd=None):
                 else:
                     real_billno = None
                 for oldbill in topicbills[topic][:i]:
-                    if (real_billno and 'billno' in oldbill
-                        and oldbill['billno'] == real_billno):
-                        # They match. Break out of both loops,
-                        # stop looking at bill.
-                        print("Duplicate billno", real_billno, file=sys.stderr)
-                        isdup = True
-                        break
-                    # Otherwise, are the titles identical?
+                    if real_billno and 'billno' in oldbill:
+                        if oldbill['billno'] == real_billno:
+                            # They match. Break out of both loops,
+                            # stop looking at the new bill. But first,
+                            # if the new bill has a billno, it's a real bill;
+                            # if there are new comments, preserve them.
+                            if 'comments' in bill and bill['comments'] \
+                               and 'comments' not in oldbill:
+                                oldbill['comments'] = bill['comments']
+                            flash("Duplicate billno %s" % real_billno)
+                            isdup = True
+                            break
+                        # Else they don't match: they're different bills,
+                        # so stop looking at this oldbill
+                        continue
+                    # Otherwise, are the titles identical and one of them
+                    # doesn't have a bill number?
                     elif ('title' in bill and 'title' in oldbill
                           and bill['title'] == oldbill['title']):
-                        print("Duplicate title", bill['title'], file=sys.stderr)
+                        if real_billno:
+                            # If the new bill has a billno, it's a real bill;
+                            # if there are new comments, preserve them.
+                            if 'comments' in bill and bill['comments'] \
+                               and 'comments' not in oldbill:
+                                oldbill['comments'] = bill['comments']
+                            if 'billno' in oldbill and oldbill['billno']:
+                                if bill['billno'] == oldbill['billno']:
+                                    flash("%s is already on the list"
+                                          % str(oldbill))
+                                    # The new bill is a dup
+                                    isdup = True
+                                    break
+                            # else the new bill has a billno but oldbill doesn't
+                            oldbill['billno'] = real_billno
+                            isdup = True
+                            break
+                        # Else the new bill doesn't have a billno.
+                        # Mark it as a dup.
+                        flash("topic '%s' matches an existing bill: %s"
+                              % (bill['title'], str(oldbill)))
                         isdup = True
                         break
+
                 if isdup:
-                    # stop looking at this bill, it's a dup
+                    # stop looking at this new bill, it's a dup
                     bills2delete.append(bill)
                     continue
 
@@ -1464,7 +1492,7 @@ def edit_trackingsheet(whichtracker, passwd=None):
                 topicdic['bills'].append(bill)
             # print("Appending topic", topic)
             trackingjson['tracking'].append(topicdic)
-        print("trackingjson:", trackingjson['tracking'])
+        # print("trackingjson:", trackingjson['tracking'])
 
         # re-save the JSON after making a backup
         trackingjson['updated'] = datetime.now().strftime('%Y-%m-%d %H:%M')
@@ -1476,7 +1504,7 @@ def edit_trackingsheet(whichtracker, passwd=None):
 
         # Now, with the JSON updated, we can look up bills and refresh
         # both the JSON and the HTML.
-        print("Updating tracking lists...", file=sys.stderr)
+        # print("Updating tracking lists...", file=sys.stderr)
         update_tracking_lists(key=app.config["SECRET_KEY"], yearcode=yearcode)
 
         # If we just fall through to render_template below, the new page
