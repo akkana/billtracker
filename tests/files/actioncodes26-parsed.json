@@ -140,6 +140,12 @@
       ],
       [
         2,
+        "ref",
+        "ref",
+        "HRC"
+      ],
+      [
+        2,
         "Assigned HHHC/HJC",
         "HHHC/HJC",
         "HHHC"
@@ -484,6 +490,12 @@
       ],
       [
         4,
+        "ref",
+        "ref",
+        "HRC"
+      ],
+      [
+        4,
         "Assigned HCPAC/HHHC",
         "HCPAC/HHHC",
         "HCPAC"
@@ -584,6 +596,12 @@
       ],
       [
         1,
+        "tbld",
+        "tbld",
+        "HTBL"
+      ],
+      [
+        1,
         "Withdrawn",
         "w/drn",
         "HTBL"
@@ -598,10 +616,10 @@
         6,
         "Signed by Governor",
         "SGND.",
-        "HTBL"
+        "SIGNED"
       ]
     ],
-    "location": "H"
+    "location": "SIGNED"
   },
   {
     "billno": "HB187",
@@ -636,6 +654,12 @@
         6,
         "Printed",
         "prntd",
+        "HRC"
+      ],
+      [
+        6,
+        "ref",
+        "ref",
         "HRC"
       ],
       [
@@ -699,6 +723,12 @@
         2,
         "Printed",
         "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "ref",
+        "ref",
         "HRC"
       ],
       [
@@ -929,6 +959,12 @@
         2,
         "Printed",
         "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "ref",
+        "ref",
         "HRC"
       ],
       [
@@ -1316,6 +1352,12 @@
       ],
       [
         2,
+        "ref",
+        "ref",
+        "HRC"
+      ],
+      [
+        2,
         "Assigned HCPAC/HJC",
         "HCPAC/HJC",
         "HCPAC"
@@ -1433,6 +1475,12 @@
         6,
         "Printed",
         "prntd",
+        "HRC"
+      ],
+      [
+        6,
+        "ref",
+        "ref",
         "HRC"
       ],
       [
@@ -1673,8 +1721,20 @@
       ],
       [
         2,
+        "ref",
+        "ref",
+        "HRC"
+      ],
+      [
+        2,
         "Assigned HCPAC/HJC",
         "HCPAC/HJC",
+        "HCPAC"
+      ],
+      [
+        6,
+        "no",
+        "no",
         "HCPAC"
       ],
       [
@@ -1866,6 +1926,12 @@
         7,
         "HAFC",
         "ref",
+        "HAFC"
+      ],
+      [
+        7,
+        "HAFC",
+        "HAFC",
         "HAFC"
       ]
     ],
@@ -2369,6 +2435,12 @@
       ],
       [
         1,
+        "ref",
+        "ref",
+        "HRC"
+      ],
+      [
+        1,
         "Assigned HHHC/HEC",
         "HHHC/HEC",
         "HHHC"
@@ -2557,6 +2629,12 @@
       ],
       [
         4,
+        "ref",
+        "ref",
+        "HRC"
+      ],
+      [
+        4,
         "Assigned HAAWC/HGEIC",
         "HAAWC/HGEIC",
         "HAAWC"
@@ -2670,10 +2748,10 @@
         6,
         "Signed by Governor",
         "SGND BY GOV (Feb. 5) Ch.  5.",
-        "SJC/"
+        "SIGNED"
       ]
     ],
-    "location": "S"
+    "location": "SIGNED"
   },
   {
     "billno": "HB121",
@@ -3157,10 +3235,10 @@
         7,
         "Signed by Governor",
         "SGND BY GOV (Feb. 5) Ch.  4.",
-        "HTPWC/"
+        "SIGNED"
       ]
     ],
-    "location": "H"
+    "location": "SIGNED"
   },
   {
     "billno": "SB185",
@@ -3828,6 +3906,12 @@
       ],
       [
         4,
+        "ref",
+        "ref",
+        "HRC"
+      ],
+      [
+        4,
         "Assigned HEC/HGEIC",
         "HEC/HGEIC",
         "HEC"
@@ -3880,6 +3964,12 @@
         4,
         "Printed",
         "prntd",
+        "HRC"
+      ],
+      [
+        4,
+        "ref",
+        "ref",
         "HRC"
       ],
       [
@@ -3943,6 +4033,12 @@
         2,
         "Do pass as amended by HTPWC",
         "DP/a",
+        "HAFC"
+      ],
+      [
+        5,
+        "(Succeeding entries: H 2).",
+        "(Succeeding entries: H 2).",
         "HAFC"
       ]
     ],
@@ -4103,6 +4199,12 @@
       ],
       [
         2,
+        "ref",
+        "ref",
+        "HRC"
+      ],
+      [
+        2,
         "Assigned HHHC/HAFC",
         "HHHC/HAFC",
         "HHHC"
@@ -4217,6 +4319,12 @@
         2,
         "Printed",
         "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "ref",
+        "ref",
         "HRC"
       ],
       [
@@ -4612,6 +4720,12 @@
         2,
         "Printed",
         "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "ref",
+        "ref",
         "HRC"
       ],
       [
@@ -5252,6 +5366,12 @@
       ],
       [
         5,
+        "ref",
+        "ref",
+        "HRC"
+      ],
+      [
+        5,
         "Assigned HEC/HJC",
         "HEC/HJC",
         "HEC"
@@ -5289,6 +5409,12 @@
       ],
       [
         2,
+        "ref",
+        "ref",
+        "HRC"
+      ],
+      [
+        2,
         "Assigned HCPAC/HJC",
         "HCPAC/HJC",
         "HCPAC"
@@ -5304,6 +5430,12 @@
         2,
         "Assigned HHHC/HAFC",
         "HHHC/HAFC",
+        "HHHC"
+      ],
+      [
+        6,
+        "no",
+        "no",
         "HHHC"
       ],
       [
@@ -5674,6 +5806,12 @@
       ],
       [
         2,
+        "ref",
+        "ref",
+        "HRC"
+      ],
+      [
+        2,
         "Assigned HGEIC/HJC",
         "HGEIC/HJC",
         "HGEIC"
@@ -5776,6 +5914,12 @@
         2,
         "Printed",
         "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "ref",
+        "ref",
         "HRC"
       ],
       [
@@ -6289,6 +6433,12 @@
       ],
       [
         4,
+        "ref",
+        "ref",
+        "HRC"
+      ],
+      [
+        4,
         "Assigned HHHC/HLVMC",
         "HHHC/HLVMC",
         "HHHC"
@@ -6353,9 +6503,27 @@
         "Passed House (41-26)",
         "PASSED/H (41-26)",
         "H"
+      ],
+      [
+        13,
+        "Assigned SRC",
+        "SRC/",
+        "SRC"
+      ],
+      [
+        14,
+        "Do pass by SRC",
+        "DP",
+        "S"
+      ],
+      [
+        16,
+        "Passed Senate (23-19)",
+        "PASSED/S (23-19)",
+        "S"
       ]
     ],
-    "location": "H"
+    "location": "S"
   },
   {
     "billno": "SB14",
@@ -6484,9 +6652,21 @@
         "Printed",
         "nt prntd",
         null
+      ],
+      [
+        2,
+        "",
+        "nt ref com",
+        ""
+      ],
+      [
+        2,
+        "tbld",
+        "tbld",
+        ""
       ]
     ],
-    "location": null
+    "location": ""
   },
   {
     "billno": "HB41",
@@ -6704,6 +6884,12 @@
       ],
       [
         1,
+        "ref",
+        "ref",
+        "HRC"
+      ],
+      [
+        1,
         "Assigned HCPAC/HJC",
         "HCPAC/HJC",
         "HCPAC"
@@ -6737,6 +6923,12 @@
         2,
         "Printed",
         "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "ref",
+        "ref",
         "HRC"
       ],
       [
@@ -6938,6 +7130,12 @@
       ],
       [
         2,
+        "ref",
+        "ref",
+        "HGEIC"
+      ],
+      [
+        2,
         "Assigned HRDLC/HGEIC",
         "HRDLC/HGEIC",
         "HRDLC"
@@ -7064,10 +7262,10 @@
         7,
         "Signed by Governor",
         "SGND BY GOV (Feb. 5) Ch.  3.",
-        "HHHC/"
+        "SIGNED"
       ]
     ],
-    "location": "H"
+    "location": "SIGNED"
   },
   {
     "billno": "SB150",
@@ -7390,6 +7588,12 @@
       ],
       [
         2,
+        "ref",
+        "ref",
+        "HRC"
+      ],
+      [
+        2,
         "Assigned HCPAC/HJC",
         "HCPAC/HJC",
         "HCPAC"
@@ -7423,6 +7627,12 @@
         2,
         "Printed",
         "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "ref",
+        "ref",
         "HRC"
       ],
       [
@@ -7522,6 +7732,12 @@
         4,
         "Printed",
         "prntd",
+        "HRC"
+      ],
+      [
+        4,
+        "ref",
+        "ref",
         "HRC"
       ],
       [
@@ -7758,9 +7974,21 @@
         "Printed",
         "nt prntd",
         null
+      ],
+      [
+        2,
+        "",
+        "nt ref com",
+        ""
+      ],
+      [
+        2,
+        "tbld",
+        "tbld",
+        ""
       ]
     ],
-    "location": null
+    "location": ""
   },
   {
     "billno": "HB249",
@@ -7951,6 +8179,12 @@
         4,
         "Printed",
         "prntd",
+        "HRC"
+      ],
+      [
+        4,
+        "ref",
+        "ref",
         "HRC"
       ],
       [
@@ -8300,10 +8534,10 @@
         6,
         "Signed by Governor",
         "SGND BY GOV (Feb. 9) Ch.  6.",
-        "SJC/"
+        "SIGNED"
       ]
     ],
-    "location": "S"
+    "location": "SIGNED"
   },
   {
     "billno": "HB276",
@@ -8374,6 +8608,12 @@
       ],
       [
         4,
+        "ref",
+        "ref",
+        "HRC"
+      ],
+      [
+        4,
         "Assigned HHHC/HJC",
         "HHHC/HJC",
         "HHHC"
@@ -8407,6 +8647,12 @@
         5,
         "Printed",
         "prntd",
+        "HRC"
+      ],
+      [
+        5,
+        "ref",
+        "ref",
         "HRC"
       ],
       [
@@ -8512,10 +8758,10 @@
         2,
         "Signed by Governor",
         "SGND BY GOV (Jan. 27) Ch.  1.",
-        "SFC"
+        "SIGNED"
       ]
     ],
-    "location": "S"
+    "location": "SIGNED"
   },
   {
     "billno": "HB64",
@@ -8695,6 +8941,12 @@
       ],
       [
         2,
+        "ref",
+        "ref",
+        "HRC"
+      ],
+      [
+        2,
         "Assigned HHHC/HJC",
         "HHHC/HJC",
         "HHHC"
@@ -8803,6 +9055,18 @@
         2,
         "Printed",
         "nt prntd",
+        "HPREF"
+      ],
+      [
+        2,
+        "nt ref com",
+        "nt ref com",
+        "HPREF"
+      ],
+      [
+        2,
+        "tbld",
+        "tbld",
         "HPREF"
       ],
       [
@@ -9157,6 +9421,12 @@
       ],
       [
         6,
+        "ref",
+        "ref",
+        "HRC"
+      ],
+      [
+        6,
         "Assigned HENRC/HAFC",
         "HENRC/HAFC",
         "HENRC"
@@ -9215,6 +9485,12 @@
         2,
         "Printed",
         "prntd",
+        "HRC"
+      ],
+      [
+        2,
+        "ref",
+        "ref",
         "HRC"
       ],
       [
@@ -9330,5 +9606,214 @@
       ]
     ],
     "location": "HTRC"
+  },
+  {
+    "billno": "HB142",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned HHHC/HTRC",
+        "HHHC/HTRC",
+        "HHHC"
+      ],
+      [
+        2,
+        "Do pass by HHHC",
+        "DP",
+        "HTRC"
+      ]
+    ],
+    "location": "HTRC"
+  },
+  {
+    "billno": "SB6",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SHPAC/SFC",
+        "SCC/SHPAC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "SHPAC"
+      ],
+      [
+        3,
+        "Do pass by SHPAC",
+        "DP",
+        "SFC"
+      ]
+    ],
+    "location": "SFC"
+  },
+  {
+    "billno": "HB66",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        0,
+        "Sent to HPREF",
+        "HPREF",
+        "HPREF"
+      ],
+      [
+        2,
+        "Not printed",
+        "not prntd",
+        "HPREF"
+      ],
+      [
+        4,
+        "Withdrawn",
+        "w/drn",
+        "HRC"
+      ],
+      [
+        4,
+        "Printed",
+        "prntd",
+        "HRC"
+      ],
+      [
+        4,
+        "ref",
+        "ref",
+        "HRC"
+      ],
+      [
+        4,
+        "Assigned HHHC/HAFC",
+        "HHHC/HAFC",
+        "HHHC"
+      ],
+      [
+        6,
+        "Do pass by HHHC",
+        "DNP-CS/DP",
+        "HAFC"
+      ],
+      [
+        7,
+        "Do pass as amended by HAFC",
+        "DP/a",
+        "H"
+      ]
+    ],
+    "location": "H"
+  },
+  {
+    "billno": "SB48",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/STBTC/SFC",
+        "SCC/STBTC/SFC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "STBTC"
+      ],
+      [
+        5,
+        "Do pass by STBTC",
+        "DP",
+        "SFC"
+      ],
+      [
+        5,
+        "Do pass by SFC",
+        "DP",
+        "S"
+      ],
+      [
+        8,
+        "Passed Senate (26-12)",
+        "PASSED/S (26-12)",
+        "S"
+      ],
+      [
+        6,
+        "Assigned HCEDC/HTRC",
+        "HCEDC/HTRC",
+        "HCEDC"
+      ],
+      [
+        7,
+        "Do pass by HCEDC",
+        "DP",
+        "HTRC"
+      ]
+    ],
+    "location": "HTRC"
+  },
+  {
+    "billno": "SB3",
+    "yearcode": "26",
+    "fullhist": [
+      [
+        1,
+        "Assigned SCC/SJC",
+        "SCC/SJC",
+        "SCC"
+      ],
+      [
+        1,
+        "Ruled germane",
+        "germane",
+        "SJC"
+      ],
+      [
+        1,
+        "Do pass as amended by SJC",
+        "DP/a",
+        "S"
+      ],
+      [
+        3,
+        "Passed Senate (37-3)",
+        "PASSED/S (37-3)",
+        "S"
+      ],
+      [
+        2,
+        "Assigned HJC",
+        "HJC/",
+        "HJC"
+      ],
+      [
+        5,
+        "Do pass as amended by HJC",
+        "DP/a",
+        "H"
+      ],
+      [
+        6,
+        "Passed House (58-10)",
+        "PASSED/H (58-10)",
+        "H"
+      ],
+      [
+        10,
+        "Senate: partially concurred",
+        "s/partially concurred",
+        "H"
+      ],
+      [
+        12,
+        "House: receded on remaining amendments",
+        "h/receded on remaining amendments",
+        "H"
+      ]
+    ],
+    "location": "H"
   }
 ]

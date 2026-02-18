@@ -109,15 +109,21 @@ SPREF [1] SCORC/SFC-SCORC [3] DP-SFC [5] DP  [7] PASSED/S (29-6) [5] HTRC-HTRC [
     }
 
 
-def test_decode_full_history():
-    expected_file = "tests/files/actioncodes26-parsed.json"
-    with open(expected_file) as fp:
-        expected = json.load(fp)
+# Set this to True to re-generate the comparison files
+GENERATE = False
 
-    codes_file = "tests/files/actioncodes26.txt"
-    # actual = []
-    with open(codes_file) as fp:
-        for line, actualobj in zip(fp, expected):
+def test_decode_full_history():
+    EXPECTED_FILE = "tests/files/actioncodes26-parsed.json"
+    if not GENERATE:
+        with open(EXPECTED_FILE) as fp:
+            expected = json.load(fp)
+    else:
+        expected = []
+        actual = []
+
+    CODES_FILE = "tests/files/actioncodes26.txt"
+    with open(CODES_FILE) as fp:
+        for i, line in enumerate(fp):
             yearbill, actioncode = line.split('|')
             yearcode, billno = yearbill.split()
             location, status, fullhist = \
@@ -128,23 +134,55 @@ def test_decode_full_history():
                 'fullhist': fullhist,
                 'location': location
             }
-            assert histdic == actualobj
-            # actual.append(histdic)
+            if GENERATE:
+                actual.append(histdic)
 
-            # Print out everything, to allow manually eyeballing/checking
-            # print("\n\n%s %s: %s" % (yearcode, billno, status))
-            # print("  location:", location)
-            # for day, longaction, code, location in fullhist:
-            #     print("Day %s: %s (now in %s)" % (day, longaction, location))
-            # pastloc, futureloc = decodenmlegis.get_location_lists(billno,
-            #                                                       fullhist)
-            # print("Past locations:", ' '.join(pastloc))
-            # print("Future locations:", ' '.join(futureloc))
+                # Print out everything, to allow manually eyeballing/checking
+                # print("\n\n%s %s: %s" % (yearcode, billno, status))
+                # print("  location:", location)
+                # for day, longaction, code, location in fullhist:
+                #     print("Day %s: %s (now in %s)" % (day, longaction, location))
+            else:
+                assert histdic == expected[i]
 
-    # preparing the file to test against
-    # with open(expected_file, 'w') as fp:
-    #     json.dump(actual, fp, indent=2)
-    #     print("Saved to", expected_file)
+    if GENERATE:
+        # preparing the file to test against
+        with open(EXPECTED_FILE, 'w') as fp:
+            json.dump(actual, fp, indent=2)
+            print("Saved to", EXPECTED_FILE)
+
+
+def test_past_future_locations():
+    EXPECTED_FILE = "tests/files/actioncodes26-locs.json"
+    if not GENERATE:
+        with open(EXPECTED_FILE) as fp:
+            expected = json.load(fp)
+    else:
+        actual = []
+
+    CODES_FILE = "tests/files/actioncodes26.txt"
+    with open(CODES_FILE) as fp:
+        for i, line in enumerate(fp):
+            yearbill, actioncode = line.split('|')
+            yearcode, billno = yearbill.split()
+            location, status, fullhist = \
+                decodenmlegis.decode_full_history(actioncode)
+            pastlocs, futurelocs = decodenmlegis.get_location_lists(billno,
+                                                                    fullhist)
+            # print(yearcode, billno, pastlocs, futurelocs)
+            if GENERATE:
+                actual.append({ 'pastlocs': pastlocs, 'futurelocs': futurelocs })
+                # print("%s %s" % (yearcode, billno))
+                # print("  Past locations:", ' '.join(pastlocs))
+                # print("  Future locations:", ' '.join(futurelocs))
+            else:
+                assert pastlocs == expected[i]['pastlocs']
+                assert futurelocs == expected[i]['futurelocs']
+
+    if GENERATE:
+        with open(EXPECTED_FILE, 'w') as fp:
+            json.dump(actual, fp, indent=2)
+            print("Saved to", EXPECTED_FILE)
 
 
 def test_parse_json_schedules():

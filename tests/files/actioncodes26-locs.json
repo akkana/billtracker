@@ -1,0 +1,4733 @@
+[
+  {
+    "pastlocs": [
+      "HJC",
+      "HAFC"
+    ],
+    "futurelocs": [
+      "H",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HHHC",
+      "HGEIC"
+    ],
+    "futurelocs": [
+      "H",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HGEIC",
+      "HENRC"
+    ],
+    "futurelocs": [
+      "H",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HRC",
+      "HHHC",
+      "HJC"
+    ],
+    "futurelocs": [
+      "H",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SRC",
+      "SEC",
+      "S",
+      "HGEIC"
+    ],
+    "futurelocs": [
+      "HEC",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF"
+    ],
+    "futurelocs": [
+      "HHHC",
+      "HJC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SHPAC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SEC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SHPAC"
+    ],
+    "futurelocs": [
+      "SJC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "STBTC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SHPAC",
+      "SFC",
+      "S",
+      "HCPAC"
+    ],
+    "futurelocs": [
+      "HHHC",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HGEIC",
+      "HJC"
+    ],
+    "futurelocs": [
+      "H",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HHHC",
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HHHC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SEC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HRC",
+      "HCPAC"
+    ],
+    "futurelocs": [
+      "HJC",
+      "HHHC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SJC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SHPAC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SHPAC",
+      "SJC",
+      "S"
+    ],
+    "futurelocs": [
+      "HJC",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HTBL",
+      "H",
+      "SIGNED"
+    ],
+    "futurelocs": []
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HRC",
+      "HHHC"
+    ],
+    "futurelocs": [
+      "HJC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SEC",
+      "SHPAC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HRC",
+      "HEC",
+      "HJC",
+      "H",
+      "SEC"
+    ],
+    "futurelocs": [
+      "SJC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SRC",
+      "SFC",
+      "S",
+      "H???",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HGEIC",
+      "HJC",
+      "H"
+    ],
+    "futurelocs": [
+      "SRC",
+      "S"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SIRC",
+      "SCONC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HLVMC"
+    ],
+    "futurelocs": [
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SCONC",
+      "STBTC"
+    ],
+    "futurelocs": [
+      "S",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HHHC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HRC",
+      "HCPAC",
+      "HJC",
+      "H"
+    ],
+    "futurelocs": [
+      "SJC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HRC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SHPAC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HCPAC",
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HHHC",
+      "HJC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HHHC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HHHC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HRC"
+    ],
+    "futurelocs": [
+      "HCPAC",
+      "HJC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HJC"
+    ],
+    "futurelocs": [
+      "H",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HRC",
+      "HCPAC"
+    ],
+    "futurelocs": [
+      "HJC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HHHC"
+    ],
+    "futurelocs": [
+      "H",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HCPAC",
+      "HJC"
+    ],
+    "futurelocs": [
+      "H",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HCEDC",
+      "HGEIC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HENRC",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "STBTC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HRC",
+      "HCPAC"
+    ],
+    "futurelocs": [
+      "HJC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF"
+    ],
+    "futurelocs": [
+      "HCEDC",
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SRC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HHHC"
+    ],
+    "futurelocs": [
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HHHC"
+    ],
+    "futurelocs": [
+      "H",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HHHC",
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HEC"
+    ],
+    "futurelocs": [
+      "H",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HRC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HGEIC",
+      "HAFC",
+      "H"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "SCONC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SHPAC"
+    ],
+    "futurelocs": [
+      "SJC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF"
+    ],
+    "futurelocs": [
+      "HAAWC",
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HGEIC",
+      "HJC",
+      "H"
+    ],
+    "futurelocs": [
+      "SRC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF"
+    ],
+    "futurelocs": [
+      "HCPAC",
+      "HJC",
+      "H",
+      "S???",
+      "S"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "STBTC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "STBTC",
+      "SFC",
+      "S",
+      "HCEDC",
+      "HTRC"
+    ],
+    "futurelocs": [
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HHHC",
+      "HJC",
+      "H"
+    ],
+    "futurelocs": [
+      "SHPAC",
+      "SJC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SEC",
+      "SFC",
+      "S",
+      "HGEIC",
+      "HEC"
+    ],
+    "futurelocs": [
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HHHC",
+      "HJC",
+      "H"
+    ],
+    "futurelocs": [
+      "SHPAC",
+      "SJC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HRC",
+      "HHHC",
+      "HEC",
+      "H",
+      "SEC",
+      "SHPAC"
+    ],
+    "futurelocs": [
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "STBTC",
+      "SJC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HGEIC"
+    ],
+    "futurelocs": [
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HLVMC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HRC",
+      "HAAWC",
+      "HGEIC",
+      "H",
+      "SCONC"
+    ],
+    "futurelocs": [
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HCPAC",
+      "HJC",
+      "H",
+      "SJC",
+      "S",
+      "SIGNED"
+    ],
+    "futurelocs": []
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SHPAC",
+      "SJC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HHHC",
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HCEDC",
+      "HTRC"
+    ],
+    "futurelocs": [
+      "H",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SRC",
+      "SJC",
+      "S",
+      "H???",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HHHC",
+      "HGEIC",
+      "H"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SEC",
+      "SJC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF"
+    ],
+    "futurelocs": [
+      "HCEDC",
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HENRC"
+    ],
+    "futurelocs": [
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "STBTC",
+      "SJC",
+      "S"
+    ],
+    "futurelocs": [
+      "HJC",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SHPAC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HGEIC",
+      "HAFC"
+    ],
+    "futurelocs": [
+      "H",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "STBTC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "STBTC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HJC"
+    ],
+    "futurelocs": [
+      "H",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SFC",
+      "S",
+      "HTPWC",
+      "H",
+      "SIGNED"
+    ],
+    "futurelocs": []
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "STBTC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HTRC"
+    ],
+    "futurelocs": [
+      "H",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "STBTC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HTRC",
+      "H",
+      "SFC"
+    ],
+    "futurelocs": [
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HCEDC",
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SCONC",
+      "STBTC"
+    ],
+    "futurelocs": [
+      "S",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HTRC",
+      "H"
+    ],
+    "futurelocs": [
+      "STBTC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HCPAC",
+      "HJC",
+      "H"
+    ],
+    "futurelocs": [
+      "SJC",
+      "SFC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HGEIC",
+      "HJC",
+      "H"
+    ],
+    "futurelocs": [
+      "SRC",
+      "S"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SJC",
+      "SCC",
+      "SRC"
+    ],
+    "futurelocs": [
+      "S",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HCEDC",
+      "HAFC",
+      "H"
+    ],
+    "futurelocs": [
+      "STBTC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HLVMC",
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HTRC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "SJC",
+      "STBTC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HLVMC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SRC",
+      "SIRC",
+      "S"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SHPAC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "STBTC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HLVMC",
+      "HAFC",
+      "H"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HRC",
+      "HEC"
+    ],
+    "futurelocs": [
+      "HGEIC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "STBTC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HRC"
+    ],
+    "futurelocs": [
+      "HRDLC",
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "STBTC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HTPWC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SEC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SRC",
+      "SCC",
+      "SJC"
+    ],
+    "futurelocs": [
+      "S",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SEC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HGEIC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HRC",
+      "HHHC",
+      "HAFC"
+    ],
+    "futurelocs": [
+      "H",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "STBTC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "STBTC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HCPAC",
+      "HJC",
+      "H"
+    ],
+    "futurelocs": [
+      "SJC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HRC"
+    ],
+    "futurelocs": [
+      "HCPAC",
+      "HJC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "STBTC",
+      "SJC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "STBTC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SHPAC",
+      "SJC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HENRC",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SHPAC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SCONC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HHHC",
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HCPAC",
+      "HJC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HGEIC",
+      "HJC",
+      "H",
+      "S???",
+      "S"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SRC",
+      "SJC",
+      "S"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HHHC"
+    ],
+    "futurelocs": [
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SHPAC",
+      "STBTC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HEC",
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HEC"
+    ],
+    "futurelocs": [
+      "H",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HHHC",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HAFC",
+      "H"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HRC",
+      "HHHC",
+      "HJC"
+    ],
+    "futurelocs": [
+      "H",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SCONC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SEC",
+      "SJC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SEC",
+      "SJC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SHPAC",
+      "SJC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HHHC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "STBTC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HGEIC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "STBTC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HEC",
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SRC",
+      "SJC",
+      "S",
+      "H???",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SRC",
+      "SJC",
+      "S"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SIRC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SJC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SEC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HCEDC"
+    ],
+    "futurelocs": [
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SEC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "SJC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "SIRC",
+      "SCONC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SHPAC",
+      "SJC",
+      "S"
+    ],
+    "futurelocs": [
+      "HJC",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SHPAC",
+      "SJC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HCEDC"
+    ],
+    "futurelocs": [
+      "H",
+      "H",
+      "S???",
+      "S"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SHPAC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HRC"
+    ],
+    "futurelocs": [
+      "HEC",
+      "HJC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HRC"
+    ],
+    "futurelocs": [
+      "HCPAC",
+      "HJC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HHHC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HGEIC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SRC",
+      "SJC",
+      "S"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "STBTC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SCONC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SIRC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SHPAC",
+      "SJC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HHHC",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SRC",
+      "SCONC",
+      "S"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HCEDC"
+    ],
+    "futurelocs": [
+      "HRC",
+      "HGEIC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SRC"
+    ],
+    "futurelocs": [
+      "SEC",
+      "S",
+      "H???",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SHPAC",
+      "SJC",
+      "S",
+      "HCEDC"
+    ],
+    "futurelocs": [
+      "HJC",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SHPAC",
+      "STBTC"
+    ],
+    "futurelocs": [
+      "S",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HRC",
+      "HGEIC",
+      "HJC",
+      "H"
+    ],
+    "futurelocs": [
+      "STBTC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HCEDC",
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HRC"
+    ],
+    "futurelocs": [
+      "HCPAC",
+      "HJC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SJC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SCONC",
+      "STBTC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HEC",
+      "HJC",
+      "H",
+      "SRC",
+      "SEC"
+    ],
+    "futurelocs": [
+      "S"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HHHC",
+      "HJC",
+      "H"
+    ],
+    "futurelocs": [
+      "SHPAC",
+      "SJC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "STBTC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SEC",
+      "SFC",
+      "S",
+      "HGEIC",
+      "HEC"
+    ],
+    "futurelocs": [
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HENRC",
+      "HAFC",
+      "H"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "SHPAC",
+      "SJC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "STBTC",
+      "SFC",
+      "S"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HHHC",
+      "HJC",
+      "H"
+    ],
+    "futurelocs": [
+      "SHPAC",
+      "SJC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HHHC",
+      "HJC",
+      "H"
+    ],
+    "futurelocs": [
+      "SHPAC",
+      "SJC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HRC",
+      "HHHC",
+      "HLVMC",
+      "H"
+    ],
+    "futurelocs": [
+      "SHPAC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HGEIC",
+      "HJC",
+      "H",
+      "SRC",
+      "S"
+    ],
+    "futurelocs": []
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SHPAC",
+      "SFC",
+      "S"
+    ],
+    "futurelocs": [
+      "HHHC",
+      "HAFC",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HCEDC",
+      "HTRC",
+      "H"
+    ],
+    "futurelocs": [
+      "STBTC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HAAWC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HCPAC",
+      "HJC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HGEIC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SHPAC",
+      "STBTC",
+      "S"
+    ],
+    "futurelocs": [
+      "HHHC",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "SJC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SHPAC",
+      "STBTC",
+      "S"
+    ],
+    "futurelocs": [
+      "HHHC",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SHPAC",
+      "SFC",
+      "S"
+    ],
+    "futurelocs": [
+      "HJC",
+      "HAFC",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HRC"
+    ],
+    "futurelocs": [
+      "HCPAC",
+      "HJC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HRC",
+      "HHHC"
+    ],
+    "futurelocs": [
+      "HJC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HHHC",
+      "HJC",
+      "H"
+    ],
+    "futurelocs": [
+      "SHPAC",
+      "SJC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HRDLC",
+      "HAFC",
+      "H"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HHHC",
+      "HJC",
+      "H"
+    ],
+    "futurelocs": [
+      "SHPAC",
+      "SJC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SHPAC"
+    ],
+    "futurelocs": [
+      "SJC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HGEIC"
+    ],
+    "futurelocs": [
+      "HRDLC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF"
+    ],
+    "futurelocs": [
+      "HENRC",
+      "HJC",
+      "H",
+      "S???",
+      "S"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SHPAC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SJC",
+      "S",
+      "HHHC",
+      "H",
+      "SIGNED"
+    ],
+    "futurelocs": []
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "STBTC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "STBTC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HEC",
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SJC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "STBTC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF"
+    ],
+    "futurelocs": [
+      "HCEDC",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HHHC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SHPAC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HEC"
+    ],
+    "futurelocs": [
+      "H",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SCONC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "STBTC",
+      "SJC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HCEDC"
+    ],
+    "futurelocs": [
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HRC"
+    ],
+    "futurelocs": [
+      "HCPAC",
+      "HJC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HRC",
+      "HAAWC",
+      "HTRC",
+      "H"
+    ],
+    "futurelocs": [
+      "STBTC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SJC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HJC",
+      "H"
+    ],
+    "futurelocs": [
+      "S???",
+      "S"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HRC"
+    ],
+    "futurelocs": [
+      "HAAWC",
+      "HGEIC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SRC",
+      "SIRC",
+      "S"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HHHC",
+      "HJC"
+    ],
+    "futurelocs": [
+      "H",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SIRC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HGEIC",
+      "HJC",
+      "H",
+      "S???",
+      "S"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HHHC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HENRC"
+    ],
+    "futurelocs": [
+      "H",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HENRC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "SEC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HJC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HHHC",
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SCONC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HAAWC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HCPAC",
+      "HGEIC"
+    ],
+    "futurelocs": [
+      "H",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HLVMC"
+    ],
+    "futurelocs": [
+      "H",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SHPAC",
+      "SJC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "STBTC",
+      "SFC",
+      "S",
+      "HENRC"
+    ],
+    "futurelocs": [
+      "HTRC",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HRC",
+      "HCPAC",
+      "HGEIC",
+      "H"
+    ],
+    "futurelocs": [
+      "SRC",
+      "SFC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HHHC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SEC",
+      "SFC",
+      "S",
+      "HGEIC",
+      "HEC"
+    ],
+    "futurelocs": [
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HAAWC",
+      "HJC",
+      "H"
+    ],
+    "futurelocs": [
+      "SCONC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SEC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SEC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "STBTC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HENRC",
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HGEIC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HHHC",
+      "HJC",
+      "H",
+      "SJC",
+      "S",
+      "SIGNED"
+    ],
+    "futurelocs": []
+  },
+  {
+    "pastlocs": [
+      "HAAWC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HENRC",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SCONC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HRC",
+      "HHHC"
+    ],
+    "futurelocs": [
+      "HJC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HRC",
+      "HLVMC",
+      "HTPWC"
+    ],
+    "futurelocs": [
+      "H",
+      "HCEDC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "STBTC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HAFC",
+      "H",
+      "SFC",
+      "S",
+      "SIGNED"
+    ],
+    "futurelocs": []
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HRDLC",
+      "HAFC",
+      "H"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HHHC",
+      "HJC",
+      "H"
+    ],
+    "futurelocs": [
+      "SHPAC",
+      "SJC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HHHC"
+    ],
+    "futurelocs": [
+      "H",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HAAWC",
+      "HAFC",
+      "H"
+    ],
+    "futurelocs": [
+      "SCONC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HRC",
+      "HHHC",
+      "HJC",
+      "H"
+    ],
+    "futurelocs": [
+      "SHPAC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HEC"
+    ],
+    "futurelocs": [
+      "H",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "H"
+    ],
+    "futurelocs": []
+  },
+  {
+    "pastlocs": [
+      "SCC"
+    ],
+    "futurelocs": [
+      "SHPAC",
+      "STBTC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HEC",
+      "HAFC",
+      "H"
+    ],
+    "futurelocs": [
+      "SEC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "H???",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SRC",
+      "SFC",
+      "S"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SHPAC",
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HENRC",
+      "HTRC",
+      "H"
+    ],
+    "futurelocs": [
+      "STBTC",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SCONC",
+      "SFC",
+      "S"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "SCC",
+      "SJC",
+      "STBTC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [],
+    "futurelocs": [
+      "HPREF",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SEC",
+      "STBTC"
+    ],
+    "futurelocs": [
+      "S",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HHHC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SCONC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HRC",
+      "HENRC"
+    ],
+    "futurelocs": [
+      "HAFC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF"
+    ],
+    "futurelocs": [
+      "HHHC",
+      "HJC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HRC",
+      "HEC",
+      "HGEIC",
+      "H",
+      "SRC",
+      "SEC"
+    ],
+    "futurelocs": [
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HGEIC"
+    ],
+    "futurelocs": [
+      "H",
+      "H"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HHHC"
+    ],
+    "futurelocs": [
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HRDLC"
+    ],
+    "futurelocs": [
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HHHC"
+    ],
+    "futurelocs": [
+      "HTRC",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SHPAC"
+    ],
+    "futurelocs": [
+      "SFC",
+      "S",
+      "H???",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "HPREF",
+      "HRC",
+      "HHHC",
+      "HAFC"
+    ],
+    "futurelocs": [
+      "H",
+      "H",
+      "S???",
+      "S",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "STBTC",
+      "SFC",
+      "S",
+      "HCEDC"
+    ],
+    "futurelocs": [
+      "HTRC",
+      "H",
+      "SIGNED"
+    ]
+  },
+  {
+    "pastlocs": [
+      "SCC",
+      "SJC",
+      "S",
+      "HJC"
+    ],
+    "futurelocs": [
+      "H",
+      "SIGNED"
+    ]
+  }
+]

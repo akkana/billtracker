@@ -107,6 +107,7 @@ COMMPAT = r'[HS][A-Z]{2,5}'
 # Something that consists only of a single committee code
 COMMPAT_ALL = COMMPAT + r'$'
 DAYPAT = r'\[(\d+)\]'
+FLOORPASSPAT = r'PASSED/([HS])\b'
 
 
 def action_code_iter(actioncode):
@@ -156,12 +157,14 @@ def action_code_iter(actioncode):
 
     # Now there's a mostly clean list of parts, like
     # ['SCC/SHPAC/SJC', 'SCC', 'germane', 'SHPAC ', '[5] DP', 'SJC']
-    curloc = None
+    curloc = ''
     curday = 0
-    curaction = None
+    curaction = ''
     listiter = enumerate(parts)
     for i, part in listiter:
         part = part.strip()
+        if not part:
+            continue
         # print("\npart (in action_code_iter):", part)
         curaction = None
 
@@ -187,6 +190,10 @@ def action_code_iter(actioncode):
                 next(listiter)
         except IndexError:
             pass
+
+        m = re.match(FLOORPASSPAT, part)
+        if m:
+            curloc = m.group(1)
 
         if re.match(COMMPAT_ALL, part):
             # print(part, "is just a committee, curaction is", curaction)
@@ -222,6 +229,10 @@ def action_code_iter(actioncode):
             if m:
                 # print("Setting first curloc")
                 curloc = m.group(0)
+
+        if not curloc:
+            print("curloc didn't get set, part =", part, "in", actioncode,
+                  file=sys.stderr)
 
         curaction = None
         # print("*** yield", part, curday, curloc)
@@ -420,19 +431,25 @@ def decode_full_history(actioncode):
                     print("Seeming committee assignment but",
                           "'%s' doesn't match committee pattern:" % c,
                           piece, file=sys.stderr)
-                    raise ValueError
-            curloc = assigned[0]
-            history.append([ legday, "Assigned %s" % '/'.join(assigned),
-                             piece, curloc ])
-            if curloc not in assigned:
-                print("Parse problem:", curloc,
-                      "is not in commmittee list", assigned,
-                      "in", piece, file=sys.stderr)
+                    # It probably wasn't a committee assignment after all,
+                    # maybe something like 's/partially concurred' or
+                    # 'h/receded on remaining amendments' (26 SB3)
+                    assigned = None
+                    break
+            if assigned:
+                curloc = assigned[0]
+                history.append([ legday, "Assigned %s" % '/'.join(assigned),
+                                 piece, curloc ])
+                if curloc not in assigned:
+                    print("Parse problem:", curloc,
+                          "is not in commmittee list", assigned,
+                          "in", piece, file=sys.stderr)
 
-                # Treat it as a loc anyway
-                curloc = loc
-                history.append([ legday, "Now in %s" % curloc, piece, curloc ])
-            continue
+                    # Treat it as a loc anyway
+                    curloc = loc
+                    history.append([ legday,
+                                     "Now in %s" % curloc, piece, curloc ])
+                continue
 
         # Not printed
         if r'not prntd' in piece:
@@ -470,6 +487,18 @@ def decode_full_history(actioncode):
             history.append([ legday, loc, piece, loc ])
             continue
 
+        # Is this some action by the House or Senate?
+        # E.g. h/receded on remaining amendments
+        if piece.startswith('h/'):
+            history.append([ legday, "House: " + piece[2:], piece, loc ])
+            continue
+        if piece.startswith('s/'):
+            history.append([ legday, "Senate: " + piece[2:], piece, loc ])
+            continue
+
+        # By here, we have no idea what it is, but add it anyway
+        history.append([ legday, piece, piece, loc ])
+
     return curloc, actioncode, history
 
 
@@ -478,6 +507,7 @@ def get_location_lists(billno, history):
        and what we know about future locations.
        history can be either a decoded full history,
        or a status code to pass to decode_full_history().
+       Returns pastlocs, futurelocs
     """
     if type(history) is str:
         location, status, history = decode_full_history(history)
@@ -497,10 +527,12 @@ def get_location_lists(billno, history):
 
     # The current location (the last loc setting)
     # is considered a future loc, not past, so move it,
-    # unless it's SIGNED or CHAPTERED.
+    # unless it's SIGNED or CHAPTERED,
+    # or unless the last action was passing the House or Senate.
     if pastlocs:
         lastloc = pastlocs[-1]
-        if lastloc != 'SIGNED' and lastloc != 'CHAPTERED':
+        if lastloc != 'SIGNED' and lastloc != 'CHAPTERED' \
+           and not re.match(FLOORPASSPAT, history[-1][2]):
             futurelocs.append(pastlocs.pop(-1))
 
     # Now store any assignments not in that list
@@ -569,6 +601,12 @@ if __name__ == '__main__':
     # from pprint import pprint
 
     def print_hist_info(actioncode):
+        print("Iterator:")
+        codeiter = action_code_iter(actioncode)
+        for piece, legday, loc in codeiter:
+            print("Day %d: '%s' (in %s)" % (legday, piece, loc))
+        print()
+
         location, status, histlist = decode_full_history(actioncode)
         print("Status:", status)
         # print("Last Action:", lastaction)
