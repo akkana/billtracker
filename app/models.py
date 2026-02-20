@@ -776,12 +776,10 @@ class Bill(db.Model):
     def show_html(self):
         """Show a summary of the bill's status, as seen on a user's home page.
         """
-        outstr = '<b><a href="%s" target="_blank">%s: %s</a></b>' % \
-            (self.bill_url(), self.billno, self.title)
-
         if self.year == LegSession.current_yearcode():
-            outstr += " (<a href='%s' target='_blank'>NMLegisWatch</a>)" \
-                % nmlegisbill.bill_overview_url(self.billno, self.year)
+            outstr = " <b><a href='%s' target='_blank'>%s: %s</a></b>" \
+                % (nmlegisbill.bill_overview_url(self.billno, self.year),
+                   self.billno, self.title)
 
         outstr += '<br />'
 
