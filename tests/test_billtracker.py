@@ -393,8 +393,9 @@ def test_billtracker():
                 if response_html != expected_html:
                     with open("/tmp/allnewbills.html", "w") as outfp:
                         outfp.write(response_html)
-                    print("************ allnewbills will fail without: "
-                        "cp /tmp/allnewbills.html tests/files/allnewbills.html")
+                    assert("************ allnewbills will fail without: "
+                        "cp /tmp/allnewbills.html tests/files/allnewbills.html"
+                           == '')
             else:
                 with open("/tmp/response.html", 'w') as ofp:
                     ofp.write(response_html)
@@ -413,8 +414,10 @@ def test_billtracker():
                 if response_html != expected_html:
                     with open("/tmp/nonewbills.html", "w") as outfp:
                         outfp.write(response_html)
-                    print("************ nonewbills will fail without: "
-                          "cp /tmp/nonewbills.html tests/files/nonewbills.html")
+                    assert ("************ nonewbills will fail without: "
+                          "cp /tmp/nonewbills.html tests/files/nonewbills.html"
+                            == '')
+                    assert response_html == expected_html
             else:
                 assert response_html == expected_html
 
