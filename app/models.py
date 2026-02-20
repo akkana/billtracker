@@ -309,7 +309,8 @@ class Bill(db.Model):
     # When did we last check the bill's page?
     update_date = db.Column(db.DateTime)
 
-    # Date of last action as represented in the status on NMLegis.gov
+    # Date of last action as represented in the status on NMLegis.gov.
+    # This attempts to be timezone-UNaware.
     last_action_date = db.Column(db.DateTime)
 
     # Chamber (S or H)
@@ -590,6 +591,7 @@ class Bill(db.Model):
 
         if self.scheduled_date:
             # self.scheduled_date is actually a datetime, despite the name
+            self.scheduled_date = self.scheduled_date.replace(tzinfo=None)
             if self.scheduled_date.date() >= nowdate:
                 return True
 
@@ -690,8 +692,8 @@ class Bill(db.Model):
                 return True
             if not user.last_check:
                 return True
-            user.last_check = user.last_check
-            if self.last_action_date > user.last_check:
+            self.last_action_date = self.last_action_date.replace(tzinfo=None)
+            if (self.last_action_date > user.last_check.replace(tzinfo=None)):
                 return True
 
         if datetime.now() - self.last_action_date < RECENT:
@@ -711,6 +713,7 @@ class Bill(db.Model):
 
     @staticmethod
     def highlight_if_recent(adate, pre_string):
+        adate = adate.replace(tzinfo=None)
         if adate and \
            ((datetime.now() - adate) < timedelta(hours=30)):
             return "<b>%s %s</b>" % (pre_string,
@@ -763,11 +766,13 @@ class Bill(db.Model):
             # otherwise show the most recent of scheduled or last_action,
             # and highlight it if it's recent.
             elif self.last_action_date:
-                if self.last_action_date > self.scheduled_date.replace(tzinfo=None):
-                    outstr += self.highlight_if_recent(self.last_action_date,
+                actiondate = self.last_action_date.replace(tzinfo=None)
+                scheddate = self.scheduled_date.replace(tzinfo=None)
+                if (actiondate > scheddate):
+                    outstr += self.highlight_if_recent(actiondate,
                                                        "Last action")
                 else:
-                    outstr += self.highlight_if_recent(self.last_action_date,
+                    outstr += self.highlight_if_recent(scheddate,
                                                        "Last scheduled")
                 outstr += '<br />'
 
@@ -780,6 +785,9 @@ class Bill(db.Model):
             outstr = " <b><a href='%s' target='_blank'>%s: %s</a></b>" \
                 % (nmlegisbill.bill_overview_url(self.billno, self.year),
                    self.billno, self.title)
+        else:
+            outstr = '<b><a href="%s" target="_blank">%s: %s</a></b>' % \
+                (self.bill_url(), self.billno, self.title)
 
         outstr += '<br />'
 
@@ -803,7 +811,7 @@ class Bill(db.Model):
         # but eventually I hope it can be used for everything.
         # XXX Tabled info should be in the database somehow.
 
-        if self.last_action_date:
+        if last_action:
             outstr += self.highlight_if_recent(last_action, "Last action")
 
         # Bills don't have action dates on signing:
@@ -966,6 +974,7 @@ class Bill(db.Model):
         outstr += self.bill_url() + '\n'
 
         if self.last_action_date:
+            self.last_action_date = self.last_action_date.replace(tzinfo=None)
             outstr += "Last action: %s\n" % \
                 self.last_action_date.strftime('%a %m/%d/%Y')
         # Bills don't have action dates on signing:
@@ -987,7 +996,6 @@ class Bill(db.Model):
 
             # The date to show is the most recent of last_action_date
             # or scheduled_date.
-            last_action = self.last_action_date
 
             if self.scheduled_date:
                 # postgres stores a dummy timezone to unaware datetimes,
@@ -997,9 +1005,6 @@ class Bill(db.Model):
                 # just in case.
                 self.scheduled_date = \
                     self.scheduled_date.replace(tzinfo=None)
-                if self.last_action_date:
-                    self.last_action_date = \
-                        self.last_action_date.replace(tzinfo=None)
 
                 future = self.scheduled_in_future()
                 sched_date = self.scheduled_date.date()
